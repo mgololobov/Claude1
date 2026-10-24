@@ -42,7 +42,7 @@ async function askCards(p, deck, n, theme, box) {
 function overviewExtras(p) {
   const lint = lintProject(p); const errs = lint.filter(x => x.lv === "err"), warns = lint.filter(x => x.lv === "warn");
   const size = JSON.stringify(p).length;
-  return `<div class="panel"><div class="row spread"><h2>Kontrola návrhu</h2><span class="count">${Math.round(size / 1024)} kB</span></div>
+  return `${versionsHTML(p)}${bookPanelHTML(p)}<div class="panel"><div class="row spread"><h2>Kontrola návrhu</h2><span class="count">${Math.round(size / 1024)} kB</span></div>
       ${lint.length ? `<div class="list">${[...errs, ...warns].map(x => `<div class="lint ${x.lv}"><b>${x.lv === "err" ? "Chyba" : "Upozornění"}</b><span>${esc(x.t)}</span></div>`).join("")}</div>`
         : `<div class="lint ok"><b>V pořádku</b><span>Efekty, odkazy na zdroje, balíčky, mapy i scénáře dávají smysl.</span></div>`}
       <p class="hint">Kontroluje zápis efektů, odkazy na smazané zdroje a mapy, trh větší než balíček, dílky, bojovou tabulku a velikost projektu.</p></div>
@@ -56,6 +56,7 @@ function overviewExtras(p) {
       <button class="btn primary" id="aiCards">Navrhnout karty</button><div id="aiCardBox"></div>` : ""}</div>`;
 }
 function wireOverviewExtras(main, p) {
+  wireVersions(main, p); wireBookPanel(main, p);
   $$("[data-ai]", main).forEach(b => b.onclick = async () => { const out = $("#aiOut"); $$("[data-ai]", main).forEach(x => x.disabled = true); await askAdvisor(p, b.dataset.ai, out); S.aiText = out.textContent; $$("[data-ai]", main).forEach(x => x.disabled = false); });
   if ($("#aiCards")) $("#aiCards").onclick = async () => { const btn = $("#aiCards"); btn.disabled = true; await askCards(p, p.decks.find(d => d.id === $("#aiDeck").value), Math.max(1, Math.min(12, +$("#aiN").value || 5)), $("#aiTheme").value.trim(), $("#aiCardBox")); btn.disabled = false; };
 }

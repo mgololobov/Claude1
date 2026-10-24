@@ -1,0 +1,30 @@
+name: Testy Herní dílny
+on:
+  push:
+    paths: ["herni-dilna/**", ".github/workflows/test.yml"]
+  pull_request:
+    paths: ["herni-dilna/**", ".github/workflows/test.yml"]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: herni-dilna
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Sestavení
+        run: python3 build.py
+      - name: Testy logiky
+        run: node --test tests/*.test.js
+      - name: Instalace prohlížeče
+        run: npm install --no-save playwright@1.48.2 && npx playwright install --with-deps chromium
+      - name: Test v prohlížeči
+        run: node tests/e2e.js
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: snimky
+          path: herni-dilna/tests/out/

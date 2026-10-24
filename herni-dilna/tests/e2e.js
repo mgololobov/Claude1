@@ -43,6 +43,43 @@ const OUT = path.join(__dirname, "out"); fs.mkdirSync(OUT, { recursive: true });
     const it = (await pg.$$(".titem"))[0]; const bb = await it.boundingBox(); await pg.mouse.move(bb.x + 20, bb.y + 20); await pg.mouse.down(); await pg.mouse.move(bb.x + 90, bb.y + 20, { steps: 5 }); await pg.mouse.up();
     const log = await ev(() => P().table.log[0]); if (!/fázi Pohyb/.test(log)) throw new Error(log);
   });
+  await step("wargame: provedení výsledku boje", async () => {
+    await ev(() => { P().ruleset.strict = false; });
+    const ids = await ev(() => { const t = P().table; const u = id => P().units.find(x => x.id === id); const a = t.items.find(i => i.kind === "unit" && u(i.unitId).factionId === P().factions[0].id); const d = t.items.find(i => i.kind === "unit" && u(i.unitId).factionId !== P().factions[0].id); return [a.uid, d.uid]; });
+    await pg.click(`.titem[data-uid="${ids[0]}"]`); await pg.click("[data-sa=asAtt]");
+    await pg.click(`.titem[data-uid="${ids[1]}"]`); await pg.click("[data-sa=asDef]");
+    await pg.click("#cRoll"); await pg.click("#wApply");
+    const log = await ev(() => P().table.log.slice(0, 2).join(" | ")); if (!/boj/.test(log)) throw new Error(log);
+  });
+  await step("wargame: iniciativa a zásobování", async () => {
+    await pg.click("#wInit"); const ord = await ev(() => P().table.order); if (!ord || ord.length !== 2) throw new Error(String(ord));
+    await pg.check("#wSup"); await pg.waitForSelector("#wSupR");
+  });
+  await step("iPad: zvětšení a kreslení", async () => {
+    await pg.click("#zIn"); const z = await ev(() => S.zoom); if (!(z > 1)) throw new Error("zoom " + z);
+    await pg.click("#zFit"); await pg.click("#inkOn");
+    const r = await (await pg.$(".mat-scroll")).boundingBox(); await pg.mouse.move(r.x + 200, r.y + 200); await pg.mouse.down(); await pg.mouse.move(r.x + 300, r.y + 260, { steps: 6 }); await pg.mouse.up();
+    const n = await ev(() => (P().table.ink || []).length); if (n !== 1) throw new Error("tahů " + n);
+    await pg.click("#inkOn"); await pg.screenshot({ path: path.join(OUT, "wargame.png") });
+  });
+  await step("dílky: líznutí a položení", async () => {
+    await sel(4); await pg.click("[data-tab=stul]"); await pg.click("[data-tool=dilky]"); await pg.click("#tileDraw");
+    const k = await ev(() => { const p = P(), t = p.table, b = tableBoard(p); return tileFits(p, t, b, t.tileHand)[0]; }); if (!k) throw new Error("dílek nemá kam");
+    const before = await ev(() => Object.keys(P().table.tilesPlaced).length);
+    await pg.click(`.cell[data-k="${k}"]`, { force: true }); const after = await ev(() => Object.keys(P().table.tilesPlaced).length);
+    if (after !== before + 1) throw new Error(`${before} → ${after}`);
+  });
+  await step("verze a příručka", async () => {
+    await pg.click("[data-tab=prehled]"); await pg.fill("#vVer", "9"); await pg.click("#vSave"); if (!(await ev(() => P().versions.length))) throw new Error("verze neuložena");
+    await pg.click("#bookShow"); await pg.waitForSelector(".book h2"); await pg.keyboard.press("Escape");
+  });
+  await step("tisk se spadávkou – dialog", async () => {
+    await pg.click("[data-tab=komponenty]"); await pg.click("#printSheet"); await pg.waitForSelector("#prBleed"); await pg.keyboard.press("Escape");
+  });
+  await step("ladění varianty v Analýze", async () => {
+    await sel(1); await pg.click("[data-tab=analyza]"); await pg.fill("#tuVals", "10, 20"); await pg.dispatchEvent("#tuVals", "change"); await pg.fill("#tuGames", "20"); await pg.dispatchEvent("#tuGames", "change");
+    await pg.click("#tuRun"); await pg.waitForSelector("[data-tuuse]", { timeout: 30000 });
+  });
   await step("telefon – Přehled", async () => { await pg.setViewportSize({ width: 400, height: 820 }); await pg.click("[data-tab=prehled]"); await pg.screenshot({ path: path.join(OUT, "telefon.png") }); });
   await b.close();
   console.log(`\n${fails.length ? fails.length + " kroků selhalo:\n" + fails.join("\n") : "Všechny kroky prošly."}\n${errors.length ? "Chyby v konzoli:\n" + errors.join("\n") : "Bez chyb v konzoli."}`);

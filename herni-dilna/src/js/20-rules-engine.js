@@ -184,11 +184,19 @@ function visibleFrom(p, b, k0, range) {
 }
 // Mlha války: které nepřátelské jednotky vidí zvolená strana.
 function fogHidden(p, t) {
-  const fid = S.view; if (!fid || !p.ruleset.fog) return null; const b = tableBoard(p); const hidden = new Set();
+  const fid = S.view; if (!fid) return null; const b = tableBoard(p); const hidden = new Set();
+  t.items.forEach(i => { if (i.kind !== "unit") return; const u = p.units.find(x => x.id === i.unitId); if (u && u.factionId !== fid && hiddenFaction(p, u.factionId)) hidden.add(i.uid + ":gone"); });
+  if (!p.ruleset.fog) return hidden.size ? hidden : null;
   const own = t.items.filter(i => i.kind === "unit" && (p.units.find(u => u.id === i.unitId) || {}).factionId === fid).map(i => cellUnder(p, i)).filter(Boolean);
   t.items.forEach(i => { if (i.kind !== "unit") return; const u = p.units.find(x => x.id === i.unitId); if (!u || u.factionId === fid) return;
     const k = cellUnder(p, i); const seen = b && k && own.some(o => hexDist(b, o, k) <= +p.ruleset.sight && hasLOS(p, b, o, k)); hidden.add(i.uid + (seen ? ":block" : ":gone")); });
   return hidden;
+}
+// Poslední známé pozice skrytých jednotek (pro ostatní hráče).
+function ghostsHTML(p, t) {
+  if (!S.view || !t.lastSeen || !tableBoard(p)) return ""; const b = tableBoard(p); const g = geo(b);
+  return Object.entries(t.lastSeen).map(([id, k]) => { const it = t.items.find(i => i.uid === id); const u = it && p.units.find(x => x.id === it.unitId); if (!u || u.factionId === S.view || !hiddenFaction(p, u.factionId)) return "";
+    const [c, r] = k.split(",").map(Number); const [cx, cy] = g.center(c, r); return `<div class="ghost" style="left:${BX + cx - 22}px;top:${BY + cy - 22}px" title="Naposledy viděno: ${esc(u.name)}">❓</div>`; }).join("");
 }
 // Dílky: soused ve směru i a hrana dílku po otočení.
 function dirNeighbor(b, c, r, i) {

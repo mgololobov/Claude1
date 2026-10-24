@@ -50,7 +50,7 @@ function normalize(p) {
   p.tiles = p.tiles || []; p.tileRules = p.tileRules || { match: true, adjacent: true };
   p.track = p.track || { length: 0, die: 6, spaces: "", autoNext: true }; p.routes = p.routes || { cost: "", price: 1, exclusive: true, tickets: [] };
   p.majority = p.majority || { points: "5,3,1" }; p.stock = p.stock || { currency: "", goods: [] }; if (p.roles == null) p.roles = "";
-  p.campaign = p.campaign || { log: [] }; p.boards.forEach(b => { b.regions = b.regions || {}; b.numbers = b.numbers || {}; });
+  p.versions = p.versions || []; p.campaign = p.campaign || { log: [] }; p.boards.forEach(b => { b.regions = b.regions || {}; b.numbers = b.numbers || {}; });
   p.production = p.production || { mode: "both" }; if (p.roleRes == null) p.roleRes = ""; if (p.bluffPenalty == null) p.bluffPenalty = "";
   p.factions.forEach(f => { if (f.setup == null) f.setup = ""; if (f.bot == null) f.bot = ""; });
   return p;

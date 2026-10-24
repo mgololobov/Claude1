@@ -2,7 +2,8 @@
 // Počítačoví hráči odehrají hru podle nastavených mechanik. Umí: nákupy z trhu, vykládání karet s efekty,
 // akční pole, rondel, výběr rolí, závodní dráhu, automat, příjem, automatická pravidla a cíle hry.
 // Použije rozestavení prvního scénáře a produkci z polí s čísly.
-// Neumí: pohyb a boj na mapě, dílky, trasy, štychy a dražby – ty se v simulaci přeskočí.
+// Na mapě táhnou jednotky k cíli a útočí podle bojové tabulky, dílky se kladou na nejlepší místo (36-sim-extra).
+// Neumí: trasy, štychy a dražby – ty se v simulaci přeskočí.
 function effectValue(p, text) {
   let v = 0;
   String(text || "").replace(/^jednou\s+za\s+(kolo|tah|hru)\s*:\s*/i, "").split(/[;\n,|]/).forEach(raw => {
@@ -60,12 +61,12 @@ function simMoves(p, t, f, hasOwn, greedy) {
   } });
   if (!hasOwn && !+p.track.length) { const d = p.decks.find(x => !x.starter && !x.bot && !p.factions.some(ff => ff.bot === x.id) && t.piles[x.id] && t.piles[x.id].length && !+x.market);
     if (d) moves.push({ v: .25, run() { (t.hands[f.id] = t.hands[f.id] || []).push({ deckId: d.id, cardId: t.piles[d.id].pop() }); after(p, t, "lizat", f.id); } }); }
-  return greedy ? moves : moves;
+  return moves.concat(simExtraMoves(p, t, f));
 }
 function simGame(p0, opt) {
   const S0 = S.silent; S.silent = true;
   const p = clone(p0); delete p.isExample; p.table = null; p.decks.forEach(d => d.cards.forEach(c => { c.img = ""; })); p.boards.forEach(b => { b.bg = null; });
-  const greedy = opt.policy === "greedy";
+  const greedy = opt.policy !== "random"; const look = opt.policy === "lookahead"; const hist = [];
   const leader = (opp) => opp.reduce((a, b) => (scoreOf(p, t, b.id).total > scoreOf(p, t, a.id).total ? b : a));
   const ctx = { auto: true, choose: greedy ? (opts) => opts.map(o => effectValue(p, o.split(",").join(";"))).reduce((bi, v, i, arr) => v > arr[bi] ? i : bi, 0) : null, target: greedy ? leader : null };
   const t = ensureTable(p); t.order = opt.shuffleSeats ? shuffle(p.factions.map(f => f.id)) : null;
@@ -88,7 +89,8 @@ function simGame(p0, opt) {
       fireTriggers(p, t, "tah", f.id, null); drain();
       if (hasOwn && !f.bot) { [...(t.hands[f.id] || [])].forEach(h => { const c = cardOf(p, h).c; if (!c || !(t.hands[f.id] || []).includes(h)) return; const hand = t.hands[f.id]; hand.splice(hand.indexOf(h), 1); (t.tableau[f.id] = t.tableau[f.id] || []).push(h); played[f.id].add(c.title); playDone(p, t, f.id, h, "vylozit"); drain(); }); t.acts = 0; }
       for (let a = 0; a < apt && !t.winner; a++) {
-        const moves = simMoves(p, t, f, hasOwn, greedy); if (!moves.length) break;
+        let moves = simMoves(p, t, f, hasOwn, greedy); if (!moves.length) break;
+        if (look && moves.length > 1) { const bi = lookaheadPick(p, t, f, () => simMoves(p, t, f, hasOwn, greedy)); moves = simMoves(p, t, f, hasOwn, greedy); if (bi >= 0 && moves[bi]) moves = [moves[bi]]; }
         const noisy = moves.map(m => ({ m, s: m.v + Math.random() * .4 })); const mv = greedy ? noisy.reduce((b, x) => (x.s > b.s ? x : b)).m : moves[Math.floor(Math.random() * moves.length)];
         if (mv.card) played[f.id].add(mv.card);
         mv.run(); drain(); checkWin(p, t);
@@ -99,8 +101,9 @@ function simGame(p0, opt) {
       if (+R.drawUpTo && !hasOwn) { const need = +R.drawUpTo - (t.hands[f.id] || []).length; if (need > 0) runEffects(p, t, f.id, `líznout ${need}`, "Dobrání", 1, ctx); }
       drain();
     }
+    hist.push(pl.map(f => simScore(p, t, f.id)));
   }
-  const scores = pl.map(f => scoreOf(p, t, f.id).total);
+  const scores = pl.map(f => simScore(p, t, f.id));
   // Výhra se při shodě bodů dělí mezi všechny nejlepší, aby remízy nezvýhodňovaly první místo.
   let share = pl.map(() => 0); const wi = t.winner ? pl.findIndex(f => f.id === t.winner.fid) : -1;
   if (wi >= 0) share[wi] = 1; else { const mx = Math.max(...scores); const top = scores.map((s, i) => s === mx ? i : -1).filter(i => i >= 0); top.forEach(i => share[i] = 1 / top.length); }
@@ -108,7 +111,7 @@ function simGame(p0, opt) {
   const reason = t.winner ? t.winner.why.replace(/\d+\.?\s*kol[ea]?/g, "N. kole").replace(/dosáhl \d+ bodů/, "bodový cíl") : `limit ${opt.rounds} kol simulace`;
   const res = {}; p.resources.filter(r => !r.global).forEach(r => { res[r.name] = pl.reduce((a, f) => a + ((t.res[f.id] || {})[r.id] || 0), 0) / pl.length; });
   S.silent = S0;
-  return { seats: pl.map((f, i) => ({ fid: f.id, name: f.name, seat: i, score: scores[i], played: [...played[f.id]] })), winIdx, share, rounds, reason, res };
+  return { seats: pl.map((f, i) => ({ fid: f.id, name: f.name, seat: i, score: scores[i], played: [...played[f.id]] })), winIdx, share, rounds, reason, res, hist };
 }
 async function runSimulation(p, opt, progress) {
   const games = []; const N = Math.max(1, Math.min(2000, +opt.games || 100));
@@ -139,19 +142,22 @@ function summarizeSim(p, games) {
   const allCards = new Set(p.decks.filter(d => !p.factions.some(f => f.bot === d.id)).flatMap(d => d.cards.filter(c => !c.locked && +c.qty).map(c => c.title)));
   const never = [...allCards].filter(t => !cards[t]); if (never.length && cardList.length) warnings.push(`V simulaci nikdo nezahrál: ${never.slice(0, 6).join(", ")}${never.length > 6 ? "…" : ""}.`);
   if (Object.keys(reasons).some(r => r.startsWith("limit")) && (reasons[Object.keys(reasons).find(r => r.startsWith("limit"))] / n) > .5) warnings.push("Většina her skončila na limitu kol simulace – hra možná nemá dosažitelný cíl nebo je moc dlouhá.");
-  return { n, nPl, avgRounds: rounds / n, seat: seat.map(s => ({ wr: s.wins / n, avg: s.score / n })), fac: Object.values(fac).map(F => ({ name: F.name, wr: F.wins / F.games, avg: F.score / F.games })), cards: cardList, reasons, margin: mCount ? margin / mCount : null, res, warnings };
+  const len = Math.max(0, ...games.map(g => (g.hist || []).length)); const curve = Array.from({ length: len }, (_, r) => Array.from({ length: nPl }, (_, s) => games.reduce((a, g) => a + ((g.hist || [])[Math.min(r, g.hist.length - 1)] || [])[s] || 0, 0) / n));
+  const dr = games.map(decidedRound).filter(x => x != null); const decided = dr.length ? dr.reduce((a, b) => a + b, 0) / dr.length : null;
+  if (decided != null && n >= 30 && rounds / n > 3 && decided / (rounds / n) < .5) warnings.push(`Vítěz bývá jasný už kolem ${Math.round(decided)}. kola z ${Math.round(rounds / n)} – konec hry může být nudný, zvaž dohánění.`);
+  return { n, nPl, avgRounds: rounds / n, curve, decided, seat: seat.map(s => ({ wr: s.wins / n, avg: s.score / n })), fac: Object.values(fac).map(F => ({ name: F.name, wr: F.wins / F.games, avg: F.score / F.games })), cards: cardList, reasons, margin: mCount ? margin / mCount : null, res, warnings };
 }
 function simPanelHTML(p) {
   const O = S.simOpt = S.simOpt || { games: 200, rounds: +p.ruleset.win.turns || 15, policy: "greedy", actions: 2, shuffleSeats: false, rotateStart: true };
   const R = S.simRes && S.simRes.pid === p.id ? S.simRes.r : null;
   const bar = (label, val, max, txt) => `<div class="bar"><span class="n" title="${esc(label)}">${esc(label)}</span><span class="tr"><span class="fl" style="width:${max ? Math.round(val / max * 100) : 0}%"></span></span><span class="v">${txt}</span></div>`;
   return `<div class="panel"><div class="row spread"><h2>Automatické testování</h2><span class="count">simulace</span></div>
-    <p class="hint">Počítač odehraje stovky her podle tvých karet, efektů, akcí, zdrojů a pravidel a ukáže vyváženost. Umí trh, vykládání karet s efekty, akční pole, rondel, role, dráhu, automat a cíle hry. Pohyb na mapě, boj, dílky, trasy, štychy a dražby přeskočí.</p>
+    <p class="hint">Počítač odehraje stovky her podle tvých karet, efektů, akcí, zdrojů a pravidel a ukáže vyváženost. Umí trh, vykládání karet s efekty, akční pole, rondel, role, dráhu, automat, pohyb a boj na mapě, dílky a cíle hry. Trasy, štychy a dražby přeskočí.</p>
     <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(130px,1fr))">
       <label class="f">Počet her<input type="number" min="10" max="2000" data-so="games" value="${O.games}"></label>
       <label class="f">Nejvýš kol<input type="number" min="1" max="200" data-so="rounds" value="${O.rounds}"></label>
       <label class="f">Akcí za tah<input type="number" min="1" max="10" data-so="actions" value="${+p.ruleset.actionsPerTurn || O.actions}" ${+p.ruleset.actionsPerTurn ? "disabled title='Určeno v Pravidlech'" : ""}></label>
-      <label class="f">Hráči hrají<select data-so="policy"><option value="greedy" ${O.policy === "greedy" ? "selected" : ""}>Chytře (nejlepší tah)</option><option value="random" ${O.policy === "random" ? "selected" : ""}>Náhodně</option></select></label>
+      <label class="f">Hráči hrají<select data-so="policy"><option value="greedy" ${O.policy === "greedy" ? "selected" : ""}>Chytře (nejlepší tah)</option><option value="lookahead" ${O.policy === "lookahead" ? "selected" : ""}>Promyšleně (zkouší tahy dopředu, pomalejší)</option><option value="random" ${O.policy === "random" ? "selected" : ""}>Náhodně</option></select></label>
     </div>
     <label class="chk"><input type="checkbox" data-so="rotateStart" ${O.rotateStart !== false ? "checked" : ""}> Začínající hráč se každé kolo posouvá</label>
     <label class="chk"><input type="checkbox" data-so="shuffleSeats" ${O.shuffleSeats ? "checked" : ""}> Strany losovat do náhodného pořadí (odhalí sílu stran, ne výhodu pořadí)</label>
@@ -161,9 +167,11 @@ function simPanelHTML(p) {
       <div class="stat-row">
         <div class="stat"><span class="eyebrow">Her</span><b>${R.n}</b></div>
         <div class="stat"><span class="eyebrow">Průměrně kol</span><b>${R.avgRounds.toLocaleString("cs-CZ", { maximumFractionDigits: 1 })}</b></div>
+        <div class="stat"><span class="eyebrow">Rozhodnuto</span><b>${R.decided == null ? "–" : "~" + Math.round(R.decided) + "."}</b><span class="muted">kolo</span></div>
         <div class="stat"><span class="eyebrow">Těsnost</span><b>${R.margin == null ? "–" : R.margin.toLocaleString("cs-CZ", { maximumFractionDigits: 1 })}</b><span class="muted">bodů 1.–2. místo</span></div>
       </div>
       ${R.warnings.length ? `<div class="list">${R.warnings.map(w => `<div class="lint warn"><b>Pozor</b><span>${esc(w)}</span></div>`).join("")}</div>` : `<div class="lint ok"><b>Vyvážené</b><span>Simulace nenašla výraznou výhodu pořadí, strany ani karty.</span></div>`}
+      ${scoreChartSVG(R)}
       <div class="two">
         <div style="display:flex;flex-direction:column;gap:10px;min-width:0"><h3>Výhry podle pořadí</h3><div class="bars">${R.seat.map((s, i) => bar(`${i + 1}. hráč`, s.wr, 1, `${Math.round(s.wr * 100)} % · ⌀ ${s.avg.toLocaleString("cs-CZ", { maximumFractionDigits: 1 })} b.`)).join("")}</div>
           <h3>Strany</h3><div class="bars">${R.fac.map(f => bar(f.name, f.wr, 1, `${Math.round(f.wr * 100)} % · ⌀ ${f.avg.toLocaleString("cs-CZ", { maximumFractionDigits: 1 })} b.`)).join("")}</div>
@@ -181,4 +189,5 @@ function wireSimPanel(main, p) {
     const r = await runSimulation(p, { ...S.simOpt, actions: +p.ruleset.actionsPerTurn || S.simOpt.actions }, (i, n) => { const el = $("#simProg"); if (el) el.textContent = `Odehráno ${i} z ${n}…`; });
     S.simRes = { pid: p.id, r }; render();
   };
+  wireTunePanel(main, p);
 }

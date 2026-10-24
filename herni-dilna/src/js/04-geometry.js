@@ -22,35 +22,48 @@ function geoRaw(b) {
       return bd <= s ? best : null; } };
 }
 function terrainOf(p, b, k) { const id = b.terrain[k]; return p.terrains.find(t => t.id === id) || null; }
+// Neměnné vrstvy mapy (terén, popisky, regiony) se drží v mezipaměti – u velkých map se jinak skládají při každém překreslení.
+const SVG_CACHE = new Map();
+function boardStatic(p, b) {
+  const key = JSON.stringify([b.type, b.size, b.cols, b.rows, b.terrain, b.labels, b.numbers, b.regions, b.bg, b.coords, b.regionColors, p.terrains]);
+  let c = SVG_CACHE.get(b.id); if (c && c.key === key) return c;
+  const g = geo(b); const cells = [], marks = [], regs = []; const base = p.terrains[0];
+  for (let c2 = 0; c2 < b.cols; c2++) for (let r = 0; r < b.rows; r++) {
+    const k = c2 + "," + r; const [cx, cy] = g.center(c2, r); const pts = g.poly(cx, cy); const t = terrainOf(p, b, k);
+    const fill = t ? t.color : (b.bg ? "transparent" : (base ? base.color : "#c9d6a3"));
+    cells.push(`<polygon class="cell" data-k="${k}" points="${pts}" fill="${fill}" ${t && b.bg ? `fill-opacity="${b.bg.terrainOpacity ?? .55}"` : ""}/>`);
+    if (t && t.glyph) marks.push(`<text class="glyph" x="${cx}" y="${cy + 5}" text-anchor="middle">${esc(t.glyph)}</text>`);
+    if (b.coords !== false) marks.push(`<text class="coord" x="${cx}" y="${cy - (b.type === "square" ? b.size * .6 : b.size * .58)}" text-anchor="middle">${pad2(c2 + 1)}${pad2(r + 1)}</text>`);
+    if (b.numbers && b.numbers[k]) marks.push(`<circle cx="${cx}" cy="${cy}" r="${(b.size || 34) * .32}" fill="#f6eedb" stroke="rgba(0,0,0,.35)"/><text class="num ${b.numbers[k] === 6 || b.numbers[k] === 8 ? "hot" : ""}" x="${cx}" y="${cy + (b.size || 34) * .12}" text-anchor="middle">${b.numbers[k]}</text>`);
+    if (b.labels[k]) marks.push(`<text class="lab" x="${cx}" y="${cy + (b.type === "square" ? b.size * .75 : b.size * .72)}" text-anchor="middle">${esc(b.labels[k])}</text>`);
+  }
+  if (b.regions && Object.keys(b.regions).length) {
+    const cen = {};
+    const n6 = b.type === "square" ? 4 : 6; const s0 = +b.size || 34;
+    Object.entries(b.regions).forEach(([k, n]) => { const [c2, r] = k.split(",").map(Number); if (c2 >= b.cols || r >= b.rows) return; const [cx, cy] = g.center(c2, r); const col = regionColor(b, n);
+      for (let i = 0; i < n6; i++) { const [x, y] = dirNeighbor(b, c2, r, i); if (b.regions[x + "," + y] === n) continue;
+        const mid = n6 === 4 ? [-90, 0, 90, 180][i] : [-90, -30, 30, 90, 150, 210][i]; const half = n6 === 4 ? 45 : 30; const rad = n6 === 4 ? s0 * .9 * Math.SQRT2 : s0;
+        const p1 = [(mid - half) * Math.PI / 180, (mid + half) * Math.PI / 180].map(a2 => [(cx + Math.cos(a2) * rad * .93).toFixed(1), (cy + Math.sin(a2) * rad * .93).toFixed(1)]);
+        regs.push(`<line class="reg" x1="${p1[0][0]}" y1="${p1[0][1]}" x2="${p1[1][0]}" y2="${p1[1][1]}" stroke="${col}"/>`); }
+      (cen[n] = cen[n] || []).push([cx, cy]); });
+    Object.entries(cen).forEach(([n, a]) => { const x = a.reduce((s2, v) => s2 + v[0], 0) / a.length, y = a.reduce((s2, v) => s2 + v[1], 0) / a.length; regs.push(`<text class="regl" x="${x.toFixed(1)}" y="${y.toFixed(1)}" text-anchor="middle" fill="${regionColor(b, n)}">${esc(n)}</text>`); });
+  }
+  c = { key, cells: cells.join(""), marks: marks.join(""), regs: regs.join("") };
+  SVG_CACHE.set(b.id, c); if (SVG_CACHE.size > 12) SVG_CACHE.delete(SVG_CACHE.keys().next().value);
+  return c;
+}
 function boardSVG(p, b, control, opts = {}) {
-  const g = geo(b); const parts = [];
+  const g = geo(b); const parts = []; const st = boardStatic(p, b);
   parts.push(`<svg class="board-svg" ${opts.id ? `id="${opts.id}"` : ""} width="${g.W.toFixed(0)}" height="${g.H.toFixed(0)}" viewBox="0 0 ${g.W.toFixed(1)} ${g.H.toFixed(1)}" xmlns="http://www.w3.org/2000/svg">`);
   parts.push(`<rect x="0" y="0" width="${g.W}" height="${g.H}" rx="6" fill="#efe9da"/>`);
   if (b.bg && (b.bg.url || b.bg.data)) parts.push(`<image href="${esc(b.bg.url || b.bg.data)}" x="${PAD}" y="${PAD}" width="${g.W - PAD * 2}" height="${g.H - PAD * 2}" preserveAspectRatio="none" opacity="${b.bg.opacity ?? 1}"/>`);
-  const base = p.terrains[0];
   const fid = id => p.factions.find(f => f.id === id);
-  for (let c = 0; c < b.cols; c++) for (let r = 0; r < b.rows; r++) {
-    const k = c + "," + r; const [cx, cy] = g.center(c, r); const pts = g.poly(cx, cy); const t = terrainOf(p, b, k);
-    const fill = t ? t.color : (b.bg ? "transparent" : (base ? base.color : "#c9d6a3"));
-    parts.push(`<polygon class="cell" data-k="${k}" points="${pts}" fill="${fill}" ${t && b.bg ? `fill-opacity="${b.bg.terrainOpacity ?? .55}"` : ""}/>`);
-    if (control && control[k] && fid(control[k])) parts.push(`<polygon class="ctrl" points="${pts}" fill="${fid(control[k]).color}" fill-opacity=".42" stroke="${fid(control[k]).color}" stroke-width="2.5"/>`);
-    if (t && t.glyph) parts.push(`<text class="glyph" x="${cx}" y="${cy + 5}" text-anchor="middle">${esc(t.glyph)}</text>`);
-    if (b.coords !== false) parts.push(`<text class="coord" x="${cx}" y="${cy - (b.type === "square" ? b.size * .6 : b.size * .58)}" text-anchor="middle">${pad2(c + 1)}${pad2(r + 1)}</text>`);
-    if (b.numbers && b.numbers[k]) parts.push(`<circle cx="${cx}" cy="${cy}" r="${(b.size || 34) * .32}" fill="#f6eedb" stroke="rgba(0,0,0,.35)"/><text class="num ${b.numbers[k] === 6 || b.numbers[k] === 8 ? "hot" : ""}" x="${cx}" y="${cy + (b.size || 34) * .12}" text-anchor="middle">${b.numbers[k]}</text>`);
-    if (b.labels[k]) parts.push(`<text class="lab" x="${cx}" y="${cy + (b.type === "square" ? b.size * .75 : b.size * .72)}" text-anchor="middle">${esc(b.labels[k])}</text>`);
-  }
+  parts.push(st.cells);
+  if (control) Object.entries(control).forEach(([k, id]) => { const f = fid(id); if (!f) return; const [c, r] = k.split(",").map(Number); if (c >= b.cols || r >= b.rows) return; const [cx, cy] = g.center(c, r);
+    parts.push(`<polygon class="ctrl" points="${g.poly(cx, cy)}" fill="${f.color}" fill-opacity=".42" stroke="${f.color}" stroke-width="2.5"/>`); });
+  parts.push(st.marks);
   if (opts.tiles) Object.entries(opts.tiles).forEach(([k, o]) => { const tl = p.tiles.find(x => x.id === o.id); if (!tl) return; const [c, r] = k.split(",").map(Number); if (c >= b.cols || r >= b.rows) return; const [cx, cy] = g.center(c, r); parts.push(tileSVG(p, b, tl, o.rot, cx, cy, g)); });
-  if (b.regions && Object.keys(b.regions).length && opts.regions !== false) {
-    const cen = {};
-    const n6 = b.type === "square" ? 4 : 6; const s0 = +b.size || 34;
-    Object.entries(b.regions).forEach(([k, n]) => { const [c, r] = k.split(",").map(Number); if (c >= b.cols || r >= b.rows) return; const [cx, cy] = g.center(c, r); const col = regionColor(b, n);
-      for (let i = 0; i < n6; i++) { const [x, y] = dirNeighbor(b, c, r, i); if (b.regions[x + "," + y] === n) continue;
-        const mid = n6 === 4 ? [-90, 0, 90, 180][i] : [-90, -30, 30, 90, 150, 210][i]; const half = n6 === 4 ? 45 : 30; const rad = n6 === 4 ? s0 * .9 * Math.SQRT2 : s0;
-        const p1 = [(mid - half) * Math.PI / 180, (mid + half) * Math.PI / 180].map(a2 => [(cx + Math.cos(a2) * rad * .93).toFixed(1), (cy + Math.sin(a2) * rad * .93).toFixed(1)]);
-        parts.push(`<line class="reg" x1="${p1[0][0]}" y1="${p1[0][1]}" x2="${p1[1][0]}" y2="${p1[1][1]}" stroke="${col}"/>`); }
-      (cen[n] = cen[n] || []).push([cx, cy]); });
-    Object.entries(cen).forEach(([n, a]) => { const x = a.reduce((s2, v) => s2 + v[0], 0) / a.length, y = a.reduce((s2, v) => s2 + v[1], 0) / a.length; parts.push(`<text class="regl" x="${x.toFixed(1)}" y="${y.toFixed(1)}" text-anchor="middle" fill="${regionColor(b, n)}">${esc(n)}</text>`); });
-  }
+  if (opts.regions !== false) parts.push(st.regs);
   if (opts.links) opts.links.forEach(l => { const f = p.factions.find(x => x.id === l.fid); const [a1, a2] = l.a.split(",").map(Number), [b1, b2] = l.b.split(",").map(Number); if (a1 >= b.cols || b1 >= b.cols || a2 >= b.rows || b2 >= b.rows) return;
     const [x1, y1] = g.center(a1, a2), [x2, y2] = g.center(b1, b2); parts.push(`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#fff" stroke-width="9" stroke-linecap="round"/><line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${f ? f.color : "#333"}" stroke-width="5" stroke-linecap="round"/>`); });
   if (opts.routeSel) { const [c, r] = opts.routeSel.split(",").map(Number); const [cx, cy] = g.center(c, r); parts.push(`<circle cx="${cx}" cy="${cy}" r="${(+b.size || 34) * .45}" fill="none" stroke="#e0aa2e" stroke-width="4"/>`); }

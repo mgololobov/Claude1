@@ -37,3 +37,15 @@
 .titem .pcard { font-size: 10.67px; }
 .hand .pcard { font-size: 10.24px; }
 .hand.mini .pcard { font-size: 9.39px; }
+.pcard .tyi { letter-spacing: 0; }
+.pcard .rar { position: absolute; left: 50%; bottom: .45em; width: .6em; height: .6em; transform: translateX(-50%) rotate(45deg); border: 1px solid rgba(0,0,0,.35); z-index: 3; }
+.pcard .r-bezna { background: #b8b8b0; } .pcard .r-neobvykla { background: #4f9d6a; } .pcard .r-vzacna { background: #3f6fb0; } .pcard .r-legendarni { background: #e0aa2e; box-shadow: 0 0 .35em #e0aa2e; }
+.pcard[class*="fr-"]::after { content: ""; position: absolute; pointer-events: none; z-index: 4; border-radius: .45em; }
+.pcard.fr-tenky::after { inset: .2em; border: .12em solid var(--c); }
+.pcard.fr-dvojity::after { inset: .18em; border: .32em double var(--c); }
+.pcard.fr-zdobny::after { inset: .14em; border: .14em solid var(--c); box-shadow: inset 0 0 0 .14em #fbfaf6, inset 0 0 0 .26em var(--c); }
+.pcard.fr-cerny { border: .4em solid #161616; }
+.pcard.back.img { background-size: cover; background-position: center; }
+.bc { position: relative; width: 69mm; height: 94mm; padding: 3mm; background: var(--bc, #fbfaf6) center / cover no-repeat; }
+.bc .pcard { border: 0 !important; }
+.bc .cm { position: absolute; inset: -3mm; width: calc(100% + 6mm); height: calc(100% + 6mm); overflow: visible; pointer-events: none; }

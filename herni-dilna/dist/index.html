@@ -156,7 +156,9 @@ hr.sep { border: 0; border-top: 1px solid var(--line); width: 100%; margin: 0; }
 /* Stůl */
 .table-wrap { display: grid; grid-template-columns: minmax(0, 1fr) 320px; height: 100%; min-height: 0; }
 @media (max-width: 900px) { .table-wrap { grid-template-columns: 1fr; grid-template-rows: minmax(380px, 62vh) auto; height: auto; min-height: 100%; } }
-.mat-scroll { overflow: auto; background: var(--mat); position: relative; min-height: 0; }
+.mat-area { position: relative; min-height: 0; display: flex; flex-direction: column; }
+.mat-area > .mat-scroll { flex: 1; }
+.mat-scroll { overflow: auto; touch-action: pan-x pan-y; background: var(--mat); position: relative; min-height: 0; }
 .mat { position: relative; touch-action: pan-x pan-y;
   background-color: var(--mat);
   background-image: linear-gradient(var(--mat-line-strong) 1px, transparent 1px), linear-gradient(90deg, var(--mat-line-strong) 1px, transparent 1px),
@@ -275,6 +277,22 @@ button.die { border: 0; padding: 0; }
 .ai-out { white-space: pre-wrap; font-size: .92rem; line-height: 1.5; max-height: 420px; overflow: auto; }
 .ai-out:empty { display: none; }
 .board-svg .rngt { font-family: var(--f-mono); font-size: 10px; font-weight: 600; fill: #1b2421; }
+.diff { display: grid; grid-template-columns: 22px 1fr; gap: 6px; padding: 6px 8px; border-radius: 6px; font-size: .9rem; }
+.diff.add { background: color-mix(in srgb, var(--good) 12%, var(--surface)); } .diff.del { background: color-mix(in srgb, var(--danger) 10%, var(--surface)); } .diff.chg { background: color-mix(in srgb, var(--accent) 12%, var(--surface)); }
+.book h2 { font-size: 1.15rem; margin-top: 1rem; border-bottom: 1px solid var(--line); padding-bottom: 4px; } .book table { border-collapse: collapse; width: 100%; font-size: .85rem; } .book td, .book th { border: 1px solid var(--line); padding: 4px 6px; text-align: left; vertical-align: top; } .book ul, .book ol { padding-left: 1.2rem; }
+.titem .unit.big { font-size: 20px; }
+.unit.hq::before { content: "★"; position: absolute; left: .25em; top: .15em; font-size: .7em; }
+.titem .oos { position: absolute; right: -6px; top: -8px; background: #e0aa2e; color: #000; border-radius: 50%; width: 18px; height: 18px; font-size: 11px; display: grid; place-items: center; pointer-events: none; }
+.ghost { position: absolute; width: 44px; height: 44px; border-radius: 50%; border: 2px dashed #b0402c; background: rgba(255,255,255,.7); display: grid; place-items: center; font-size: 20px; pointer-events: none; }
+.mat { transform-origin: 0 0; }
+.zoombar { position: absolute; left: 10px; bottom: 10px; z-index: 50; display: flex; align-items: center; gap: 4px; background: var(--card, #fff); border: 1px solid var(--line); border-radius: 12px; padding: 4px; box-shadow: 0 4px 14px rgba(0,0,0,.18); }
+.zoombar button { min-width: 40px; height: 40px; border: 0; border-radius: 8px; background: transparent; font-size: 1.1rem; color: inherit; }
+.zoombar button[aria-pressed="true"] { background: var(--accent); color: #fff; }
+.zoombar button:disabled { opacity: .35; }
+.zoombar #zLab { min-width: 52px; text-align: center; font-size: .8rem; }
+.zoombar .zsep { width: 1px; height: 26px; background: var(--line); margin: 0 4px; }
+.inklayer { position: absolute; left: 0; top: 0; pointer-events: none; z-index: 900; }
+.mat.inkmode { cursor: crosshair; }
 </style>
 <style id="card-css">
 /* Vzhled karet. Všechny rozměry jsou v em, velikost karty určuje jen font-size (16px = šířka 150 px). */
@@ -316,6 +334,18 @@ button.die { border: 0; padding: 0; }
 .titem .pcard { font-size: 10.67px; }
 .hand .pcard { font-size: 10.24px; }
 .hand.mini .pcard { font-size: 9.39px; }
+.pcard .tyi { letter-spacing: 0; }
+.pcard .rar { position: absolute; left: 50%; bottom: .45em; width: .6em; height: .6em; transform: translateX(-50%) rotate(45deg); border: 1px solid rgba(0,0,0,.35); z-index: 3; }
+.pcard .r-bezna { background: #b8b8b0; } .pcard .r-neobvykla { background: #4f9d6a; } .pcard .r-vzacna { background: #3f6fb0; } .pcard .r-legendarni { background: #e0aa2e; box-shadow: 0 0 .35em #e0aa2e; }
+.pcard[class*="fr-"]::after { content: ""; position: absolute; pointer-events: none; z-index: 4; border-radius: .45em; }
+.pcard.fr-tenky::after { inset: .2em; border: .12em solid var(--c); }
+.pcard.fr-dvojity::after { inset: .18em; border: .32em double var(--c); }
+.pcard.fr-zdobny::after { inset: .14em; border: .14em solid var(--c); box-shadow: inset 0 0 0 .14em #fbfaf6, inset 0 0 0 .26em var(--c); }
+.pcard.fr-cerny { border: .4em solid #161616; }
+.pcard.back.img { background-size: cover; background-position: center; }
+.bc { position: relative; width: 69mm; height: 94mm; padding: 3mm; background: var(--bc, #fbfaf6) center / cover no-repeat; }
+.bc .pcard { border: 0 !important; }
+.bc .cm { position: absolute; inset: -3mm; width: calc(100% + 6mm); height: calc(100% + 6mm); overflow: visible; pointer-events: none; }
 </style>
 
 <header class="top">
@@ -327,6 +357,7 @@ button.die { border: 0; padding: 0; }
     <div class="proj-pick">
       <select id="projSel" aria-label="Projekt"></select>
       <button class="btn small" id="newProj">+ Nová hra</button>
+      <button class="btn small" id="undoDesign" title="Vrátit poslední úpravu návrhu" aria-label="Vrátit poslední úpravu návrhu" disabled>↶</button>
     </div>
     <span class="save-state" id="saveState"></span>
   </div>
@@ -422,7 +453,7 @@ function normalize(p) {
   p.tiles = p.tiles || []; p.tileRules = p.tileRules || { match: true, adjacent: true };
   p.track = p.track || { length: 0, die: 6, spaces: "", autoNext: true }; p.routes = p.routes || { cost: "", price: 1, exclusive: true, tickets: [] };
   p.majority = p.majority || { points: "5,3,1" }; p.stock = p.stock || { currency: "", goods: [] }; if (p.roles == null) p.roles = "";
-  p.campaign = p.campaign || { log: [] }; p.boards.forEach(b => { b.regions = b.regions || {}; b.numbers = b.numbers || {}; });
+  p.versions = p.versions || []; p.campaign = p.campaign || { log: [] }; p.boards.forEach(b => { b.regions = b.regions || {}; b.numbers = b.numbers || {}; });
   p.production = p.production || { mode: "both" }; if (p.roleRes == null) p.roleRes = ""; if (p.bluffPenalty == null) p.bluffPenalty = "";
   p.factions.forEach(f => { if (f.setup == null) f.setup = ""; if (f.bot == null) f.bot = ""; });
   return p;
@@ -501,7 +532,7 @@ function exampleWar() {
     U("1. pěší", blue, "pechota", "III", 4, 4, 3, 2, 2, 3, 3),
     U("7. tankový", blue, "tanky", "II", 6, 3, 6, 3, 2, 6, 1),
     U("12. dělostř.", blue, "delo", "III", 5, 2, 2, 2, 1, 2, 1),
-    U("Štáb", blue, "stab", "XX", 0, 1, 4, "", "", "", 1),
+    Object.assign(U("Štáb", blue, "stab", "XX", 0, 1, 4, "", "", "", 1), { hq: true }),
     U("3. pěší", red, "pechota", "III", 3, 5, 3, 2, 3, 3, 3),
     U("Husaři", red, "jezdectvo", "II", 3, 2, 7, 1, 1, 7, 1),
     U("Baterie", red, "delo", "II", 4, 2, 2, 2, 1, 2, 1),
@@ -693,35 +724,48 @@ function geoRaw(b) {
       return bd <= s ? best : null; } };
 }
 function terrainOf(p, b, k) { const id = b.terrain[k]; return p.terrains.find(t => t.id === id) || null; }
+// Neměnné vrstvy mapy (terén, popisky, regiony) se drží v mezipaměti – u velkých map se jinak skládají při každém překreslení.
+const SVG_CACHE = new Map();
+function boardStatic(p, b) {
+  const key = JSON.stringify([b.type, b.size, b.cols, b.rows, b.terrain, b.labels, b.numbers, b.regions, b.bg, b.coords, b.regionColors, p.terrains]);
+  let c = SVG_CACHE.get(b.id); if (c && c.key === key) return c;
+  const g = geo(b); const cells = [], marks = [], regs = []; const base = p.terrains[0];
+  for (let c2 = 0; c2 < b.cols; c2++) for (let r = 0; r < b.rows; r++) {
+    const k = c2 + "," + r; const [cx, cy] = g.center(c2, r); const pts = g.poly(cx, cy); const t = terrainOf(p, b, k);
+    const fill = t ? t.color : (b.bg ? "transparent" : (base ? base.color : "#c9d6a3"));
+    cells.push(`<polygon class="cell" data-k="${k}" points="${pts}" fill="${fill}" ${t && b.bg ? `fill-opacity="${b.bg.terrainOpacity ?? .55}"` : ""}/>`);
+    if (t && t.glyph) marks.push(`<text class="glyph" x="${cx}" y="${cy + 5}" text-anchor="middle">${esc(t.glyph)}</text>`);
+    if (b.coords !== false) marks.push(`<text class="coord" x="${cx}" y="${cy - (b.type === "square" ? b.size * .6 : b.size * .58)}" text-anchor="middle">${pad2(c2 + 1)}${pad2(r + 1)}</text>`);
+    if (b.numbers && b.numbers[k]) marks.push(`<circle cx="${cx}" cy="${cy}" r="${(b.size || 34) * .32}" fill="#f6eedb" stroke="rgba(0,0,0,.35)"/><text class="num ${b.numbers[k] === 6 || b.numbers[k] === 8 ? "hot" : ""}" x="${cx}" y="${cy + (b.size || 34) * .12}" text-anchor="middle">${b.numbers[k]}</text>`);
+    if (b.labels[k]) marks.push(`<text class="lab" x="${cx}" y="${cy + (b.type === "square" ? b.size * .75 : b.size * .72)}" text-anchor="middle">${esc(b.labels[k])}</text>`);
+  }
+  if (b.regions && Object.keys(b.regions).length) {
+    const cen = {};
+    const n6 = b.type === "square" ? 4 : 6; const s0 = +b.size || 34;
+    Object.entries(b.regions).forEach(([k, n]) => { const [c2, r] = k.split(",").map(Number); if (c2 >= b.cols || r >= b.rows) return; const [cx, cy] = g.center(c2, r); const col = regionColor(b, n);
+      for (let i = 0; i < n6; i++) { const [x, y] = dirNeighbor(b, c2, r, i); if (b.regions[x + "," + y] === n) continue;
+        const mid = n6 === 4 ? [-90, 0, 90, 180][i] : [-90, -30, 30, 90, 150, 210][i]; const half = n6 === 4 ? 45 : 30; const rad = n6 === 4 ? s0 * .9 * Math.SQRT2 : s0;
+        const p1 = [(mid - half) * Math.PI / 180, (mid + half) * Math.PI / 180].map(a2 => [(cx + Math.cos(a2) * rad * .93).toFixed(1), (cy + Math.sin(a2) * rad * .93).toFixed(1)]);
+        regs.push(`<line class="reg" x1="${p1[0][0]}" y1="${p1[0][1]}" x2="${p1[1][0]}" y2="${p1[1][1]}" stroke="${col}"/>`); }
+      (cen[n] = cen[n] || []).push([cx, cy]); });
+    Object.entries(cen).forEach(([n, a]) => { const x = a.reduce((s2, v) => s2 + v[0], 0) / a.length, y = a.reduce((s2, v) => s2 + v[1], 0) / a.length; regs.push(`<text class="regl" x="${x.toFixed(1)}" y="${y.toFixed(1)}" text-anchor="middle" fill="${regionColor(b, n)}">${esc(n)}</text>`); });
+  }
+  c = { key, cells: cells.join(""), marks: marks.join(""), regs: regs.join("") };
+  SVG_CACHE.set(b.id, c); if (SVG_CACHE.size > 12) SVG_CACHE.delete(SVG_CACHE.keys().next().value);
+  return c;
+}
 function boardSVG(p, b, control, opts = {}) {
-  const g = geo(b); const parts = [];
+  const g = geo(b); const parts = []; const st = boardStatic(p, b);
   parts.push(`<svg class="board-svg" ${opts.id ? `id="${opts.id}"` : ""} width="${g.W.toFixed(0)}" height="${g.H.toFixed(0)}" viewBox="0 0 ${g.W.toFixed(1)} ${g.H.toFixed(1)}" xmlns="http://www.w3.org/2000/svg">`);
   parts.push(`<rect x="0" y="0" width="${g.W}" height="${g.H}" rx="6" fill="#efe9da"/>`);
   if (b.bg && (b.bg.url || b.bg.data)) parts.push(`<image href="${esc(b.bg.url || b.bg.data)}" x="${PAD}" y="${PAD}" width="${g.W - PAD * 2}" height="${g.H - PAD * 2}" preserveAspectRatio="none" opacity="${b.bg.opacity ?? 1}"/>`);
-  const base = p.terrains[0];
   const fid = id => p.factions.find(f => f.id === id);
-  for (let c = 0; c < b.cols; c++) for (let r = 0; r < b.rows; r++) {
-    const k = c + "," + r; const [cx, cy] = g.center(c, r); const pts = g.poly(cx, cy); const t = terrainOf(p, b, k);
-    const fill = t ? t.color : (b.bg ? "transparent" : (base ? base.color : "#c9d6a3"));
-    parts.push(`<polygon class="cell" data-k="${k}" points="${pts}" fill="${fill}" ${t && b.bg ? `fill-opacity="${b.bg.terrainOpacity ?? .55}"` : ""}/>`);
-    if (control && control[k] && fid(control[k])) parts.push(`<polygon class="ctrl" points="${pts}" fill="${fid(control[k]).color}" fill-opacity=".42" stroke="${fid(control[k]).color}" stroke-width="2.5"/>`);
-    if (t && t.glyph) parts.push(`<text class="glyph" x="${cx}" y="${cy + 5}" text-anchor="middle">${esc(t.glyph)}</text>`);
-    if (b.coords !== false) parts.push(`<text class="coord" x="${cx}" y="${cy - (b.type === "square" ? b.size * .6 : b.size * .58)}" text-anchor="middle">${pad2(c + 1)}${pad2(r + 1)}</text>`);
-    if (b.numbers && b.numbers[k]) parts.push(`<circle cx="${cx}" cy="${cy}" r="${(b.size || 34) * .32}" fill="#f6eedb" stroke="rgba(0,0,0,.35)"/><text class="num ${b.numbers[k] === 6 || b.numbers[k] === 8 ? "hot" : ""}" x="${cx}" y="${cy + (b.size || 34) * .12}" text-anchor="middle">${b.numbers[k]}</text>`);
-    if (b.labels[k]) parts.push(`<text class="lab" x="${cx}" y="${cy + (b.type === "square" ? b.size * .75 : b.size * .72)}" text-anchor="middle">${esc(b.labels[k])}</text>`);
-  }
+  parts.push(st.cells);
+  if (control) Object.entries(control).forEach(([k, id]) => { const f = fid(id); if (!f) return; const [c, r] = k.split(",").map(Number); if (c >= b.cols || r >= b.rows) return; const [cx, cy] = g.center(c, r);
+    parts.push(`<polygon class="ctrl" points="${g.poly(cx, cy)}" fill="${f.color}" fill-opacity=".42" stroke="${f.color}" stroke-width="2.5"/>`); });
+  parts.push(st.marks);
   if (opts.tiles) Object.entries(opts.tiles).forEach(([k, o]) => { const tl = p.tiles.find(x => x.id === o.id); if (!tl) return; const [c, r] = k.split(",").map(Number); if (c >= b.cols || r >= b.rows) return; const [cx, cy] = g.center(c, r); parts.push(tileSVG(p, b, tl, o.rot, cx, cy, g)); });
-  if (b.regions && Object.keys(b.regions).length && opts.regions !== false) {
-    const cen = {};
-    const n6 = b.type === "square" ? 4 : 6; const s0 = +b.size || 34;
-    Object.entries(b.regions).forEach(([k, n]) => { const [c, r] = k.split(",").map(Number); if (c >= b.cols || r >= b.rows) return; const [cx, cy] = g.center(c, r); const col = regionColor(b, n);
-      for (let i = 0; i < n6; i++) { const [x, y] = dirNeighbor(b, c, r, i); if (b.regions[x + "," + y] === n) continue;
-        const mid = n6 === 4 ? [-90, 0, 90, 180][i] : [-90, -30, 30, 90, 150, 210][i]; const half = n6 === 4 ? 45 : 30; const rad = n6 === 4 ? s0 * .9 * Math.SQRT2 : s0;
-        const p1 = [(mid - half) * Math.PI / 180, (mid + half) * Math.PI / 180].map(a2 => [(cx + Math.cos(a2) * rad * .93).toFixed(1), (cy + Math.sin(a2) * rad * .93).toFixed(1)]);
-        parts.push(`<line class="reg" x1="${p1[0][0]}" y1="${p1[0][1]}" x2="${p1[1][0]}" y2="${p1[1][1]}" stroke="${col}"/>`); }
-      (cen[n] = cen[n] || []).push([cx, cy]); });
-    Object.entries(cen).forEach(([n, a]) => { const x = a.reduce((s2, v) => s2 + v[0], 0) / a.length, y = a.reduce((s2, v) => s2 + v[1], 0) / a.length; parts.push(`<text class="regl" x="${x.toFixed(1)}" y="${y.toFixed(1)}" text-anchor="middle" fill="${regionColor(b, n)}">${esc(n)}</text>`); });
-  }
+  if (opts.regions !== false) parts.push(st.regs);
   if (opts.links) opts.links.forEach(l => { const f = p.factions.find(x => x.id === l.fid); const [a1, a2] = l.a.split(",").map(Number), [b1, b2] = l.b.split(",").map(Number); if (a1 >= b.cols || b1 >= b.cols || a2 >= b.rows || b2 >= b.rows) return;
     const [x1, y1] = g.center(a1, a2), [x2, y2] = g.center(b1, b2); parts.push(`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#fff" stroke-width="9" stroke-linecap="round"/><line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${f ? f.color : "#333"}" stroke-width="5" stroke-linecap="round"/>`); });
   if (opts.routeSel) { const [c, r] = opts.routeSel.split(",").map(Number); const [cx, cy] = g.center(c, r); parts.push(`<circle cx="${cx}" cy="${cy}" r="${(+b.size || 34) * .45}" fill="none" stroke="#e0aa2e" stroke-width="4"/>`); }
@@ -734,33 +778,79 @@ function boardSVG(p, b, control, opts = {}) {
 
 // ---------- úložiště ----------
 const LS_KEY = "herni-dilna-v1";
-const store = { mode: "local", db: null, uid: null, timers: {}, chains: {} };
+const store = { mode: "local", db: null, uid: null, timers: {}, chains: {}, parts: {} };
 function lsRead() { try { const v = localStorage.getItem(LS_KEY); return v ? JSON.parse(v) : null; } catch { return null; } }
 let lsTimer = null;
 function lsWrite() { clearTimeout(lsTimer); lsTimer = setTimeout(lsWriteNow, 400); }
-function lsWriteNow() { clearTimeout(lsTimer); try { localStorage.setItem(LS_KEY, JSON.stringify({ projects: S.projects.filter(p => !p.isExample), currentId: S.currentId })); store.lsFull = false; } catch { store.lsFull = true; if (store.mode !== "db") setSaveState("Prohlížeč je plný – stáhni zálohu"); } }
+function lsWriteNow() { clearTimeout(lsTimer); try { localStorage.setItem(LS_KEY, JSON.stringify({ projects: S.projects.filter(p => !p.isExample && !p.online), currentId: S.currentId })); store.lsFull = false; } catch { store.lsFull = true; if (store.mode !== "db") setSaveState("Prohlížeč je plný – stáhni zálohu"); } }
 onInit(() => window.addEventListener("pagehide", () => lsWriteNow()));
 onInit(() => document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") lsWriteNow(); }));
 function setSaveState(t) { $("#saveState").textContent = t; }
+// K účtu se projekt ukládá po částech, aby žádná nepřekročila limit 256 kB jednoho záznamu:
+//   <id> návrh · <id>--table herní stůl · <id>--tests záznamy testů · <id>--v-<id> verze · <id>--img-<n> vložené obrázky
+// Zapisují se jen části, které se od posledního uložení změnily.
+const IMG_CHUNK = 190000;
+function splitProject(p) {
+  const q = clone(p); delete q.isExample; const parts = {}; const imgs = [];
+  q.decks.forEach(d => { if (d.backImg && d.backImg.startsWith("data:")) { imgs.push(["back", d.id, d.backImg]); d.backImg = "@img"; }
+    d.cards.forEach(c => { if (c.img && c.img.startsWith("data:")) { imgs.push(["card", d.id + "/" + c.id, c.img]); c.img = "@img"; } }); });
+  q.boards.forEach(b => { if (b.bg && b.bg.data) { imgs.push(["board", b.id, b.bg.data]); b.bg.data = "@img"; } });
+  parts.table = { table: q.table || null }; delete q.table;
+  parts.tests = { sessions: q.sessions || [] }; delete q.sessions;
+  (q.versions || []).forEach(v => { parts["v-" + v.id] = v; }); delete q.versions;
+  let chunk = [], size = 0, n = 0; const flush = () => { if (chunk.length) { parts["img-" + n++] = { items: chunk }; chunk = []; size = 0; } };
+  imgs.forEach(it => { if (size + it[2].length > IMG_CHUNK) flush(); chunk.push(it); size += it[2].length; }); flush();
+  parts[""] = q;
+  return parts;
+}
+function joinProject(docs) {
+  const p = docs[""]; if (!p) return null;
+  if (docs.table) p.table = docs.table.table; if (docs.tests) p.sessions = docs.tests.sessions;
+  const vs = Object.keys(docs).filter(k => k.startsWith("v-")).map(k => docs[k]); if (vs.length) p.versions = vs.sort((a, b) => (a.created || 0) - (b.created || 0));
+  Object.keys(docs).filter(k => k.startsWith("img-")).forEach(k => (docs[k].items || []).forEach(([kind, key, data]) => {
+    if (kind === "card") { const [dId, cId] = key.split("/"); const c = ((p.decks || []).find(d => d.id === dId) || { cards: [] }).cards.find(x => x.id === cId); if (c) c.img = data; }
+    else if (kind === "back") { const d = (p.decks || []).find(x => x.id === key); if (d) d.backImg = data; }
+    else if (kind === "board") { const b = (p.boards || []).find(x => x.id === key); if (b && b.bg) b.bg.data = data; }
+  }));
+  return p;
+}
 function persist(p) {
   lsWrite();
-  if (store.mode !== "db" || p.isExample) { setSaveState(store.mode === "db" ? "" : "Uloženo v tomto prohlížeči"); return; }
+  if (store.mode !== "db" || p.isExample || p.online) { setSaveState(store.mode === "db" ? "" : "Uloženo v tomto prohlížeči"); return; }
   setSaveState("Ukládám…");
   clearTimeout(store.timers[p.id]);
   store.timers[p.id] = setTimeout(() => {
-    const body = clone(p);
+    const parts = splitProject(p); const last = store.parts[p.id] = store.parts[p.id] || {}; const col = store.db.collection("data/users/" + store.uid);
+    const jobs = [];
+    Object.entries(parts).forEach(([k, body]) => { const js = JSON.stringify(body); if (js.length > 255000) { jobs.push(() => Promise.reject({ code: "too_big", part: k })); return; } if (last[k] !== js) jobs.push(() => col.doc(p.id + (k ? "--" + k : "")).set(body).then(() => { last[k] = js; })); });
+    Object.keys(last).forEach(k => { if (!(k in parts)) jobs.push(() => col.doc(p.id + (k ? "--" + k : "")).delete().then(() => { delete last[k]; })); });
     const prev = store.chains[p.id] || Promise.resolve();
-    store.chains[p.id] = prev.then(() => store.db.collection("data/users/" + store.uid).doc(p.id).set(body))
+    store.chains[p.id] = prev.then(() => jobs.reduce((ch, job) => ch.then(job), Promise.resolve()))
       .then(() => setSaveState("Uloženo"))
-      .catch(e => { setSaveState(e && e.code === "quota_exceeded" ? "Úložiště je plné" : (e && e.code === "invalid_argument" ? "Projekt je moc velký – zmenši obrázek mapy" : "Neuloženo – zkusím znovu při další změně")); });
+      .catch(e => { setSaveState(e && e.code === "quota_exceeded" ? "Úložiště je plné" : e && e.code === "too_big" ? (e.part === "" ? "Návrh je moc velký – zkrať texty nebo smaž karty" : "Část projektu je moc velká – smaž záznam hry") : e && e.code === "invalid_argument" ? "Část projektu je moc velká" : "Neuloženo – zkusím znovu při další změně"); });
   }, 800);
 }
-function touch(p) { if (p.isExample) delete p.isExample; p.updatedAt = Date.now(); persist(p); }
+// Krok zpět při úpravách návrhu (stůl má vlastní krok zpět).
+const DU = { stacks: {}, last: {}, timer: null, skip: false };
+function designKey(p) { const q = { ...p }; delete q.table; delete q.sessions; delete q.versions; delete q.updatedAt; delete q.isExample; return JSON.stringify(q); }
+function captureDesign(p) { const now = designKey(p); const last = DU.last[p.id]; if (last && last !== now) { const st = DU.stacks[p.id] = DU.stacks[p.id] || []; st.push(last); if (st.length > 40) st.shift(); } DU.last[p.id] = now; updateUndoBtn(); }
+function updateUndoBtn() { const b = document.getElementById("undoDesign"); const p = P(); if (b && p) b.disabled = !(DU.stacks[p.id] || []).length; }
+function undoDesign() {
+  const p = P(); if (!p) return; clearTimeout(DU.timer); captureDesign(p); const st = DU.stacks[p.id] || []; if (!st.length) return;
+  const prev = JSON.parse(st.pop()); const keep = { id: p.id, table: p.table, sessions: p.sessions, versions: p.versions };
+  Object.keys(p).forEach(k => delete p[k]); Object.assign(p, normalize({ ...prev, ...keep })); DU.last[p.id] = designKey(p);
+  DU.skip = true; touch(p); DU.skip = false; render(); toast("Úprava návrhu vrácena");
+}
+function touch(p) {
+  if (p.isExample) delete p.isExample; p.updatedAt = Date.now(); persist(p);
+  if (!DU.skip) { clearTimeout(DU.timer); DU.timer = setTimeout(() => captureDesign(p), 600); }
+  if (p.online && typeof onlinePush === "function") onlinePush(p);
+}
 async function removeProject(p) {
   S.projects = S.projects.filter(x => x.id !== p.id);
   if (!S.projects.length) S.projects.push(blankProject());
   S.currentId = S.projects[0].id; lsWrite();
-  if (store.mode === "db") { try { await store.db.collection("data/users/" + store.uid).doc(p.id).delete(); } catch {} }
+  if (store.mode === "db") { const col = store.db.collection("data/users/" + store.uid); const keys = Object.keys(store.parts[p.id] || { "": 1 }); for (const k of keys) { try { await col.doc(p.id + (k ? "--" + k : "")).delete(); } catch {} } delete store.parts[p.id]; }
   render();
 }
 async function connectDb() {
@@ -770,12 +860,16 @@ async function connectDb() {
     if (!db || !user) return;
     const id = await user.id(); if (!id) return;
     const snap = await db.collection("data/users/" + id).get();
-    store.db = db; store.uid = id; store.mode = "db";
-    const remote = snap.docs.filter(d => d.exists).map(d => normalize(clone(d.data())));
+    store.db = db; store.uid = id; store.mode = "db"; store.user = user;
+    const groups = {};
+    snap.docs.filter(d => d.exists).forEach(d => { const [base, ...rest] = d.id.split("--"); const k = rest.join("--"); (groups[base] = groups[base] || {})[k] = clone(d.data()); (store.parts[base] = store.parts[base] || {})[k] = JSON.stringify(d.data()); });
+    const remote = Object.values(groups).map(joinProject).filter(Boolean).map(normalize);
     if (remote.length) {
       const ids = new Set(remote.map(p => p.id));
       const localOnly = S.projects.filter(p => !p.isExample && !ids.has(p.id));
       S.projects = [...remote, ...localOnly].sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+      // Starý formát (vše v jednom záznamu) se přeuloží po částech.
+      remote.forEach(p => { if (groups[p.id] && !groups[p.id].table) { store.parts[p.id] = {}; persist(p); } });
       localOnly.forEach(persist);
       if (!S.projects.find(p => p.id === S.currentId)) S.currentId = S.projects[0].id;
       render();
@@ -806,8 +900,10 @@ function render() {
   main.style.overflow = S.tab === "stul" ? "hidden" : "auto";
   ({ prehled: renderOverview, komponenty: renderComponents, mapa: renderMap, mechaniky: renderMechanics, pravidla: renderRules, scenare: renderScenarios, stul: renderTable, testy: renderTests, analyza: renderAnalysis })[S.tab](main, P());
   processPending(P());
+  const cp = P(); if (cp && !DU.last[cp.id]) DU.last[cp.id] = designKey(cp); updateUndoBtn();
 }
 onInit(() => $("#projSel").addEventListener("change", e => { S.currentId = e.target.value; S.sel = null; S.deckId = null; S.boardId = null; S.undo = []; S.rangeUid = null; S.pool = []; lsWrite(); render(); }));
+onInit(() => $("#undoDesign").addEventListener("click", undoDesign));
 onInit(() => $("#newProj").addEventListener("click", () => { const p = blankProject(); S.projects.unshift(p); S.currentId = p.id; S.tab = "prehled"; touch(p); render(); toast("Nová hra založena"); }));
 onInit(() => $$(".tab").forEach(b => b.addEventListener("click", () => { S.tab = b.dataset.tab; try { localStorage.setItem(LS_KEY + "-tab", S.tab); } catch {} render(); })));
 function exampleBanner(p) {
@@ -856,11 +952,12 @@ function richText(text) {
 }
 function cardHTML(card, deck, faceUp = true) {
   const font = CARD_FONT_CSS[deck.font || ""]; const st = `--c:${deck.color}${font ? `;--cf:${font}` : ""}`;
-  if (!faceUp) return `<div class="pcard back" style="${st}"><div class="bk">${esc(deck.back || deck.name)}</div></div>`;
+  if (!faceUp) return deck.backImg ? `<div class="pcard back img" style="${st};background-image:url('${esc(deck.backImg)}')"></div>` : `<div class="pcard back" style="${st}"><div class="bk">${esc(deck.back || deck.name)}</div></div>`;
+  const pj = typeof P === "function" ? P() : null; const tIcon = pj && pj.typeIcons && card.type ? pj.typeIcons[card.type] : "";
   const tpl = CARD_TEMPLATES[deck.template] ? deck.template : "classic";
   const cost = card.cost !== "" && card.cost != null ? `<span class="cost">${richText(card.cost)}</span>` : "";
   const hd = `<div class="hd"><span class="tt">${esc(card.title) || "&nbsp;"}</span>${cost}</div>`;
-  const ty = card.type ? `<div class="ty">${esc(card.type)}</div>` : "";
+  const ty = card.type ? `<div class="ty">${tIcon ? `<span class="tyi">${esc(tIcon)}</span> ` : ""}${esc(card.type)}</div>` : "";
   const art = card.img ? `<div class="art" style="background-image:url('${esc(card.img)}')"></div>` : "";
   const ph = art || `<div class="art">${esc(card.icon || "")}</div>`;
   const ic = card.icon ? `<div class="ic">${esc(card.icon)}</div>` : "";
@@ -873,7 +970,8 @@ function cardHTML(card, deck, faceUp = true) {
   else if (tpl === "play") { const idx = `${esc(card.value || "")}<br>${esc(card.suit || "")}`; inner = `<div class="cn tl">${idx}</div><div class="cn br">${idx}</div><div class="pc-center">${art || `<span>${esc(card.icon || card.suit || "")}</span>`}</div><div class="pc-title">${esc(card.title)}</div>${card.text ? tx : ""}`; }
   else if (tpl === "min") inner = hd + (art || ic) + tx + ft;
   else inner = hd + ty + art + ic + tx + ft;
-  return `<div class="pcard t-${tpl}" style="${st}">${inner}${card.locked ? `<span class="lk">🔒</span>` : ""}</div>`;
+  const rar = card.rarity && RARITIES[card.rarity] ? `<span class="rar r-${card.rarity}" title="${RARITIES[card.rarity]}"></span>` : "";
+  return `<div class="pcard t-${tpl}${deck.frame ? " fr-" + deck.frame : ""}" style="${st}">${inner}${rar}${card.locked ? `<span class="lk">🔒</span>` : ""}</div>`;
 }
 const MEEPLE = c => `<svg viewBox="0 0 46 54" aria-hidden="true"><path fill="${c}" stroke="rgba(255,255,255,.6)" stroke-width="1.5" d="M23 2c5 0 8 3.6 8 8 0 2.6-1 4.6-2.6 6 5.8 1.2 15.6 4.4 15.6 9.6 0 3-3.4 3.6-7.6 3.4L42 50c.4 1.6-.6 2.4-2 2.4H29.4L23 41l-6.4 11.4H6c-1.4 0-2.4-.8-2-2.4l5.6-21C5.4 29.2 2 28.6 2 25.6 2 20.4 11.8 17.2 17.6 16 16 14.6 15 12.6 15 10c0-4.4 3-8 8-8z"/></svg>`;
 function tokenHTML(t, value) {
@@ -906,7 +1004,7 @@ function unitVals(u, reduced) {
 const hasReduced = u => !!u && [u.rAtt, u.rDef, u.rMov].some(v => v !== "" && v != null);
 function unitHTML(p, u, reduced = false) {
   const f = p.factions.find(x => x.id === u.factionId); const col = f ? f.color : "#888"; const ink = inkFor(col);
-  return `<div class="unit ${reduced ? "red" : ""}" style="background:${col};color:${ink}" title="${esc(u.name)}">
+  return `<div class="unit ${reduced ? "red" : ""}${u.big ? " big" : ""}${u.hq ? " hq" : ""}" style="background:${col};color:${ink}" title="${esc(u.name)}">
     <span class="nm">${esc(u.name)}</span>${u.note ? `<span class="note">${esc(u.note.slice(0, 3))}</span>` : ""}
     <span class="sym"><span class="sz">${esc(u.size || "")}</span>${natoSymbol(u, ink)}</span>
     <span class="vals">${esc(unitVals(u, reduced))}</span></div>`;
@@ -1010,7 +1108,7 @@ function renderComponents(main, p) {
   main.innerHTML = `<div class="page">
     ${exampleBanner(p)}
     <div class="panel">
-      <div class="row spread"><h2>Balíčky karet</h2><div class="row"><button class="btn" id="addDeck">+ Nový balíček</button><button class="btn" id="printSheet">Tisková archa</button><button class="btn" id="csvExp">Export CSV</button></div></div>
+      <div class="row spread"><h2>Balíčky karet</h2><div class="row"><button class="btn" id="addDeck">+ Nový balíček</button><button class="btn" id="printSheet">Tisková archa</button><button class="btn" id="pngExp">Obrázky karet</button><button class="btn" id="ttsExp">Tabletop Simulator</button><button class="btn" id="csvExp">Export CSV</button></div></div>
       <div class="decks">${p.decks.map(d => `<button class="chip" data-deck="${d.id}" aria-pressed="${d.id === S.deckId}"><span class="dot" style="background:${d.color}"></span>${esc(d.name)} <span class="count">${d.cards.reduce((n, c) => n + (+c.qty || 0), 0)}${d.starter ? " · start" : ""}${+d.market ? " · trh " + d.market : ""}</span></button>`).join("")}</div>
       ${deck ? `
       <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr))">
@@ -1019,12 +1117,15 @@ function renderComponents(main, p) {
         <label class="f">Karet na trhu (0 = bez trhu)<input type="number" id="d-market" min="0" max="10" value="${+deck.market || 0}"></label>
         <label class="chk" style="align-self:end"><input type="checkbox" id="d-starter" ${deck.starter ? "checked" : ""}> Startovní balíček – každý hráč dostane vlastní kopii</label>
         <label class="f">Šablona karet<select id="d-tpl">${Object.entries(CARD_TEMPLATES).map(([k, v]) => `<option value="${k}" ${k === (deck.template || "classic") ? "selected" : ""}>${v}</option>`).join("")}</select></label>
+        <label class="f">Rámeček<select id="d-frame">${Object.entries(FRAMES).map(([k, v]) => `<option value="${k}" ${k === (deck.frame || "") ? "selected" : ""}>${v}</option>`).join("")}</select></label>
+        <div class="f"><span>Obrázek rubu</span><span class="row"><label class="btn small" for="d-backf">${deck.backImg ? "Vyměnit" : "Nahrát"}</label><input type="file" id="d-backf" accept="image/*" hidden>${deck.backImg ? `<button class="btn small danger" id="d-backdel">Odebrat</button>` : ""}</span></div>
         <label class="f">Písmo karet<select id="d-font">${Object.entries(CARD_FONTS).map(([k, v]) => `<option value="${k}" ${k === (deck.font || "") ? "selected" : ""}>${v}</option>`).join("")}</select></label>
       </div>
       <div class="f"><span>Barva</span>${swatchRow(deck.color, "data-color")}</div>
+      ${typeIconsHTML(p)}
       <div class="row spread">
         <span class="muted">${deck.cards.length} ${plural(deck.cards.length, "druh", "druhy", "druhů")} karet, celkem ${total} ${plural(total, "kus", "kusy", "kusů")}</span>
-        <div class="row"><input type="text" id="cardFilter" placeholder="Hledat kartu…" value="${esc(S.cardFilter || "")}" style="width:180px"><button class="btn primary" id="addCard">+ Nová karta</button><button class="btn" id="bulk">Hromadně vložit</button><button class="btn danger" id="delDeck">Smazat balíček</button></div>
+        <div class="row"><input type="text" id="cardFilter" placeholder="Hledat kartu…" value="${esc(S.cardFilter || "")}" style="width:180px"><button class="btn primary" id="addCard">+ Nová karta</button><button class="btn" id="bulk">Hromadně vložit</button><button class="btn" id="aiFill">✨ Efekty z textu</button><button class="btn danger" id="delDeck">Smazat balíček</button></div>
       </div>
       ${deck.cards.length ? `<div class="card-grid">${shown.map(c => `<button class="card-cell" data-card="${c.id}" aria-label="Upravit kartu ${esc(c.title)}">${cardHTML(c, deck)}<span class="qty">${c.qty}×${c.locked ? " · 🔒 zamčená" : ""}${c.effect ? " · ⚡" : ""}</span></button>`).join("")}
         ${flt ? "" : `<div class="card-cell">${cardHTML({}, deck, false)}<span class="qty">rub</span></div>`}</div>
@@ -1096,7 +1197,9 @@ function renderComponents(main, p) {
   $$("[data-unit]", main).forEach(b => b.onclick = () => editUnit(p, p.units.find(u => u.id === b.dataset.unit)));
   $$("[data-deck]", main).forEach(b => b.onclick = () => { S.deckId = b.dataset.deck; S.cardFilter = ""; render(); });
   $("#addDeck").onclick = () => { const d = { id: uid(), name: "Balíček " + (p.decks.length + 1), color: COLORS[p.decks.length % COLORS.length], back: p.name.toUpperCase(), cards: [], market: 0, starter: false }; p.decks.push(d); S.deckId = d.id; touch(p); render(); };
-  $("#printSheet").onclick = () => exportPrint(p);
+  $("#printSheet").onclick = () => printDialog(p);
+  $("#pngExp").onclick = () => exportImages(p, "png");
+  $("#ttsExp").onclick = () => exportImages(p, "tts");
   $("#csvExp").onclick = () => exportCSV(p);
   if (deck) {
     $("#d-name").addEventListener("input", e => { deck.name = e.target.value; touch(p); }); $("#d-name").addEventListener("change", render);
@@ -1104,11 +1207,16 @@ function renderComponents(main, p) {
     $("#d-market").addEventListener("change", e => { deck.market = Math.max(0, Math.min(10, parseInt(e.target.value, 10) || 0)); touch(p); render(); });
     $("#d-tpl").onchange = e => { deck.template = e.target.value; touch(p); render(); };
     $("#d-font").onchange = e => { deck.font = e.target.value; touch(p); render(); };
+    $("#d-frame").onchange = e => { deck.frame = e.target.value; touch(p); render(); };
+    $("#d-backf").onchange = async e => { const f = e.target.files[0]; if (!f) return; toast("Nahrávám rub…"); try { const r = await storeImage(f, { max: 1000, dataMax: 420, limit: 45000 }); deck.backImg = r.url || r.data; touch(p); render(); } catch { toast("Obrázek se nepodařilo načíst"); } };
+    if ($("#d-backdel")) $("#d-backdel").onclick = () => { deck.backImg = ""; touch(p); render(); };
+    $$("[data-tyi]", main).forEach(i => i.addEventListener("change", () => { p.typeIcons = p.typeIcons || {}; p.typeIcons[i.dataset.tyi] = i.value.trim(); touch(p); render(); }));
     $("#d-starter").onchange = e => { deck.starter = e.target.checked; touch(p); render(); toast("Projeví se po vyčištění stolu"); };
     $("#cardFilter").addEventListener("input", e => { S.cardFilter = e.target.value; const pos = e.target.selectionStart; render(); const f = $("#cardFilter"); f.focus(); f.setSelectionRange(pos, pos); });
     $$("[data-color]", main).forEach(b => b.onclick = () => { deck.color = b.dataset.color; touch(p); render(); });
     $("#addCard").onclick = () => editCard(p, deck, null);
     $("#bulk").onclick = () => bulkDialog(p, deck);
+    $("#aiFill").onclick = () => aiFillDeck(p, deck);
     $("#delDeck").onclick = () => confirmDialog(`Smazat balíček „${deck.name}“?`, `Smaže se ${deck.cards.length} ${plural(deck.cards.length, "druh", "druhy", "druhů")} karet.`, "Smazat", () => { p.decks = p.decks.filter(d => d.id !== deck.id); touch(p); render(); });
     $$("[data-card]", main).forEach(b => b.onclick = () => editCard(p, deck, deck.cards.find(c => c.id === b.dataset.card)));
   }
@@ -1170,6 +1278,8 @@ function editUnit(p, unit) {
         <div class="eyebrow">Oslabená strana (nech prázdné, pokud žeton nemá rub)</div>
         <div class="grid" style="grid-template-columns:repeat(3,1fr)"><input type="number" id="u-ra" value="${esc(u.rAtt)}" aria-label="Útok oslabené"><input type="number" id="u-rd" value="${esc(u.rDef)}" aria-label="Obrana oslabené"><input type="number" id="u-rm" value="${esc(u.rMov)}" aria-label="Pohyb oslabené"></div>
         <label class="f" style="width:120px">Počet žetonů<input type="number" id="u-q" min="0" max="99" value="${u.qty}"></label>
+        <label class="chk"><input type="checkbox" id="u-hq" ${u.hq ? "checked" : ""}> Velitelství – zdroj zásobování</label>
+        <label class="chk"><input type="checkbox" id="u-big" ${u.big ? "checked" : ""}> Velký žeton (zabírá víc místa)</label>
       </div>
       <div id="u-prev" style="display:flex;flex-direction:column;align-items:center;gap:10px;font-size:20px"></div>
     </div>
@@ -1180,7 +1290,7 @@ function editUnit(p, unit) {
   const num = v => v === "" ? "" : +v;
   const read = () => { u.name = $("#u-name", d).value; u.factionId = $("#u-f", d).value; u.symbol = $("#u-sym", d).value; u.size = $("#u-size", d).value; u.symText = $("#u-symtext", d).value; u.note = $("#u-note", d).value;
     u.att = num($("#u-a", d).value); u.def = num($("#u-d", d).value); u.mov = num($("#u-m", d).value); u.rAtt = num($("#u-ra", d).value); u.rDef = num($("#u-rd", d).value); u.rMov = num($("#u-rm", d).value);
-    u.qty = Math.max(0, Math.min(99, parseInt($("#u-q", d).value, 10) || 0)); };
+    u.qty = Math.max(0, Math.min(99, parseInt($("#u-q", d).value, 10) || 0)); u.hq = $("#u-hq", d).checked; u.big = $("#u-big", d).checked; };
   const prev = () => { read(); $("#u-prev", d).innerHTML = unitHTML(p, u) + (hasReduced(u) ? unitHTML(p, u, true) : "") + `<span class="hint" style="font-size:.8rem">líc${hasReduced(u) ? " / rub" : ""}</span>`; };
   d.addEventListener("input", prev); d.addEventListener("change", prev); prev();
   $("#u-save", d).onclick = () => { read(); if (isNew) p.units.push(u); else Object.assign(unit, u); touch(p); closeDialog(); render(); toast(isNew ? "Jednotka přidána" : "Jednotka uložena"); };
@@ -1208,10 +1318,12 @@ function editCard(p, deck, card) {
           <label class="f">Hodnota<input type="text" id="c-value" value="${esc(c.value)}" placeholder="7"></label>
           <label class="f">Vítězné body<input type="text" id="c-vp" value="${esc(c.vp)}" placeholder="2"></label>
         </div>
+        <label class="f" style="width:170px">Vzácnost<select id="c-rarity">${Object.entries(RARITIES).map(([k, v]) => `<option value="${k}" ${k === (c.rarity || "") ? "selected" : ""}>${v}</option>`).join("")}</select></label>
         <label class="f">Text karty<textarea id="c-text">${esc(c.text)}</textarea></label>
         ${p.resources.length ? `<div class="row"><span class="hint">Vložit ikonu:</span>${p.resources.map(r => `<button type="button" class="btn small" data-ins="${esc(r.name)}"><span class="dot" style="background:${r.color}"></span>${esc(r.icon || "")} ${esc(r.name)}</button>`).join("")}</div>` : ""}
         <div class="row"><label class="btn small" for="c-imgf">${c.img ? "Vyměnit obrázek" : "Nahrát obrázek"}</label><input type="file" id="c-imgf" accept="image/*" hidden>${c.img ? `<button type="button" class="btn small danger" id="c-imgdel">Odebrat obrázek</button>` : ""}<span class="hint" id="c-imgst"></span></div>
         <label class="f">Efekt při vyložení nebo zahrání (provede se sám)<input type="text" id="c-effect" value="${esc(c.effect)}" placeholder="+2 Mince; líznout 1"></label>
+        <div class="row"><button type="button" class="btn small" id="c-ai">✨ Převést text na efekt</button><span class="hint" id="c-aist"></span></div>
         <label class="chk"><input type="checkbox" id="c-locked" ${c.locked ? "checked" : ""}> Zamčená – do hry vstoupí až po odemčení v kampani</label>
         <p class="hint">Barva a hodnota slouží pro štychy a bodování sad, vítězné body pro skóre z vyložených karet. Zápis efektů najdeš v záložce Pravidla.</p>
       </div>
@@ -1221,10 +1333,11 @@ function editCard(p, deck, card) {
       <div class="row">${isNew ? "" : `<button class="btn danger" id="c-del">Smazat</button><button class="btn" id="c-dup">Duplikovat</button>`}</div>
       <div class="row"><button class="btn" data-close>Zrušit</button><button class="btn primary" id="c-save">Uložit kartu</button></div>
     </div>`, true);
-  const read = () => { ["title", "type", "cost", "text", "suit", "value", "vp", "icon", "effect"].forEach(k => c[k] = $("#c-" + k, d).value); c.locked = $("#c-locked", d).checked; c.qty = Math.max(0, Math.min(99, parseInt($("#c-qty", d).value, 10) || 0)); };
+  const read = () => { ["title", "type", "cost", "text", "suit", "value", "vp", "icon", "effect", "rarity"].forEach(k => c[k] = $("#c-" + k, d).value); c.locked = $("#c-locked", d).checked; c.qty = Math.max(0, Math.min(99, parseInt($("#c-qty", d).value, 10) || 0)); };
   const prev = () => { read(); $("#c-prev", d).innerHTML = cardHTML(c, deck); };
-  d.addEventListener("input", prev); prev();
+  d.addEventListener("input", prev); d.addEventListener("change", prev); prev();
   setTimeout(() => $("#c-title", d).focus(), 30);
+  $("#c-ai", d).onclick = () => { read(); aiEffectForCard(p, c, $("#c-effect", d), $("#c-aist", d)); };
   $$("[data-ins]", d).forEach(b => b.onclick = () => { const ta = $("#c-text", d); const pos = ta.selectionStart ?? ta.value.length; const ins = `{${b.dataset.ins}}`; ta.value = ta.value.slice(0, pos) + ins + ta.value.slice(ta.selectionEnd ?? pos); ta.focus(); ta.setSelectionRange(pos + ins.length, pos + ins.length); prev(); });
   $("#c-imgf", d).onchange = async e => { const f = e.target.files[0]; if (!f) return; $("#c-imgst", d).textContent = "Nahrávám…"; try { const r = await storeImage(f, { max: 1000, dataMax: 420, limit: 40000 }); c.img = r.url || r.data; $("#c-imgst", d).textContent = r.url ? "Uloženo" : "Uloženo zmenšené do projektu"; prev(); } catch { $("#c-imgst", d).textContent = "Obrázek se nepodařilo načíst"; } };
   if ($("#c-imgdel", d)) $("#c-imgdel", d).onclick = () => { c.img = ""; prev(); $("#c-imgst", d).textContent = "Obrázek odebrán"; };
@@ -1259,16 +1372,20 @@ function exportCSV(p) {
   p.decks.forEach(d => d.cards.forEach(c => rows.push([d.name, ...CARD_COLS.map(k => String(c[k] ?? ""))].map(v => v.replace(/;/g, ",").replace(/\r?\n/g, "\\n")).join(";"))));
   offerFile(slug(p.name) + "-karty.csv", "\ufeff" + rows.join("\r\n"), "CSV uloženo");
 }
-async function exportPrint(p) {
+async function exportPrint(p, opt = {}) {
   const cards = [], backs = [];
-  p.decks.forEach(d => d.cards.forEach(c => { for (let i = 0; i < (+c.qty || 0); i++) { cards.push(cardHTML(c, d)); backs.push(cardHTML(c, d, false)); } }));
+  // Se spadávkou dostane každá karta 3 mm okraj v barvě své plochy a ořezové značky v rozích.
+  const marks = `<svg class="cm" viewBox="0 0 75 100" preserveAspectRatio="none"><g stroke="#000" stroke-width=".25">${[[6, 6], [69, 6], [6, 94], [69, 94]].map(([x, y]) => `<line x1="${x}" y1="${y < 50 ? 0 : 100}" x2="${x}" y2="${y < 50 ? 3 : 97}"/><line x1="${x < 37 ? 0 : 75}" y1="${y}" x2="${x < 37 ? 3 : 72}" y2="${y}"/>`).join("")}</g></svg>`;
+  const wrap = (html, bg) => opt.bleed ? `<div class="bc" style="--bc:${bg}">${html}${marks}</div>` : html;
+  p.decks.forEach(d => d.cards.forEach(c => { for (let i = 0; i < (+c.qty || 0); i++) { cards.push(wrap(cardHTML(c, d), (d.template === "full" && c.img) ? `url('${esc(c.img)}')` : "#fbfaf6")); backs.push(wrap(cardHTML(c, d, false), d.backImg ? `url('${esc(d.backImg)}')` : d.color)); } }));
   const units = [], ubacks = [];
   p.units.forEach(u => { for (let i = 0; i < (+u.qty || 0); i++) { units.push(unitHTML(p, u)); ubacks.push(hasReduced(u) ? unitHTML(p, u, true) : `<div class="unit" style="background:${(p.factions.find(f => f.id === u.factionId) || {}).color || "#888"}"></div>`); } });
   const toks = p.tokens.map(t => tokenHTML(t, 0));
   const mirror = (arr, per) => { const out = []; for (let i = 0; i < arr.length; i += per) { const row = arr.slice(i, i + per); while (row.length < per) row.push(`<div class="blank"></div>`); out.push(...row.reverse()); } return out; };
-  const css = `@page{size:A4;margin:8mm}*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  const css = `@page{size:A4;margin:${opt.bleed ? 4 : 8}mm}*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 h1{font-size:13pt;margin:0 0 3mm}p.n{font-size:8pt;color:#555;margin:0 0 3mm}.pg{page-break-after:always}
 .cards{display:grid;grid-template-columns:repeat(3,63mm);gap:0}.cards .blank{width:63mm;height:88mm}
+.cards.bl{grid-template-columns:repeat(2,69mm);gap:4mm}.cards.bl .blank{width:69mm;height:94mm}
 ${(document.getElementById("card-css") || {}).textContent || ""}
 .cards .pcard{font-size:6.72mm;width:63mm;height:88mm;aspect-ratio:auto;max-width:none;box-shadow:none;border-radius:0;border:.2mm solid #999}
 :root{--f-display:'Bricolage Grotesque',system-ui,sans-serif;--f-body:'Atkinson Hyperlegible',system-ui,sans-serif;--f-mono:'Chivo Mono',ui-monospace,monospace;--shadow:none}
@@ -1280,9 +1397,10 @@ ${(document.getElementById("card-css") || {}).textContent || ""}
 .blank{width:16mm;height:16mm}.toks{display:flex;flex-wrap:wrap;gap:3mm}.token{width:16mm;height:16mm;display:grid;place-items:center;font-weight:700;font-size:8pt;text-align:center;border:.3mm solid rgba(0,0,0,.4);overflow:hidden}
 .token.kruh{border-radius:50%}.token.ctverec{border-radius:2mm}.token .tt{font-size:6pt}.token.figurka{border:0}.token.figurka svg{width:14mm;height:16mm}`;
   let html = `<!doctype html><html lang="cs"><head><meta charset="utf-8"><title>${esc(p.name)} – tisková archa</title><link rel="stylesheet" href="${(document.querySelector('link[href*="fonts.googleapis"][rel=stylesheet]') || {}).href || ""}"><style>${css}</style></head><body>`;
-  for (let i = 0; i < cards.length; i += 9) {
-    html += `<section class="pg"><h1>${esc(p.name)} – karty ${i + 1}–${Math.min(i + 9, cards.length)}</h1><p class="n">Tiskni ve skutečné velikosti (100 %). Karta 63 × 88 mm.</p><div class="cards">${cards.slice(i, i + 9).join("")}</div></section>`;
-    html += `<section class="pg"><h1>Rubové strany</h1><p class="n">Pro oboustranný tisk otáčej podél dlouhé strany.</p><div class="cards">${mirror(backs.slice(i, i + 9), 3).map(x => x.replace('class="blank"', 'class="blank" style="width:63mm;height:88mm"')).join("")}</div></section>`;
+  const per = opt.bleed ? 6 : 9, cols = opt.bleed ? 2 : 3, cls = opt.bleed ? "cards bl" : "cards", bw = opt.bleed ? "69mm;height:94mm" : "63mm;height:88mm";
+  for (let i = 0; i < cards.length; i += per) {
+    html += `<section class="pg">${opt.bleed ? "" : `<h1>${esc(p.name)} – karty ${i + 1}–${Math.min(i + per, cards.length)}</h1><p class="n">Tiskni ve skutečné velikosti (100 %). Karta 63 × 88 mm.</p>`}<div class="${cls}">${cards.slice(i, i + per).join("")}</div></section>`;
+    if (opt.backs !== false) html += `<section class="pg">${opt.bleed ? "" : `<h1>Rubové strany</h1><p class="n">Pro oboustranný tisk otáčej podél dlouhé strany.</p>`}<div class="${cls}">${mirror(backs.slice(i, i + per), cols).map(x => x.replace('class="blank"', `class="blank" style="width:${bw}"`)).join("")}</div></section>`;
   }
   if (units.length) {
     html += `<section class="pg"><h1>${esc(p.name)} – žetony jednotek (16 mm)</h1><div class="counters">${units.join("")}</div></section>`;
@@ -1767,7 +1885,7 @@ function renderTests(main, p) {
   const maxVer = Math.max(1, ...Object.values(byVer).map(x => x.min / x.n));
   main.innerHTML = `<div class="page">
     ${exampleBanner(p)}
-    <div class="row spread"><h2>Testovací hry</h2><button class="btn primary" id="addSess">+ Zapsat odehranou hru</button></div>
+    <div class="row spread"><h2>Testovací hry</h2><div class="row">${(p.onlineCodes || []).length ? `<button class="btn" id="fbImp">Načíst hodnocení testerů</button>` : ""}<button class="btn primary" id="addSess">+ Zapsat odehranou hru</button></div></div>
     <div class="stat-row">
       <div class="stat"><span class="eyebrow">Odehráno</span><b>${n}</b><span class="muted">${plural(n, "hra", "hry", "her")}</span></div>
       <div class="stat"><span class="eyebrow">Průměrná délka</span><b>${avgMin}</b><span class="muted">minut (cíl ${esc(p.time)})</span></div>
@@ -1782,6 +1900,7 @@ function renderTests(main, p) {
         <p class="hint">${Object.entries(byVer).map(([k, v]) => `v${esc(k)}: ${v.n} ${plural(v.n, "hra", "hry", "her")}`).join(" · ")}</p>
         ${Object.keys(bySc).length ? `<h3>Vítězové podle scénáře</h3>${Object.entries(bySc).map(([sc, w]) => `<div><b>${esc(sc)}</b>: ${Object.entries(w).map(([nm, c]) => `${esc(nm)} ${c}×`).join(", ") || "–"}</div>`).join("")}<p class="hint">Ve wargame zapisuj jako hráče strany (Modří, Červení), ať je vidět vyváženost scénáře.</p>` : ""}</div>
     </div>` : ""}
+    ${surveySummaryHTML(ss)}
     <div class="list">${n ? ss.map(s => `<div class="sess">
       <div class="sess-hd"><b>${fmtDate(s.date)}${s.scenario ? ` · ${esc(s.scenario)}` : ""}</b><span class="muted mono" style="font-size:.85rem">v${esc(s.version)} · ${+s.minutes || 0} min · ${s.players.length} ${plural(s.players.length, "hráč", "hráči", "hráčů")}</span>
         <button class="btn small" data-edit="${s.id}">Upravit</button></div>
@@ -1791,6 +1910,7 @@ function renderTests(main, p) {
   </div>`;
   wireBanner(main);
   $("#addSess").onclick = () => editSession(p, null);
+  if ($("#fbImp")) $("#fbImp").onclick = () => importFeedback(p);
   $$("[data-edit]", main).forEach(b => b.onclick = () => editSession(p, p.sessions.find(s => s.id === b.dataset.edit)));
 }
 function fromTable(p) {
@@ -1817,6 +1937,7 @@ function editSession(p, sess, prefill) {
     <div class="eyebrow">Hráči (nebo strany) v pořadí tahu</div>
     <div id="s-pl" style="display:flex;flex-direction:column;gap:8px"></div>
     <div><button class="btn small" id="s-addpl">+ Hráč</button></div>
+    ${surveyHTML(s.survey)}
     <label class="f">Poznámky z testu<textarea id="s-notes" placeholder="Co fungovalo, co nudilo, kde se hráči zasekli, co změnit…">${esc(s.notes)}</textarea></label>
     <div class="row spread"><div>${isNew ? "" : `<button class="btn danger" id="s-del">Smazat</button>`}</div>
       <div class="row"><button class="btn" data-close>Zrušit</button><button class="btn primary" id="s-save">Uložit</button></div></div>`, true);
@@ -1831,11 +1952,11 @@ function editSession(p, sess, prefill) {
     $$("[data-pw]", d).forEach(x => x.onchange = () => s.players[x.dataset.pw].win = x.checked);
     $$("[data-pd]", d).forEach(x => x.onclick = () => { s.players.splice(+x.dataset.pd, 1); drawPl(); });
   };
-  drawPl();
+  drawPl(); const readSv = wireSurvey(d, s.survey = s.survey || {});
   if ($("#s-ft", d)) $("#s-ft", d).onclick = () => { const f = fromTable(p); s.players = f.players; if (f.minutes) $("#s-min", d).value = f.minutes; if (f.scenario) $("#s-sc", d).value = f.scenario; drawPl(); toast("Načteno ze stolu – jména můžeš přepsat"); };
   $("#s-addpl", d).onclick = () => { s.players.push({ name: "", score: "", win: false }); drawPl(); };
   $("#s-save", d).onclick = () => {
-    s.date = $("#s-date", d).value || today(); s.version = $("#s-ver", d).value.trim(); s.minutes = +$("#s-min", d).value || 0; s.notes = $("#s-notes", d).value; s.scenario = $("#s-sc", d).value;
+    s.date = $("#s-date", d).value || today(); s.version = $("#s-ver", d).value.trim(); s.minutes = +$("#s-min", d).value || 0; s.notes = $("#s-notes", d).value; s.scenario = $("#s-sc", d).value; s.survey = readSv();
     s.players = s.players.filter(pl => pl.name.trim());
     if (!s.players.length) { toast("Zapiš aspoň jednoho hráče"); return; }
     if (!s.players.some(pl => pl.win) && s.players.some(pl => pl.score !== "")) { const mx = Math.max(...s.players.map(pl => +pl.score || 0)); s.players.forEach(pl => pl.win = (+pl.score || 0) === mx); }
@@ -1883,7 +2004,7 @@ function renderAnalysis(main, p) {
   main.innerHTML = `<div class="page">
     ${exampleBanner(p)}
     <div><h2>Analýza a vyvážení</h2><p class="hint" style="margin-top:4px">Simulace, pravděpodobnosti a statistiky, které pomůžou nastavit počty karet, kostky a bojovou tabulku ještě před testem.</p></div>
-    ${simPanelHTML(p)}
+    ${simPanelHTML(p)}${tunePanelHTML(p)}
     <div class="two">
       <div class="panel"><div class="row spread"><h3>Složení balíčku</h3>${p.decks.length ? `<select id="anDeck" style="width:auto">${p.decks.map(d => `<option value="${d.id}" ${d.id === A.deckId ? "selected" : ""}>${esc(d.name)}</option>`).join("")}</select>` : ""}</div>
         ${deck && cards.length ? `<div class="stat-row"><div class="stat"><span class="eyebrow">Karet</span><b>${cards.length}</b></div><div class="stat"><span class="eyebrow">Průměrná cena</span><b>${avg(costs).toLocaleString("cs-CZ", { maximumFractionDigits: 1 })}</b></div>
@@ -2124,11 +2245,19 @@ function visibleFrom(p, b, k0, range) {
 }
 // Mlha války: které nepřátelské jednotky vidí zvolená strana.
 function fogHidden(p, t) {
-  const fid = S.view; if (!fid || !p.ruleset.fog) return null; const b = tableBoard(p); const hidden = new Set();
+  const fid = S.view; if (!fid) return null; const b = tableBoard(p); const hidden = new Set();
+  t.items.forEach(i => { if (i.kind !== "unit") return; const u = p.units.find(x => x.id === i.unitId); if (u && u.factionId !== fid && hiddenFaction(p, u.factionId)) hidden.add(i.uid + ":gone"); });
+  if (!p.ruleset.fog) return hidden.size ? hidden : null;
   const own = t.items.filter(i => i.kind === "unit" && (p.units.find(u => u.id === i.unitId) || {}).factionId === fid).map(i => cellUnder(p, i)).filter(Boolean);
   t.items.forEach(i => { if (i.kind !== "unit") return; const u = p.units.find(x => x.id === i.unitId); if (!u || u.factionId === fid) return;
     const k = cellUnder(p, i); const seen = b && k && own.some(o => hexDist(b, o, k) <= +p.ruleset.sight && hasLOS(p, b, o, k)); hidden.add(i.uid + (seen ? ":block" : ":gone")); });
   return hidden;
+}
+// Poslední známé pozice skrytých jednotek (pro ostatní hráče).
+function ghostsHTML(p, t) {
+  if (!S.view || !t.lastSeen || !tableBoard(p)) return ""; const b = tableBoard(p); const g = geo(b);
+  return Object.entries(t.lastSeen).map(([id, k]) => { const it = t.items.find(i => i.uid === id); const u = it && p.units.find(x => x.id === it.unitId); if (!u || u.factionId === S.view || !hiddenFaction(p, u.factionId)) return "";
+    const [c, r] = k.split(",").map(Number); const [cx, cy] = g.center(c, r); return `<div class="ghost" style="left:${BX + cx - 22}px;top:${BY + cy - 22}px" title="Naposledy viděno: ${esc(u.name)}">❓</div>`; }).join("");
 }
 // Dílky: soused ve směru i a hrana dílku po otočení.
 function dirNeighbor(b, c, r, i) {
@@ -2224,9 +2353,9 @@ function ensureTable(p) {
   if (fresh) p.factions.forEach(f => { if (f.setup) runEffects(p, t, f.id, f.setup, "Start strany"); });
   return t;
 }
-function itemSize(i) { return i.kind === "card" ? [100, 140] : i.kind === "unit" ? [52, 52] : [46, 46]; }
+function itemSize(i) { if (i.kind === "unit") { const S0 = typeof P === "function" && P() ? P().units.find(u => u.id === i.unitId) : null; return S0 && S0.big ? [104, 104] : [52, 52]; } return i.kind === "card" ? [100, 140] : [46, 46]; }
 function freeSpot(t, w = 110, h = 150) {
-  const sc = $(".mat-scroll"); const ox = sc ? sc.scrollLeft : 0, oy = sc ? sc.scrollTop : 0; const vw = sc ? sc.clientWidth : 800;
+  const z = S.zoom || 1; const sc = $(".mat-scroll"); const ox = sc ? sc.scrollLeft / z : 0, oy = sc ? sc.scrollTop / z : 0; const vw = sc ? sc.clientWidth / z : 800;
   for (let row = 0; row < 8; row++) for (let col = 0; col < 14; col++) {
     const x = ox + 30 + col * (w + 12), y = oy + 34 + row * (h + 12);
     if (x + w > ox + vw - 10 && col > 0) break;
@@ -2311,19 +2440,19 @@ function renderTable(main, p) {
   const rangeItem = S.rangeUid && t.items.find(i => i.uid === S.rangeUid);
   const range = rangeItem ? computeRange(p, t, rangeItem) : null;
   const losItem = S.losUid && t.items.find(i => i.uid === S.losUid); const losK = losItem && cellUnder(p, losItem); const los = losK && b ? visibleFrom(p, b, losK, +p.ruleset.sight || 6) : null;
-  S.fog = fogHidden(p, t);
+  S.fog = fogHidden(p, t); S.supCache = {};
   const cp = curPlayer(p, t);
   if (!TOOLS.find(x => x[0] === S.tool)) S.tool = "stul";
   main.innerHTML = `<div class="table-wrap">
-    <div class="mat-scroll"><div class="mat ${S.ctrlMode && b ? "ctrlmode" : ""}" id="mat" style="width:${S.matW}px;height:${S.matH}px">
+    <div class="mat-area">${zoomBarHTML(t)}<div class="mat-scroll"><div class="mat-sizer" style="width:${S.matW * zoomOf()}px;height:${S.matH * zoomOf()}px"><div class="mat ${S.ctrlMode && b ? "ctrlmode" : ""} ${S.inkMode ? "inkmode" : ""}" id="mat" style="width:${S.matW}px;height:${S.matH}px;transform:scale(${zoomOf()})">
       <div class="mat-ruler">${Array.from({ length: Math.ceil(S.matW / 100) }, (_, i) => `<span style="left:${i * 100}px">${i * 10}</span>`).join("")}</div>
       ${b ? `<div class="boardlayer" style="left:${BX}px;top:${BY}px">${boardSVG(p, b, t.control, { range, los, tiles: t.tilesPlaced, links: t.links, routeSel: S.routeSel })}</div>` : ""}
-      ${t.items.map(i => itemHTML(p, i)).join("")}
-    </div></div>
+      ${t.items.map(i => itemHTML(p, i)).join("")}${ghostsHTML(p, t)}${inkSVG(t, S.matW, S.matH)}
+    </div></div></div></div>
     <aside class="side">
       <div class="row spread"><button class="btn small" id="undo" ${S.undo.length ? "" : "disabled"}>↶ Zpět</button>${cp ? `<span class="fchip" style="cursor:default"><span class="dot" style="background:${cp.color};border-radius:50%"></span>${esc(cp.name)}</span>` : ""}</div>
       ${t.winner ? `<div class="result" style="background:var(--good);color:#fff"><span>Konec hry</span><b style="font-size:1.2rem;font-family:var(--f-display)">🏆 ${esc((p.factions.find(f => f.id === t.winner.fid) || {}).name || "")}</b><span>${esc(t.winner.why)}</span><button class="btn small" id="clearWin">Hrát dál</button></div>` : ""}
-      ${p.ruleset.fog && p.units.length ? `<label class="f" style="flex-direction:row;align-items:center;gap:8px">Pohled<select id="view"><option value="">Vidím vše (rozhodčí)</option>${p.factions.map(f => `<option value="${f.id}" ${S.view === f.id ? "selected" : ""}>${esc(f.name)}</option>`).join("")}</select></label>` : ""}
+      ${(p.ruleset.fog || p.factions.some(f => f.hidden)) && p.units.length ? `<label class="f" style="flex-direction:row;align-items:center;gap:8px">Pohled<select id="view"><option value="">Vidím vše (rozhodčí)</option>${p.factions.map(f => `<option value="${f.id}" ${S.view === f.id ? "selected" : ""}>${esc(f.name)}</option>`).join("")}</select></label>` : ""}
       ${selItem ? selBarHTML(p, selItem) : ""}
       <div class="tools" role="toolbar">${TOOLS.filter(([k]) => S.allTools || toolRelevant(p, k) || S.tool === k).map(([k, l]) => `<button data-tool="${k}" aria-pressed="${S.tool === k}">${l}</button>`).join("")}${TOOLS.some(([k]) => !toolRelevant(p, k)) ? `<button data-alltools aria-pressed="false" title="Nástroje, které tato hra zatím nepoužívá">${S.allTools ? "Méně" : "Další…"}</button>` : ""}</div>
       ${({ stul: sideComponents, kolo: sideTurn, hraci: sidePlayers, trh: sideMarket, akce: sideActions, ruce: sideHands, draft: sideDraft, styk: sideTrick, program: sideProgram, drazba: sideAuction, sacek: sideBag, kostky: sideDice, boj: sideCombat, uzemi: sideTerritory, dilky: sideTiles, draha: sideTrack, obchod: sideTrade, tajne: sideSecret })[S.tool](p, t)}
@@ -2340,7 +2469,7 @@ function itemHTML(p, i) {
   else if (i.kind === "unit") { const u = p.units.find(x => x.id === i.unitId); if (!u) return ""; const fg = S.fog;
     if (fg && fg.has(i.uid + ":gone")) return "";
     if (fg && fg.has(i.uid + ":block")) { const f = p.factions.find(x => x.id === u.factionId); inner = `<div class="unit" style="background:${f ? f.color : "#888"}" title="Nepřátelská jednotka"></div>`; }
-    else inner = unitHTML(p, u, i.reduced); }
+    else inner = unitHTML(p, u, i.reduced) + (inSupply(p, p.table, i) ? "" : `<span class="oos" title="Mimo zásobování">⚠</span>`); }
   else { const tk = p.tokens.find(x => x.id === i.tokenId); if (!tk) return ""; inner = tokenHTML(tk, i.value) + (tk.text ? "" : `<span class="token-label">${esc(tk.name)}</span>`); }
   return `<div class="titem ${i.uid === S.sel ? "sel" : ""}" data-uid="${i.uid}" style="left:${i.x}px;top:${i.y}px;transform:rotate(${i.rot || 0}deg)">${inner}</div>`;
 }
@@ -2397,6 +2526,7 @@ function sideTurn(p, t) {
     </section>
     <section><div class="eyebrow">Fáze</div><div class="phases">${p.phases.map((ph, i) => `<div class="phase ${i === t.phaseIdx ? "on" : ""}"><span class="mono">${i + 1}</span>${esc(ph)}</div>`).join("")}</div>
       ${p.phases.length ? `<button class="btn primary" id="phaseNext">Další fáze</button>` : `<span class="hint">Fáze nastavíš v Mechanikách.</span>`}</section>
+    ${onlineHTML(p, t)}
     ${p.factions.length ? `<section><div class="eyebrow">Pořadí a tah</div>${fchipsHTML(p, t)}
       ${cp && cp.ability ? `<div class="selbar" style="border-color:${cp.color}"><span class="eyebrow">Schopnost · ${esc(cp.name)}</span><span>${esc(cp.ability)}</span></div>` : ""}
       <div class="row"><button class="btn small primary" id="nextPlayer">Ukončit tah</button><button class="btn small" id="ordRand">Náhodné pořadí</button>${p.resources.some(r => r.vp && !r.global) ? `<button class="btn small" id="ordScore">Nejméně bodů první</button>` : ""}${+p.track.length ? `<button class="btn small" id="ordTrack">Nejvíc vzadu na dráze</button>` : ""}<button class="btn small" id="ordReset">Výchozí</button></div></section>` : ""}
@@ -2470,9 +2600,10 @@ function sideActions(p, t) {
 }
 function sideHands(p, t) {
   if (!S.handF || !p.factions.find(f => f.id === S.handF)) S.handF = p.factions[0] ? p.factions[0].id : null;
+  const seat = p.online && p.online.seat; if (seat) S.handF = seat;
   const f = p.factions.find(x => x.id === S.handF); const hand = f ? (t.hands[f.id] || []) : [];
   const ownDeck = f && ((t.pdeck[f.id] || []).length || (t.pdisc[f.id] || []).length);
-  return `<section><div class="eyebrow">Ruce hráčů</div><div class="fchips">${p.factions.map(x => `<button class="fchip" data-handf="${x.id}" aria-pressed="${x.id === S.handF}"><span class="dot" style="background:${x.color};border-radius:50%"></span>${esc(x.name)} <span class="count">${(t.hands[x.id] || []).length}</span></button>`).join("")}</div></section>
+  return `<section><div class="eyebrow">Ruce hráčů</div><div class="fchips">${p.factions.map(x => `<button class="fchip" data-handf="${x.id}" aria-pressed="${x.id === S.handF}" ${seat && x.id !== seat ? "disabled" : ""}><span class="dot" style="background:${x.color};border-radius:50%"></span>${esc(x.name)} <span class="count">${(t.hands[x.id] || []).length}</span></button>`).join("")}</div></section>
     ${f ? `<section>${S.showHand ? `<div class="row spread"><b>Ruka: ${esc(f.name)}</b><button class="btn small" id="hideHand">Skrýt</button></div>
       ${hand.length ? miniCards(p, hand, i => `<button class="btn small" data-hplay="${i}">Na stůl</button><button class="btn small" data-htab="${i}">Vyložit</button><button class="btn small" data-hdisc="${i}" aria-label="Odhodit">✕</button>`) : `<div class="hint">Ruka je prázdná.</div>`}`
       : `<button class="btn primary" id="showHand">Ukázat ruku – ${esc(f.name)} (${hand.length})</button><p class="hint">Karty v ruce vidí jen ten, kdo právě drží iPad.</p>`}</section>
@@ -2638,6 +2769,7 @@ function sideCombat(p, t) {
       ${C.dres ? `<div class="eyebrow">Útočník – ${C.dres.aHits} ${plural(C.dres.aHits, "zásah", "zásahy", "zásahů")}</div><div class="dice-out">${C.dres.a.map(v => `<span class="die roll ${v >= p.dice.aHit ? "hit" : "miss"}">${v}</span>`).join("")}</div>
         <div class="eyebrow">Obránce – ${C.dres.dHits} ${plural(C.dres.dHits, "zásah", "zásahy", "zásahů")}</div><div class="dice-out">${C.dres.d.map(v => `<span class="die roll ${v >= p.dice.dHit ? "hit" : "miss"}">${v}</span>`).join("")}</div>` : ""}
       </section>`}
+    ${p.units.length ? warPanelHTML(p, t) : ""}
     ${C.log.length ? `<section><div class="eyebrow">Záznam bojů</div><div class="log">${C.log.map(l => `<span>${esc(l)}</span>`).join("")}</div></section>` : ""}
     <p class="hint">Vyber jednotku na stole a stiskni „Útočí“, „+ k útoku“ nebo „Brání“ – hodnoty a terén se doplní samy.</p>`;
 }
@@ -2819,7 +2951,7 @@ function wireTable(main, p, t) {
   cin("cAtt", "att"); cin("cDef", "def"); cin("cTer", "terrainId", v => v); cin("cShift", "shift"); cin("cAD", "aDice"); cin("cDD", "dDice");
   if (q("cRoll")) q("cRoll").onclick = () => { if (!gate(p, t, "boj")) return; const { defEff, col } = combatCalc(p); const roll = rnd(p.crt.rows.length); const out = p.crt.rows[roll - 1][col]; C.res = { roll, ci: col, col: p.crt.cols[col], out }; C.log.unshift(`${C.att} : ${defEff} (${ratioText(+C.att || 0, defEff)}) → ${p.crt.cols[col]}, hod ${roll} = ${out}`); C.log = C.log.slice(0, 12); logEv(t, `boj ${C.att}:${defEff} (${p.crt.cols[col]}), hod ${roll} → ${out}`); after(p, t, "boj", (cp || {}).id, out); save(); render(); };
   if (q("cRollD")) q("cRollD").onclick = () => { if (!gate(p, t, "boj")) return; const a = Array.from({ length: Math.min(20, +C.aDice || 0) }, () => rnd(6)), d = Array.from({ length: Math.min(20, +C.dDice || 0) }, () => rnd(6)); C.dres = { a, d, aHits: a.filter(v => v >= p.dice.aHit).length, dHits: d.filter(v => v >= p.dice.dHit).length }; C.log.unshift(`Kostky ${a.length} vs ${d.length}: útočník ${C.dres.aHits} zás., obránce ${C.dres.dHits} zás.`); C.log = C.log.slice(0, 12); render(); };
-  if (q("cClear")) q("cClear").onclick = () => { C.att = 0; C.def = 0; C.res = null; C.shift = 0; render(); };
+  if (q("cClear")) q("cClear").onclick = () => { C.att = 0; C.def = 0; C.res = null; C.shift = 0; C.attUids = []; C.defUid = null; render(); };
   // území
   if (q("ctrlMode")) q("ctrlMode").onclick = () => { S.ctrlMode = !S.ctrlMode; S.sel = null; render(); };
   if (q("ctrlPaint")) q("ctrlPaint").onchange = e => { S.ctrlPaint = e.target.value; };
@@ -2827,7 +2959,7 @@ function wireTable(main, p, t) {
   if (q("ctrlAuto")) q("ctrlAuto").onclick = () => { let n = 0; t.items.filter(i => i.kind === "unit").forEach(i => { const k = cellUnder(p, i); const u = p.units.find(x => x.id === i.unitId); if (k && u && u.factionId) { t.control[k] = u.factionId; n++; } }); save(); render(); toast(`Přiděleno ${n} ${plural(n, "pole", "pole", "polí")}`); };
   // vybraná položka
   const selItem = t.items.find(i => i.uid === S.sel);
-  wireExtra(main, p, t, save); wireR4(main, p, t, save);
+  wireExtra(main, p, t, save); wireR4(main, p, t, save); wireWar(main, p, t, save); wireIpad(main, p, t, save); wireOnline(main, p, t, save);
   const cardTo = (el, where) => { if (where === "tab" && !gate(p, t, "vylozit")) return; const i = selItem; t.items = t.items.filter(x => x !== i); const fid = el.dataset[where === "hand" ? "tohand" : "totab"]; const h = { deckId: i.deckId, cardId: i.cardId }; (where === "hand" ? (t.hands[fid] = t.hands[fid] || []) : (t.tableau[fid] = t.tableau[fid] || [])).push(h); if (where === "tab") { const c = cardOf(p, h).c; logEv(t, `${p.factions.find(f => f.id === fid).name} vykládá ${c.title}`); if (c.effect) runEffects(p, t, fid, c.effect, c.title); after(p, t, "vylozit", fid, c.type); } S.sel = null; save(); render(); };
   on("[data-tohand]", el => cardTo(el, "hand")); on("[data-totab]", el => cardTo(el, "tab"));
   on("[data-sa]", el => {
@@ -2845,9 +2977,10 @@ function wireTable(main, p, t) {
     else if (a === "asAtt" || a === "addAtt" || a === "asDef") {
       const u = p.units.find(x => x.id === i.unitId); const v = +(i.reduced ? u.rAtt : u.att) || 0, dv = +(i.reduced ? u.rDef : u.def) || 0;
       S.tool = "boj"; C.mode = "crt"; C.res = null;
-      if (a === "asAtt") C.att = v; else if (a === "addAtt") C.att = (+C.att || 0) + v;
-      else { C.def = dv; const k = cellUnder(p, i); const b = tableBoard(p); const ter = k && b ? terrainOf(p, b, k) : null; C.terrainId = ter ? ter.id : (p.terrains[0] || {}).id; }
-      render(); toast(a === "asDef" ? `Obrana ${dv}` : `Útok ${C.att}`); return;
+      const half = a !== "asDef" && !inSupply(p, t, i); const va = half ? Math.floor(v / 2) : v;
+      if (a === "asAtt") { C.att = va; C.attUids = [i.uid]; } else if (a === "addAtt") { C.att = (+C.att || 0) + va; C.attUids = [...(C.attUids || []), i.uid]; }
+      else { C.defUid = i.uid; C.def = dv; const k = cellUnder(p, i); const b = tableBoard(p); const ter = k && b ? terrainOf(p, b, k) : null; C.terrainId = ter ? ter.id : (p.terrains[0] || {}).id; }
+      render(); toast(a === "asDef" ? `Obrana ${dv}` : `Útok ${C.att}${half ? " (mimo zásobování – polovina)" : ""}`); return;
     }
     save(); render();
   });
@@ -2855,7 +2988,7 @@ function wireTable(main, p, t) {
   const mat = $("#mat");
   mat.addEventListener("click", e => {
     if (e.target.closest(".titem")) return;
-    const bb = tableBoard(p); const rr = mat.getBoundingClientRect(); const pk = bb ? geo(bb).pick(e.clientX - rr.left - BX, e.clientY - rr.top - BY) : null;
+    const bb = tableBoard(p); const rr = mat.getBoundingClientRect(); const Z = zoomOf(); const pk = bb ? geo(bb).pick((e.clientX - rr.left) / Z - BX, (e.clientY - rr.top) / Z - BY) : null;
     if (S.tileMode && t.tileHand && bb) {
       if (!pk) return; const k = pk.join(","); if (t.tilesPlaced[k]) { toast("Pole je už obsazené"); return; }
       if (!gate(p, t, "dilek", tileCheck(p, t, bb, k, t.tileHand.id, t.tileHand.rot).filter(m => m !== "pole už je obsazené"))) return;
@@ -2865,7 +2998,7 @@ function wireTable(main, p, t) {
     if (S.routeMode && bb) { if (pk) routeTap(p, t, pk.join(","), save); return; }
     if (S.ctrlMode) {
       const b = tableBoard(p); if (!b) return; const r = mat.getBoundingClientRect();
-      const cr = geo(b).pick(e.clientX - r.left - BX, e.clientY - r.top - BY); if (!cr) return; const k = cr.join(",");
+      const cr = geo(b).pick((e.clientX - r.left) / Z - BX, (e.clientY - r.top) / Z - BY); if (!cr) return; const k = cr.join(",");
       if (S.ctrlPaint === "none") delete t.control[k];
       else if (S.ctrlPaint) t.control[k] = S.ctrlPaint;
       else { const ids = p.factions.map(f => f.id); const nx = ids.indexOf(t.control[k]) + 1; if (nx >= ids.length) delete t.control[k]; else t.control[k] = ids[nx]; }
@@ -2883,7 +3016,7 @@ function wireTable(main, p, t) {
     const origin = it.kind === "unit" ? cellUnder(p, it) : null; const originRange = origin && p.ruleset.moveRange ? computeRange(p, t, it) : null;
     el.style.zIndex = 999;
     const move = ev => {
-      const dx = ev.clientX - sx, dy = ev.clientY - sy;
+      if (S.pinching) return; const dx = (ev.clientX - sx) / zoomOf(), dy = (ev.clientY - sy) / zoomOf();
       if (!moved && Math.hypot(dx, dy) < 6) return;
       moved = true; el.classList.add("drag");
       it.x = Math.max(0, Math.min(S.matW - 50, ox + dx)); it.y = Math.max(0, Math.min(S.matH - 50, oy + dy));
@@ -2905,7 +3038,7 @@ function wireTable(main, p, t) {
           if (k && k !== origin) {
             if (!gate(p, t, "pohyb", moveViolations(p, t, it, origin, originRange, k))) { it.x = ox; it.y = oy; render(); return; }
             const u = p.units.find(x => x.id === it.unitId); const ter = terrainOf(p, b, k) || p.terrains[0];
-            t.moved[it.uid] = true; logEv(t, `${u.name} táhne na ${k.split(",").map(n => pad2(+n + 1)).join("")}${b.labels[k] ? " (" + b.labels[k] + ")" : ""}`);
+            t.moved[it.uid] = true; if (hiddenFaction(p, u.factionId)) hiddenMove(p, t, it, k); else logEv(t, `${u.name} táhne na ${k.split(",").map(n => pad2(+n + 1)).join("")}${b.labels[k] ? " (" + b.labels[k] + ")" : ""}`);
             after(p, t, "pohyb", u.factionId, ter ? ter.name : "");
           }
         }
@@ -3323,7 +3456,7 @@ async function askCards(p, deck, n, theme, box) {
 function overviewExtras(p) {
   const lint = lintProject(p); const errs = lint.filter(x => x.lv === "err"), warns = lint.filter(x => x.lv === "warn");
   const size = JSON.stringify(p).length;
-  return `<div class="panel"><div class="row spread"><h2>Kontrola návrhu</h2><span class="count">${Math.round(size / 1024)} kB</span></div>
+  return `${versionsHTML(p)}${bookPanelHTML(p)}<div class="panel"><div class="row spread"><h2>Kontrola návrhu</h2><span class="count">${Math.round(size / 1024)} kB</span></div>
       ${lint.length ? `<div class="list">${[...errs, ...warns].map(x => `<div class="lint ${x.lv}"><b>${x.lv === "err" ? "Chyba" : "Upozornění"}</b><span>${esc(x.t)}</span></div>`).join("")}</div>`
         : `<div class="lint ok"><b>V pořádku</b><span>Efekty, odkazy na zdroje, balíčky, mapy i scénáře dávají smysl.</span></div>`}
       <p class="hint">Kontroluje zápis efektů, odkazy na smazané zdroje a mapy, trh větší než balíček, dílky, bojovou tabulku a velikost projektu.</p></div>
@@ -3337,6 +3470,7 @@ function overviewExtras(p) {
       <button class="btn primary" id="aiCards">Navrhnout karty</button><div id="aiCardBox"></div>` : ""}</div>`;
 }
 function wireOverviewExtras(main, p) {
+  wireVersions(main, p); wireBookPanel(main, p);
   $$("[data-ai]", main).forEach(b => b.onclick = async () => { const out = $("#aiOut"); $$("[data-ai]", main).forEach(x => x.disabled = true); await askAdvisor(p, b.dataset.ai, out); S.aiText = out.textContent; $$("[data-ai]", main).forEach(x => x.disabled = false); });
   if ($("#aiCards")) $("#aiCards").onclick = async () => { const btn = $("#aiCards"); btn.disabled = true; await askCards(p, p.decks.find(d => d.id === $("#aiDeck").value), Math.max(1, Math.min(12, +$("#aiN").value || 5)), $("#aiTheme").value.trim(), $("#aiCardBox")); btn.disabled = false; };
 }
@@ -3447,7 +3581,8 @@ function processPending(p) {
 // Počítačoví hráči odehrají hru podle nastavených mechanik. Umí: nákupy z trhu, vykládání karet s efekty,
 // akční pole, rondel, výběr rolí, závodní dráhu, automat, příjem, automatická pravidla a cíle hry.
 // Použije rozestavení prvního scénáře a produkci z polí s čísly.
-// Neumí: pohyb a boj na mapě, dílky, trasy, štychy a dražby – ty se v simulaci přeskočí.
+// Na mapě táhnou jednotky k cíli a útočí podle bojové tabulky, dílky se kladou na nejlepší místo (36-sim-extra).
+// Neumí: trasy, štychy a dražby – ty se v simulaci přeskočí.
 function effectValue(p, text) {
   let v = 0;
   String(text || "").replace(/^jednou\s+za\s+(kolo|tah|hru)\s*:\s*/i, "").split(/[;\n,|]/).forEach(raw => {
@@ -3505,12 +3640,12 @@ function simMoves(p, t, f, hasOwn, greedy) {
   } });
   if (!hasOwn && !+p.track.length) { const d = p.decks.find(x => !x.starter && !x.bot && !p.factions.some(ff => ff.bot === x.id) && t.piles[x.id] && t.piles[x.id].length && !+x.market);
     if (d) moves.push({ v: .25, run() { (t.hands[f.id] = t.hands[f.id] || []).push({ deckId: d.id, cardId: t.piles[d.id].pop() }); after(p, t, "lizat", f.id); } }); }
-  return greedy ? moves : moves;
+  return moves.concat(simExtraMoves(p, t, f));
 }
 function simGame(p0, opt) {
   const S0 = S.silent; S.silent = true;
   const p = clone(p0); delete p.isExample; p.table = null; p.decks.forEach(d => d.cards.forEach(c => { c.img = ""; })); p.boards.forEach(b => { b.bg = null; });
-  const greedy = opt.policy === "greedy";
+  const greedy = opt.policy !== "random"; const look = opt.policy === "lookahead"; const hist = [];
   const leader = (opp) => opp.reduce((a, b) => (scoreOf(p, t, b.id).total > scoreOf(p, t, a.id).total ? b : a));
   const ctx = { auto: true, choose: greedy ? (opts) => opts.map(o => effectValue(p, o.split(",").join(";"))).reduce((bi, v, i, arr) => v > arr[bi] ? i : bi, 0) : null, target: greedy ? leader : null };
   const t = ensureTable(p); t.order = opt.shuffleSeats ? shuffle(p.factions.map(f => f.id)) : null;
@@ -3533,7 +3668,8 @@ function simGame(p0, opt) {
       fireTriggers(p, t, "tah", f.id, null); drain();
       if (hasOwn && !f.bot) { [...(t.hands[f.id] || [])].forEach(h => { const c = cardOf(p, h).c; if (!c || !(t.hands[f.id] || []).includes(h)) return; const hand = t.hands[f.id]; hand.splice(hand.indexOf(h), 1); (t.tableau[f.id] = t.tableau[f.id] || []).push(h); played[f.id].add(c.title); playDone(p, t, f.id, h, "vylozit"); drain(); }); t.acts = 0; }
       for (let a = 0; a < apt && !t.winner; a++) {
-        const moves = simMoves(p, t, f, hasOwn, greedy); if (!moves.length) break;
+        let moves = simMoves(p, t, f, hasOwn, greedy); if (!moves.length) break;
+        if (look && moves.length > 1) { const bi = lookaheadPick(p, t, f, () => simMoves(p, t, f, hasOwn, greedy)); moves = simMoves(p, t, f, hasOwn, greedy); if (bi >= 0 && moves[bi]) moves = [moves[bi]]; }
         const noisy = moves.map(m => ({ m, s: m.v + Math.random() * .4 })); const mv = greedy ? noisy.reduce((b, x) => (x.s > b.s ? x : b)).m : moves[Math.floor(Math.random() * moves.length)];
         if (mv.card) played[f.id].add(mv.card);
         mv.run(); drain(); checkWin(p, t);
@@ -3544,8 +3680,9 @@ function simGame(p0, opt) {
       if (+R.drawUpTo && !hasOwn) { const need = +R.drawUpTo - (t.hands[f.id] || []).length; if (need > 0) runEffects(p, t, f.id, `líznout ${need}`, "Dobrání", 1, ctx); }
       drain();
     }
+    hist.push(pl.map(f => simScore(p, t, f.id)));
   }
-  const scores = pl.map(f => scoreOf(p, t, f.id).total);
+  const scores = pl.map(f => simScore(p, t, f.id));
   // Výhra se při shodě bodů dělí mezi všechny nejlepší, aby remízy nezvýhodňovaly první místo.
   let share = pl.map(() => 0); const wi = t.winner ? pl.findIndex(f => f.id === t.winner.fid) : -1;
   if (wi >= 0) share[wi] = 1; else { const mx = Math.max(...scores); const top = scores.map((s, i) => s === mx ? i : -1).filter(i => i >= 0); top.forEach(i => share[i] = 1 / top.length); }
@@ -3553,7 +3690,7 @@ function simGame(p0, opt) {
   const reason = t.winner ? t.winner.why.replace(/\d+\.?\s*kol[ea]?/g, "N. kole").replace(/dosáhl \d+ bodů/, "bodový cíl") : `limit ${opt.rounds} kol simulace`;
   const res = {}; p.resources.filter(r => !r.global).forEach(r => { res[r.name] = pl.reduce((a, f) => a + ((t.res[f.id] || {})[r.id] || 0), 0) / pl.length; });
   S.silent = S0;
-  return { seats: pl.map((f, i) => ({ fid: f.id, name: f.name, seat: i, score: scores[i], played: [...played[f.id]] })), winIdx, share, rounds, reason, res };
+  return { seats: pl.map((f, i) => ({ fid: f.id, name: f.name, seat: i, score: scores[i], played: [...played[f.id]] })), winIdx, share, rounds, reason, res, hist };
 }
 async function runSimulation(p, opt, progress) {
   const games = []; const N = Math.max(1, Math.min(2000, +opt.games || 100));
@@ -3584,19 +3721,22 @@ function summarizeSim(p, games) {
   const allCards = new Set(p.decks.filter(d => !p.factions.some(f => f.bot === d.id)).flatMap(d => d.cards.filter(c => !c.locked && +c.qty).map(c => c.title)));
   const never = [...allCards].filter(t => !cards[t]); if (never.length && cardList.length) warnings.push(`V simulaci nikdo nezahrál: ${never.slice(0, 6).join(", ")}${never.length > 6 ? "…" : ""}.`);
   if (Object.keys(reasons).some(r => r.startsWith("limit")) && (reasons[Object.keys(reasons).find(r => r.startsWith("limit"))] / n) > .5) warnings.push("Většina her skončila na limitu kol simulace – hra možná nemá dosažitelný cíl nebo je moc dlouhá.");
-  return { n, nPl, avgRounds: rounds / n, seat: seat.map(s => ({ wr: s.wins / n, avg: s.score / n })), fac: Object.values(fac).map(F => ({ name: F.name, wr: F.wins / F.games, avg: F.score / F.games })), cards: cardList, reasons, margin: mCount ? margin / mCount : null, res, warnings };
+  const len = Math.max(0, ...games.map(g => (g.hist || []).length)); const curve = Array.from({ length: len }, (_, r) => Array.from({ length: nPl }, (_, s) => games.reduce((a, g) => a + ((g.hist || [])[Math.min(r, g.hist.length - 1)] || [])[s] || 0, 0) / n));
+  const dr = games.map(decidedRound).filter(x => x != null); const decided = dr.length ? dr.reduce((a, b) => a + b, 0) / dr.length : null;
+  if (decided != null && n >= 30 && rounds / n > 3 && decided / (rounds / n) < .5) warnings.push(`Vítěz bývá jasný už kolem ${Math.round(decided)}. kola z ${Math.round(rounds / n)} – konec hry může být nudný, zvaž dohánění.`);
+  return { n, nPl, avgRounds: rounds / n, curve, decided, seat: seat.map(s => ({ wr: s.wins / n, avg: s.score / n })), fac: Object.values(fac).map(F => ({ name: F.name, wr: F.wins / F.games, avg: F.score / F.games })), cards: cardList, reasons, margin: mCount ? margin / mCount : null, res, warnings };
 }
 function simPanelHTML(p) {
   const O = S.simOpt = S.simOpt || { games: 200, rounds: +p.ruleset.win.turns || 15, policy: "greedy", actions: 2, shuffleSeats: false, rotateStart: true };
   const R = S.simRes && S.simRes.pid === p.id ? S.simRes.r : null;
   const bar = (label, val, max, txt) => `<div class="bar"><span class="n" title="${esc(label)}">${esc(label)}</span><span class="tr"><span class="fl" style="width:${max ? Math.round(val / max * 100) : 0}%"></span></span><span class="v">${txt}</span></div>`;
   return `<div class="panel"><div class="row spread"><h2>Automatické testování</h2><span class="count">simulace</span></div>
-    <p class="hint">Počítač odehraje stovky her podle tvých karet, efektů, akcí, zdrojů a pravidel a ukáže vyváženost. Umí trh, vykládání karet s efekty, akční pole, rondel, role, dráhu, automat a cíle hry. Pohyb na mapě, boj, dílky, trasy, štychy a dražby přeskočí.</p>
+    <p class="hint">Počítač odehraje stovky her podle tvých karet, efektů, akcí, zdrojů a pravidel a ukáže vyváženost. Umí trh, vykládání karet s efekty, akční pole, rondel, role, dráhu, automat, pohyb a boj na mapě, dílky a cíle hry. Trasy, štychy a dražby přeskočí.</p>
     <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(130px,1fr))">
       <label class="f">Počet her<input type="number" min="10" max="2000" data-so="games" value="${O.games}"></label>
       <label class="f">Nejvýš kol<input type="number" min="1" max="200" data-so="rounds" value="${O.rounds}"></label>
       <label class="f">Akcí za tah<input type="number" min="1" max="10" data-so="actions" value="${+p.ruleset.actionsPerTurn || O.actions}" ${+p.ruleset.actionsPerTurn ? "disabled title='Určeno v Pravidlech'" : ""}></label>
-      <label class="f">Hráči hrají<select data-so="policy"><option value="greedy" ${O.policy === "greedy" ? "selected" : ""}>Chytře (nejlepší tah)</option><option value="random" ${O.policy === "random" ? "selected" : ""}>Náhodně</option></select></label>
+      <label class="f">Hráči hrají<select data-so="policy"><option value="greedy" ${O.policy === "greedy" ? "selected" : ""}>Chytře (nejlepší tah)</option><option value="lookahead" ${O.policy === "lookahead" ? "selected" : ""}>Promyšleně (zkouší tahy dopředu, pomalejší)</option><option value="random" ${O.policy === "random" ? "selected" : ""}>Náhodně</option></select></label>
     </div>
     <label class="chk"><input type="checkbox" data-so="rotateStart" ${O.rotateStart !== false ? "checked" : ""}> Začínající hráč se každé kolo posouvá</label>
     <label class="chk"><input type="checkbox" data-so="shuffleSeats" ${O.shuffleSeats ? "checked" : ""}> Strany losovat do náhodného pořadí (odhalí sílu stran, ne výhodu pořadí)</label>
@@ -3606,9 +3746,11 @@ function simPanelHTML(p) {
       <div class="stat-row">
         <div class="stat"><span class="eyebrow">Her</span><b>${R.n}</b></div>
         <div class="stat"><span class="eyebrow">Průměrně kol</span><b>${R.avgRounds.toLocaleString("cs-CZ", { maximumFractionDigits: 1 })}</b></div>
+        <div class="stat"><span class="eyebrow">Rozhodnuto</span><b>${R.decided == null ? "–" : "~" + Math.round(R.decided) + "."}</b><span class="muted">kolo</span></div>
         <div class="stat"><span class="eyebrow">Těsnost</span><b>${R.margin == null ? "–" : R.margin.toLocaleString("cs-CZ", { maximumFractionDigits: 1 })}</b><span class="muted">bodů 1.–2. místo</span></div>
       </div>
       ${R.warnings.length ? `<div class="list">${R.warnings.map(w => `<div class="lint warn"><b>Pozor</b><span>${esc(w)}</span></div>`).join("")}</div>` : `<div class="lint ok"><b>Vyvážené</b><span>Simulace nenašla výraznou výhodu pořadí, strany ani karty.</span></div>`}
+      ${scoreChartSVG(R)}
       <div class="two">
         <div style="display:flex;flex-direction:column;gap:10px;min-width:0"><h3>Výhry podle pořadí</h3><div class="bars">${R.seat.map((s, i) => bar(`${i + 1}. hráč`, s.wr, 1, `${Math.round(s.wr * 100)} % · ⌀ ${s.avg.toLocaleString("cs-CZ", { maximumFractionDigits: 1 })} b.`)).join("")}</div>
           <h3>Strany</h3><div class="bars">${R.fac.map(f => bar(f.name, f.wr, 1, `${Math.round(f.wr * 100)} % · ⌀ ${f.avg.toLocaleString("cs-CZ", { maximumFractionDigits: 1 })} b.`)).join("")}</div>
@@ -3626,6 +3768,638 @@ function wireSimPanel(main, p) {
     const r = await runSimulation(p, { ...S.simOpt, actions: +p.ruleset.actionsPerTurn || S.simOpt.actions }, (i, n) => { const el = $("#simProg"); if (el) el.textContent = `Odehráno ${i} z ${n}…`; });
     S.simRes = { pid: p.id, r }; render();
   };
+  wireTunePanel(main, p);
+}
+
+// ---------- Verze návrhu ----------
+// Verze je snímek návrhu (bez stolu, testů a vložených obrázků). Lze ji porovnat s aktuálním stavem nebo obnovit.
+function designSnapshot(p) {
+  const q = clone(p); delete q.table; delete q.sessions; delete q.versions; delete q.isExample; delete q.online;
+  q.decks.forEach(d => { if (d.backImg && d.backImg.startsWith("data:")) d.backImg = ""; d.cards.forEach(c => { if (c.img && c.img.startsWith("data:")) c.img = ""; }); });
+  q.boards.forEach(b => { if (b.bg && b.bg.data) b.bg = null; });
+  return q;
+}
+function saveVersion(p, ver, note) {
+  p.versions = p.versions || [];
+  const v = { id: uid(), ver: ver || p.version, note: note || "", date: today(), created: Date.now(), snap: designSnapshot(p) };
+  p.versions.push(v); p.changelog.push({ id: uid(), ver: v.ver, date: v.date, note: note ? `Uložena verze: ${note}` : "Uložena verze návrhu" });
+  return v;
+}
+function diffDesign(a, b) {
+  const out = []; const add = (kind, text) => out.push({ kind, text });
+  const fields = { title: "název", type: "typ", cost: "cena", text: "text", qty: "počet", suit: "barva", value: "hodnota", vp: "body", icon: "ikona", effect: "efekt", locked: "zamčení" };
+  const da = Object.fromEntries((a.decks || []).map(d => [d.id, d])), db = Object.fromEntries((b.decks || []).map(d => [d.id, d]));
+  Object.values(db).forEach(d => { if (!da[d.id]) add("+", `Nový balíček „${d.name}“ (${d.cards.length} druhů karet)`); });
+  Object.values(da).forEach(d => { if (!db[d.id]) add("−", `Smazán balíček „${d.name}“`); });
+  Object.values(db).forEach(d => { const o = da[d.id]; if (!o) return;
+    const ca = Object.fromEntries(o.cards.map(c => [c.id, c]));
+    d.cards.forEach(c => { const x = ca[c.id]; if (!x) { add("+", `${d.name}: nová karta „${c.title}“`); return; }
+      const ch = Object.keys(fields).filter(k => String(x[k] ?? "") !== String(c[k] ?? "")).map(k => k === "text" ? "text" : `${fields[k]} ${x[k] === "" || x[k] == null ? "–" : x[k]} → ${c[k] === "" || c[k] == null ? "–" : c[k]}`);
+      if (ch.length) add("~", `${d.name}: „${c.title}“ – ${ch.join(", ")}`); });
+    const ids = new Set(d.cards.map(c => c.id)); o.cards.forEach(c => { if (!ids.has(c.id)) add("−", `${d.name}: smazána karta „${c.title}“`); });
+  });
+  const cmpList = (key, label, name, fieldsFn) => { const A = Object.fromEntries((a[key] || []).map(x => [x.id, x])), B = Object.fromEntries((b[key] || []).map(x => [x.id, x]));
+    Object.values(B).forEach(x => { if (!A[x.id]) add("+", `${label}: nový „${name(x)}“`); else { const ch = fieldsFn(A[x.id], x); if (ch) add("~", `${label} „${name(x)}“: ${ch}`); } });
+    Object.values(A).forEach(x => { if (!B[x.id]) add("−", `${label}: smazán „${name(x)}“`); }); };
+  const diffKeys = (x, y, keys) => keys.filter(k => String(x[k] ?? "") !== String(y[k] ?? "")).map(k => `${k} ${x[k] ?? "–"} → ${y[k] ?? "–"}`).join(", ");
+  cmpList("actions", "Akce", x => x.name, (x, y) => diffKeys(x, y, ["name", "text", "slots", "effect"]));
+  cmpList("resources", "Zdroj", x => x.name, (x, y) => diffKeys(x, y, ["name", "start", "income", "max", "vp"]));
+  cmpList("factions", "Strana", x => x.name, (x, y) => diffKeys(x, y, ["name", "ability", "setup"]));
+  cmpList("units", "Jednotka", x => x.name, (x, y) => diffKeys(x, y, ["name", "att", "def", "mov", "rAtt", "rDef", "rMov", "qty"]));
+  if ((a.phases || []).join("|") !== (b.phases || []).join("|")) add("~", `Fáze: ${(a.phases || []).join(" → ")} ⟶ ${(b.phases || []).join(" → ")}`);
+  const la = String(a.rules || "").split("\n"), lb = String(b.rules || "").split("\n"); const sa = new Set(la), sb = new Set(lb);
+  lb.filter(l => l.trim() && !sa.has(l)).slice(0, 8).forEach(l => add("+", `Pravidla: ${l}`)); la.filter(l => l.trim() && !sb.has(l)).slice(0, 8).forEach(l => add("−", `Pravidla: ${l}`));
+  const ra = JSON.stringify(a.ruleset || {}), rb = JSON.stringify(b.ruleset || {}); if (ra !== rb) add("~", "Změněno nastavení hlídání pravidel nebo automatických pravidel");
+  ["name", "players", "time", "summary"].forEach(k => { if (String(a[k] ?? "") !== String(b[k] ?? "")) add("~", `${{ name: "Název", players: "Hráči", time: "Délka", summary: "Popis" }[k]}: ${a[k] || "–"} → ${b[k] || "–"}`); });
+  return out;
+}
+function versionsHTML(p) {
+  const vs = [...(p.versions || [])].reverse();
+  return `<div class="panel"><h2>Verze návrhu</h2>
+    <p class="hint">Ulož stav hry před větší úpravou. Verzi pak porovnáš s aktuálním stavem nebo ji obnovíš. Testy se k verzím přiřazují podle čísla verze.</p>
+    <div class="row" style="align-items:flex-end"><label class="f" style="width:90px">Verze<input type="text" id="vVer" value="${esc(p.version)}"></label>
+      <label class="f" style="flex:1;min-width:140px">Poznámka<input type="text" id="vNote" placeholder="Např. před zlevněním skladu"></label><button class="btn primary" id="vSave">Uložit verzi</button></div>
+    ${vs.length ? `<div class="list">${vs.map(v => `<div class="item-row"><span class="ver">v${esc(v.ver)}</span><span style="flex:1;min-width:120px">${esc(v.note || "bez poznámky")}<br><span class="count">${fmtDate(v.date)} · ${p.sessions.filter(s => s.version === v.ver).length} testů</span></span>
+      <button class="btn small" data-vdiff="${v.id}">Porovnat</button><button class="btn small" data-vrest="${v.id}">Obnovit</button><button class="btn small danger" data-vdel="${v.id}" aria-label="Smazat verzi">✕</button></div>`).join("")}</div>` : `<div class="empty">Zatím žádná uložená verze.</div>`}</div>`;
+}
+function wireVersions(main, p) {
+  if (!$("#vSave")) return;
+  $("#vSave").onclick = () => { const v = saveVersion(p, $("#vVer").value.trim(), $("#vNote").value.trim()); touch(p); render(); toast(`Verze ${v.ver} uložena`); };
+  $$("[data-vdiff]", main).forEach(b => b.onclick = () => { const v = p.versions.find(x => x.id === b.dataset.vdiff); const d = diffDesign(v.snap, designSnapshot(p));
+    openDialog(`<h2>v${esc(v.ver)} → aktuální stav</h2>${d.length ? `<div class="list">${d.map(x => `<div class="diff ${x.kind === "+" ? "add" : x.kind === "−" ? "del" : "chg"}"><b>${x.kind}</b><span>${esc(x.text)}</span></div>`).join("")}</div>` : `<p>Žádné rozdíly.</p>`}<div class="row" style="justify-content:flex-end"><button class="btn primary" data-close>Zavřít</button></div>`, true); });
+  $$("[data-vrest]", main).forEach(b => b.onclick = () => { const v = p.versions.find(x => x.id === b.dataset.vrest);
+    confirmDialog(`Obnovit verzi ${v.ver}?`, "Návrh se vrátí do stavu této verze. Stůl, testy a verze zůstanou. Aktuální stav si předtím ulož jako verzi, pokud ho chceš zachovat. Obnovu jde vrátit tlačítkem ↶.", "Obnovit", () => {
+      const keep = { id: p.id, table: p.table, sessions: p.sessions, versions: p.versions, changelog: p.changelog }; const snap = clone(v.snap);
+      Object.keys(p).forEach(k => delete p[k]); Object.assign(p, normalize({ ...snap, ...keep })); p.changelog.push({ id: uid(), ver: v.ver, date: today(), note: `Obnovena verze ${v.ver}` }); touch(p); render(); toast(`Verze ${v.ver} obnovena`); }); });
+  $$("[data-vdel]", main).forEach(b => b.onclick = () => confirmDialog("Smazat verzi?", "Snímek návrhu se smaže. Testy zůstanou.", "Smazat", () => { p.versions = p.versions.filter(x => x.id !== b.dataset.vdel); touch(p); render(); }));
+}
+
+// ---------- Hra více lidí naráz (online) ----------
+// Hra žije v databázi artefaktu: games/<kód> (hlavička) a games/<kód>/parts/<část> (návrh, stůl, obrázky).
+// Každý hráč má kopii projektu s p.online = { code, host, seat }; změny stolu se posílají ostatním.
+const ON = { unsub: null, last: {}, timer: null, code: null, busy: Promise.resolve() };
+const onCode = () => Array.from({ length: 5 }, () => "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"[Math.floor(Math.random() * 32)]).join("");
+function onlineParts(p) {
+  const parts = splitProject(p); delete parts.tests; Object.keys(parts).forEach(k => { if (k.startsWith("v-")) delete parts[k]; });
+  delete parts[""].online; delete parts[""].sessions; delete parts[""].versions;
+  const out = {}; Object.entries(parts).forEach(([k, v]) => { out[k || "design"] = v; }); return out;
+}
+async function onlineDb() { const db = await cap("db"); if (!db) toast("Online hra funguje jen v aplikaci Claude po přihlášení"); return db; }
+async function onlineWrite(db, code, parts) {
+  const col = db.collection(`games/${code}/parts`);
+  for (const [k, v] of Object.entries(parts)) { const js = JSON.stringify(v); if (ON.last[k] === js) continue; if (js.length > 255000) { toast("Část hry je pro online moc velká"); continue; } await col.doc(k).set(v); ON.last[k] = js; }
+}
+async function hostOnline(p) {
+  const db = await onlineDb(); if (!db) return; const code = onCode(); ON.last = {};
+  const g = clone(p); g.id = "online-" + code; g.online = { code, host: true, seat: "" }; g.hostOf = p.id; ensureTable(g);
+  try { await db.doc(`games/${code}`).set({ name: p.name, created: Date.now() }); await onlineWrite(db, code, onlineParts(g)); }
+  catch (e) { toast("Hru se nepodařilo založit"); return; }
+  (p.onlineCodes = p.onlineCodes || []).push(code); touch(p);
+  S.projects.push(g); S.currentId = g.id; S.tab = "stul"; onlineListen(g); render();
+  openDialog(`<h2>Online hra založena</h2><p>Kód hry: <b class="mono" style="font-size:1.6rem;letter-spacing:.15em">${code}</b></p><p class="hint">Ostatní otevřou Herní dílnu, dají „Připojit se ke hře“ a zadají kód. Každý si pak vybere, za koho hraje – ruce ostatních neuvidí.</p><div class="row" style="justify-content:flex-end"><button class="btn primary" data-close>Hrát</button></div>`);
+}
+async function joinOnline(code) {
+  code = String(code || "").trim().toUpperCase(); if (!code) return; const db = await onlineDb(); if (!db) return;
+  const ex = S.projects.find(x => x.online && x.online.code === code); if (ex) { S.currentId = ex.id; render(); onlineListen(ex); return; }
+  try {
+    const snap = await db.collection(`games/${code}/parts`).get(); const docs = {}; snap.docs.forEach(d => { docs[d.id === "design" ? "" : d.id] = d.data(); });
+    if (!docs[""]) { toast("Hra s tímto kódem neexistuje"); return; }
+    const g = normalize(joinProject(docs)); g.id = "online-" + code; g.online = { code, host: false, seat: "" }; ON.last = {};
+    Object.entries(onlineParts(g)).forEach(([k, v]) => ON.last[k] = JSON.stringify(v));
+    S.projects.push(g); S.currentId = g.id; S.tab = "stul"; onlineListen(g); render(); toast("Připojeno ke hře " + code);
+  } catch { toast("Ke hře se nepodařilo připojit"); }
+}
+async function onlineListen(p) {
+  const db = await cap("db"); if (!db) return; if (ON.unsub) ON.unsub(); ON.code = p.online.code;
+  ON.unsub = db.collection(`games/${p.online.code}/parts`).onSnapshot(snap => {
+    let changed = false, design = false; const docs = {};
+    snap.docs.forEach(d => { const v = d.data(); docs[d.id === "design" ? "" : d.id] = v; const js = JSON.stringify(v); if (ON.last[d.id] === js) return; ON.last[d.id] = js; changed = true;
+      if (d.id === "table") p.table = v.table; else design = true; });
+    if (design && docs[""]) { const keep = { id: p.id, online: p.online, table: p.table, onlineCodes: p.onlineCodes, hostOf: p.hostOf }; const np = normalize(joinProject(clone(docs)));
+      Object.keys(p).forEach(k => delete p[k]); Object.assign(p, np, keep); }
+    if (changed && S.currentId === p.id && !document.querySelector(".titem.drag")) { S.undoBase = null; render(); }
+  }, () => toast("Spojení s online hrou se přerušilo"));
+}
+function onlinePush(p) {
+  clearTimeout(ON.timer);
+  ON.timer = setTimeout(async () => { const db = await cap("db"); if (!db) return; ON.busy = ON.busy.then(() => onlineWrite(db, p.online.code, onlineParts(p))).catch(() => setSaveState("Online: neodesláno")); }, 350);
+}
+function leaveOnline(p) { if (ON.unsub) ON.unsub(); ON.unsub = null; S.projects = S.projects.filter(x => x !== p); if (!S.projects.length) S.projects.push(blankProject()); S.currentId = S.projects[0].id; render(); }
+function onlineHTML(p, t) {
+  if (p.online) {
+    const seat = p.online.seat;
+    return `<section><div class="eyebrow">Online hra · kód <span class="mono">${esc(p.online.code)}</span></div>
+      <label class="f">Hraji za<select id="onSeat"><option value="">Pozoruji (vidím vše)</option>${p.factions.map(f => `<option value="${f.id}" ${seat === f.id ? "selected" : ""}>${esc(f.name)}</option>`).join("")}</select></label>
+      <p class="hint">Ruce ostatních hráčů a jejich skryté jednotky neuvidíš. Změny na stole se ostatním ukážou do pár sekund.</p>
+      <div class="row"><button class="btn small" id="onFb">Napsat zpětnou vazbu</button><button class="btn small danger" id="onLeave">Opustit hru</button></div></section>`;
+  }
+  return `<section><div class="eyebrow">Hra více lidí naráz</div><p class="hint">Každý hraje na svém zařízení, ruce zůstanou soukromé.</p>
+    <div class="row"><button class="btn small primary" id="onHost">Založit online hru</button><button class="btn small" id="onJoin">Připojit se ke hře</button></div></section>`;
+}
+function joinDialog() {
+  const d = openDialog(`<h2>Připojit se ke hře</h2><label class="f">Kód hry<input type="text" id="onCode" maxlength="8" autocapitalize="characters" style="text-transform:uppercase;letter-spacing:.15em"></label><div class="row" style="justify-content:flex-end"><button class="btn" data-close>Zrušit</button><button class="btn primary" id="onGo">Připojit</button></div>`);
+  setTimeout(() => $("#onCode", d).focus(), 30); $("#onGo", d).onclick = () => { const c = $("#onCode", d).value; closeDialog(); joinOnline(c); };
+}
+// Dotazník po hře: zapisuje se k záznamu testu, testeři online ho posílají autorovi.
+const SURVEY = [["fun", "Jak moc hra bavila?", ["1 vůbec", "2", "3", "4", "5 hodně"]], ["len", "Délka hry", ["krátká", "akorát", "dlouhá"]], ["cx", "Složitost", ["jednoduchá", "akorát", "složitá"]]];
+function surveyHTML(sv = {}) {
+  return `<div class="eyebrow">Dotazník po hře</div>${SURVEY.map(([k, q, opts]) => `<div class="f"><span>${q}</span><div class="tools" role="radiogroup">${opts.map((o, i) => `<button type="button" data-sv="${k}" data-svv="${i + 1}" aria-pressed="${+sv[k] === i + 1}">${o}</button>`).join("")}</div></div>`).join("")}
+    <label class="f">Co bylo nejasné?<input type="text" id="sv-unclear" value="${esc(sv.unclear || "")}" placeholder="pravidlo, karta, symbol…"></label>`;
+}
+function wireSurvey(d, sv) {
+  $$("[data-sv]", d).forEach(b => b.onclick = () => { sv[b.dataset.sv] = +b.dataset.svv; $$(`[data-sv="${b.dataset.sv}"]`, d).forEach(x => x.setAttribute("aria-pressed", x === b)); });
+  return () => { sv.unclear = $("#sv-unclear", d).value.trim(); return sv; };
+}
+function surveySummaryHTML(ss) {
+  const w = ss.filter(s => s.survey && (s.survey.fun || s.survey.len || s.survey.cx || s.survey.unclear)); if (!w.length) return "";
+  const avg = k => { const v = w.map(s => +s.survey[k]).filter(Boolean); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; };
+  const cnt = (k, i) => w.filter(s => +s.survey[k] === i).length;
+  const fun = avg("fun"); const unclear = w.map(s => s.survey.unclear).filter(Boolean);
+  return `<div class="panel"><h3>Dotazníky (${w.length})</h3>
+    <div class="stat-row"><div class="stat"><span class="eyebrow">Zábava</span><b>${fun == null ? "–" : fun.toLocaleString("cs-CZ", { maximumFractionDigits: 1 })}</b><span class="muted">z 5</span></div>
+    <div class="stat"><span class="eyebrow">Délka</span><b style="font-size:1rem">${["krátká", "akorát", "dlouhá"].map((x, i) => `${x} ${cnt("len", i + 1)}`).join(" · ")}</b></div>
+    <div class="stat"><span class="eyebrow">Složitost</span><b style="font-size:1rem">${["jednoduchá", "akorát", "složitá"].map((x, i) => `${x} ${cnt("cx", i + 1)}`).join(" · ")}</b></div></div>
+    ${unclear.length ? `<h3>Nejasnosti</h3><ul>${unclear.map(u => `<li>${esc(u)}</li>`).join("")}</ul>` : ""}</div>`;
+}
+function feedbackDialog(p) {
+  const sv = {}; const d = openDialog(`<h2>Zpětná vazba autorovi</h2>${surveyHTML(sv)}<label class="f">Poznámka<textarea id="fbNote" placeholder="Co se líbilo, co ne…"></textarea></label><div class="row" style="justify-content:flex-end"><button class="btn" data-close>Zrušit</button><button class="btn primary" id="fbGo">Odeslat</button></div>`);
+  const read = wireSurvey(d, sv);
+  $("#fbGo", d).onclick = async () => { const db = await onlineDb(); if (!db) return; const t = p.table; const seat = p.factions.find(f => f.id === p.online.seat);
+    try { await db.collection(`games/${p.online.code}/feedback`).add({ survey: read(), note: $("#fbNote", d).value.slice(0, 2000), seat: seat ? seat.name : "", minutes: Math.round(clockMs(t) / 60000), at: Date.now() }); closeDialog(); toast("Díky, odesláno"); } catch { toast("Nepodařilo se odeslat"); } };
+}
+async function importFeedback(p) {
+  const db = await onlineDb(); if (!db) return; let n = 0; p.fbSeen = p.fbSeen || [];
+  for (const code of p.onlineCodes || []) { try { const snap = await db.collection(`games/${code}/feedback`).get();
+    snap.docs.forEach(doc => { const key = code + "/" + doc.id; if (p.fbSeen.includes(key)) return; const f = doc.data(); p.fbSeen.push(key); n++;
+      p.sessions.push({ id: uid(), date: new Date(f.at || Date.now()).toISOString().slice(0, 10), version: p.version, minutes: +f.minutes || 0, scenario: "", players: [{ name: f.seat || "tester", score: "", win: false }], notes: `Tester online (${code}): ${f.note || ""}`, survey: f.survey || {} }); }); } catch {} }
+  touch(p); render(); toast(n ? `Načteno ${n} ${plural(n, "hodnocení", "hodnocení", "hodnocení")}` : "Nic nového");
+}
+function wireOnline(main, p, t, save) {
+  const q = id => document.getElementById(id);
+  if (q("onHost")) q("onHost").onclick = () => hostOnline(p);
+  if (q("onJoin")) q("onJoin").onclick = joinDialog;
+  if (q("onLeave")) q("onLeave").onclick = () => leaveOnline(p);
+  if (q("onFb")) q("onFb").onclick = () => feedbackDialog(p);
+  if (q("onSeat")) q("onSeat").onchange = e => { p.online.seat = e.target.value; S.view = e.target.value || ""; if (e.target.value) { S.handF = e.target.value; S.showHand = false; } render(); };
+}
+
+// ---------- Claude: text karty → efekt ----------
+const DSL_HELP = `Zápis efektu (příkazy odděl středníkem, uvnitř volby/podmínky/platby čárkou):
++2 Zdroj | -1 Zdroj | všichni +1 Zdroj | ostatní -1 Zdroj | soupeř -1 Zdroj
+líznout 2 | líznout 1 z Balíček | táhnout 2 z Sáček | posun +3 | ostatní posun -2 | událost z Balíček
+vyber: +2 Mince | líznout 1   (volba hráče)
+pokud Mince >= 3: +1 Body, líznout 1   (podmínka; také ruka, kolo, skóre)
+zaplať 1 Dřevo + 1 Cihly: +1 Body   (platba)
+nastav Mince 0 | odhodit 1 | zpráva Text | vítěz
+Na začátek lze dát: jednou za kolo: … / jednou za tah: … / jednou za hru: …`;
+function aiContext(p) {
+  return `Zdroje: ${p.resources.map(r => r.name).join(", ") || "žádné"}. Balíčky: ${p.decks.map(d => d.name).join(", ") || "žádné"}. Sáčky: ${p.bags.map(b => b.name).join(", ") || "žádné"}.${+p.track.length ? " Hra má závodní dráhu." : ""}`;
+}
+// items: [{id, text}] → { id: efekt }
+async function aiEffects(p, items) {
+  const sample = await cap("sample"); if (!sample) throw { code: "unavailable" };
+  const res = await sample.json(`Převeď texty herních karet do jednoduchého zápisu efektů, kterému rozumí aplikace. Použij jen níže povolené příkazy a jen zdroje, balíčky a sáčky, které hra má. Když se část textu zapsat nedá (např. pravidlo pro pohyb), vynech ji. Když nejde zapsat nic, vrať prázdný řetězec.
+${DSL_HELP}
+${aiContext(p)}
+Vrať POUZE JSON {"effects":[{"id":"...","effect":"..."}]}.
+Karty:
+${items.map(x => `- id ${x.id}: ${x.text.replace(/\n/g, " ")}`).join("\n")}`, { modelTier: "default" });
+  const out = {}; ((res && res.effects) || []).forEach(e => { if (e && e.id) out[e.id] = String(e.effect || "").trim(); });
+  return out;
+}
+async function aiEffectForCard(p, c, input, status) {
+  status.textContent = "Claude převádí text…";
+  try { const r = await aiEffects(p, [{ id: "x", text: `${c.title}: ${c.text}` }]); const e = r.x || ""; input.value = e; input.dispatchEvent(new Event("input", { bubbles: true }));
+    const bad = checkEffect(p, e); status.textContent = !e ? "Text se nedá zapsat jako efekt." : bad.length ? "Pozor: " + bad.join(", ") : "Hotovo – zkontroluj zápis."; }
+  catch (e) { status.textContent = e && e.code === "unavailable" ? "Funguje jen v aplikaci Claude (claude.ai)." : aiErr(e); }
+}
+async function aiFillDeck(p, deck) {
+  const todo = deck.cards.filter(c => !String(c.effect || "").trim() && String(c.text || "").trim());
+  if (!todo.length) { toast("Všechny karty s textem už efekt mají"); return; }
+  const d = openDialog(`<h2>Doplnit efekty z textu</h2><p class="hint">Claude převádí ${todo.length} ${plural(todo.length, "kartu", "karty", "karet")}…</p><div id="aiFillBox"></div><div class="row" style="justify-content:flex-end"><button class="btn" data-close>Zavřít</button></div>`, true);
+  try {
+    const r = await aiEffects(p, todo.slice(0, 40).map(c => ({ id: c.id, text: `${c.title}: ${c.text}` })));
+    const rows = todo.filter(c => r[c.id]);
+    $("#aiFillBox", d).innerHTML = rows.length ? `<div class="list">${rows.map(c => { const bad = checkEffect(p, r[c.id]); return `<label class="item-row"><input type="checkbox" data-aif="${c.id}" ${bad.length ? "" : "checked"} style="width:22px;height:22px"><span style="flex:1;min-width:0"><b>${esc(c.title)}</b><br><span class="hint">${esc(c.text)}</span><br><code>${esc(r[c.id])}</code>${bad.length ? `<br><span style="color:var(--danger)">${esc(bad.join(", "))}</span>` : ""}</span></label>`; }).join("")}</div>
+      <button class="btn primary" id="aiFillOk">Použít vybrané</button>` : `<p>Žádný text se nedal zapsat jako efekt.</p>`;
+    if ($("#aiFillOk", d)) $("#aiFillOk", d).onclick = () => { let n = 0; $$("[data-aif]", d).forEach(i => { if (!i.checked) return; const c = deck.cards.find(x => x.id === i.dataset.aif); c.effect = r[c.id]; n++; }); touch(p); closeDialog(); render(); toast(`Efekty doplněny: ${n}`); };
+  } catch (e) { $("#aiFillBox", d).innerHTML = `<p class="hint">${esc(e && e.code === "unavailable" ? "Funguje jen v aplikaci Claude (claude.ai)." : aiErr(e))}</p>`; }
+}
+
+// ---------- Příručka pravidel a seznam komponent ----------
+function describeEffect(text) {
+  let body = String(text || "").trim(); if (!body) return ""; const parts = [];
+  const once = body.match(/^jednou\s+za\s+(kolo|tah|hru)\s*:\s*/i); if (once) { parts.push(`jednou za ${once[1]}:`); body = body.slice(once[0].length); }
+  const one = c => { let m; c = c.trim();
+    if ((m = c.match(/^pokud\s+(.+?)\s*:\s*(.+)$/i))) return `pokud ${m[1]}, pak ${m[2].split(",").map(one).join(" a ")}`;
+    if ((m = c.match(/^zaplať\s+(.+?)\s*:\s*(.+)$/i))) return `zaplať ${m[1].replace(/\+/g, "a")} a ${m[2].split(",").map(one).join(" a ")}`;
+    if ((m = c.match(/^vyber\s*:\s*(.+)$/i))) return `vyber si: ${m[1].split("|").map(o => o.split(",").map(one).join(" a ")).join(", nebo ")}`;
+    if ((m = c.match(/^soupeř\s+(.+)$/i))) return `zvolený soupeř: ${one(m[1])}`;
+    if ((m = c.match(/^(všichni|ostatní|hráč)?\s*([+-])\s*(\d+)\s+(.+)$/i))) { const who = (m[1] || "").toLowerCase(); const verb = m[2] === "+" ? (who ? "získají" : "získej") : (who ? "ztratí" : "ztrať"); return `${who ? who + " " : ""}${verb} ${m[3]} × ${m[4]}`; }
+    if ((m = c.match(/^líznout\s+(\d+)(?:\s+z\s+(.+))?$/i))) return `lízni ${m[1]} ${plural(+m[1], "kartu", "karty", "karet")}${m[2] ? " z balíčku " + m[2] : ""}`;
+    if ((m = c.match(/^táhnout\s+(\d+)\s+z\s+(.+)$/i))) return `táhni ${m[1]} ${plural(+m[1], "žeton", "žetony", "žetonů")} ze sáčku ${m[2]}`;
+    if ((m = c.match(/^(všichni|ostatní)?\s*posun\s+([+-]?\d+)$/i))) return `${m[1] ? m[1] + " se posunou" : "posuň se"} o ${Math.abs(+m[2])} ${Math.abs(+m[2]) >= 5 ? "polí" : "pole"} ${+m[2] < 0 ? "zpět" : "vpřed"}`;
+    if ((m = c.match(/^událost(?:\s+z\s+(.+))?$/i))) return `otoč událost${m[1] ? " z balíčku " + m[1] : ""}`;
+    if ((m = c.match(/^nastav\s+(.+?)\s+(-?\d+)$/i))) return `nastav ${m[1]} na ${m[2]}`;
+    if ((m = c.match(/^odhodit\s+(\d+)$/i))) return `odhoď náhodně ${m[1]} ${plural(+m[1], "kartu", "karty", "karet")}`;
+    if ((m = c.match(/^(?:zpráva|oznámení)\s+(.+)$/i))) return `„${m[1]}“`;
+    if (/^(vítěz|vyhrává|konec hry)$/i.test(c)) return "vyhráváš";
+    return c; };
+  body.split(/[;\n]/).map(s => s.trim()).filter(Boolean).forEach(c => parts.push(one(c)));
+  const s = (once ? parts.shift() + " " : "") + parts.join("; "); return s.charAt(0).toUpperCase() + s.slice(1) + ".";
+}
+function componentList(p) {
+  const rows = [];
+  p.decks.forEach(d => rows.push([`Karty – ${d.name}${d.starter ? " (startovní, pro každého hráče)" : ""}`, d.cards.reduce((a, c) => a + (+c.qty || 0), 0) * (d.starter ? Math.max(1, p.factions.length) : 1)]));
+  if (p.units.length) p.factions.forEach(f => { const n = p.units.filter(u => u.factionId === f.id).reduce((a, u) => a + (+u.qty || 0), 0); if (n) rows.push([`Žetony jednotek – ${f.name}`, n]); });
+  p.tokens.forEach(t => rows.push([`Žeton: ${t.name}`, "dle potřeby"]));
+  if (p.tiles.length) rows.push(["Dílky", p.tiles.reduce((a, t) => a + (+t.qty || 0), 0)]);
+  p.boards.forEach(b => rows.push([`Herní deska „${b.name}“ (${b.cols}×${b.rows} ${b.type === "hex" ? "hexů" : "polí"})`, 1]));
+  p.bags.forEach(b => rows.push([`Sáček „${b.name}“ + žetony (${b.contents.map(c => `${c.count}× ${c.label}`).join(", ")})`, 1]));
+  p.cdice.forEach(d => rows.push([`Kostka „${d.name}“ (${d.faces.map(f => f || "prázdná").join(", ")})`, 1]));
+  if (p.resources.length) rows.push([`Žetony zdrojů: ${p.resources.map(r => r.name).join(", ")}`, "dle potřeby"]);
+  if (p.actionMode !== "slots" || p.actions.length) if (p.actions.length) rows.push([`Figurky hráčů (${p.factions.length} barev)`, `${p.factions.length} × 3–5`]);
+  if (+p.track.length) rows.push([`Závodní dráha (${p.track.length} polí) a figurky`, 1]);
+  return rows;
+}
+function buildRulebook(p) {
+  const sec = []; const H = (t, b) => b && sec.push({ t, b });
+  H("O hře", `<p>${esc(p.summary || "")}</p><p><b>${esc(p.players)}</b> hráči · <b>${esc(p.time)}</b> · věk <b>${esc(p.age)}</b></p>`);
+  H("Komponenty", `<ul>${componentList(p).map(([n, c]) => `<li>${esc(n)} – ${esc(String(c))}</li>`).join("")}</ul>`);
+  const setup = [];
+  if (p.resources.length) setup.push(`Každý hráč začíná se zdroji: ${p.resources.filter(r => !r.global).map(r => `${r.start} × ${r.name}`).join(", ")}.`);
+  p.factions.filter(f => f.setup || f.ability).forEach(f => setup.push(`<b>${esc(f.name)}</b>: ${f.setup ? esc(describeEffect(f.setup)) + " " : ""}${f.ability ? "Schopnost: " + esc(f.ability) : ""}`));
+  p.decks.filter(d => d.starter).forEach(d => setup.push(`Každý hráč dostane vlastní balíček ${esc(d.name)}.`));
+  p.decks.filter(d => +d.market).forEach(d => setup.push(`Vyložte ${d.market} karet z balíčku ${esc(d.name)} jako trh.`));
+  H("Příprava", setup.length ? `<ul>${setup.map(x => `<li>${x}</li>`).join("")}</ul>` : "");
+  H("Průběh kola", p.phases.length ? `<ol>${p.phases.map(x => `<li>${esc(x)}</li>`).join("")}</ol>` : "");
+  H("Akce", p.actions.length ? `<ul>${p.actions.map(a => `<li><b>${esc(a.name)}</b>${p.actionMode === "slots" ? ` (${a.slots} ${plural(+a.slots, "místo", "místa", "míst")})` : ""}: ${esc(a.text || "")}${a.effect ? " " + esc(describeEffect(a.effect)) : ""}</li>`).join("")}</ul>${p.actionMode === "rondel" ? `<p>Akce leží na kruhu. ${p.rondel.free} kroky jsou zdarma, každý další stojí 1.</p>` : p.actionMode === "roles" ? "<p>Každou roli si v kole vezme jen jeden hráč.</p>" : ""}` : "");
+  const R = p.ruleset; const lim = [];
+  if (+R.handLimit) lim.push(`Na konci tahu smíš mít v ruce nejvýš ${R.handLimit} karet.`); if (+R.drawUpTo) lim.push(`Na konci tahu si dober do ${R.drawUpTo} karet.`); if (+R.actionsPerTurn) lim.push(`V tahu smíš provést ${R.actionsPerTurn} akce.`);
+  if (R.moveOnce) lim.push("Každá jednotka se smí v tahu pohnout jen jednou."); if (+R.stackLimit) lim.push(`Na jednom poli smí stát nejvýš ${R.stackLimit} jednotky.`);
+  Object.entries(R.phaseOf || {}).forEach(([k, ph]) => { if (ph && ph.length) lim.push(`${CATS[k]} jen ve fázi ${ph.map(i => p.phases[i]).join(" / ")}.`); });
+  R.triggers.forEach(t => lim.push(`${TRIGGERS[t.on]}${t.param ? ` (${esc(t.param)})` : ""}${t.cond ? `, pokud ${esc(t.cond)}` : ""}: ${esc(describeEffect(t.effect))}`));
+  H("Důležitá pravidla", lim.length ? `<ul>${lim.map(x => `<li>${x}</li>`).join("")}</ul>` : "");
+  H("Pravidla", p.rules ? `<div style="white-space:pre-wrap">${esc(p.rules)}</div>` : "");
+  const sp = trackSpaces(p); H("Zvláštní pole dráhy", Object.keys(sp).length ? `<ul>${Object.entries(sp).map(([i, e]) => `<li>${i}: ${esc(describeEffect(e))}</li>`).join("")}</ul>` : "");
+  const win = []; if (+R.win.vp) win.push(`Vyhrává, kdo první dosáhne ${R.win.vp} bodů.`); if (+R.win.turns) win.push(`Hra končí po ${R.win.turns}. kole, vyhrává nejvíc bodů.`); if (R.win.elimination) win.push("Vyhrává strana, které jako jediné zůstanou jednotky."); if (+p.track.length) win.push("Kdo první dojde do cíle dráhy, vyhrává.");
+  p.scenarios.forEach(s => win.push(`Scénář „${esc(s.name)}“: ${esc(s.victory || "")}`));
+  H("Konec hry", win.length ? `<ul>${win.map(x => `<li>${x}</li>`).join("")}</ul>` : "");
+  p.decks.forEach(d => H(`Přehled karet – ${d.name}`, `<table><tr><th>Karta</th><th>Počet</th><th>Cena</th><th>Text a efekt</th></tr>${d.cards.map(c => `<tr><td>${esc(c.title)}</td><td>${c.qty}</td><td>${esc(c.cost || "")}</td><td>${esc(c.text || "")}${c.effect ? `<br><i>${esc(describeEffect(c.effect))}</i>` : ""}</td></tr>`).join("")}</table>`));
+  const body = sec.map(x => `<h2>${esc(x.t)}</h2>${x.b}`).join("\n");
+  const html = `<!doctype html><html lang="cs"><head><meta charset="utf-8"><title>${esc(p.name)} – pravidla</title><style>body{font-family:Georgia,serif;max-width:46rem;margin:2rem auto;padding:0 1rem;line-height:1.55;color:#1d1d1b}h1{font-size:2.2rem;margin-bottom:.2rem}h2{border-bottom:2px solid #ccc;padding-bottom:.2rem;margin-top:2rem}table{border-collapse:collapse;width:100%;font-size:.9rem}td,th{border:1px solid #ccc;padding:.3rem .5rem;vertical-align:top;text-align:left}</style></head><body><h1>${esc(p.name)}</h1><p>Verze ${esc(p.version)}</p>${body}</body></html>`;
+  const md = `# ${p.name}\n\nVerze ${p.version}\n\n` + sec.map(x => `## ${x.t}\n\n${x.b.replace(/<\/p>/g, "\n\n").replace(/<li>/g, "- ").replace(/<\/li>/g, "\n").replace(/<tr><td>/g, "| ").replace(/<\/td><td>/g, " | ").replace(/<\/td><\/tr>/g, " |\n").replace(/<br>/g, " ").replace(/<[^>]+>/g, "").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&")}`).join("\n\n");
+  return { html, md, body };
+}
+function bookPanelHTML(p) {
+  return `<div class="panel"><h2>Příručka a výroba</h2><p class="hint">Z nastavení hry se sestaví čitelná pravidla: komponenty, příprava, průběh kola, akce, efekty karet slovy a konec hry. Seznam komponent se hodí pro výrobu prototypu.</p>
+    <div class="row"><button class="btn small" id="bookShow">Zobrazit příručku</button><button class="btn small" id="bookHtml">Stáhnout (HTML)</button><button class="btn small" id="bookMd">Stáhnout (Markdown)</button><button class="btn small" id="compList">Seznam komponent</button></div></div>`;
+}
+function wireBookPanel(main, p) {
+  if (!$("#bookShow")) return;
+  $("#bookShow").onclick = () => openDialog(`<div class="book">${buildRulebook(p).body}</div><div class="row" style="justify-content:flex-end"><button class="btn primary" data-close>Zavřít</button></div>`, true);
+  $("#bookHtml").onclick = () => offerFile(slug(p.name) + "-pravidla.html", buildRulebook(p).html, "Příručka uložena");
+  $("#bookMd").onclick = () => offerFile(slug(p.name) + "-pravidla.md", buildRulebook(p).md, "Příručka uložena");
+  $("#compList").onclick = () => { const rows = componentList(p); const txt = rows.map(([n, c]) => `${n}: ${c}`).join("\n");
+    const d = openDialog(`<h2>Seznam komponent</h2><table class="crt-tab" style="font-family:var(--f-body)"><tbody>${rows.map(([n, c]) => `<tr><td style="text-align:left">${esc(n)}</td><td>${esc(String(c))}</td></tr>`).join("")}</tbody></table><div class="row" style="justify-content:flex-end"><button class="btn" id="clCopy">Kopírovat</button><button class="btn primary" data-close>Zavřít</button></div>`);
+    $("#clCopy", d).onclick = () => copyText(txt); };
+}
+
+// ---------- Karty: vzácnost, rámečky, ruby, export obrázků ----------
+const RARITIES = { "": "–", bezna: "Běžná", neobvykla: "Neobvyklá", vzacna: "Vzácná", legendarni: "Legendární" };
+const FRAMES = { "": "Bez rámečku", tenky: "Tenký", dvojity: "Dvojitý", zdobny: "Zdobný", cerny: "Černý okraj" };
+function loadScript(src) {
+  return new Promise((res, rej) => { if ([...document.scripts].some(s => s.src === src)) return res(); const s = document.createElement("script"); s.src = src; s.onload = () => res(); s.onerror = () => rej(new Error("Nástroj pro export se nepodařilo načíst")); document.head.appendChild(s); });
+}
+const LIB_H2C = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
+const LIB_ZIP = "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js";
+async function cardCanvas(html, width) {
+  const box = document.createElement("div"); box.style.cssText = "position:fixed;left:-20000px;top:0"; box.innerHTML = html; document.body.appendChild(box);
+  const el = box.firstElementChild; Object.assign(el.style, { fontSize: (width / 9.375) + "px", boxShadow: "none", borderRadius: "0", maxWidth: "none" });
+  try { await document.fonts.ready; return await window.html2canvas(el, { backgroundColor: "#ffffff", scale: 1, useCORS: true, logging: false }); } finally { box.remove(); }
+}
+const toBlob = c => new Promise(r => c.toBlob(r, "image/png"));
+async function offerBlob(filename, blob, okMsg) {
+  const dl = await cap("downloads"); if (!dl) { toast("Stažení souboru funguje jen v aplikaci Claude"); return; }
+  try { await dl.save({ filename, data: blob }); toast(okMsg); } catch (e) { if (e && e.code !== "declined") toast("Soubor se nepodařilo uložit"); }
+}
+async function exportImages(p, mode) {
+  const decks = p.decks.filter(d => d.cards.length); if (!decks.length) { toast("Hra nemá žádné karty"); return; }
+  try { toast("Načítám nástroje pro export…"); await loadScript(LIB_H2C); await loadScript(LIB_ZIP); }
+  catch (e) { toast(e.message); return; }
+  const zip = new window.JSZip(); let done = 0; const total = decks.reduce((a, d) => a + d.cards.length + 1, 0);
+  const tick = () => { done++; if (done % 5 === 0) toast(`Vykresleno ${done} z ${total}…`); };
+  for (const d of decks) {
+    if (mode === "png") {
+      for (const c of d.cards) { zip.file(`${slug(d.name)}/${slug(c.title) || c.id}.png`, await toBlob(await cardCanvas(cardHTML(c, d), 375))); tick(); }
+      zip.file(`${slug(d.name)}/rub.png`, await toBlob(await cardCanvas(cardHTML({}, d, false), 375))); tick();
+    } else {
+      // Tabletop Simulator: archy 10 × 7, poslední pole archu zůstává prázdné (TTS ho používá jako skrytou kartu).
+      const faces = []; d.cards.forEach(c => { for (let i = 0; i < Math.max(1, +c.qty || 0); i++) faces.push(c); });
+      const W = 250, H = 350; const cache = new Map();
+      for (let s = 0; s * 69 < faces.length; s++) {
+        const part = faces.slice(s * 69, s * 69 + 69); const rows = Math.ceil((part.length + 1) / 10);
+        const sheet = document.createElement("canvas"); sheet.width = W * 10; sheet.height = H * rows; const g = sheet.getContext("2d");
+        for (let i = 0; i < part.length; i++) { const c = part[i]; if (!cache.has(c.id)) { cache.set(c.id, await cardCanvas(cardHTML(c, d), W)); tick(); } g.drawImage(cache.get(c.id), (i % 10) * W, Math.floor(i / 10) * H, W, H); }
+        zip.file(`${slug(d.name)}-arch-${s + 1}-${part.length}karet.png`, await toBlob(sheet));
+      }
+      zip.file(`${slug(d.name)}-rub.png`, await toBlob(await cardCanvas(cardHTML({}, d, false), W))); tick();
+    }
+  }
+  if (mode === "tts") zip.file("JAK-IMPORTOVAT.txt", "Tabletop Simulator: Objects → Components → Cards → Custom Deck.\nFace: arch karet, Back: soubor -rub.png.\nWidth 10, Height podle počtu řádků archu, Number = počet karet v názvu souboru.\n");
+  toast("Balím soubory…");
+  await offerBlob(`${slug(p.name)}-${mode === "png" ? "karty-obrazky" : "tabletop-simulator"}.zip`, await zip.generateAsync({ type: "blob" }), "Export uložen");
+}
+function printDialog(p) {
+  const d = openDialog(`<h2>Tisková archa</h2>
+    <label class="chk"><input type="checkbox" id="prBleed"> Spadávka 3 mm a ořezové značky (pro tiskárnu, 6 karet na stranu)</label>
+    <label class="chk"><input type="checkbox" id="prBacks" checked> Přidat rubové strany</label>
+    <p class="hint">Bez spadávky se vejde 9 karet 63 × 88 mm na stranu A4. Soubor otevři v prohlížeči a vytiskni ve skutečné velikosti (100 %).</p>
+    <div class="row" style="justify-content:flex-end"><button class="btn" data-close>Zrušit</button><button class="btn primary" id="prGo">Vytvořit</button></div>`);
+  $("#prGo", d).onclick = () => { const opt = { bleed: $("#prBleed", d).checked, backs: $("#prBacks", d).checked }; closeDialog(); exportPrint(p, opt); };
+}
+function typeIconsHTML(p) {
+  const types = [...new Set(p.decks.flatMap(d => d.cards.map(c => c.type)).filter(Boolean))];
+  if (!types.length) return "";
+  return `<div class="eyebrow">Ikony typů karet</div><div class="row">${types.map(t => `<label class="f" style="flex-direction:row;align-items:center;gap:6px;width:auto">${esc(t)}<input type="text" data-tyi="${esc(t)}" value="${esc((p.typeIcons || {})[t] || "")}" maxlength="3" style="width:60px" aria-label="Ikona typu ${esc(t)}"></label>`).join("")}</div>`;
+}
+
+// ---------- Wargames: provedení boje, zásobování, iniciativa, skrytý pohyb ----------
+const unitOf = (p, i) => p.units.find(u => u.id === i.unitId);
+const cellName = k => k.split(",").map(n => pad2(+n + 1)).join("");
+// Ztráta kroku: zdravá jednotka s rubem se oslabí, jinak je zničena.
+function stepLoss(p, t, it) {
+  const u = unitOf(p, it); if (!u) return "";
+  if (!it.reduced && hasReduced(u)) { it.reduced = true; return `${u.name} ztrácí krok`; }
+  t.items = t.items.filter(x => x !== it); if (S.sel === it.uid) S.sel = null; return `${u.name} zničena`;
+}
+function placeOn(p, t, it, k) {
+  const b = tableBoard(p); const [w, h] = itemSize(it); const [c, r] = k.split(",").map(Number); const [cx, cy] = geo(b).center(c, r);
+  const stack = t.items.filter(o => o !== it && o.kind !== "card" && cellUnder(p, o) === k).length;
+  it.x = Math.round(BX + cx - w / 2 + stack * 5); it.y = Math.round(BY + cy - h / 2 - stack * 5);
+}
+// Ústup o n polí: každý krok dál od nepřátel, na průchozí pole bez nepřítele.
+function retreat(p, t, it, n = 1) {
+  const b = tableBoard(p); const u = unitOf(p, it); let k = cellUnder(p, it); if (!b || !k) return stepLoss(p, t, it);
+  for (let s = 0; s < n; s++) {
+    const enemy = enemyCells(p, t, it); const [c, r] = k.split(",").map(Number);
+    const dist = x => enemy.length ? Math.min(...enemy.map(e => hexDist(b, x, e))) : 0;
+    const opts = neighbors(b, c, r).map(([x, y]) => x + "," + y).filter(x => { const ter = terrainOf(p, b, x) || p.terrains[0]; return !enemy.includes(x) && !(ter && !isFinite(parseFloat(ter.move))) && dist(x) > dist(k); });
+    if (!opts.length) return `${u.name} nemá kam ustoupit – ` + stepLoss(p, t, it);
+    k = opts.sort((a, b2) => dist(b2) - dist(a))[0];
+  }
+  placeOn(p, t, it, k); return `${u.name} ustupuje na ${cellName(k)}`;
+}
+// Provede výsledek z bojové tabulky na jednotky zapojené do boje.
+function applyCombat(p, t, out) {
+  const C = S.combat; const att = (C.attUids || []).map(id => t.items.find(i => i.uid === id)).filter(Boolean); const def = t.items.find(i => i.uid === C.defUid);
+  const code = String(out || "").toUpperCase().trim(); const msgs = [];
+  const m = code.match(/^([AD])(R|S)?(\d)?$/);
+  if (code === "AE") att.forEach(i => msgs.push(stepLoss(p, t, Object.assign(i, { reduced: true }))));
+  else if (code === "DE") { if (def) msgs.push(stepLoss(p, t, Object.assign(def, { reduced: true }))); }
+  else if (code === "EX") { if (def) msgs.push(stepLoss(p, t, def)); if (att[0]) msgs.push(stepLoss(p, t, att[0])); }
+  else if (code === "AR") att.forEach(i => msgs.push(retreat(p, t, i, 1)));
+  else if (code === "DR") { if (def) msgs.push(retreat(p, t, def, 1)); }
+  else if (m) { const tgt = m[1] === "A" ? att : (def ? [def] : []); const n = +(m[3] || 1);
+    tgt.forEach(i => { for (let s = 0; s < n && t.items.includes(i); s++) msgs.push(m[2] === "R" ? retreat(p, t, i, 1) : stepLoss(p, t, i)); }); }
+  else return "Výsledek nemá automatické provedení – posuň jednotky ručně";
+  checkWin(p, t);
+  return msgs.filter(Boolean).join(", ") || "Žádná změna";
+}
+// Zásobování: zdroje jsou velitelství (jednotka s volbou „zdroj zásobování“) a ovládaná pole s body.
+function supplySet(p, t, fid) {
+  const b = tableBoard(p); if (!b) return null; const R = +p.ruleset.supplyRange || 4;
+  const src = t.items.filter(i => i.kind === "unit" && (unitOf(p, i) || {}).factionId === fid && (unitOf(p, i) || {}).hq).map(i => cellUnder(p, i)).filter(Boolean);
+  Object.entries(t.control || {}).forEach(([k, f]) => { const ter = terrainOf(p, b, k); if (f === fid && ter && +ter.vp > 0) src.push(k); });
+  const enemy = new Set(t.items.filter(i => i.kind === "unit" && unitOf(p, i) && unitOf(p, i).factionId !== fid).map(i => cellUnder(p, i)).filter(Boolean));
+  const dist = {}; const q = []; src.forEach(k => { if (!enemy.has(k)) { dist[k] = 0; q.push(k); } });
+  while (q.length) { const k = q.shift(); if (dist[k] >= R) continue; const [c, r] = k.split(",").map(Number);
+    neighbors(b, c, r).forEach(([x, y]) => { const nk = x + "," + y; const ter = terrainOf(p, b, nk) || p.terrains[0]; if (dist[nk] != null || enemy.has(nk) || (ter && !isFinite(parseFloat(ter.move)))) return; dist[nk] = dist[k] + 1; q.push(nk); }); }
+  return dist;
+}
+function inSupply(p, t, it) {
+  if (!p.ruleset.supply) return true; const u = unitOf(p, it); const k = cellUnder(p, it); if (!u || !k) return true;
+  const key = u.factionId; S.supCache = S.supCache || {}; if (!S.supCache[key]) S.supCache[key] = supplySet(p, t, key) || {};
+  return S.supCache[key][k] != null;
+}
+function initiativeRoll(p, t) {
+  const rolls = p.factions.map(f => ({ f, v: rnd(6) + (+f.initBonus || 0), tie: Math.random() }));
+  rolls.sort((a, b) => b.v - a.v || b.tie - a.tie); t.order = rolls.map(r => r.f.id); t.curF = 0;
+  const txt = rolls.map(r => `${r.f.name} ${r.v}`).join(", "); logEv(t, `iniciativa: ${txt}`); return txt;
+}
+// Skrytý pohyb: tahy skryté strany se zapisují do tajného záznamu, ukáže se jen v kolech odhalení.
+const revealRound = (p, t) => String(p.hiddenReveal || "").split(/[,;\s]+/).map(Number).includes(+t.turn);
+function hiddenFaction(p, fid) { const f = p.factions.find(x => x.id === fid); return !!(f && f.hidden); }
+function hiddenMove(p, t, it, k) {
+  const u = unitOf(p, it); (t.secret = t.secret || {})[u.factionId] = t.secret[u.factionId] || [];
+  t.secret[u.factionId].push(`kolo ${t.turn}: ${u.name} → ${cellName(k)}`);
+  if (revealRound(p, t)) { (t.lastSeen = t.lastSeen || {})[it.uid] = k; logEv(t, `${u.name} se ukazuje na ${cellName(k)}`); }
+  else logEv(t, `${(p.factions.find(f => f.id === u.factionId) || {}).name || ""} táhne skrytě`);
+}
+function warPanelHTML(p, t) {
+  const hasHidden = p.factions.some(f => f.hidden);
+  const C = S.combat; const nA = (C.attUids || []).length;
+  return `<section><div class="eyebrow">Zapojené jednotky</div>
+      <p class="hint">${nA ? `Útočí ${nA} ${plural(nA, "jednotka", "jednotky", "jednotek")}` : "Útočník nevybrán"} · ${C.defUid ? "obránce vybrán" : "obránce nevybrán"}${p.ruleset.supply ? " · bez zásobování útočí polovinou síly" : ""}</p>
+      ${C.res && (nA || C.defUid) ? `<button class="btn primary" id="wApply">Provést výsledek ${esc(C.res.out || "")}</button>` : ""}</section>
+    <section><div class="eyebrow">Iniciativa</div><button class="btn small" id="wInit">Hodit na iniciativu</button><span class="hint"> určí pořadí tahu</span></section>
+    <section><div class="eyebrow">Zásobování</div>
+      <label class="chk"><input type="checkbox" id="wSup" ${p.ruleset.supply ? "checked" : ""}> Hlídat zásobovací linie</label>
+      ${p.ruleset.supply ? `<label class="f" style="flex-direction:row;align-items:center;gap:8px">Dosah od zdroje<input type="number" id="wSupR" min="1" max="30" value="${+p.ruleset.supplyRange || 4}" style="width:70px"></label>
+      <p class="hint">Zdroje: velitelství (volba u jednotky) a ovládaná pole s body. Jednotky mimo zásobování mají značku ⚠.</p>` : ""}</section>
+    <section><div class="eyebrow">Skrytý pohyb</div>
+      ${p.factions.map(f => `<label class="chk"><input type="checkbox" data-whid="${f.id}" ${f.hidden ? "checked" : ""}> ${esc(f.name)} se pohybuje skrytě</label>`).join("")}
+      ${hasHidden ? `<label class="f">Kola odhalení<input type="text" id="wRev" value="${esc(p.hiddenReveal || "")}" placeholder="3, 8, 13, 18"></label>
+      <p class="hint">Skryté jednotky vidí jen jejich strana (Pohled nahoře). Ostatní vidí poslední odhalenou pozici ❓.</p>
+      ${p.factions.filter(f => f.hidden).map(f => `<button class="btn small" data-wsec="${f.id}">Tajný záznam: ${esc(f.name)}</button>`).join("")}` : ""}</section>`;
+}
+function wireWar(main, p, t, save) {
+  const q = id => document.getElementById(id); const C = S.combat;
+  if (q("wApply")) q("wApply").onclick = () => { const r = applyCombat(p, t, C.res.out); logEv(t, "boj: " + r); C.log.unshift(r); C.res = null; C.attUids = []; C.defUid = null; save(); render(); toast(r); };
+  if (q("wInit")) q("wInit").onclick = () => { const r = initiativeRoll(p, t); save(); render(); toast("Iniciativa: " + r); };
+  if (q("wSup")) q("wSup").onchange = e => { p.ruleset.supply = e.target.checked; touch(p); render(); };
+  if (q("wSupR")) q("wSupR").onchange = e => { p.ruleset.supplyRange = +e.target.value || 4; touch(p); render(); };
+  if (q("wRev")) q("wRev").onchange = e => { p.hiddenReveal = e.target.value; touch(p); };
+  $$("[data-whid]", main).forEach(el => el.onchange = () => { const f = p.factions.find(x => x.id === el.dataset.whid); f.hidden = el.checked; touch(p); render(); });
+  $$("[data-wsec]", main).forEach(el => el.onclick = () => { const f = p.factions.find(x => x.id === el.dataset.wsec);
+    openDialog(`<h2>Tajný záznam – ${esc(f.name)}</h2><p class="hint">Ukaž jen hráči této strany.</p><div class="log">${((t.secret || {})[f.id] || []).map(l => `<span>${esc(l)}</span>`).join("") || "<span>Zatím žádný tah.</span>"}</div><div class="row" style="justify-content:flex-end"><button class="btn" data-close>Zavřít</button></div>`); });
+}
+
+// ---------- iPad: zvětšení stolu, kreslení perem ----------
+const zoomOf = () => S.zoom || 1;
+function applyZoom(z, cx, cy) {
+  const sc = $(".mat-scroll"), mat = $("#mat"), sz = $(".mat-sizer"); if (!sc || !mat || !sz) { S.zoom = z; return; }
+  const old = zoomOf(); z = Math.max(.3, Math.min(2.5, z)); S.zoom = z;
+  const r = sc.getBoundingClientRect(); const px = cx == null ? sc.clientWidth / 2 : cx - r.left, py = cy == null ? sc.clientHeight / 2 : cy - r.top;
+  const mx = (sc.scrollLeft + px) / old, my = (sc.scrollTop + py) / old;
+  mat.style.transform = `scale(${z})`; sz.style.width = S.matW * z + "px"; sz.style.height = S.matH * z + "px";
+  sc.scrollLeft = mx * z - px; sc.scrollTop = my * z - py;
+  const lab = $("#zLab"); if (lab) lab.textContent = Math.round(z * 100) + " %";
+}
+function fitZoom(p) {
+  const sc = $(".mat-scroll"); if (!sc) return; const b = tableBoard(p); const g = b ? geo(b) : null;
+  const w = g ? BX + g.W + 20 : S.matW, h = g ? BY + g.H + 20 : S.matH;
+  applyZoom(Math.min(sc.clientWidth / w, sc.clientHeight / h)); sc.scrollLeft = 0; sc.scrollTop = 0;
+}
+function zoomBarHTML(t) {
+  const cols = ["#b0402c", "#3f6fb0", "#2f7a45", "#161616"];
+  return `<div class="zoombar" role="toolbar" aria-label="Zvětšení a kreslení">
+    <button id="zOut" aria-label="Zmenšit">−</button><span id="zLab" class="mono">${Math.round(zoomOf() * 100)} %</span><button id="zIn" aria-label="Zvětšit">+</button><button id="zFit" title="Celá mapa">⤢</button>
+    <span class="zsep"></span><button id="inkOn" aria-pressed="${!!S.inkMode}" title="Kreslit perem">✎</button>
+    ${S.inkMode ? cols.map(c => `<button data-inkc="${c}" aria-pressed="${(S.inkColor || cols[0]) === c}" aria-label="Barva"><span class="dot" style="background:${c}"></span></button>`).join("") + `<button id="inkUndo" title="Smazat poslední tah" ${(t.ink || []).length ? "" : "disabled"}>↶</button><button id="inkClear" title="Smazat kresbu" ${(t.ink || []).length ? "" : "disabled"}>⌫</button>` : ""}
+  </div>`;
+}
+const inkSVG = (t, W, H) => `<svg class="inklayer ${S.inkMode ? "on" : ""}" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${(t.ink || []).map(s => `<path d="${s.d}" stroke="${s.c}" stroke-width="${s.w || 3}" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`).join("")}</svg>`;
+function wireIpad(main, p, t, save) {
+  const q = id => document.getElementById(id); const sc = $(".mat-scroll"), mat = $("#mat"); if (!sc || !mat) return;
+  q("zIn").onclick = () => applyZoom(zoomOf() * 1.25); q("zOut").onclick = () => applyZoom(zoomOf() / 1.25); q("zFit").onclick = () => fitZoom(p);
+  q("inkOn").onclick = () => { S.inkMode = !S.inkMode; render(); };
+  $$("[data-inkc]", main).forEach(b => b.onclick = () => { S.inkColor = b.dataset.inkc; render(); });
+  if (q("inkUndo")) q("inkUndo").onclick = () => { t.ink.pop(); save(); render(); };
+  if (q("inkClear")) q("inkClear").onclick = () => { t.ink = []; save(); render(); };
+  // Dva prsty: zvětšení. Vlastní řešení, aby se nezvětšovala celá stránka.
+  let pinch = null;
+  sc.addEventListener("touchstart", e => { if (e.touches.length === 2) { const [a, b] = e.touches; pinch = { d: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY), z: zoomOf() }; S.pinching = true; } }, { passive: true });
+  sc.addEventListener("touchmove", e => { if (!pinch || e.touches.length !== 2) return; e.preventDefault(); const [a, b] = e.touches; const d = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY); applyZoom(pinch.z * d / pinch.d, (a.clientX + b.clientX) / 2, (a.clientY + b.clientY) / 2); }, { passive: false });
+  sc.addEventListener("touchend", e => { if (e.touches.length < 2) { pinch = null; setTimeout(() => S.pinching = false, 50); } });
+  sc.addEventListener("wheel", e => { if (!e.ctrlKey) return; e.preventDefault(); applyZoom(zoomOf() * (e.deltaY < 0 ? 1.1 : 1 / 1.1), e.clientX, e.clientY); }, { passive: false });
+  // Kreslení: v režimu pera kreslí prst i Apple Pencil, mimo něj samotné pero.
+  mat.addEventListener("pointerdown", e => {
+    if (!S.inkMode && !(e.pointerType === "pen" && S.penDraws)) return; if (S.pinching) return;
+    e.preventDefault(); e.stopPropagation();
+    const r = mat.getBoundingClientRect(); const z = zoomOf(); const pt = ev => [((ev.clientX - r.left) / z).toFixed(1), ((ev.clientY - r.top) / z).toFixed(1)];
+    const svg = $(".inklayer"); const path = document.createElementNS("http://www.w3.org/2000/svg", "path"); const col = S.inkColor || "#b0402c";
+    let d = "M" + pt(e).join(" "); path.setAttribute("d", d); path.setAttribute("stroke", col); path.setAttribute("stroke-width", e.pointerType === "pen" ? 2.5 : 3.5); path.setAttribute("fill", "none"); path.setAttribute("stroke-linecap", "round"); svg.appendChild(path);
+    mat.setPointerCapture(e.pointerId);
+    const mv = ev => { d += " L" + pt(ev).join(" "); path.setAttribute("d", d); };
+    const up = () => { mat.removeEventListener("pointermove", mv); mat.removeEventListener("pointerup", up); mat.removeEventListener("pointercancel", up);
+      if (d.includes("L")) { (t.ink = t.ink || []).push({ d, c: col, w: e.pointerType === "pen" ? 2.5 : 3.5 }); if (t.ink.length > 300) t.ink.shift(); save(); render(); } else path.remove(); };
+    mat.addEventListener("pointermove", mv); mat.addEventListener("pointerup", up); mat.addEventListener("pointercancel", up);
+  }, true);
+  mat.addEventListener("click", e => { if (S.inkMode) e.stopImmediatePropagation(); }, true);
+}
+
+// ---------- Simulace: válka na mapě, dílky, hledání dopředu, průběh skóre, ladění variant ----------
+// Válka: jednotky strany táhnou k nejbližšímu nepříteli nebo k bodovanému poli a útočí, když mají aspoň poměr 1:1.
+function simWar(p, t, f) {
+  const b = tableBoard(p); if (!b) return; const mine = t.items.filter(i => i.kind === "unit" && (unitOf(p, i) || {}).factionId === f.id);
+  const goals = () => { const out = []; t.items.forEach(i => { const u = unitOf(p, i); if (i.kind === "unit" && u && u.factionId !== f.id) { const k = cellUnder(p, i); if (k) out.push(k); } });
+    for (let c = 0; c < b.cols; c++) for (let r = 0; r < b.rows; r++) { const k = c + "," + r; const ter = terrainOf(p, b, k); if (ter && +ter.vp > 0 && t.control[k] !== f.id) out.push(k); } return out; };
+  mine.forEach(it => { if (!t.items.includes(it)) return; const g = goals(); if (!g.length) return; const rng = computeRange(p, t, it) || {}; const k0 = cellUnder(p, it);
+    const near = k => Math.min(...g.map(x => hexDist(b, k, x)));
+    const stack = k => t.items.filter(o => o !== it && o.kind === "unit" && cellUnder(p, o) === k).length;
+    const opts = Object.keys(rng).filter(k => !(+p.ruleset.stackLimit) || stack(k) < +p.ruleset.stackLimit);
+    const best = opts.sort((a, c) => near(a) - near(c) || (rng[a] - rng[c]))[0];
+    if (best && near(best) < near(k0)) { placeOn(p, t, it, best); const ter = terrainOf(p, b, best); if (ter && +ter.vp > 0) { t.control[best] = f.id; fireTriggers(p, t, "kontrola", f.id, b.labels[best] || ""); } after(p, t, "pohyb", f.id, ter ? ter.name : ""); }
+  });
+  // boj: každého sousedícího nepřítele napadnou všechny sousední vlastní jednotky
+  const C0 = S.combat; S.combat = { att: 0, def: 0, shift: 0, log: [], attUids: [], defUid: null };
+  t.items.filter(i => i.kind === "unit" && unitOf(p, i) && unitOf(p, i).factionId !== f.id).forEach(en => {
+    if (!t.items.includes(en)) return; const ke = cellUnder(p, en); if (!ke) return;
+    const att = t.items.filter(i => i.kind === "unit" && (unitOf(p, i) || {}).factionId === f.id && cellUnder(p, i) && hexDist(b, cellUnder(p, i), ke) === 1);
+    if (!att.length) return; const a = att.reduce((s, i) => { const u = unitOf(p, i); const v = +(i.reduced ? u.rAtt : u.att) || 0; return s + (inSupply(p, t, i) ? v : Math.floor(v / 2)); }, 0);
+    const ue = unitOf(p, en); const ter = terrainOf(p, b, ke) || p.terrains[0]; const d = (+(en.reduced ? ue.rDef : ue.def) || 1) * (ter ? +ter.def || 1 : 1);
+    if (a < d) return; const col = Math.max(0, crtColumn(a, d, p.crt.cols)); const out = p.crt.rows[rnd(p.crt.rows.length) - 1][col];
+    S.combat.attUids = att.map(i => i.uid); S.combat.defUid = en.uid; applyCombat(p, t, out); after(p, t, "boj", f.id, out);
+  });
+  S.combat = C0; S.supCache = {};
+}
+function simTile(p, t, f) {
+  const b = tableBoard(p); if (!b || !t.tileStack.length) return; const id = t.tileStack.pop(); const tl = p.tiles.find(x => x.id === id); const n = b.type === "square" ? 4 : 6;
+  let best = null;
+  for (let c = 0; c < b.cols; c++) for (let r = 0; r < b.rows; r++) { const k = c + "," + r; if (t.tilesPlaced[k]) continue;
+    for (let rot = 0; rot < n; rot++) { if (tileCheck(p, t, b, k, id, rot).length) continue; let nb = 0; for (let i = 0; i < n; i++) { const [x, y] = dirNeighbor(b, c, r, i); if (t.tilesPlaced[x + "," + y]) nb++; }
+      const s = nb + Math.random() * .5; if (!best || s > best.s) best = { k, rot, s }; } }
+  if (!best) return; t.tilesPlaced[best.k] = { id, rot: best.rot, fid: f.id }; after(p, t, "dilek", f.id, tl.name);
+}
+function simExtraMoves(p, t, f) {
+  const out = []; const b = tableBoard(p); if (!b) return out;
+  if (p.units.length && t.items.some(i => i.kind === "unit" && (unitOf(p, i) || {}).factionId === f.id)) out.push({ v: 1.5, war: true, run() { simWar(p, t, f); checkWin(p, t); } });
+  if (p.tiles.length && t.tileStack && t.tileStack.length) out.push({ v: 1.2, run() { simTile(p, t, f); } });
+  return out;
+}
+function simScore(p, t, fid) { const s = scoreOf(p, t, fid).total; return p.units.length && tableBoard(p) ? s + ((territoryScore(p, t).find(r => r.f.id === fid) || {}).vp || 0) : s; }
+// Hledání dopředu: každý tah se zkusí, stav se ohodnotí a vrátí zpět.
+function simPosition(p, t, fid) {
+  if (t.winner) return t.winner.fid === fid ? 1000 : -1000;
+  const own = simScore(p, t, fid); const opp = Math.max(0, ...p.factions.filter(f => f.id !== fid).map(f => simScore(p, t, f.id)));
+  const res = p.resources.filter(r => !r.vp && !r.global).reduce((a, r) => a + ((t.res[fid] || {})[r.id] || 0) * .35, 0);
+  const units = t.items.filter(i => i.kind === "unit" && (unitOf(p, i) || {}).factionId === fid).length - t.items.filter(i => i.kind === "unit" && unitOf(p, i) && unitOf(p, i).factionId !== fid).length;
+  return own - opp * .5 + res + (t.hands[fid] || []).length * .3 + (t.trackPos[fid] || 0) * .3 + units * 1.5;
+}
+function lookaheadPick(p, t, f, gen) {
+  const snap = JSON.stringify(t); const n = Math.min(12, gen().length); let best = -1, bv = -Infinity;
+  const restore = () => { const o = JSON.parse(snap); Object.keys(t).forEach(k => delete t[k]); Object.assign(t, o); };
+  for (let i = 0; i < n; i++) { const mv = gen()[i]; if (!mv) break; try { mv.run(); checkWin(p, t); } catch {} t.pending = []; const v = simPosition(p, t, f.id) + Math.random() * .2; restore(); if (v > bv) { bv = v; best = i; } }
+  return best;
+}
+// Kolo, od kterého už vítěz nepustil vedení.
+function decidedRound(g) {
+  if (!g.hist || !g.hist.length) return null; const w = g.share.indexOf(Math.max(...g.share)); let r = g.hist.length;
+  for (let i = g.hist.length - 1; i >= 0; i--) { const row = g.hist[i]; if (row[w] >= Math.max(...row) && row.filter(v => v === row[w]).length === 1) r = i + 1; else break; }
+  return r;
+}
+function scoreChartSVG(R) {
+  if (!R.curve || !R.curve.length) return ""; const W = 520, H = 180, L = 34, B = 22; const n = R.curve.length; const mx = Math.max(1, ...R.curve.flat());
+  const cols = ["#3f6fb0", "#b0402c", "#2f7a45", "#c98a12", "#7a4fa0", "#333"];
+  const x = i => L + (n > 1 ? i / (n - 1) : 0) * (W - L - 10), y = v => H - B - v / mx * (H - B - 10);
+  const lines = R.curve[0].map((_, s) => `<polyline fill="none" stroke="${cols[s % cols.length]}" stroke-width="2.5" points="${R.curve.map((row, i) => `${x(i).toFixed(1)},${y(row[s]).toFixed(1)}`).join(" ")}"/>`).join("");
+  const dec = R.decided ? `<line x1="${x(R.decided - 1)}" x2="${x(R.decided - 1)}" y1="8" y2="${H - B}" stroke="currentColor" stroke-dasharray="4 4" opacity=".5"/><text x="${x(R.decided - 1) + 4}" y="18" font-size="11" fill="currentColor">rozhodnuto ~${Math.round(R.decided)}. kolo</text>` : "";
+  return `<h3>Průběh skóre (průměr po kolech)</h3><svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:${W}px;height:auto" role="img" aria-label="Graf průběhu skóre">
+    <line x1="${L}" y1="${H - B}" x2="${W - 10}" y2="${H - B}" stroke="currentColor" opacity=".3"/><text x="${L - 6}" y="${y(mx) + 4}" font-size="11" text-anchor="end" fill="currentColor">${Math.round(mx)}</text><text x="${L - 6}" y="${H - B + 4}" font-size="11" text-anchor="end" fill="currentColor">0</text>
+    <text x="${L}" y="${H - 6}" font-size="11" fill="currentColor">1. kolo</text><text x="${W - 10}" y="${H - 6}" font-size="11" text-anchor="end" fill="currentColor">${n}. kolo</text>${lines}${dec}</svg>
+    <div class="row">${R.seat.map((s, i) => `<span class="hint"><span class="dot" style="background:${cols[i % cols.length]}"></span> ${i + 1}. hráč</span>`).join("")}</div>`;
+}
+// Ladění: stejná simulace pro několik hodnot jednoho parametru.
+function tuneParams(p) {
+  const out = [["win.vp", "Cíl bodů k výhře"], ["win.turns", "Počet kol hry"], ["actionsPerTurn", "Akcí za tah"], ["drawUpTo", "Dobírat do"], ["handLimit", "Limit ruky"]];
+  p.resources.filter(r => !r.global).forEach(r => { out.push([`res.${r.id}.start`, `${r.name} – na začátku`]); out.push([`res.${r.id}.income`, `${r.name} – příjem`]); });
+  p.decks.forEach(d => d.cards.forEach(c => { if (c.cost !== "" && c.cost != null) out.push([`card.${d.id}.${c.id}.cost`, `Cena: ${c.title}`]); if (c.vp !== "" && c.vp != null) out.push([`card.${d.id}.${c.id}.vp`, `Body: ${c.title}`]); }));
+  return out;
+}
+function getParam(p, key) { const k = key.split(".");
+  if (k[0] === "win") return p.ruleset.win[k[1]]; if (k[0] === "res") return (p.resources.find(r => r.id === k[1]) || {})[k[2]];
+  if (k[0] === "card") { const d = p.decks.find(x => x.id === k[1]); return ((d && d.cards.find(c => c.id === k[2])) || {})[k[3]]; } return p.ruleset[k[0]]; }
+function setParam(p, key, v) { const k = key.split(".");
+  if (k[0] === "win") p.ruleset.win[k[1]] = v; else if (k[0] === "res") { const r = p.resources.find(x => x.id === k[1]); if (r) r[k[2]] = v; }
+  else if (k[0] === "card") { const d = p.decks.find(x => x.id === k[1]); const c = d && d.cards.find(x => x.id === k[2]); if (c) c[k[3]] = String(v); } else p.ruleset[k[0]] = v; }
+const imbalance = r => { const fair = 1 / (r.nPl || 1); return Math.max(0, ...r.seat.map(s => Math.abs(s.wr - fair)), ...r.fac.map(f => Math.abs(f.wr - fair))); };
+async function runTuning(p, opt, variants, progress) {
+  const rows = [];
+  for (let vi = 0; vi < variants.length; vi++) { const V = variants[vi]; const q = V.project(); const games = [];
+    for (let i = 0; i < opt.games; i++) { games.push(simGame(q, opt)); if (i % 20 === 19) { progress(vi, i + 1); await new Promise(r => setTimeout(r, 0)); } }
+    const r = summarizeSim(q, games); rows.push({ label: V.label, value: V.value, r, imb: imbalance(r) }); }
+  const ok = rows.filter(x => x.r.reasons && !Object.keys(x.r.reasons).every(k => k.startsWith("limit")));
+  const best = (ok.length ? ok : rows).reduce((a, b) => (b.imb < a.imb ? b : a), rows[0]);
+  return { rows, best };
+}
+function tunePanelHTML(p) {
+  const T = S.tune = S.tune || { key: "win.vp", values: "", games: 100 }; const R = S.tuneRes && S.tuneRes.pid === p.id ? S.tuneRes : null;
+  const params = tuneParams(p); const cur = getParam(p, T.key);
+  return `<div class="panel"><div class="row spread"><h2>Ladění a porovnání variant</h2><span class="count">simulace</span></div>
+    <p class="hint">Zkusí několik hodnot jednoho čísla (nebo uložené verze návrhu) a ukáže, která je nejvyrovnanější.</p>
+    <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr))">
+      <label class="f">Parametr<select id="tuKey">${params.map(([k, l]) => `<option value="${k}" ${k === T.key ? "selected" : ""}>${esc(l)}</option>`).join("")}</select></label>
+      <label class="f">Hodnoty (teď ${esc(cur === "" || cur == null ? "–" : cur)})<input type="text" id="tuVals" value="${esc(T.values)}" placeholder="např. 10, 15, 20"></label>
+      <label class="f">Her na variantu<input type="number" id="tuGames" min="20" max="500" value="${T.games}"></label></div>
+    <div class="row"><button class="btn primary" id="tuRun">Vyladit</button>${(p.versions || []).length ? `<button class="btn" id="tuVers">Porovnat uložené verze</button>` : ""}<span class="hint" id="tuProg"></span></div>
+    ${R ? `<div style="overflow-x:auto"><table class="crt-tab" style="min-width:100%"><thead><tr><th>Varianta</th><th>Kol</th><th>1. hráč</th><th>Nejsilnější strana</th><th>Remízy</th><th>Těsnost</th><th>Odchylka</th><th></th></tr></thead><tbody>
+      ${R.rows.map((x, i) => { const r = x.r; const fs = r.fac.reduce((a, b) => (b.wr > a.wr ? b : a), r.fac[0] || { wr: 0, name: "" });
+        return `<tr class="${x === R.best ? "hl" : ""}"><th>${esc(x.label)}</th><td>${r.avgRounds.toLocaleString("cs-CZ", { maximumFractionDigits: 1 })}</td><td>${Math.round(r.seat[0].wr * 100)} %</td><td>${esc(fs.name)} ${Math.round(fs.wr * 100)} %</td><td>${r.warnings.some(w => w.includes("remízou")) ? "hodně" : "–"}</td><td>${r.margin == null ? "–" : r.margin.toLocaleString("cs-CZ", { maximumFractionDigits: 1 })}</td><td>${Math.round(x.imb * 100)} %</td><td>${x.value != null && x === R.best && !R.versions ? `<button class="btn small primary" data-tuuse="${i}">Použít</button>` : ""}</td></tr>`; }).join("")}</tbody></table></div>
+      <p class="hint">Doporučeno: <b>${esc(R.best.label)}</b> – nejmenší odchylka od férového podílu výher${ties0(R)}.</p>` : ""}
+  </div>`;
+}
+const ties0 = R => R.rows.every(x => Object.keys(x.r.reasons).every(k => k.startsWith("limit"))) ? " (pozor: žádná varianta nedojde do cíle)" : "";
+function wireTunePanel(main, p) {
+  const q = id => document.getElementById(id); if (!q("tuRun")) return; const T = S.tune;
+  q("tuKey").onchange = e => { T.key = e.target.value; T.values = ""; render(); };
+  q("tuVals").onchange = e => { T.values = e.target.value; }; q("tuGames").onchange = e => { T.games = Math.max(20, Math.min(500, +e.target.value || 100)); };
+  const opt = () => ({ ...S.simOpt, games: T.games, actions: +p.ruleset.actionsPerTurn || (S.simOpt || {}).actions || 2, rounds: (S.simOpt || {}).rounds || 15, policy: (S.simOpt || {}).policy || "greedy" });
+  const go = async (variants, versions) => { q("tuRun").disabled = true; const r = await runTuning(p, opt(), variants, (vi, i) => { const el = q("tuProg"); if (el) el.textContent = `Varianta ${vi + 1} z ${variants.length}: ${i} her…`; }); S.tuneRes = { pid: p.id, ...r, versions }; render(); };
+  q("tuRun").onclick = () => { const vals = T.values.split(/[,;\s]+/).filter(Boolean).map(v => isNaN(+v) ? v : +v); if (!vals.length) { toast("Zadej hodnoty oddělené čárkou"); return; } S.simOpt = S.simOpt || {};
+    go(vals.map(v => ({ label: String(v), value: v, project: () => { const q2 = clone(p); setParam(q2, T.key, v); return q2; } })), false); };
+  if (q("tuVers")) q("tuVers").onclick = () => go([{ label: "současný návrh", value: null, project: () => clone(p) }, ...p.versions.map(v => ({ label: "verze " + v.ver, value: null, project: () => normalize({ ...clone(v.snap), id: p.id }) }))], true);
+  $$("[data-tuuse]", main).forEach(b => b.onclick = () => { const x = S.tuneRes.rows[+b.dataset.tuuse]; setParam(p, T.key, x.value); touch(p); render(); toast("Hodnota nastavena: " + x.label); });
 }
 
 // ---------- Spuštění ----------

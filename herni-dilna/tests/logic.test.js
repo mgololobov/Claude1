@@ -146,3 +146,53 @@ test("simulace odehraje ukázkové hry a vrátí statistiky", () => {
   const g = A.simGame(race, { rounds: 40, policy: "random", actions: 1 });
   assert.match(g.reason, /cíl|kol/);
 });
+
+// Malá válka: dvě strany na čtvercové mapě 6 × 1.
+function war() {
+  const board = { id: "bd", name: "M", type: "square", cols: 6, rows: 1, size: 30, terrain: {}, labels: {}, regions: {}, numbers: {} };
+  const units = [{ id: "a", name: "Útok", factionId: "anna", att: 6, def: 4, mov: 2, rAtt: 3, rDef: 2, rMov: 2 }, { id: "d", name: "Obrana", factionId: "bert", att: 2, def: 2, mov: 2, rAtt: 1, rDef: 1, rMov: 1 }];
+  const g = game(2, { boards: [board], units }); g.t.boardId = "bd";
+  const put = (unitId, c) => { const it = { uid: unitId + c, kind: "unit", unitId, x: 0, y: 0, reduced: false, rot: 0 }; g.t.items.push(it); A.placeOn(g.p, g.t, it, c + ",0"); return it; };
+  return { ...g, put };
+}
+test("boj na mapě: ústup, ztráta kroku a zničení", () => {
+  const { p, t, put } = war(); p.ruleset.win.elimination = true; const a = put("a", 1), d = put("d", 2); const S = A.__S();
+  S.combat = { attUids: [a.uid], defUid: d.uid, log: [] };
+  A.applyCombat(p, t, "DR"); assert.equal(A.cellUnder(p, d), "3,0", "obránce ustoupil od útočníka");
+  S.combat = { attUids: [a.uid], defUid: d.uid, log: [] }; A.applyCombat(p, t, "EX");
+  assert.equal(a.reduced, true, "útočník ztratil krok"); assert.ok(d.reduced, "obránce ztratil krok");
+  S.combat = { attUids: [a.uid], defUid: d.uid, log: [] }; A.applyCombat(p, t, "DE");
+  assert.ok(!t.items.includes(d), "obránce zničen"); assert.equal(t.winner && t.winner.fid, "anna", "vyhrává poslední strana s jednotkami");
+});
+test("zásobování: daleko od velitelství je jednotka bez zásob", () => {
+  const { p, t, put } = war(); p.ruleset.supply = true; p.ruleset.supplyRange = 2; p.units[0].hq = false;
+  p.units.push({ id: "hq", name: "Štáb", factionId: "anna", att: 0, def: 1, mov: 1, hq: true }); put("hq", 0);
+  const near = put("a", 2), far = put("a", 5); const S = A.__S(); S.supCache = {};
+  assert.equal(A.inSupply(p, t, near), true); assert.equal(A.inSupply(p, t, far), false);
+});
+test("skrytý pohyb: soupeř skryté jednotky nevidí", () => {
+  const { p, t, put } = war(); p.factions[1].hidden = true; const d = put("d", 4); const S = A.__S();
+  S.view = "anna"; assert.ok(A.fogHidden(p, t).has(d.uid + ":gone"));
+  S.view = "bert"; assert.equal(A.fogHidden(p, t), null); S.view = "";
+  p.hiddenReveal = "1"; t.turn = 1; A.hiddenMove(p, t, d, "4,0"); assert.equal(t.lastSeen[d.uid], "4,0"); assert.equal(t.secret.bert.length, 1);
+});
+test("dělené ukládání: návrh, stůl, testy, verze a obrázky se složí zpět", () => {
+  const { p } = game(); p.decks[0].cards[0].img = "data:image/png;base64," + "A".repeat(300000); p.versions = [{ id: "v1", ver: "1", snap: {} }]; p.sessions = [{ id: "s" }];
+  const parts = A.splitProject(p); assert.ok(Object.keys(parts).some(k => k.startsWith("img-"))); assert.ok(Object.values(parts).every(v => JSON.stringify(v).length < 256000 || v.items));
+  const docs = JSON.parse(JSON.stringify(parts)); const q = A.joinProject(docs);
+  assert.equal(q.decks[0].cards[0].img.length, p.decks[0].cards[0].img.length); assert.equal(q.versions.length, 1); assert.equal(q.sessions.length, 1);
+  const on = A.onlineParts({ ...p, online: { seat: "anna" } }); assert.equal(on.design.online, undefined, "online hra neprozradí, za koho kdo hraje"); assert.equal(on.tests, undefined);
+});
+test("verze a příručka", () => {
+  const { p } = game(); const a = A.designSnapshot(p); p.decks[0].cards[0].cost = "5"; p.resources.push({ id: "z", name: "Zlato", start: 0 });
+  const d = A.diffDesign(a, A.designSnapshot(p)); assert.ok(d.some(x => x.kind === "+" && /Zlato/.test(x.text))); assert.ok(d.some(x => x.kind === "~"));
+  assert.match(A.describeEffect("+2 Mince; líznout 1"), /2/); const book = A.buildRulebook(p); assert.match(book.md, /Test/); assert.match(book.html, /<h1/);
+});
+test("ladění parametrů a kolo rozhodnutí", () => {
+  const p = A.exampleTrade(); const S = A.__S(); S.projects = [p]; S.currentId = p.id;
+  A.setParam(p, "win.vp", 12); assert.equal(A.getParam(p, "win.vp"), 12);
+  const r = p.resources[0]; A.setParam(p, `res.${r.id}.start`, 7); assert.equal(r.start, 7);
+  assert.equal(A.decidedRound({ hist: [[1, 0], [1, 2], [3, 2], [4, 2]], share: [1, 0] }), 3);
+  const g = A.simGame(p, { rounds: 10, policy: "lookahead", actions: 2 }); assert.ok(g.hist.length >= 1);
+  const w = A.exampleWar(); S.projects = [w]; S.currentId = w.id; const wg = A.simGame(w, { rounds: 8, policy: "greedy", actions: 1 }); assert.ok(wg.rounds >= 1);
+});

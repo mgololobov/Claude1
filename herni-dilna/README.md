@@ -14,13 +14,21 @@ src/js/NN-*.js       moduly; sestavují se v pořadí čísel
   02-defaults        výchozí terén, bojová tabulka, normalizace a obnova starých projektů
   03-examples        ukázkové hry
   04-geometry        hexová a čtvercová mřížka (s mezipamětí)
-  05-storage         ukládání do prohlížeče a k účtu
+  05-storage         ukládání do prohlížeče a k účtu (po částech pod 256 kB), krok zpět v návrhu
   06-state           stav aplikace, hlavní vykreslení
   07-dialogs, 08-look, 09-images     dialogy, vzhled komponent, obrázky
   10–17              záložky (Přehled, Komponenty, Mapa, Mechaniky, Scénáře, Pravidla, Testování, Analýza)
   20-rules-engine    jazyk efektů, hlídání pravidel, automatická pravidla, cíle hry
   21–27              herní stůl a jeho nástroje
   28-simulation      automatické testování (simulace stovek her)
+  29-versions        uložené verze návrhu, porovnání a obnova
+  30-online          hra více lidí naráz, soukromé ruce, dotazník a zpětná vazba testerů
+  31-ai-effects      převod textu karty na efekt přes Claude
+  32-rulebook        automatická příručka a seznam komponent
+  33-cards-extra     vzácnost, rámečky, ikony typů, rub, tisk se spadávkou, export PNG a Tabletop Simulator
+  34-war             provedení boje, zásobování, iniciativa, skrytý pohyb
+  35-ipad            zvětšení stolu dvěma prsty, kreslení perem
+  36-sim-extra       simulace války a dílků, hledání dopředu, průběh skóre, ladění variant
   99-main            spuštění
 tests/harness.js     načte moduly do Node bez prohlížeče
 tests/*.test.js      testy herní logiky
@@ -55,3 +63,14 @@ Efekty karet, akcí, polí dráhy, startu stran a automatických pravidel:
 | `odhodit 1`, `zpráva Text`, `vítěz` | ostatní |
 
 Do textu karty se ikona zdroje vloží zápisem `{Mince}`.
+
+## Online hra
+
+Hostitel založí hru na stole (Kolo → Založit online hru) a dostane pětimístný kód.
+Data hry jsou v databázi artefaktu: `games/<kód>` a `games/<kód>/parts/{design,table,img-N}`,
+zpětná vazba testerů v `games/<kód>/feedback`. Autor ji načte v záložce Testování.
+
+## Automatické testy na GitHubu
+
+`.github/workflows/test.yml` při každé změně v `herni-dilna/` sestaví aplikaci, spustí testy logiky
+a proklikání v prohlížeči; snímky obrazovky nahraje jako artefakt běhu.

@@ -10,7 +10,7 @@ function renderComponents(main, p) {
   main.innerHTML = `<div class="page">
     ${exampleBanner(p)}
     <div class="panel">
-      <div class="row spread"><h2>Balíčky karet</h2><div class="row"><button class="btn" id="addDeck">+ Nový balíček</button><button class="btn" id="printSheet">Tisková archa</button><button class="btn" id="csvExp">Export CSV</button></div></div>
+      <div class="row spread"><h2>Balíčky karet</h2><div class="row"><button class="btn" id="addDeck">+ Nový balíček</button><button class="btn" id="printSheet">Tisková archa</button><button class="btn" id="pngExp">Obrázky karet</button><button class="btn" id="ttsExp">Tabletop Simulator</button><button class="btn" id="csvExp">Export CSV</button></div></div>
       <div class="decks">${p.decks.map(d => `<button class="chip" data-deck="${d.id}" aria-pressed="${d.id === S.deckId}"><span class="dot" style="background:${d.color}"></span>${esc(d.name)} <span class="count">${d.cards.reduce((n, c) => n + (+c.qty || 0), 0)}${d.starter ? " · start" : ""}${+d.market ? " · trh " + d.market : ""}</span></button>`).join("")}</div>
       ${deck ? `
       <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr))">
@@ -19,12 +19,15 @@ function renderComponents(main, p) {
         <label class="f">Karet na trhu (0 = bez trhu)<input type="number" id="d-market" min="0" max="10" value="${+deck.market || 0}"></label>
         <label class="chk" style="align-self:end"><input type="checkbox" id="d-starter" ${deck.starter ? "checked" : ""}> Startovní balíček – každý hráč dostane vlastní kopii</label>
         <label class="f">Šablona karet<select id="d-tpl">${Object.entries(CARD_TEMPLATES).map(([k, v]) => `<option value="${k}" ${k === (deck.template || "classic") ? "selected" : ""}>${v}</option>`).join("")}</select></label>
+        <label class="f">Rámeček<select id="d-frame">${Object.entries(FRAMES).map(([k, v]) => `<option value="${k}" ${k === (deck.frame || "") ? "selected" : ""}>${v}</option>`).join("")}</select></label>
+        <div class="f"><span>Obrázek rubu</span><span class="row"><label class="btn small" for="d-backf">${deck.backImg ? "Vyměnit" : "Nahrát"}</label><input type="file" id="d-backf" accept="image/*" hidden>${deck.backImg ? `<button class="btn small danger" id="d-backdel">Odebrat</button>` : ""}</span></div>
         <label class="f">Písmo karet<select id="d-font">${Object.entries(CARD_FONTS).map(([k, v]) => `<option value="${k}" ${k === (deck.font || "") ? "selected" : ""}>${v}</option>`).join("")}</select></label>
       </div>
       <div class="f"><span>Barva</span>${swatchRow(deck.color, "data-color")}</div>
+      ${typeIconsHTML(p)}
       <div class="row spread">
         <span class="muted">${deck.cards.length} ${plural(deck.cards.length, "druh", "druhy", "druhů")} karet, celkem ${total} ${plural(total, "kus", "kusy", "kusů")}</span>
-        <div class="row"><input type="text" id="cardFilter" placeholder="Hledat kartu…" value="${esc(S.cardFilter || "")}" style="width:180px"><button class="btn primary" id="addCard">+ Nová karta</button><button class="btn" id="bulk">Hromadně vložit</button><button class="btn danger" id="delDeck">Smazat balíček</button></div>
+        <div class="row"><input type="text" id="cardFilter" placeholder="Hledat kartu…" value="${esc(S.cardFilter || "")}" style="width:180px"><button class="btn primary" id="addCard">+ Nová karta</button><button class="btn" id="bulk">Hromadně vložit</button><button class="btn" id="aiFill">✨ Efekty z textu</button><button class="btn danger" id="delDeck">Smazat balíček</button></div>
       </div>
       ${deck.cards.length ? `<div class="card-grid">${shown.map(c => `<button class="card-cell" data-card="${c.id}" aria-label="Upravit kartu ${esc(c.title)}">${cardHTML(c, deck)}<span class="qty">${c.qty}×${c.locked ? " · 🔒 zamčená" : ""}${c.effect ? " · ⚡" : ""}</span></button>`).join("")}
         ${flt ? "" : `<div class="card-cell">${cardHTML({}, deck, false)}<span class="qty">rub</span></div>`}</div>
@@ -96,7 +99,9 @@ function renderComponents(main, p) {
   $$("[data-unit]", main).forEach(b => b.onclick = () => editUnit(p, p.units.find(u => u.id === b.dataset.unit)));
   $$("[data-deck]", main).forEach(b => b.onclick = () => { S.deckId = b.dataset.deck; S.cardFilter = ""; render(); });
   $("#addDeck").onclick = () => { const d = { id: uid(), name: "Balíček " + (p.decks.length + 1), color: COLORS[p.decks.length % COLORS.length], back: p.name.toUpperCase(), cards: [], market: 0, starter: false }; p.decks.push(d); S.deckId = d.id; touch(p); render(); };
-  $("#printSheet").onclick = () => exportPrint(p);
+  $("#printSheet").onclick = () => printDialog(p);
+  $("#pngExp").onclick = () => exportImages(p, "png");
+  $("#ttsExp").onclick = () => exportImages(p, "tts");
   $("#csvExp").onclick = () => exportCSV(p);
   if (deck) {
     $("#d-name").addEventListener("input", e => { deck.name = e.target.value; touch(p); }); $("#d-name").addEventListener("change", render);
@@ -104,11 +109,16 @@ function renderComponents(main, p) {
     $("#d-market").addEventListener("change", e => { deck.market = Math.max(0, Math.min(10, parseInt(e.target.value, 10) || 0)); touch(p); render(); });
     $("#d-tpl").onchange = e => { deck.template = e.target.value; touch(p); render(); };
     $("#d-font").onchange = e => { deck.font = e.target.value; touch(p); render(); };
+    $("#d-frame").onchange = e => { deck.frame = e.target.value; touch(p); render(); };
+    $("#d-backf").onchange = async e => { const f = e.target.files[0]; if (!f) return; toast("Nahrávám rub…"); try { const r = await storeImage(f, { max: 1000, dataMax: 420, limit: 45000 }); deck.backImg = r.url || r.data; touch(p); render(); } catch { toast("Obrázek se nepodařilo načíst"); } };
+    if ($("#d-backdel")) $("#d-backdel").onclick = () => { deck.backImg = ""; touch(p); render(); };
+    $$("[data-tyi]", main).forEach(i => i.addEventListener("change", () => { p.typeIcons = p.typeIcons || {}; p.typeIcons[i.dataset.tyi] = i.value.trim(); touch(p); render(); }));
     $("#d-starter").onchange = e => { deck.starter = e.target.checked; touch(p); render(); toast("Projeví se po vyčištění stolu"); };
     $("#cardFilter").addEventListener("input", e => { S.cardFilter = e.target.value; const pos = e.target.selectionStart; render(); const f = $("#cardFilter"); f.focus(); f.setSelectionRange(pos, pos); });
     $$("[data-color]", main).forEach(b => b.onclick = () => { deck.color = b.dataset.color; touch(p); render(); });
     $("#addCard").onclick = () => editCard(p, deck, null);
     $("#bulk").onclick = () => bulkDialog(p, deck);
+    $("#aiFill").onclick = () => aiFillDeck(p, deck);
     $("#delDeck").onclick = () => confirmDialog(`Smazat balíček „${deck.name}“?`, `Smaže se ${deck.cards.length} ${plural(deck.cards.length, "druh", "druhy", "druhů")} karet.`, "Smazat", () => { p.decks = p.decks.filter(d => d.id !== deck.id); touch(p); render(); });
     $$("[data-card]", main).forEach(b => b.onclick = () => editCard(p, deck, deck.cards.find(c => c.id === b.dataset.card)));
   }
@@ -170,6 +180,8 @@ function editUnit(p, unit) {
         <div class="eyebrow">Oslabená strana (nech prázdné, pokud žeton nemá rub)</div>
         <div class="grid" style="grid-template-columns:repeat(3,1fr)"><input type="number" id="u-ra" value="${esc(u.rAtt)}" aria-label="Útok oslabené"><input type="number" id="u-rd" value="${esc(u.rDef)}" aria-label="Obrana oslabené"><input type="number" id="u-rm" value="${esc(u.rMov)}" aria-label="Pohyb oslabené"></div>
         <label class="f" style="width:120px">Počet žetonů<input type="number" id="u-q" min="0" max="99" value="${u.qty}"></label>
+        <label class="chk"><input type="checkbox" id="u-hq" ${u.hq ? "checked" : ""}> Velitelství – zdroj zásobování</label>
+        <label class="chk"><input type="checkbox" id="u-big" ${u.big ? "checked" : ""}> Velký žeton (zabírá víc místa)</label>
       </div>
       <div id="u-prev" style="display:flex;flex-direction:column;align-items:center;gap:10px;font-size:20px"></div>
     </div>
@@ -180,7 +192,7 @@ function editUnit(p, unit) {
   const num = v => v === "" ? "" : +v;
   const read = () => { u.name = $("#u-name", d).value; u.factionId = $("#u-f", d).value; u.symbol = $("#u-sym", d).value; u.size = $("#u-size", d).value; u.symText = $("#u-symtext", d).value; u.note = $("#u-note", d).value;
     u.att = num($("#u-a", d).value); u.def = num($("#u-d", d).value); u.mov = num($("#u-m", d).value); u.rAtt = num($("#u-ra", d).value); u.rDef = num($("#u-rd", d).value); u.rMov = num($("#u-rm", d).value);
-    u.qty = Math.max(0, Math.min(99, parseInt($("#u-q", d).value, 10) || 0)); };
+    u.qty = Math.max(0, Math.min(99, parseInt($("#u-q", d).value, 10) || 0)); u.hq = $("#u-hq", d).checked; u.big = $("#u-big", d).checked; };
   const prev = () => { read(); $("#u-prev", d).innerHTML = unitHTML(p, u) + (hasReduced(u) ? unitHTML(p, u, true) : "") + `<span class="hint" style="font-size:.8rem">líc${hasReduced(u) ? " / rub" : ""}</span>`; };
   d.addEventListener("input", prev); d.addEventListener("change", prev); prev();
   $("#u-save", d).onclick = () => { read(); if (isNew) p.units.push(u); else Object.assign(unit, u); touch(p); closeDialog(); render(); toast(isNew ? "Jednotka přidána" : "Jednotka uložena"); };
@@ -208,10 +220,12 @@ function editCard(p, deck, card) {
           <label class="f">Hodnota<input type="text" id="c-value" value="${esc(c.value)}" placeholder="7"></label>
           <label class="f">Vítězné body<input type="text" id="c-vp" value="${esc(c.vp)}" placeholder="2"></label>
         </div>
+        <label class="f" style="width:170px">Vzácnost<select id="c-rarity">${Object.entries(RARITIES).map(([k, v]) => `<option value="${k}" ${k === (c.rarity || "") ? "selected" : ""}>${v}</option>`).join("")}</select></label>
         <label class="f">Text karty<textarea id="c-text">${esc(c.text)}</textarea></label>
         ${p.resources.length ? `<div class="row"><span class="hint">Vložit ikonu:</span>${p.resources.map(r => `<button type="button" class="btn small" data-ins="${esc(r.name)}"><span class="dot" style="background:${r.color}"></span>${esc(r.icon || "")} ${esc(r.name)}</button>`).join("")}</div>` : ""}
         <div class="row"><label class="btn small" for="c-imgf">${c.img ? "Vyměnit obrázek" : "Nahrát obrázek"}</label><input type="file" id="c-imgf" accept="image/*" hidden>${c.img ? `<button type="button" class="btn small danger" id="c-imgdel">Odebrat obrázek</button>` : ""}<span class="hint" id="c-imgst"></span></div>
         <label class="f">Efekt při vyložení nebo zahrání (provede se sám)<input type="text" id="c-effect" value="${esc(c.effect)}" placeholder="+2 Mince; líznout 1"></label>
+        <div class="row"><button type="button" class="btn small" id="c-ai">✨ Převést text na efekt</button><span class="hint" id="c-aist"></span></div>
         <label class="chk"><input type="checkbox" id="c-locked" ${c.locked ? "checked" : ""}> Zamčená – do hry vstoupí až po odemčení v kampani</label>
         <p class="hint">Barva a hodnota slouží pro štychy a bodování sad, vítězné body pro skóre z vyložených karet. Zápis efektů najdeš v záložce Pravidla.</p>
       </div>
@@ -221,10 +235,11 @@ function editCard(p, deck, card) {
       <div class="row">${isNew ? "" : `<button class="btn danger" id="c-del">Smazat</button><button class="btn" id="c-dup">Duplikovat</button>`}</div>
       <div class="row"><button class="btn" data-close>Zrušit</button><button class="btn primary" id="c-save">Uložit kartu</button></div>
     </div>`, true);
-  const read = () => { ["title", "type", "cost", "text", "suit", "value", "vp", "icon", "effect"].forEach(k => c[k] = $("#c-" + k, d).value); c.locked = $("#c-locked", d).checked; c.qty = Math.max(0, Math.min(99, parseInt($("#c-qty", d).value, 10) || 0)); };
+  const read = () => { ["title", "type", "cost", "text", "suit", "value", "vp", "icon", "effect", "rarity"].forEach(k => c[k] = $("#c-" + k, d).value); c.locked = $("#c-locked", d).checked; c.qty = Math.max(0, Math.min(99, parseInt($("#c-qty", d).value, 10) || 0)); };
   const prev = () => { read(); $("#c-prev", d).innerHTML = cardHTML(c, deck); };
-  d.addEventListener("input", prev); prev();
+  d.addEventListener("input", prev); d.addEventListener("change", prev); prev();
   setTimeout(() => $("#c-title", d).focus(), 30);
+  $("#c-ai", d).onclick = () => { read(); aiEffectForCard(p, c, $("#c-effect", d), $("#c-aist", d)); };
   $$("[data-ins]", d).forEach(b => b.onclick = () => { const ta = $("#c-text", d); const pos = ta.selectionStart ?? ta.value.length; const ins = `{${b.dataset.ins}}`; ta.value = ta.value.slice(0, pos) + ins + ta.value.slice(ta.selectionEnd ?? pos); ta.focus(); ta.setSelectionRange(pos + ins.length, pos + ins.length); prev(); });
   $("#c-imgf", d).onchange = async e => { const f = e.target.files[0]; if (!f) return; $("#c-imgst", d).textContent = "Nahrávám…"; try { const r = await storeImage(f, { max: 1000, dataMax: 420, limit: 40000 }); c.img = r.url || r.data; $("#c-imgst", d).textContent = r.url ? "Uloženo" : "Uloženo zmenšené do projektu"; prev(); } catch { $("#c-imgst", d).textContent = "Obrázek se nepodařilo načíst"; } };
   if ($("#c-imgdel", d)) $("#c-imgdel", d).onclick = () => { c.img = ""; prev(); $("#c-imgst", d).textContent = "Obrázek odebrán"; };
@@ -259,16 +274,20 @@ function exportCSV(p) {
   p.decks.forEach(d => d.cards.forEach(c => rows.push([d.name, ...CARD_COLS.map(k => String(c[k] ?? ""))].map(v => v.replace(/;/g, ",").replace(/\r?\n/g, "\\n")).join(";"))));
   offerFile(slug(p.name) + "-karty.csv", "\ufeff" + rows.join("\r\n"), "CSV uloženo");
 }
-async function exportPrint(p) {
+async function exportPrint(p, opt = {}) {
   const cards = [], backs = [];
-  p.decks.forEach(d => d.cards.forEach(c => { for (let i = 0; i < (+c.qty || 0); i++) { cards.push(cardHTML(c, d)); backs.push(cardHTML(c, d, false)); } }));
+  // Se spadávkou dostane každá karta 3 mm okraj v barvě své plochy a ořezové značky v rozích.
+  const marks = `<svg class="cm" viewBox="0 0 75 100" preserveAspectRatio="none"><g stroke="#000" stroke-width=".25">${[[6, 6], [69, 6], [6, 94], [69, 94]].map(([x, y]) => `<line x1="${x}" y1="${y < 50 ? 0 : 100}" x2="${x}" y2="${y < 50 ? 3 : 97}"/><line x1="${x < 37 ? 0 : 75}" y1="${y}" x2="${x < 37 ? 3 : 72}" y2="${y}"/>`).join("")}</g></svg>`;
+  const wrap = (html, bg) => opt.bleed ? `<div class="bc" style="--bc:${bg}">${html}${marks}</div>` : html;
+  p.decks.forEach(d => d.cards.forEach(c => { for (let i = 0; i < (+c.qty || 0); i++) { cards.push(wrap(cardHTML(c, d), (d.template === "full" && c.img) ? `url('${esc(c.img)}')` : "#fbfaf6")); backs.push(wrap(cardHTML(c, d, false), d.backImg ? `url('${esc(d.backImg)}')` : d.color)); } }));
   const units = [], ubacks = [];
   p.units.forEach(u => { for (let i = 0; i < (+u.qty || 0); i++) { units.push(unitHTML(p, u)); ubacks.push(hasReduced(u) ? unitHTML(p, u, true) : `<div class="unit" style="background:${(p.factions.find(f => f.id === u.factionId) || {}).color || "#888"}"></div>`); } });
   const toks = p.tokens.map(t => tokenHTML(t, 0));
   const mirror = (arr, per) => { const out = []; for (let i = 0; i < arr.length; i += per) { const row = arr.slice(i, i + per); while (row.length < per) row.push(`<div class="blank"></div>`); out.push(...row.reverse()); } return out; };
-  const css = `@page{size:A4;margin:8mm}*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  const css = `@page{size:A4;margin:${opt.bleed ? 4 : 8}mm}*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 h1{font-size:13pt;margin:0 0 3mm}p.n{font-size:8pt;color:#555;margin:0 0 3mm}.pg{page-break-after:always}
 .cards{display:grid;grid-template-columns:repeat(3,63mm);gap:0}.cards .blank{width:63mm;height:88mm}
+.cards.bl{grid-template-columns:repeat(2,69mm);gap:4mm}.cards.bl .blank{width:69mm;height:94mm}
 ${(document.getElementById("card-css") || {}).textContent || ""}
 .cards .pcard{font-size:6.72mm;width:63mm;height:88mm;aspect-ratio:auto;max-width:none;box-shadow:none;border-radius:0;border:.2mm solid #999}
 :root{--f-display:'Bricolage Grotesque',system-ui,sans-serif;--f-body:'Atkinson Hyperlegible',system-ui,sans-serif;--f-mono:'Chivo Mono',ui-monospace,monospace;--shadow:none}
@@ -280,9 +299,10 @@ ${(document.getElementById("card-css") || {}).textContent || ""}
 .blank{width:16mm;height:16mm}.toks{display:flex;flex-wrap:wrap;gap:3mm}.token{width:16mm;height:16mm;display:grid;place-items:center;font-weight:700;font-size:8pt;text-align:center;border:.3mm solid rgba(0,0,0,.4);overflow:hidden}
 .token.kruh{border-radius:50%}.token.ctverec{border-radius:2mm}.token .tt{font-size:6pt}.token.figurka{border:0}.token.figurka svg{width:14mm;height:16mm}`;
   let html = `<!doctype html><html lang="cs"><head><meta charset="utf-8"><title>${esc(p.name)} – tisková archa</title><link rel="stylesheet" href="${(document.querySelector('link[href*="fonts.googleapis"][rel=stylesheet]') || {}).href || ""}"><style>${css}</style></head><body>`;
-  for (let i = 0; i < cards.length; i += 9) {
-    html += `<section class="pg"><h1>${esc(p.name)} – karty ${i + 1}–${Math.min(i + 9, cards.length)}</h1><p class="n">Tiskni ve skutečné velikosti (100 %). Karta 63 × 88 mm.</p><div class="cards">${cards.slice(i, i + 9).join("")}</div></section>`;
-    html += `<section class="pg"><h1>Rubové strany</h1><p class="n">Pro oboustranný tisk otáčej podél dlouhé strany.</p><div class="cards">${mirror(backs.slice(i, i + 9), 3).map(x => x.replace('class="blank"', 'class="blank" style="width:63mm;height:88mm"')).join("")}</div></section>`;
+  const per = opt.bleed ? 6 : 9, cols = opt.bleed ? 2 : 3, cls = opt.bleed ? "cards bl" : "cards", bw = opt.bleed ? "69mm;height:94mm" : "63mm;height:88mm";
+  for (let i = 0; i < cards.length; i += per) {
+    html += `<section class="pg">${opt.bleed ? "" : `<h1>${esc(p.name)} – karty ${i + 1}–${Math.min(i + per, cards.length)}</h1><p class="n">Tiskni ve skutečné velikosti (100 %). Karta 63 × 88 mm.</p>`}<div class="${cls}">${cards.slice(i, i + per).join("")}</div></section>`;
+    if (opt.backs !== false) html += `<section class="pg">${opt.bleed ? "" : `<h1>Rubové strany</h1><p class="n">Pro oboustranný tisk otáčej podél dlouhé strany.</p>`}<div class="${cls}">${mirror(backs.slice(i, i + per), cols).map(x => x.replace('class="blank"', `class="blank" style="width:${bw}"`)).join("")}</div></section>`;
   }
   if (units.length) {
     html += `<section class="pg"><h1>${esc(p.name)} – žetony jednotek (16 mm)</h1><div class="counters">${units.join("")}</div></section>`;

@@ -16,7 +16,7 @@ function renderTests(main, p) {
   const maxVer = Math.max(1, ...Object.values(byVer).map(x => x.min / x.n));
   main.innerHTML = `<div class="page">
     ${exampleBanner(p)}
-    <div class="row spread"><h2>Testovací hry</h2><button class="btn primary" id="addSess">+ Zapsat odehranou hru</button></div>
+    <div class="row spread"><h2>Testovací hry</h2><div class="row">${(p.onlineCodes || []).length ? `<button class="btn" id="fbImp">Načíst hodnocení testerů</button>` : ""}<button class="btn primary" id="addSess">+ Zapsat odehranou hru</button></div></div>
     <div class="stat-row">
       <div class="stat"><span class="eyebrow">Odehráno</span><b>${n}</b><span class="muted">${plural(n, "hra", "hry", "her")}</span></div>
       <div class="stat"><span class="eyebrow">Průměrná délka</span><b>${avgMin}</b><span class="muted">minut (cíl ${esc(p.time)})</span></div>
@@ -31,6 +31,7 @@ function renderTests(main, p) {
         <p class="hint">${Object.entries(byVer).map(([k, v]) => `v${esc(k)}: ${v.n} ${plural(v.n, "hra", "hry", "her")}`).join(" · ")}</p>
         ${Object.keys(bySc).length ? `<h3>Vítězové podle scénáře</h3>${Object.entries(bySc).map(([sc, w]) => `<div><b>${esc(sc)}</b>: ${Object.entries(w).map(([nm, c]) => `${esc(nm)} ${c}×`).join(", ") || "–"}</div>`).join("")}<p class="hint">Ve wargame zapisuj jako hráče strany (Modří, Červení), ať je vidět vyváženost scénáře.</p>` : ""}</div>
     </div>` : ""}
+    ${surveySummaryHTML(ss)}
     <div class="list">${n ? ss.map(s => `<div class="sess">
       <div class="sess-hd"><b>${fmtDate(s.date)}${s.scenario ? ` · ${esc(s.scenario)}` : ""}</b><span class="muted mono" style="font-size:.85rem">v${esc(s.version)} · ${+s.minutes || 0} min · ${s.players.length} ${plural(s.players.length, "hráč", "hráči", "hráčů")}</span>
         <button class="btn small" data-edit="${s.id}">Upravit</button></div>
@@ -40,6 +41,7 @@ function renderTests(main, p) {
   </div>`;
   wireBanner(main);
   $("#addSess").onclick = () => editSession(p, null);
+  if ($("#fbImp")) $("#fbImp").onclick = () => importFeedback(p);
   $$("[data-edit]", main).forEach(b => b.onclick = () => editSession(p, p.sessions.find(s => s.id === b.dataset.edit)));
 }
 function fromTable(p) {
@@ -66,6 +68,7 @@ function editSession(p, sess, prefill) {
     <div class="eyebrow">Hráči (nebo strany) v pořadí tahu</div>
     <div id="s-pl" style="display:flex;flex-direction:column;gap:8px"></div>
     <div><button class="btn small" id="s-addpl">+ Hráč</button></div>
+    ${surveyHTML(s.survey)}
     <label class="f">Poznámky z testu<textarea id="s-notes" placeholder="Co fungovalo, co nudilo, kde se hráči zasekli, co změnit…">${esc(s.notes)}</textarea></label>
     <div class="row spread"><div>${isNew ? "" : `<button class="btn danger" id="s-del">Smazat</button>`}</div>
       <div class="row"><button class="btn" data-close>Zrušit</button><button class="btn primary" id="s-save">Uložit</button></div></div>`, true);
@@ -80,11 +83,11 @@ function editSession(p, sess, prefill) {
     $$("[data-pw]", d).forEach(x => x.onchange = () => s.players[x.dataset.pw].win = x.checked);
     $$("[data-pd]", d).forEach(x => x.onclick = () => { s.players.splice(+x.dataset.pd, 1); drawPl(); });
   };
-  drawPl();
+  drawPl(); const readSv = wireSurvey(d, s.survey = s.survey || {});
   if ($("#s-ft", d)) $("#s-ft", d).onclick = () => { const f = fromTable(p); s.players = f.players; if (f.minutes) $("#s-min", d).value = f.minutes; if (f.scenario) $("#s-sc", d).value = f.scenario; drawPl(); toast("Načteno ze stolu – jména můžeš přepsat"); };
   $("#s-addpl", d).onclick = () => { s.players.push({ name: "", score: "", win: false }); drawPl(); };
   $("#s-save", d).onclick = () => {
-    s.date = $("#s-date", d).value || today(); s.version = $("#s-ver", d).value.trim(); s.minutes = +$("#s-min", d).value || 0; s.notes = $("#s-notes", d).value; s.scenario = $("#s-sc", d).value;
+    s.date = $("#s-date", d).value || today(); s.version = $("#s-ver", d).value.trim(); s.minutes = +$("#s-min", d).value || 0; s.notes = $("#s-notes", d).value; s.scenario = $("#s-sc", d).value; s.survey = readSv();
     s.players = s.players.filter(pl => pl.name.trim());
     if (!s.players.length) { toast("Zapiš aspoň jednoho hráče"); return; }
     if (!s.players.some(pl => pl.win) && s.players.some(pl => pl.score !== "")) { const mx = Math.max(...s.players.map(pl => +pl.score || 0)); s.players.forEach(pl => pl.win = (+pl.score || 0) === mx); }

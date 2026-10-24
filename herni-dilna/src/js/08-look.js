@@ -9,11 +9,12 @@ function richText(text) {
 }
 function cardHTML(card, deck, faceUp = true) {
   const font = CARD_FONT_CSS[deck.font || ""]; const st = `--c:${deck.color}${font ? `;--cf:${font}` : ""}`;
-  if (!faceUp) return `<div class="pcard back" style="${st}"><div class="bk">${esc(deck.back || deck.name)}</div></div>`;
+  if (!faceUp) return deck.backImg ? `<div class="pcard back img" style="${st};background-image:url('${esc(deck.backImg)}')"></div>` : `<div class="pcard back" style="${st}"><div class="bk">${esc(deck.back || deck.name)}</div></div>`;
+  const pj = typeof P === "function" ? P() : null; const tIcon = pj && pj.typeIcons && card.type ? pj.typeIcons[card.type] : "";
   const tpl = CARD_TEMPLATES[deck.template] ? deck.template : "classic";
   const cost = card.cost !== "" && card.cost != null ? `<span class="cost">${richText(card.cost)}</span>` : "";
   const hd = `<div class="hd"><span class="tt">${esc(card.title) || "&nbsp;"}</span>${cost}</div>`;
-  const ty = card.type ? `<div class="ty">${esc(card.type)}</div>` : "";
+  const ty = card.type ? `<div class="ty">${tIcon ? `<span class="tyi">${esc(tIcon)}</span> ` : ""}${esc(card.type)}</div>` : "";
   const art = card.img ? `<div class="art" style="background-image:url('${esc(card.img)}')"></div>` : "";
   const ph = art || `<div class="art">${esc(card.icon || "")}</div>`;
   const ic = card.icon ? `<div class="ic">${esc(card.icon)}</div>` : "";
@@ -26,7 +27,8 @@ function cardHTML(card, deck, faceUp = true) {
   else if (tpl === "play") { const idx = `${esc(card.value || "")}<br>${esc(card.suit || "")}`; inner = `<div class="cn tl">${idx}</div><div class="cn br">${idx}</div><div class="pc-center">${art || `<span>${esc(card.icon || card.suit || "")}</span>`}</div><div class="pc-title">${esc(card.title)}</div>${card.text ? tx : ""}`; }
   else if (tpl === "min") inner = hd + (art || ic) + tx + ft;
   else inner = hd + ty + art + ic + tx + ft;
-  return `<div class="pcard t-${tpl}" style="${st}">${inner}${card.locked ? `<span class="lk">🔒</span>` : ""}</div>`;
+  const rar = card.rarity && RARITIES[card.rarity] ? `<span class="rar r-${card.rarity}" title="${RARITIES[card.rarity]}"></span>` : "";
+  return `<div class="pcard t-${tpl}${deck.frame ? " fr-" + deck.frame : ""}" style="${st}">${inner}${rar}${card.locked ? `<span class="lk">🔒</span>` : ""}</div>`;
 }
 const MEEPLE = c => `<svg viewBox="0 0 46 54" aria-hidden="true"><path fill="${c}" stroke="rgba(255,255,255,.6)" stroke-width="1.5" d="M23 2c5 0 8 3.6 8 8 0 2.6-1 4.6-2.6 6 5.8 1.2 15.6 4.4 15.6 9.6 0 3-3.4 3.6-7.6 3.4L42 50c.4 1.6-.6 2.4-2 2.4H29.4L23 41l-6.4 11.4H6c-1.4 0-2.4-.8-2-2.4l5.6-21C5.4 29.2 2 28.6 2 25.6 2 20.4 11.8 17.2 17.6 16 16 14.6 15 12.6 15 10c0-4.4 3-8 8-8z"/></svg>`;
 function tokenHTML(t, value) {
@@ -59,7 +61,7 @@ function unitVals(u, reduced) {
 const hasReduced = u => !!u && [u.rAtt, u.rDef, u.rMov].some(v => v !== "" && v != null);
 function unitHTML(p, u, reduced = false) {
   const f = p.factions.find(x => x.id === u.factionId); const col = f ? f.color : "#888"; const ink = inkFor(col);
-  return `<div class="unit ${reduced ? "red" : ""}" style="background:${col};color:${ink}" title="${esc(u.name)}">
+  return `<div class="unit ${reduced ? "red" : ""}${u.big ? " big" : ""}${u.hq ? " hq" : ""}" style="background:${col};color:${ink}" title="${esc(u.name)}">
     <span class="nm">${esc(u.name)}</span>${u.note ? `<span class="note">${esc(u.note.slice(0, 3))}</span>` : ""}
     <span class="sym"><span class="sz">${esc(u.size || "")}</span>${natoSymbol(u, ink)}</span>
     <span class="vals">${esc(unitVals(u, reduced))}</span></div>`;

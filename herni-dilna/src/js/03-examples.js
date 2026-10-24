@@ -71,7 +71,7 @@ function exampleWar() {
     U("1. pěší", blue, "pechota", "III", 4, 4, 3, 2, 2, 3, 3),
     U("7. tankový", blue, "tanky", "II", 6, 3, 6, 3, 2, 6, 1),
     U("12. dělostř.", blue, "delo", "III", 5, 2, 2, 2, 1, 2, 1),
-    U("Štáb", blue, "stab", "XX", 0, 1, 4, "", "", "", 1),
+    Object.assign(U("Štáb", blue, "stab", "XX", 0, 1, 4, "", "", "", 1), { hq: true }),
     U("3. pěší", red, "pechota", "III", 3, 5, 3, 2, 3, 3, 3),
     U("Husaři", red, "jezdectvo", "II", 3, 2, 7, 1, 1, 7, 1),
     U("Baterie", red, "delo", "II", 4, 2, 2, 2, 1, 2, 1),
