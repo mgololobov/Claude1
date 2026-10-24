@@ -239,3 +239,35 @@ function blankProject() {
   return normalize({ id: uid(), updatedAt: Date.now(), name: "Nová hra", version: "0.1", players: "2–4", time: "30 min", age: "8+", summary: "", rules: "",
     decks: [{ id: uid(), name: "Balíček 1", color: COLORS[0], back: "HRA", cards: [] }], table: null });
 }
+function exampleCrypt() {
+  const heroes = { id: uid(), name: "Hrdinové", color: "#3f6fb0" }, dark = { id: uid(), name: "Temnota", color: "#5b3f6e" };
+  const cols = 10, rows = 7; const terrain = {}, regions = {}, labels = {};
+  for (let c = 0; c < cols; c++) for (let r = 0; r < rows; r++) {
+    const k = c + "," + r; const room = c <= 2 ? "Vstup" : c <= 5 ? "Chodba" : "Krypta";
+    const wall = (c === 3 || c === 6) && r !== 3 || (c >= 3 && c <= 5 && (r < 2 || r > 4));
+    if (wall) terrain[k] = "wall"; else regions[k] = room;
+  }
+  labels["8,3"] = "Oltář";
+  const board = { id: uid(), name: "Krypta", type: "square", cols, rows, size: 34, terrain, labels, regions, bg: null, coords: false };
+  const U = (name, f, symbol, a, d, m, extra) => ({ id: uid(), name, factionId: f.id, symbol, symText: "", size: "", att: a, def: d, mov: m, rAtt: "", rDef: "", rMov: "", qty: 1, note: "", ...extra });
+  const units = [U("Bojovnice", heroes, "pechota", 3, 2, 4, { kind: "hero", hp: 8 }), U("Lučištník", heroes, "jezdectvo", 2, 1, 4, { kind: "hero", hp: 6, range: 4 }),
+    U("Kostlivec", dark, "pechota", 2, 1, 3, { kind: "monster", hp: 3, xp: 1, qty: 3 }), U("Nekromant", dark, "stab", 3, 2, 2, { kind: "monster", hp: 6, xp: 4, range: 3 })];
+  const g = geo(board); const at = (u, c, r) => { const [cx, cy] = g.center(c, r); return { uid: uid(), kind: "unit", unitId: u.id, x: Math.round(BX + cx - 26), y: Math.round(BY + cy - 26), reduced: false, rot: 0 }; };
+  const setup = [at(units[0], 1, 3), at(units[1], 0, 2), at(units[2], 4, 2), at(units[2], 5, 4), at(units[2], 7, 2), at(units[3], 8, 3)];
+  const c = (title, text, effect, qty) => ({ id: uid(), title, type: "Poklad", cost: "", text, qty, suit: "", value: "", vp: "", icon: "", effect });
+  return normalize({
+    id: uid(), isExample: true, updatedAt: Date.now(), name: "Krypta nekromanta", version: "0.1", players: "1–2", time: "30 min", age: "10+",
+    summary: "Kooperativní dungeon crawler. Hrdinové procházejí temnou kryptou, odhalují místnosti a musí porazit nekromanta dřív, než hrozba dosáhne maxima.",
+    rules: "KOLO\n1. Hrdinové – každý se pohne a může zaútočit (nástroj Výprava, tlačítko Zaútočit u vybraného hrdiny).\n2. Příšery – tlačítko Tah příšer.\n3. Hrozba vzroste o 1.\n\nVÍTĚZSTVÍ\nHrdinové vyhrají, když padnou všechny příšery. Prohrají, když padnou oba hrdinové nebo hrozba dosáhne 10.",
+    changelog: [], factions: [heroes, dark], phases: ["Hrdinové", "Příšery"],
+    resources: [{ id: "zlato", name: "Zlato", color: "#c98a12", icon: "🪙", start: 0, income: 0, max: "", vp: true, global: false }],
+    terrains: [{ id: "floor", name: "Podlaha", color: "#cfc6b4", glyph: "", move: "1", def: 1, vp: 0 }, { id: "wall", name: "Zeď", color: "#3b3631", glyph: "", move: "–", def: 1, vp: 0, blocks: true }],
+    boards: [board], units, dice: { sides: 6, aHit: 4, dHit: 5 },
+    crawl: { rooms: true, lootDeck: "poklady", levelXp: 3, doom: 10 },
+    ruleset: Object.assign(defaultRules(), { moveRange: true, moveOnce: true, win: { vp: "", turns: "", elimination: true },
+      triggers: [{ id: uid(), on: "mistnost", param: "Krypta", cond: "", effect: "zpráva Nekromant se probouzí!" }, { id: uid(), on: "hrozba", param: "", cond: "", effect: "zpráva Temnota pohltila kryptu – hrdinové prohráli" }] }),
+    scenarios: [{ id: uid(), name: "Sestup do krypty", turns: 10, boardId: board.id, desc: "Hrdinové stojí u vstupu. Z chodby je slyšet chrastění kostí.", victory: "Porazte všechny příšery.", special: "", setup: { items: setup, control: {} },
+      reinf: [{ id: uid(), turn: 5, qty: 1, unitId: units[2].id, cell: "0804" }] }],
+    decks: [{ id: "poklady", name: "Poklady", color: "#c98a12", back: "POKLAD", market: 0, cards: [c("Lektvar", "Vyléčí 2 životy (ručně na stole).", "", 2), c("Zlaťáky", "Získáš 2 zlata.", "+2 Zlato", 3), c("Svitek", "Hrozba klesne o 1 (ručně).", "", 1)] }],
+  });
+}

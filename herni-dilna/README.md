@@ -32,6 +32,9 @@ src/js/NN-*.js       moduly; sestavují se v pořadí čísel
   37-dice            kostky s libovolným počtem stěn, k%, smíšený hod, zápis 2k6+k8+3 i s vlastními kostkami
   38-mech-more       posily, aktivace žetony, stav jednotek, dostřel, karty za operace, technologie,
                      veřejné cíle, draft kostek, odhazovací hromádka, riskování, sázky na štychy, sestavy
+  39-ui              skupiny nástrojů na stole, navigace po dlouhých stránkách
+  40-crawler         dungeon crawler: životy, hrdinové a příšery, automat příšer, místnosti, stavy, XP, poklady, hrozba
+  41-logic           kameny na mapě (řada, sevření, otáčení, gravitace, propojení okrajů), lámání kódu
   99-main            spuštění
 tests/harness.js     načte moduly do Node bez prohlížeče
 tests/*.test.js      testy herní logiky

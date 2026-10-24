@@ -18,7 +18,9 @@ const addVp = (p, t, fid, n) => { const r = vpResOf(p); if (!r || !n) return; t.
 const fname = (p, fid) => (p.factions.find(f => f.id === fid) || {}).name || "";
 
 // ----- Wargame -----
-const UNIT_ST = { dis: ["Rozvrácená", "✖", "útočí polovinou síly"], dug: ["Zakopaná", "⛨", "obránce má posun o 1 sloupec ve svůj prospěch"], tired: ["Unavená", "z", "pohyb poloviční"] };
+// Čtvrtá položka označuje stavy pro jednotky s životy (dungeon crawler).
+const UNIT_ST = { dis: ["Rozvrácená", "✖", "útočí polovinou síly"], dug: ["Zakopaná", "⛨", "obránce má posun o 1 sloupec ve svůj prospěch"], tired: ["Unavená", "z", "pohyb poloviční"],
+  poison: ["Otrávená", "☠", "na začátku kola ztrácí 1 život", 1], stun: ["Omráčená", "✷", "příšera v příštím tahu nejedná", 1], tiredC: ["Zpomalená", "z", "pohyb poloviční", 1] };
 const stBadges = i => i.st ? Object.keys(UNIT_ST).filter(k => i.st[k]).map(k => `<span class="ust" title="${UNIT_ST[k][0]}">${UNIT_ST[k][1]}</span>`).join("") : "";
 function unitAttack(p, t, i) { const u = unitOf(p, i); let v = +(i.reduced ? u.rAtt : u.att) || 0; if (!inSupply(p, t, i)) v = Math.floor(v / 2); if (i.st && i.st.dis) v = Math.floor(v / 2); return v; }
 function defShift(p, t, i) { const b = tableBoard(p); const k = cellUnder(p, i); const ter = b && k ? terrainOf(p, b, k) || p.terrains[0] : null; return Math.max(-3, Math.min(3, (ter ? +ter.shift || 0 : 0) - (i.st && i.st.dug ? 1 : 0))); }
@@ -76,6 +78,7 @@ function goalQty(p, t, fid, what) {
   if (["technologie", "technologií"].includes(w)) return ((t.techs || {})[fid] || []).length;
   if (["štychy", "štychů"].includes(w)) return t.won[fid] || 0;
   if (["karty", "karet"].includes(w)) return (t.tableau[fid] || []).length;
+  if (["kameny", "kamenů"].includes(w)) return Object.values(t.stones || {}).filter(x => x === fid).length;
   return (t.tableau[fid] || []).map(h => cardOf(p, h).c).filter(c => c && [c.type, c.suit].some(x => String(x || "").toLowerCase() === w)).length;
 }
 function goalPoints(p, t, fid, g) {
@@ -148,7 +151,7 @@ function sidePush(p, t) {
       ${p.push.mode === "sum" ? `<label class="f">Limit součtu<input type="number" id="puLimit" value="${+p.push.limit || 21}"></label>` : ""}
       <p class="hint">Hráč tahá karty, dokud chce. Když přetáhne, ztratí vše z tohoto tahu. Když řekne „Stačí“, získá body podle součtu hodnot (bez hodnot podle počtu karet).</p></section>
     ${d && cp ? `<section><div class="eyebrow">Na tahu: ${esc(cp.name)}</div>${fchipsHTML(p, t)}
-      ${P_ && P_.row.length ? `<div class="hand mini">${P_.row.map(h => `<div class="hc">${cardHTML(cv(p, h), d)}</div>`).join("")}</div><div class="hint">Teď by získal ${pushPoints(p, t)}</div>` : P_ && P_.bust ? `<div class="result" style="background:var(--bad,#b0402c);color:#fff"><span>Přetáhl</span><b>0 bodů</b></div>` : ""}
+      ${P_ && P_.row.length ? `<div class="hand mini">${P_.row.map(h => `<div class="hc">${cardHTML(cv(p, h), d)}</div>`).join("")}</div><div class="hint">Teď by získal ${pushPoints(p, t)}</div>` : P_ && P_.bust ? `<div class="result" style="background:var(--danger);color:#fff"><span>Přetáhl</span><b>0 bodů</b></div>` : ""}
       <div class="row"><button class="btn primary" id="puDraw">Táhnout kartu</button>${P_ && P_.row.length ? `<button class="btn" id="puStop">Stačí</button>` : ""}<button class="btn small" id="puNext">Další hráč</button></div></section>` : ""}`;
 }
 function trickBidHTML(p, t) {
@@ -305,6 +308,13 @@ function moreRulebook(p) {
   if (p.techs.length) out.push(["Technologie", `<table><tr><th>Technologie</th><th>Cena</th><th>Předpoklady</th><th>Účinek</th></tr>${p.techs.map(x => `<tr><td>${esc(x.name)}</td><td>${esc(x.cost || "–")}</td><td>${esc(x.req || "–")}</td><td>${esc(describeEffect(x.effect || ""))}${+x.vp ? ` (${x.vp} b.)` : ""}</td></tr>`).join("")}</table>`]);
   if (p.goals.length) out.push(["Veřejné cíle", `<ul>${p.goals.map(g => `<li>${g.name ? `<b>${esc(g.name)}</b>: ` : ""}${esc(goalText(g))}</li>`).join("")}</ul>`]);
   if (p.diceDraft.on) out.push(["Draft kostek", `<p>Na začátku kola hoďte ${+p.diceDraft.n || "počet hráčů + 1"} kostek k${+p.diceDraft.sides || 6}. Hráči si je po řadě berou.</p>`]);
+  const heroes = p.units.filter(u => u.kind === "hero"), mons = p.units.filter(u => u.kind === "monster");
+  if (heroes.length || mons.length) out.push(["Výprava", `<p>Útok: hoď tolik kostek k${+p.dice.sides || 6}, kolik má útočník útok; zásah na ${p.dice.aHit}+. Obránce hází podle obrany a blokuje na ${p.dice.dHit}+. Každý nezablokovaný zásah ubere 1 život.</p>
+    ${mons.length ? `<p>Příšery jdou k nejbližšímu hrdinovi a útočí, jakmile na něj dosáhnou.</p>` : ""}${heroes.length ? `<p>Hrdina získává zkušenosti za zabité příšery; každých ${+p.crawl.levelXp || 5} XP je nová úroveň a +1 život.</p>` : ""}
+    ${p.crawl.rooms ? "<p>Místnosti jsou zakryté, dokud do nich nevstoupí hrdina.</p>" : ""}${+p.crawl.doom ? `<p>Hrozba roste každé kolo; při ${p.crawl.doom} nastane nejhorší.</p>` : ""}
+    <table><tr><th>Postava</th><th>Útok</th><th>Obrana</th><th>Pohyb</th><th>Životy</th></tr>${[...heroes, ...mons].map(u => `<tr><td>${esc(u.name)}</td><td>${esc(u.att)}</td><td>${esc(u.def)}</td><td>${esc(u.mov)}</td><td>${esc(u.hp || "–")}</td></tr>`).join("")}</table>`]);
+  if (p.stones.on) out.push(["Kameny", `<p>Hráči se střídají v pokládání kamenů. ${esc(STONE_CAP[p.stones.capture])}.${p.stones.gravity ? " Kámen spadne do nejnižšího volného pole sloupce." : ""} Cíl: ${esc(STONE_WIN[p.stones.win])}${p.stones.win === "row" ? ` (${p.stones.rowN})` : ""}.</p>`]);
+  if (p.code.on) out.push(["Tajný kód", `<p>Kód má ${p.code.len} symbolů z: ${esc(p.code.symbols)}. Po každém pokusu ● = správný symbol na správném místě, ○ = správný symbol jinde. Pokusů je ${p.code.tries}.</p>`]);
   if (p.trickBid.on) out.push(["Sázky", `<p>Před kolem každý řekne, kolik štychů vezme. Přesná sázka: ${p.trickBid.hit} bodů + ${p.trickBid.per} za každý štych; jinak −${p.trickBid.miss} za každý štych rozdílu.</p>`]);
   return out;
 }

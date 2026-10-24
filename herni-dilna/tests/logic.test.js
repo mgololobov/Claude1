@@ -121,7 +121,7 @@ test("obnova poškozených pravidel z verze 4", () => {
 });
 
 test("všechny ukázkové hry projdou kontrolou návrhu bez chyb", () => {
-  for (const make of [A.exampleWar, A.exampleTrade, A.exampleAlchemy, A.exampleTricks, A.exampleTiles, A.exampleRace, A.exampleIsland]) {
+  for (const make of [A.exampleWar, A.exampleTrade, A.exampleAlchemy, A.exampleTricks, A.exampleTiles, A.exampleRace, A.exampleIsland, A.exampleCrypt]) {
     const p = make(); const errs = A.lintProject(p).filter(x => x.lv === "err");
     assert.deepEqual(errs.map(e => e.t), [], p.name);
   }
@@ -270,4 +270,35 @@ test("karetní hry: hromádka, riskování, sázky a sestavy", () => {
 test("simulace kupuje technologie", () => {
   const p = A.exampleTrade(); p.techs = [{ id: "x", name: "Sklady", cost: "3 Mince", req: "", effect: "", vp: 4 }]; const S = A.__S(); S.projects = [p]; S.currentId = p.id;
   const gs = Array.from({ length: 10 }, () => A.simGame(p, { rounds: 10, policy: "greedy", actions: 2 })); assert.ok(gs.some(g => g.seats.some(s => s.played.includes("Sklady"))));
+});
+
+test("dungeon crawler: útok, životy, zkušenosti a automat příšer", () => {
+  const { p, t, put } = war(); p.dice = { sides: 6, aHit: 1, dHit: 7 }; // vždy zásah, nikdy blok
+  Object.assign(p.units[0], { kind: "hero", hp: 5 }); Object.assign(p.units[1], { kind: "monster", hp: 3, xp: 3, att: 2, def: 1 }); p.crawl.levelXp = 3;
+  const h = put("a", 0), m = put("d", 3);
+  A.monsterTurn(p, t); assert.equal(A.cellUnder(p, m), "1,0", "příšera přišla k hrdinovi"); assert.equal(A.unitHp(p, h), 3, "a zaútočila za 2");
+  A.crawlAttack(p, t, h, m); assert.ok(!t.items.includes(m), "6 zásahů zabije příšeru"); assert.equal(h.xp, 3); assert.equal(A.crawlLevel(p, h), 2); assert.equal(A.unitMaxHp(p, h), 6);
+  h.st = { poison: true }; A.newRound(p, t); assert.equal(A.unitHp(p, h), 3, "otrava ubrala 1 (max vzrostl na 6, zranění 3)");
+});
+test("dungeon crawler: místnosti se odhalí vstupem hrdiny", () => {
+  const { p, t, put } = war(); p.crawl.rooms = true; p.boards[0].regions = { "3,0": "Krypta", "4,0": "Krypta" }; Object.assign(p.units[0], { kind: "hero", hp: 3 });
+  assert.equal(A.crawlDarkSet(p, t).size, 2); const h = put("a", 3); A.crawlOnMove(p, t, h, "3,0"); assert.equal(A.crawlDarkSet(p, t).size, 0); assert.deepEqual(t.revealed, ["Krypta"]);
+});
+test("kameny: řada, gravitace, sevření, otáčení a propojení", () => {
+  const board = { id: "bd", name: "M", type: "square", cols: 7, rows: 6, size: 30, terrain: {}, labels: {}, regions: {}, numbers: {} };
+  const { p, t } = game(2, { boards: [board] }); t.boardId = "bd";
+  p.stones = { on: true, win: "row", rowN: 4, capture: "", gravity: true };
+  for (let i = 0; i < 3; i++) { A.placeStone(p, t, "0,0", "anna"); A.placeStone(p, t, "1,0", "bert"); }
+  assert.equal(t.stones["0,3"], "anna", "gravitace skládá kameny odspodu"); A.placeStone(p, t, "0,0", "anna"); assert.equal(t.winner.fid, "anna", "čtyři v řadě");
+  t.winner = null; t.stones = { "1,1": "bert" }; p.stones = { on: true, win: "", capture: "sandwich", gravity: false };
+  A.placeStone(p, t, "0,1", "anna"); A.placeStone(p, t, "2,1", "anna"); assert.equal(t.stones["1,1"], undefined, "sevřený kámen se bere");
+  t.stones = { "2,2": "anna", "3,3": "anna", "2,3": "bert", "3,2": "bert" }; p.stones.capture = "flip";
+  const r = A.placeStone(p, t, "1,3", "anna"); assert.equal(r.flips, 1); assert.equal(t.stones["2,3"], "anna");
+  assert.ok(A.placeStone(p, t, "6,5", "bert").err, "tah bez otočení není povolen");
+  t.stones = {}; p.stones = { on: true, win: "connect", capture: "", gravity: false }; for (let c = 0; c < 7; c++) A.placeStone(p, t, c + ",2", "anna"); assert.match(t.winner.why, /levý a pravý/);
+});
+test("lámání kódu: černé a bílé kolíky", () => {
+  assert.deepEqual(A.scoreGuess(["a", "b", "c", "d"], ["a", "c", "b", "x"]), { black: 1, white: 2 });
+  assert.deepEqual(A.scoreGuess(["a", "a", "b", "b"], ["a", "b", "a", "a"]), { black: 1, white: 2 });
+  const p = A.normalize({ id: "x", name: "K", decks: [], code: { len: 5, symbols: "1,2,3", dup: true } }); assert.equal(A.newCode(p).length, 5);
 });

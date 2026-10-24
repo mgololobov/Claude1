@@ -59,7 +59,7 @@ function renderOverview(main, p) {
     r.onload = () => { try { const q = JSON.parse(r.result); if (!q || !Array.isArray(q.decks)) throw 0; q.id = uid(); delete q.isExample; q.name = (q.name || "Hra") + " (import)"; normalize(q); S.projects.unshift(q); S.currentId = q.id; touch(q); render(); toast("Záloha nahrána jako nová hra"); } catch { toast("Soubor není záloha z Herní dílny"); } };
     r.readAsText(f);
   };
-  $("#addEx").onclick = () => { const xs = [exampleWar(), exampleTrade(), exampleAlchemy(), exampleTricks(), exampleTiles(), exampleRace(), exampleIsland()]; S.projects.push(...xs); S.currentId = xs[0].id; render(); toast("Ukázkové hry přidány"); };
+  $("#addEx").onclick = () => { const xs = [exampleWar(), exampleTrade(), exampleAlchemy(), exampleTricks(), exampleTiles(), exampleRace(), exampleIsland(), exampleCrypt()]; S.projects.push(...xs); S.currentId = xs[0].id; render(); toast("Ukázkové hry přidány"); };
   wireOverviewExtras(main, p);
   $("#delProj").onclick = () => confirmDialog(`Smazat hru „${p.name}“?`, "Smažou se karty, mapy, scénáře i záznamy testů. Nejde to vrátit.", "Smazat", () => removeProject(p));
 }

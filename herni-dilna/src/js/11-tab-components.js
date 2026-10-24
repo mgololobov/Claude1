@@ -185,6 +185,9 @@ function editUnit(p, unit) {
         <div class="grid" style="grid-template-columns:repeat(3,1fr)"><input type="number" id="u-ra" value="${esc(u.rAtt)}" aria-label="Útok oslabené"><input type="number" id="u-rd" value="${esc(u.rDef)}" aria-label="Obrana oslabené"><input type="number" id="u-rm" value="${esc(u.rMov)}" aria-label="Pohyb oslabené"></div>
         <label class="f" style="width:120px">Počet žetonů<input type="number" id="u-q" min="0" max="99" value="${u.qty}"></label>
         <label class="chk"><input type="checkbox" id="u-hq" ${u.hq ? "checked" : ""}> Velitelství – zdroj zásobování</label>
+        <label class="f" style="width:150px">Druh<select id="u-kind"><option value="">Běžná jednotka</option><option value="hero" ${u.kind === "hero" ? "selected" : ""}>Hrdina</option><option value="monster" ${u.kind === "monster" ? "selected" : ""}>Příšera</option></select></label>
+        <label class="f" style="width:110px">Životy<input type="number" id="u-hp" min="0" max="99" value="${esc(u.hp || "")}" placeholder="–"></label>
+        <label class="f" style="width:130px">XP za zabití<input type="number" id="u-xp" min="0" max="99" value="${esc(u.xp || "")}" placeholder="–"></label>
         <label class="f" style="width:140px">Dostřel (polí)<input type="number" id="u-range" min="0" max="30" value="${esc(u.range || "")}" placeholder="–"></label>
         <label class="chk"><input type="checkbox" id="u-big" ${u.big ? "checked" : ""}> Velký žeton (zabírá víc místa)</label>
       </div>
@@ -197,7 +200,8 @@ function editUnit(p, unit) {
   const num = v => v === "" ? "" : +v;
   const read = () => { u.name = $("#u-name", d).value; u.factionId = $("#u-f", d).value; u.symbol = $("#u-sym", d).value; u.size = $("#u-size", d).value; u.symText = $("#u-symtext", d).value; u.note = $("#u-note", d).value;
     u.att = num($("#u-a", d).value); u.def = num($("#u-d", d).value); u.mov = num($("#u-m", d).value); u.rAtt = num($("#u-ra", d).value); u.rDef = num($("#u-rd", d).value); u.rMov = num($("#u-rm", d).value);
-    u.qty = Math.max(0, Math.min(99, parseInt($("#u-q", d).value, 10) || 0)); u.hq = $("#u-hq", d).checked; u.big = $("#u-big", d).checked; u.range = $("#u-range", d).value === "" ? "" : +$("#u-range", d).value; };
+    u.qty = Math.max(0, Math.min(99, parseInt($("#u-q", d).value, 10) || 0)); u.hq = $("#u-hq", d).checked; u.big = $("#u-big", d).checked; u.range = $("#u-range", d).value === "" ? "" : +$("#u-range", d).value;
+    u.kind = $("#u-kind", d).value; u.hp = $("#u-hp", d).value === "" ? "" : +$("#u-hp", d).value; u.xp = $("#u-xp", d).value === "" ? "" : +$("#u-xp", d).value; };
   const prev = () => { read(); $("#u-prev", d).innerHTML = unitHTML(p, u) + (hasReduced(u) ? unitHTML(p, u, true) : "") + `<span class="hint" style="font-size:.8rem">líc${hasReduced(u) ? " / rub" : ""}</span>`; };
   d.addEventListener("input", prev); d.addEventListener("change", prev); prev();
   $("#u-save", d).onclick = () => { read(); if (isNew) p.units.push(u); else Object.assign(unit, u); touch(p); closeDialog(); render(); toast(isNew ? "Jednotka přidána" : "Jednotka uložena"); };

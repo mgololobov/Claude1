@@ -4,7 +4,7 @@ const S = { projects: [], currentId: null, tab: "prehled", deckId: null, boardId
 function boot() {
   const saved = lsRead();
   if (saved && saved.projects && saved.projects.length) { S.projects = saved.projects.map(normalize); S.currentId = saved.currentId; }
-  else S.projects = [exampleWar(), exampleTrade(), exampleAlchemy(), exampleTricks(), exampleTiles(), exampleRace(), exampleIsland()];
+  else S.projects = [exampleWar(), exampleTrade(), exampleAlchemy(), exampleTricks(), exampleTiles(), exampleRace(), exampleIsland(), exampleCrypt()];
   if (!S.projects.find(p => p.id === S.currentId)) S.currentId = S.projects[0].id;
   try { const t = localStorage.getItem(LS_KEY + "-tab"); if (t) S.tab = t; } catch {}
   if (/^#[a-z]+$/.test(location.hash)) S.tab = location.hash.slice(1);
@@ -18,7 +18,7 @@ function render() {
   const main = $("#main");
   main.style.overflow = S.tab === "stul" ? "hidden" : "auto";
   ({ prehled: renderOverview, komponenty: renderComponents, mapa: renderMap, mechaniky: renderMechanics, pravidla: renderRules, scenare: renderScenarios, stul: renderTable, testy: renderTests, analyza: renderAnalysis })[S.tab](main, P());
-  processPending(P());
+  processPending(P()); uiAfterRender(main);
   const cp = P(); if (cp && !DU.last[cp.id]) DU.last[cp.id] = designKey(cp); updateUndoBtn();
 }
 onInit(() => $("#projSel").addEventListener("change", e => { S.currentId = e.target.value; S.sel = null; S.deckId = null; S.boardId = null; S.undo = []; S.rangeUid = null; S.pool = []; lsWrite(); render(); }));

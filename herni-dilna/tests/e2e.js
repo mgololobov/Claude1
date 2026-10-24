@@ -110,6 +110,24 @@ const OUT = path.join(__dirname, "out"); fs.mkdirSync(OUT, { recursive: true });
     await pg.click("[data-tab=stul]"); await pg.click("[data-tool=kostky]"); await pg.click("#ddRoll"); await pg.click("[data-ddtake]");
     if (!/bere kostku/.test(await ev(() => P().table.log[0]))) throw new Error("kostka nevzata");
   });
+  await step("dungeon crawler: místnosti, útok a tah příšer", async () => {
+    await sel(7); await pg.click("[data-tab=scenare]"); await pg.click("[data-play]");
+    const dark = await ev(() => crawlDarkSet(P(), P().table).size); if (!dark) throw new Error("místnosti nejsou zakryté");
+    await pg.click("[data-tool=vyprava]"); await pg.click("#crMon");
+    const ids = await ev(() => { const t = P().table; const h = t.items.find(i => isHero(P(), i)); return h.uid; });
+    await pg.click(`.titem[data-uid="${ids}"]`); if (!(await pg.$("[data-hp]"))) throw new Error("chybí životy u hrdiny");
+    await ev(() => { const p = P(), t = p.table; const h = t.items.find(i => i.uid === S.sel); revealRoom(p, t, "Chodba", h.uid); placeOn(p, t, h, "4,3"); render(); });
+    await pg.click(`.titem[data-uid="${ids}"]`); await pg.click("[data-crawlatt]");
+    if (!/útočí na/.test(await ev(() => P().table.log.slice(0, 3).join(" ")))) throw new Error("útok neproběhl");
+    await pg.screenshot({ path: path.join(OUT, "krypta.png") });
+  });
+  await step("kameny a lámání kódu", async () => {
+    await ev(() => { const p = P(); p.stones.on = true; p.stones.win = "row"; p.stones.rowN = 4; p.code.on = true; touch(p); render(); });
+    await pg.click("[data-tool=kameny]"); await pg.click("#stMode"); await pg.click('.cell[data-k="1,3"]', { force: true });
+    if ((await ev(() => Object.keys(P().table.stones || {}).length)) !== 1) throw new Error("kámen nepoložen");
+    await pg.click("[data-tool=kod]"); await pg.click("#cdNew"); for (let i = 0; i < 4; i++) await pg.click("[data-cds]");
+    await pg.click("#cdGo"); if ((await ev(() => P().table.code.guesses.length)) !== 1) throw new Error("pokus nevyhodnocen");
+  });
   await step("telefon – Přehled", async () => { await pg.setViewportSize({ width: 400, height: 820 }); await pg.click("[data-tab=prehled]"); await pg.screenshot({ path: path.join(OUT, "telefon.png") }); });
   await b.close();
   console.log(`\n${fails.length ? fails.length + " kroků selhalo:\n" + fails.join("\n") : "Všechny kroky prošly."}\n${errors.length ? "Chyby v konzoli:\n" + errors.join("\n") : "Bez chyb v konzoli."}`);

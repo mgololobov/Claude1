@@ -19,6 +19,9 @@ function toolRelevant(p, k) {
     case "rozvoj": return (p.techs || []).length > 0 || (p.goals || []).length > 0;
     case "hromadka": return !!(p.shed && p.shed.deckId);
     case "riskuj": return !!(p.push && p.push.deckId);
+    case "vyprava": return p.units.some(u => u.kind === "hero" || u.kind === "monster" || +u.hp);
+    case "kameny": return !!(p.stones && p.stones.on);
+    case "kod": return !!(p.code && p.code.on);
     default: return true;
   }
 }

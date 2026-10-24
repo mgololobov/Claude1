@@ -1,6 +1,6 @@
 // ---------- Hlídání pravidel ----------
 const CATS = { lizat: "Líznutí karty", nakup: "Nákup z trhu", vylozit: "Vyložení karty", zahrat: "Zahrání karty na stůl", akce: "Položení na akci / rondel", pohyb: "Pohyb jednotky", boj: "Boj", sacek: "Tahání ze sáčku", kostky: "Hod kostkami", dilek: "Položení dílku", trasa: "Stavba trasy", obchod: "Obchod a burza", draha: "Tah po dráze" };
-const TRIGGERS = { kolo: "Začátek kola", faze: "Začátek fáze", tah: "Začátek tahu hráče", nakup: "Hráč koupí kartu", vylozit: "Hráč vyloží kartu", sacek: "Hráč vytáhne žeton", pohyb: "Jednotka vstoupí na terén", dilek: "Hráč položí dílek", kontrola: "Pole získá vlastníka", boj: "Výsledek boje", hod: "Hod na produkci (součet)", kostka: "Hráč vezme kostku (hodnota)", technologie: "Hráč získá technologii" };
+const TRIGGERS = { kolo: "Začátek kola", faze: "Začátek fáze", tah: "Začátek tahu hráče", nakup: "Hráč koupí kartu", vylozit: "Hráč vyloží kartu", sacek: "Hráč vytáhne žeton", pohyb: "Jednotka vstoupí na terén", dilek: "Hráč položí dílek", kontrola: "Pole získá vlastníka", boj: "Výsledek boje", hod: "Hod na produkci (součet)", kostka: "Hráč vezme kostku (hodnota)", technologie: "Hráč získá technologii", mistnost: "Odhalena místnost (název)", hrozba: "Hrozba dosáhla maxima", kod: "Kód prolomen (počet pokusů)" };
 function defaultRules() {
   return { strict: false, handLimit: "", actionsPerTurn: "", actCats: ["nakup", "vylozit", "akce"], phaseOf: {}, stackLimit: "", moveRange: true, moveOnce: true, ownUnits: false, playCost: "",
     autoIncome: false, drawUpTo: "", fog: false, ownTurn: false, roundOnWrap: false, sight: 6, timerAuto: false, win: { vp: "", turns: "", elimination: false }, triggers: [] };
@@ -154,7 +154,7 @@ function newRound(p, t) {
   if (t.firstNext) { const ids = players(p, t).map(f => f.id); const i = ids.indexOf(t.firstNext); if (i > 0) t.order = [...ids.slice(i), ...ids.slice(0, i)]; t.curF = 0; t.firstNext = null; }
   t.turn++; t.phaseIdx = 0; t.acts = 0; t.moved = {};
   if (p.ruleset.autoIncome) p.resources.forEach(r => { if (!+r.income) return; (r.global ? ["_g"] : p.factions.map(f => f.id)).forEach(o => { t.res[o] = t.res[o] || {}; t.res[o][r.id] = Math.max(0, Math.min(resMax(r), (t.res[o][r.id] || 0) + +r.income)); }); });
-  logEv(t, `začíná ${t.turn}. kolo`); t.chitsOut = []; t.chitNow = null; t.ddraft = null; arriveReinf(p, t);
+  logEv(t, `začíná ${t.turn}. kolo`); t.chitsOut = []; t.chitNow = null; t.ddraft = null; arriveReinf(p, t); crawlRound(p, t);
   endGameByTurns(p, t);
   fireTriggers(p, t, "kolo", null, null); fireTriggers(p, t, "faze", null, 0);
   checkWin(p, t);
