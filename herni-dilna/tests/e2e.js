@@ -161,6 +161,27 @@ const OUT = path.join(__dirname, "out"); fs.mkdirSync(OUT, { recursive: true });
     await pg.click(`#netEd [data-nid="${ids[0]}"]`); await pg.click(`#netEd [data-nid="${ids[1]}"]`);
     if ((await ev(() => P().nets[P().nets.length - 1].links.length)) !== 1) throw new Error("cesta nevznikla");
   });
+  await step("Ascension: poražení příšery v centrální řadě", async () => {
+    await sel(10); await pg.click("[data-tab=stul]");
+    await ev(() => { const p = P(), t = p.table, d = p.decks[1]; t.market[d.id][0] = d.cards.find(c => c.title === "Skřet").id; t.res[p.factions[0].id].sila = 3; render(); });
+    await pg.click("[data-tool=trh]"); await pg.click("[data-mfight]");
+    if (!/poráží Skřet/.test(await ev(() => P().table.log[0] + P().table.log[1]))) throw new Error("příšera neporažena");
+    if ((await ev(() => P().table.res._g.zasoba)) !== 29) throw new Error("zásoba cti neklesla");
+  });
+  await step("Magic: souboj bytostí s blokováním", async () => {
+    await sel(11); await pg.click("[data-tab=stul]");
+    await ev(() => { const p = P(), t = p.table, d = p.decks[0], [a, b] = p.factions.map(f => f.id); const c = n => ({ deckId: d.id, cardId: d.cards.find(x => x.title === n).id, own: true }); t.tableau[a] = [c("Medvěd"), c("Sokol")]; t.tableau[b] = [c("Vlk")]; render(); });
+    await pg.click("[data-tool=souboj]"); await pg.check('[data-fatt="0"]'); await pg.check('[data-fatt="1"]'); await pg.selectOption('[data-fblk="0"]', "0"); await pg.click("#fGo");
+    const r = await ev(() => { const p = P(), t = p.table; return [t.res[p.factions[1].id].zivoty, t.tableau[p.factions[1].id].length]; });
+    if (r[0] !== 19 || r[1] !== 0) throw new Error(JSON.stringify(r)); await pg.screenshot({ path: path.join(OUT, "souboj.png") });
+  });
+  await step("18xx: založení společnosti, akcie, vlak a dividenda", async () => {
+    await sel(12); await pg.click("[data-tab=scenare]"); await pg.click("[data-play]"); await pg.click("[data-tool=spolecnosti]"); await pg.click("#rlInit");
+    const co = await ev(() => P().rail.companies[0].id); await pg.click(`[data-rstart="${co}"]`);
+    for (let i = 0; i < 4; i++) await pg.click(`[data-rbuy="${co}|ipo"]`);
+    await pg.click(`[data-rtrain="${co}"]`); await pg.click(`[data-rpay="${co}"]`);
+    if (!/vyplácí/.test(await ev(() => P().table.log[0]))) throw new Error("dividenda nevyplacena"); await pg.screenshot({ path: path.join(OUT, "18xx.png") });
+  });
   await step("telefon – Přehled", async () => { await pg.setViewportSize({ width: 400, height: 820 }); await pg.click("[data-tab=prehled]"); await pg.screenshot({ path: path.join(OUT, "telefon.png") }); });
   await b.close();
   console.log(`\n${fails.length ? fails.length + " kroků selhalo:\n" + fails.join("\n") : "Všechny kroky prošly."}\n${errors.length ? "Chyby v konzoli:\n" + errors.join("\n") : "Bez chyb v konzoli."}`);

@@ -121,7 +121,7 @@ test("obnova poškozených pravidel z verze 4", () => {
 });
 
 test("všechny ukázkové hry projdou kontrolou návrhu bez chyb", () => {
-  for (const make of [A.exampleWar, A.exampleTrade, A.exampleAlchemy, A.exampleTricks, A.exampleTiles, A.exampleRace, A.exampleIsland, A.exampleCrypt, A.examplePatrol, A.exampleHansa]) {
+  for (const make of [A.exampleWar, A.exampleTrade, A.exampleAlchemy, A.exampleTricks, A.exampleTiles, A.exampleRace, A.exampleIsland, A.exampleCrypt, A.examplePatrol, A.exampleHansa, A.exampleTower, A.exampleMages, A.exampleRail]) {
     const p = make(); const errs = A.lintProject(p).filter(x => x.lv === "err");
     assert.deepEqual(errs.map(e => e.t), [], p.name);
   }
@@ -354,4 +354,52 @@ test("rozvoz zboží: zakázka, naložení, kapacita a doručení", () => {
   assert.ok(A.loadGood(p, t, ship, "Sůl")); assert.equal(A.deliverables(p, t, ship).length, 0, "v Lübecku se sůl nedoručuje");
   A.netPlace(p, t, ship, net.nodes[1].id); assert.equal(A.deliverables(p, t, ship).length, 1);
   assert.ok(A.deliverGood(p, t, ship, "c1")); assert.equal(t.res[p.factions[0].id].zlato, 3); assert.equal(ship.cargo.length, 0); assert.equal(t.dl.done, 1);
+});
+
+test("Ascension: runy propadají, příšera z řady, zásoba cti a konec hry", () => {
+  const p = A.exampleTower(); const S = A.__S(); S.projects = [p]; S.currentId = p.id; const t = A.ensureTable(p); const f = p.factions[0].id;
+  A.runEffects(p, t, f, "+3 Runy; +2 Síla", "x", 0, { auto: true }); A.cbEndTurn(p, t, f); assert.equal(t.res[f].runy, 0); assert.equal(t.res[f].sila, 0);
+  const d = p.decks[1]; const sk = d.cards.find(c => c.title === "Skřet"); t.market[d.id][0] = sk.id; t.res[f].sila = 1;
+  assert.match(A.fightMarket(p, t, f, d.id, 0), /potřebuje 2/); t.res[f].sila = 2; assert.equal(A.fightMarket(p, t, f, d.id, 0), "ok");
+  assert.equal(t.res[f].cest, 1); assert.equal(t.res._g.zasoba, 29, "čest se bere ze zásoby"); assert.ok(t.discard[d.id].includes(sk.id));
+  A.runEffects(p, t, f, "+40 Čest", "x", 0, { auto: true }); assert.equal(t.res._g.zasoba, 0); assert.ok(t.lastRound, "prázdná zásoba spustí poslední kolo");
+  A.newRound(p, t); assert.equal(t.winner.fid, f);
+});
+test("vyhoštění karty z ruky (automaticky nejslabší)", () => {
+  const { p, t } = game(); t.hands.anna = [{ deckId: "d", cardId: "c1" }, { deckId: "d", cardId: "c1" }];
+  A.runEffects(p, t, "anna", "vyhostit 1", "x", 0, { auto: true }); assert.equal(t.hands.anna.length, 1); assert.equal(t.banished.length, 1);
+  assert.deepEqual(A.checkEffect(p, "vyhostit 1"), []);
+});
+test("Magic: blokování, první úder, letec, pošlapání a životy", () => {
+  const p = A.exampleMages(); const S = A.__S(); S.projects = [p]; S.currentId = p.id; const t = A.ensureTable(p); const [a, b] = p.factions.map(f => f.id); const d = p.decks[0];
+  const card = n => ({ deckId: d.id, cardId: d.cards.find(c => c.title === n).id, own: true });
+  t.tableau[a] = [card("Vlk"), card("Sokol"), card("Obr"), card("Rytíř")]; t.tableau[b] = [card("Medvěd"), card("Vlk"), card("Lučištnice")];
+  assert.equal(A.canBlock(d.cards.find(c => c.title === "Sokol"), d.cards.find(c => c.title === "Medvěd")), false, "medvěd nechytí letce");
+  assert.equal(A.canBlock(d.cards.find(c => c.title === "Sokol"), d.cards.find(c => c.title === "Lučištnice")), true);
+  // Vlk ← Medvěd (vlk umře), Obr 5 ← Vlk 2 (pošlapání 3 do hráče), Rytíř 2/1 první úder ← Lučištnice 1/3 (přežije a rytíře zabije), Sokol neblokován (1)
+  const r = A.resolveFight(p, t, a, b, [0, 1, 2, 3], { 0: 0, 2: 1, 3: 2 });
+  assert.equal(r.toPlayer, 4, "sokol 1 + pošlapání 3"); assert.equal(t.res[b].zivoty, 16);
+  assert.deepEqual(t.tableau[a].map(h => A.cardOf(p, h).c.title), ["Sokol", "Obr"], "útočný vlk i rytíř umřeli");
+  assert.deepEqual(t.tableau[b].map(h => A.cardOf(p, h).c.title), ["Medvěd", "Lučištnice"], "bránící vlk umřel");
+  assert.ok(t.tableau[a].every(h => h.ex), "útočníci se vyčerpali");
+  t.res[b].zivoty = 0; A.checkWin(p, t); assert.equal(t.winner.fid, a);
+});
+test("Magic: jedna země za tah a nemoc z vyvolání", () => {
+  const p = A.exampleMages(); const S = A.__S(); S.projects = [p]; S.currentId = p.id; const t = A.ensureTable(p); const a = p.factions[0].id; const d = p.decks[0];
+  const les = d.cards.find(c => c.title === "Les"), vlk = d.cards.find(c => c.title === "Vlk"); p.ruleset.strict = true;
+  assert.deepEqual(A.cbPlayCheck(p, t, a, les, "vylozit"), []); const h = { deckId: d.id, cardId: vlk.id }; A.cbPlayDone(p, t, a, { deckId: d.id, cardId: les.id }, les, "vylozit"); A.cbPlayDone(p, t, a, h, vlk, "vylozit");
+  assert.equal(A.cbPlayCheck(p, t, a, les, "vylozit").length, 1); assert.ok(h.sick); A.cbEndTurn(p, t, a); A.cbStartTurn(p, t, a); t.tableau[a] = [h]; A.cbStartTurn(p, t, a); assert.ok(!h.sick); assert.equal(A.cbPlayCheck(p, t, a, les, "vylozit").length, 0);
+});
+test("18xx: založení, akcie, prezident, vlaky, rezivění, dividendy a hodnota", () => {
+  const p = A.exampleRail(); const S = A.__S(); S.projects = [p]; S.currentId = p.id; p.table = null; const t = A.ensureTable(p); t.netId = p.nets[0].id; A.railInit(p, t);
+  const [x, y] = p.factions.map(f => f.id); const co = p.rail.companies[0].id; const s = t.rail.co[co];
+  assert.equal(A.startCompany(p, t, x, co, 100), ""); assert.equal(t.res[x].kc, 400); assert.equal(s.pres, x); assert.equal(A.coPrice(p, t, co), 100);
+  for (let i = 0; i < 3; i++) assert.equal(A.buyShare(p, t, y, co, "ipo"), ""); assert.equal(s.pres, y, "Hráč 2 má 3 akcie a stává se prezidentem");
+  assert.equal(A.floated(p, s), false); A.buyShare(p, t, x, co, "ipo"); assert.equal(A.floated(p, s), true); assert.equal(s.cash, 600);
+  assert.equal(A.buyTrain(p, t, co), ""); assert.equal(A.buyTrain(p, t, co), ""); assert.deepEqual(s.trains, ["2", "2"]);
+  t.rail.bank["2"] = 0; t.rail.bank["3"] = 0; assert.equal(A.buyTrain(p, t, co), ""); assert.deepEqual(s.trains, ["4"], "první čtyřka nechá zrezivět dvojky"); assert.equal(t.rail.phase, "4");
+  const before = t.res[y].kc; A.runCompany(p, t, co, 100, true); assert.equal(t.res[y].kc, before + 30, "3 akcie × 10"); assert.equal(A.coPrice(p, t, co), 110);
+  A.runCompany(p, t, co, 100, false); assert.equal(A.coPrice(p, t, co), 100);
+  assert.equal(A.sellShare(p, t, y, co), ""); assert.equal(A.coPrice(p, t, co), 90, "prodej sníží kurz");
+  assert.equal(A.railWorth(p, t, x), t.res[x].kc + 3 * 90); assert.ok(A.revenueEstimate(p, t, co) >= 40 + 30, "vlak 4 z Prahy projede 4 nejlepší města");
 });

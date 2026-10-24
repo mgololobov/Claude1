@@ -316,3 +316,62 @@ function exampleHansa() {
     decks: [], table: null,
   });
 }
+function exampleTower() {
+  const f = (name, color) => ({ id: uid(), name, color });
+  const C = (title, type, cost, text, effect, qty, extra = {}) => ({ id: uid(), title, type, cost, text, qty, suit: "", value: "", vp: "", icon: "", effect, ...extra });
+  return normalize({
+    id: uid(), isExample: true, updatedAt: Date.now(), name: "Věž hrdinů", version: "0.1", players: "2–3", time: "35 min", age: "10+",
+    summary: "Deck building ve stylu Ascension. Za runy najímáš hrdiny z centrální řady, silou porážíš příšery a sbíráš čest. Hra končí, když dojde zásoba cti.",
+    rules: "TAH\n1. Lízni 5 karet a vylož je – dají runy a sílu.\n2. Za runy kupuj hrdiny z centrální řady, silou poraž příšery.\n3. Runy a síla na konci tahu propadnou, úklid: ruka a vyložené karty do odhozu.\n\nKONEC\nKdyž se vyprázdní zásoba cti, dohraje se kolo. Vyhrává nejvíc cti (včetně bodů z karet).",
+    changelog: [], factions: [f("Akolyta", "#3f6fb0"), f("Mystik", "#7a4fa0"), f("Válečník", "#b0402c")], phases: ["Hraní karet", "Nákup a boj", "Úklid"],
+    resources: [{ id: "runy", name: "Runy", color: "#3f8fd0", icon: "◆", start: 0, income: 0, max: "", vp: false, global: false, perTurn: true },
+      { id: "sila", name: "Síla", color: "#b0402c", icon: "⚔", start: 0, income: 0, max: "", vp: false, global: false, perTurn: true },
+      { id: "zasoba", name: "Zásoba cti", color: "#c98a12", start: 30, income: 0, max: "", vp: false, global: true },
+      { id: "cest", name: "Čest", color: "#e0aa2e", icon: "✦", start: 0, income: 0, max: "", vp: true, global: false, pool: "zasoba" }],
+    marketCur: "runy", cb: { fightRes: "sila", lifeRes: "", landType: "", landPerTurn: false, sick: false },
+    ruleset: Object.assign(defaultRules(), { win: { vp: "", turns: "", elimination: false, finishRound: true, poolEnd: true } }),
+    decks: [
+      { id: uid(), name: "Startovní", color: "#6b6253", back: "START", market: 0, starter: true, cards: [C("Učeň", "Hrdina", "", "Získej 1 runu.", "+1 Runy", 8), C("Strážce", "Hrdina", "", "Získej 1 sílu.", "+1 Síla", 2)] },
+      { id: uid(), name: "Centrální řada", color: "#3f6fb0", back: "VĚŽ", market: 6, cards: [
+        C("Věštkyně", "Hrdina", "2", "Lízni kartu.", "líznout 1", 3, { vp: "1" }), C("Runový mág", "Hrdina", "3", "Získej 2 runy.", "+2 Runy", 3, { vp: "1" }), C("Šermíř", "Hrdina", "3", "Získej 2 síly.", "+2 Síla", 3, { vp: "1" }),
+        C("Kněz", "Hrdina", "5", "2 runy a 1 čest.", "+2 Runy; +1 Čest", 2, { vp: "2" }), C("Paladin", "Hrdina", "6", "3 síly.", "+3 Síla", 2, { vp: "3" }), C("Poustevník", "Hrdina", "4", "Vyhosti kartu z ruky.", "vyhostit 1; +1 Runy", 2, { vp: "1" }),
+        C("Skřet", "Příšera", "", "Odměna: 1 čest.", "+1 Čest", 4, { fight: 2 }), C("Ghúl", "Příšera", "", "Odměna: 3 čest.", "+3 Čest", 3, { fight: 4 }), C("Drak", "Příšera", "", "Odměna: 5 cti a karta.", "+5 Čest; líznout 1", 1, { fight: 7 })] }],
+    table: null,
+  });
+}
+function exampleMages() {
+  const f = (name, color) => ({ id: uid(), name, color });
+  const C = (title, type, cost, text, qty, extra = {}) => ({ id: uid(), title, type, cost, text, qty, suit: "", value: "", vp: "", icon: "", effect: "", ...extra });
+  return normalize({
+    id: uid(), isExample: true, updatedAt: Date.now(), name: "Souboj mágů", version: "0.1", players: "2", time: "20 min", age: "10+",
+    summary: "Karetní souboj ve stylu Magic: The Gathering. Vykládej lesy pro manu, vyvolávej bytosti a útoč, dokud soupeři nedojdou životy.",
+    rules: "TAH\n1. Obnov vyčerpané karty, lízni kartu.\n2. Vylož nejvýš jeden Les. Les vyčerpáním dá 1 manu.\n3. Za manu vykládej bytosti a kouzla.\n4. Útoč bytostmi (nástroj Souboj), soupeř blokuje.\nMana na konci tahu propadá.\n\nKONEC\nKomu klesnou životy na 0, prohrál.",
+    changelog: [], factions: [f("Zelený mág", "#2f7a45"), f("Šedý mág", "#5a6762")], phases: ["Obnova", "Hlavní fáze", "Souboj", "Konec"],
+    resources: [{ id: "mana", name: "Mana", color: "#2f7a45", icon: "◉", start: 0, income: 0, max: "", vp: false, global: false, perTurn: true }, { id: "zivoty", name: "Životy", color: "#b0402c", icon: "♥", start: 20, income: 0, max: "", vp: false, global: false }],
+    cb: { fightRes: "", lifeRes: "zivoty", landType: "Země", landPerTurn: true, sick: true }, refreshExhaust: true,
+    ruleset: Object.assign(defaultRules(), { playCost: "mana", win: { vp: "", turns: "", elimination: false } }),
+    decks: [{ id: uid(), name: "Balíček mága", color: "#2f7a45", back: "MAG", market: 0, starter: true, cards: [
+      C("Les", "Země", "", "Vyčerpej: 1 mana.", 8, { act: "+1 Mana" }), C("Vlk", "Bytost", "2", "", 3, { pow: 2, tough: 2 }), C("Medvěd", "Bytost", "3", "", 2, { pow: 3, tough: 3 }),
+      C("Sokol", "Bytost", "1", "Letec.", 2, { pow: 1, tough: 1, kw: "letec" }), C("Lučištnice", "Bytost", "2", "Dosah.", 2, { pow: 1, tough: 3, kw: "dosah" }), C("Rytíř", "Bytost", "2", "První úder.", 1, { pow: 2, tough: 1, kw: "první úder" }),
+      C("Obr", "Bytost", "5", "Pošlapání.", 1, { pow: 5, tough: 5, kw: "pošlapání" }), C("Gepard", "Bytost", "2", "Spěch.", 1, { pow: 2, tough: 1, kw: "spěch" }), C("Blesk", "Kouzlo", "1", "Soupeř ztratí 3 životy.", 2, { effect: "soupeř -3 Životy" })] }],
+    table: null,
+  });
+}
+function exampleRail() {
+  const f = (name, color) => ({ id: uid(), name, color });
+  const N = (name, x, y, vp) => ({ id: uid(), name, x, y, vp });
+  const nodes = [N("Praha", 360, 230, 40), N("Plzeň", 170, 290, 20), N("Liberec", 430, 70, 10), N("Pardubice", 520, 250, 20), N("Brno", 640, 420, 30), N("Č. Budějovice", 330, 470, 20), N("Olomouc", 760, 300, 20), N("Ostrava", 870, 200, 30)];
+  const L = (a, b, cost = 1) => ({ a: nodes[a].id, b: nodes[b].id, cost });
+  const net = { id: uid(), name: "Železniční síť", w: 960, h: 540, nodes, links: [L(0, 1), L(0, 2), L(0, 3), L(3, 4), L(0, 5), L(5, 4, 2), L(3, 6), L(6, 7), L(4, 6), L(1, 5)] };
+  return normalize({
+    id: uid(), isExample: true, updatedAt: Date.now(), name: "Železnice 18CZ", version: "0.1", players: "3", time: "90 min", age: "14+",
+    summary: "Zjednodušená hra z rodiny 18xx. Hráči zakládají železniční společnosti, kupují akcie, prezidenti kupují vlaky a rozhodují o dividendách. Vyhrává nejvyšší hodnota peněz a akcií.",
+    rules: "AKCIOVÉ KOLO\nHráči po řadě kupují nebo prodávají akcie, případně zakládají společnosti (2 akcie za nominál).\nNa konci kola: vyprodaná společnost zdraží, akcie v poolu sníží kurz.\n\nPROVOZNÍ KOLO\nKaždá jezdící společnost (6 prodaných akcií) koupí vlaky a spočítá tržby (odhad ze sítě: vlak N projede N měst).\nPrezident vyplatí dividendu (kurz +1), nebo tržby zadrží (kurz −1).\n\nVlak 4 nechá zrezivět vlaky 2, vlak 6 vlaky 3.",
+    changelog: [], factions: [f("Hráč 1", "#3f6fb0"), f("Hráč 2", "#b0402c"), f("Hráč 3", "#2f7a45")], phases: ["Akciové kolo", "Provozní kolo"],
+    resources: [{ id: "kc", name: "Koruny", color: "#c98a12", icon: "K", start: 600, income: 0, max: "", vp: false, global: false }],
+    nets: [net], rail: { on: true, cashRes: "kc", companies: [{ id: uid(), name: "Buštěhradská dráha", color: "#7a4fa0", home: "Praha" }, { id: uid(), name: "Severní dráha", color: "#b0402c", home: "Ostrava" }, { id: uid(), name: "Jižní dráha", color: "#2f7a45", home: "Č. Budějovice" }, { id: uid(), name: "Plzeňská dráha", color: "#3f6fb0", home: "Plzeň" }] },
+    ruleset: Object.assign(defaultRules(), { win: { vp: "", turns: "", elimination: false } }),
+    scenarios: [{ id: uid(), name: "Rok 1850", turns: 10, boardId: "", netId: net.id, desc: "Začátek železniční horečky.", victory: "Nejvyšší hodnota (peníze + akcie).", special: "", setup: { items: [], control: {} } }],
+    decks: [], table: null,
+  });
+}

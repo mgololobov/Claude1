@@ -13,7 +13,7 @@ function checkEffect(p, text) {
     if ((m = cmd.match(/^událost(?:\s+z\s+(.+))?$/i))) { if (m[1] && !p.decks.find(d => d.name.toLowerCase() === m[1].trim().toLowerCase())) bad.push(`neznámý balíček „${m[1]}“`); return; }
     if ((m = cmd.match(/^táhnout\s+(\d+)\s+z\s+(.+)$/i))) { if (!p.bags.find(b => b.name.toLowerCase() === m[2].trim().toLowerCase())) bad.push(`neznámý sáček „${m[2]}“`); return; }
     if (/^(všichni|ostatní)?\s*posun\s+([+-]?\d+)$/i.test(cmd)) { if (!+p.track.length) bad.push("posun bez závodní dráhy"); return; }
-    if (/^odhodit\s+\d+$/i.test(cmd) || /^(zpráva|oznámení)\s+.+$/i.test(cmd) || /^(vítěz|vyhrává|konec hry)$/i.test(cmd) || /^(první hráč|začínáš)$/i.test(cmd)) return;
+    if (/^(odhodit|vyhostit)\s+\d+$/i.test(cmd) || /^(zpráva|oznámení)\s+.+$/i.test(cmd) || /^(vítěz|vyhrává|konec hry)$/i.test(cmd) || /^(první hráč|začínáš)$/i.test(cmd)) return;
     bad.push(`nerozumím „${cmd}“`);
   };
   body.split(/[;\n]/).map(s => s.trim()).filter(Boolean).forEach(check);

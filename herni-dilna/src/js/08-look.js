@@ -27,8 +27,9 @@ function cardHTML(card, deck, faceUp = true) {
   else if (tpl === "play") { const idx = `${esc(card.value || "")}<br>${esc(card.suit || "")}`; inner = `<div class="cn tl">${idx}</div><div class="cn br">${idx}</div><div class="pc-center">${art || `<span>${esc(card.icon || card.suit || "")}</span>`}</div><div class="pc-title">${esc(card.title)}</div>${card.text ? tx : ""}`; }
   else if (tpl === "min") inner = hd + (art || ic) + tx + ft;
   else inner = hd + ty + art + ic + tx + ft;
+  const pt = card.pow !== "" && card.pow != null && card.tough !== "" && card.tough != null ? `<span class="ptb">${esc(card.pow)}/${esc(card.tough)}</span>` : +card.fight ? `<span class="ptb fg">⚔${esc(card.fight)}</span>` : "";
   const rar = card.rarity && RARITIES[card.rarity] ? `<span class="rar r-${card.rarity}" title="${RARITIES[card.rarity]}"></span>` : "";
-  return `<div class="pcard t-${tpl}${deck.frame ? " fr-" + deck.frame : ""}" style="${st}">${inner}${rar}${card.locked ? `<span class="lk">🔒</span>` : ""}</div>`;
+  return `<div class="pcard t-${tpl}${deck.frame ? " fr-" + deck.frame : ""}" style="${st}">${inner}${pt}${rar}${card.locked ? `<span class="lk">🔒</span>` : ""}</div>`;
 }
 const MEEPLE = c => `<svg viewBox="0 0 46 54" aria-hidden="true"><path fill="${c}" stroke="rgba(255,255,255,.6)" stroke-width="1.5" d="M23 2c5 0 8 3.6 8 8 0 2.6-1 4.6-2.6 6 5.8 1.2 15.6 4.4 15.6 9.6 0 3-3.4 3.6-7.6 3.4L42 50c.4 1.6-.6 2.4-2 2.4H29.4L23 41l-6.4 11.4H6c-1.4 0-2.4-.8-2-2.4l5.6-21C5.4 29.2 2 28.6 2 25.6 2 20.4 11.8 17.2 17.6 16 16 14.6 15 12.6 15 10c0-4.4 3-8 8-8z"/></svg>`;
 function tokenHTML(t, value) {

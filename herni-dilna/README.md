@@ -39,6 +39,9 @@ src/js/NN-*.js       moduly; sestavují se v pořadí čísel
   43-extra           vyčerpání karet, příjem z vyložených karet, přesýpací hodiny, rozsévání (mancala)
   44-network         síť míst a cest: editor, pohyb po cestách, vlastnictví míst, kostičky s ohnisky
   45-deliver         rozvoz zboží: zakázky, náklad, naložení a doručení
+  46-cardbattle      karetní souboje: zdroje na tah, příšery v centrální řadě, zásoba bodů, vyhoštění,
+                     souboj bytostí s blokováním a klíčovými slovy, země za tah, nemoc z vyvolání, životy
+  47-rail            vláčkové hry 18xx: společnosti, akcie, prezident, burza, vlaky, rezivění, dividendy, odhad tržeb
   99-main            spuštění
 tests/harness.js     načte moduly do Node bez prohlížeče
 tests/*.test.js      testy herní logiky
@@ -71,6 +74,7 @@ Efekty karet, akcí, polí dráhy, startu stran a automatických pravidel:
 | `nastav Mince 0` | nastaví zdroj |
 | `jednou za kolo: …`, `jednou za tah: …`, `jednou za hru: …` | omezení použití |
 | `první hráč` | hráč začíná příští kolo |
+| `vyhostit 1` | odstraní kartu z ruky ze hry |
 | `odhodit 1`, `zpráva Text`, `vítěz` | ostatní |
 
 Do textu karty se ikona zdroje vloží zápisem `{Mince}`.

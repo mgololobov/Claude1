@@ -19,12 +19,14 @@ function playCheck(p, t, fid, h, cat) {
   if (R.ownTurn && cp && fid !== cp.id) msgs.push("hraje hráč, který není na tahu");
   const r = p.resources.find(x => x.id === R.playCost); const price = parseFloat(c.cost) || 0;
   if (r && price && cat === "vylozit" && ((t.res[fid] || {})[r.id] || 0) < price) msgs.push(`na kartu „${c.title}“ chybí ${r.name} (cena ${price})`);
+  msgs.push(...cbPlayCheck(p, t, fid, c, cat));
   return gate(p, t, cat, msgs);
 }
 function playDone(p, t, fid, h, cat) {
   const R = p.ruleset; const c = cardOf(p, h).c; const r = p.resources.find(x => x.id === R.playCost); const price = parseFloat(c.cost) || 0;
   if (r && price && cat === "vylozit") { t.res[fid] = t.res[fid] || {}; t.res[fid][r.id] = Math.max(0, (t.res[fid][r.id] || 0) - price); }
   const f = p.factions.find(x => x.id === fid); logEv(t, `${f ? f.name : ""} ${cat === "vylozit" ? "vykládá" : "hraje"} ${c.title}`);
+  cbPlayDone(p, t, fid, h, c, cat);
   if (c.effect) runEffects(p, t, fid, c.effect, c.title);
   after(p, t, cat, fid, c.type || c.suit || c.title);
 }

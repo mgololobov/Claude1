@@ -1,9 +1,9 @@
 // ---------- Přehlednost: skupiny nástrojů na stole, navigace po dlouhých stránkách ----------
 const TOOL_GROUPS = [
   ["Hra", ["stul", "kolo", "hraci", "ruce"]],
-  ["Karty", ["trh", "draft", "styk", "program", "hromadka", "riskuj", "tajne"]],
+  ["Karty", ["trh", "souboj", "draft", "styk", "program", "hromadka", "riskuj", "tajne"]],
   ["Náhoda", ["kostky", "sacek"]],
-  ["Ekonomika", ["akce", "obchod", "drazba", "rozvoj", "draha", "zakazky"]],
+  ["Ekonomika", ["akce", "obchod", "drazba", "rozvoj", "draha", "zakazky", "spolecnosti"]],
   ["Mapa a boj", ["boj", "uzemi", "dilky", "aktivace", "vyprava", "lokace", "sit"]],
   ["Logika", ["kameny", "kod", "rozsevani"]],
 ];

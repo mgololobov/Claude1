@@ -231,13 +231,17 @@ function editCard(p, deck, card) {
           <label class="f">Vítězné body<input type="text" id="c-vp" value="${esc(c.vp)}" placeholder="2"></label>
           <label class="f" title="Karta jde zahrát za operace, nebo jako událost">Operace<input type="number" id="c-ops" min="0" max="9" value="${esc(c.ops || "")}" placeholder="–"></label>
         </div>
-        <details class="cfx" ${c.move || c.cover || c.spawn || c.income || c.act ? "open" : ""}><summary>Lokace a schopnosti karty</summary>
+        <details class="cfx" ${c.move || c.cover || c.spawn || c.income || c.act || c.pow || c.fight ? "open" : ""}><summary>Lokace, bytosti a schopnosti karty</summary>
         <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(120px,1fr))">
           <label class="f" title="Mapa z karet: kolik akcí stojí vstup">Pohyb (lokace)<input type="number" id="c-move" min="0" max="9" value="${esc(c.move || "")}" placeholder="1"></label>
           <label class="f" title="Mapa z karet: kostky obrany navíc">Krytí<input type="number" id="c-cover" min="0" max="9" value="${esc(c.cover || "")}" placeholder="0"></label>
           <label class="f" title="Mapa z karet: kolik nepřátel se objeví">Nepřátel<input type="number" id="c-spawn" min="0" max="9" value="${esc(c.spawn || "")}" placeholder="0"></label>
           <label class="f" title="Efekt na začátku každého kola, dokud je karta vyložená">Příjem každé kolo<input type="text" id="c-income" value="${esc(c.income || "")}" placeholder="+1 Mince"></label>
           <label class="f" title="Efekt, když hráč kartu vyčerpá (otočí) – jednou za kolo">Aktivace vyčerpáním<input type="text" id="c-act" value="${esc(c.act || "")}" placeholder="+2 Mince"></label>
+          <label class="f" title="Bytost: síla útoku">Síla (bytost)<input type="number" id="c-pow" min="0" max="20" value="${esc(c.pow ?? "")}" placeholder="–"></label>
+          <label class="f" title="Bytost: kolik zranění vydrží">Odolnost<input type="number" id="c-tough" min="0" max="20" value="${esc(c.tough ?? "")}" placeholder="–"></label>
+          <label class="f" title="letec, dosah, bdělost, první úder, pošlapání, spěch">Klíčová slova<input type="text" id="c-kw" value="${esc(c.kw || "")}" placeholder="letec, spěch"></label>
+          <label class="f" title="Příšera v centrální řadě: kolik síly ji porazí; efekt karty je odměna">Porazit za<input type="number" id="c-fight" min="0" max="20" value="${esc(c.fight || "")}" placeholder="–"></label>
         </div></details>
         <div class="grid" style="display:none">
         </div>
@@ -256,7 +260,7 @@ function editCard(p, deck, card) {
       <div class="row">${isNew ? "" : `<button class="btn danger" id="c-del">Smazat</button><button class="btn" id="c-dup">Duplikovat</button>`}</div>
       <div class="row"><button class="btn" data-close>Zrušit</button><button class="btn primary" id="c-save">Uložit kartu</button></div>
     </div>`, true);
-  const read = () => { ["title", "type", "cost", "text", "suit", "value", "vp", "icon", "effect", "rarity", "ops", "move", "cover", "spawn", "income", "act"].forEach(k => c[k] = $("#c-" + k, d).value); c.locked = $("#c-locked", d).checked; c.qty = Math.max(0, Math.min(99, parseInt($("#c-qty", d).value, 10) || 0)); };
+  const read = () => { ["title", "type", "cost", "text", "suit", "value", "vp", "icon", "effect", "rarity", "ops", "move", "cover", "spawn", "income", "act", "pow", "tough", "kw", "fight"].forEach(k => c[k] = $("#c-" + k, d).value); c.locked = $("#c-locked", d).checked; c.qty = Math.max(0, Math.min(99, parseInt($("#c-qty", d).value, 10) || 0)); };
   const prev = () => { read(); $("#c-prev", d).innerHTML = cardHTML(c, deck); };
   d.addEventListener("input", prev); d.addEventListener("change", prev); prev();
   setTimeout(() => $("#c-title", d).focus(), 30);

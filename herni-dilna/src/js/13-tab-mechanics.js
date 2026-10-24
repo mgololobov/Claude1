@@ -35,6 +35,8 @@ function renderMechanics(main, p) {
         <label class="f" style="width:80px">Maximum<input type="number" data-rm="${r.id}" value="${esc(r.max)}" placeholder="–"></label>
         <label class="chk"><input type="checkbox" data-rv="${r.id}" ${r.vp ? "checked" : ""}> Vítězné body</label>
         <label class="chk"><input type="checkbox" data-rg="${r.id}" ${r.global ? "checked" : ""}> Společný</label>
+        ${r.global ? "" : `<label class="chk" title="Mana, runy, síla – na konci tahu se vynulují"><input type="checkbox" data-rpt="${r.id}" ${r.perTurn ? "checked" : ""}> Na konci tahu propadá</label>
+        ${p.resources.some(x => x.global) ? `<label class="f" style="width:150px">Bere se ze zásoby<select data-rpool="${r.id}"><option value="">–</option>${p.resources.filter(x => x.global).map(x => `<option value="${x.id}" ${x.id === r.pool ? "selected" : ""}>${esc(x.name)}</option>`).join("")}</select></label>` : ""}`}
         <button class="btn small danger" data-rdel="${r.id}" aria-label="Smazat zdroj">✕</button></div>`).join("")}</div>` : `<div class="empty">Žádné zdroje. Přidej mince, suroviny nebo vítězné body.</div>`}
     </div>
     <div class="two">
@@ -118,7 +120,7 @@ function renderMechanics(main, p) {
           <p class="hint">Dosah pohybu na stole počítá s cenou terénu (Mapa) a pohybem jednotky. Terén s pohybem „–“ je neprůchodný.</p>
         </div>
       </div>
-    </div>${moreMechHTML(p)}<div class="two">${crawlMechHTML(p)}${logicMechHTML(p)}</div><div class="two">${cmapMechHTML(p)}${extraMechHTML(p)}</div><div class="two">${deliverMechHTML(p)}${netCubesMechHTML(p)}</div></div>`;
+    </div>${moreMechHTML(p)}<div class="two">${crawlMechHTML(p)}${logicMechHTML(p)}</div><div class="two">${cmapMechHTML(p)}${extraMechHTML(p)}</div><div class="two">${deliverMechHTML(p)}${netCubesMechHTML(p)}</div><div class="two">${cbMechHTML(p)}${railMechHTML(p)}</div></div>`;
   wireBanner(main);
   const F = id => p.factions.find(f => f.id === id);
   $("#addF").onclick = () => { p.factions.push({ id: uid(), name: "Strana " + (p.factions.length + 1), color: COLORS[p.factions.length % COLORS.length], ability: "" }); touch(p); render(); };
@@ -188,5 +190,7 @@ function renderMechanics(main, p) {
   $("#roles").addEventListener("input", e => { p.roles = e.target.value; touch(p); });
   $("#bluffPen").addEventListener("input", e => { p.bluffPenalty = e.target.value; touch(p); });
   $("#prodMode").onchange = e => { p.production.mode = e.target.value; touch(p); };
-  wireMoreMech(main, p); wireCrawlMech(main, p); wireLogicMech(main, p); wireCmapMech(main, p); wireExtraMech(main, p); wireDeliverMech(main, p); wireNetCubesMech(main, p);
+  $$("[data-rpt]", main).forEach(i => i.onchange = () => { p.resources.find(r => r.id === i.dataset.rpt).perTurn = i.checked; touch(p); });
+  $$("[data-rpool]", main).forEach(i => i.onchange = () => { p.resources.find(r => r.id === i.dataset.rpool).pool = i.value; touch(p); });
+  wireMoreMech(main, p); wireCrawlMech(main, p); wireLogicMech(main, p); wireCmapMech(main, p); wireExtraMech(main, p); wireDeliverMech(main, p); wireNetCubesMech(main, p); wireCBMech(main, p); wireRailMech(main, p);
 }

@@ -53,6 +53,6 @@ function normalize(p) {
   p.versions = p.versions || []; p.campaign = p.campaign || { log: [] }; p.boards.forEach(b => { b.regions = b.regions || {}; b.numbers = b.numbers || {}; });
   p.production = p.production || { mode: "both" }; if (p.roleRes == null) p.roleRes = ""; if (p.bluffPenalty == null) p.bluffPenalty = "";
   p.factions.forEach(f => { if (f.setup == null) f.setup = ""; if (f.bot == null) f.bot = ""; });
-  normalizeMore(p); normalizeCrawl(p); normalizeLogic(p); normalizeCmap(p); normalizeExtra(p); normalizeNet(p); normalizeDeliver(p);
+  normalizeMore(p); normalizeCrawl(p); normalizeLogic(p); normalizeCmap(p); normalizeExtra(p); normalizeNet(p); normalizeDeliver(p); normalizeCB(p); normalizeRail(p);
   return p;
 }

@@ -28,6 +28,7 @@ function simMoves(p, t, f, hasOwn, greedy) {
   }
   p.decks.filter(d => +d.market > 0).forEach(d => (t.market[d.id] || []).forEach((cId, i) => {
     if (!cId) return; const c = d.cards.find(x => x.id === cId); const price = parseFloat(c.cost) || 0;
+    if (+c.fight) { const fr = p.resources.find(r => r.id === p.cb.fightRes); if (!fr || res(fr.id) >= +c.fight) moves.push({ v: effectValue(p, c.effect) + .4, card: c.title, run() { fightMarket(p, t, f.id, d.id, i); } }); return; }
     if (p.marketAuction) { if (!cur || res(cur.id) >= price) moves.push({ v: cardValue(p, c) * .6 + .2, card: c.title, run() { simAuction(p, t, d, i, hasOwn); } }); return; }
     if (cur && price && res(cur.id) < price) return;
     moves.push({ v: cardValue(p, c) - (cur ? .2 * price : 0) + .3, card: c.title, run() {
@@ -104,6 +105,7 @@ function simGame(p0, opt) {
         if (opt.trace) opt.trace.push({ r: rounds, pos: k, seat: s, mv: mv.card || mv.label || mv.name || "?", n: moves.length, d: simScore(p, t, f.id) - sb, res: cb + "→" + JSON.stringify(t.res[f.id]) });
         if (f.bot) break;
       }
+      cbEndTurn(p, t, f.id);
       if (hasOwn) { (t.hands[f.id] || []).forEach(h => discardCard(t, h, f.id)); t.hands[f.id] = []; const keep = []; (t.tableau[f.id] || []).forEach(h => h.own ? discardCard(t, h, f.id) : keep.push(h)); t.tableau[f.id] = keep; drawOwn(t, f.id, 5); }
       if (+R.handLimit) { const h = t.hands[f.id] || []; while (h.length > +R.handLimit) discardCard(t, h.splice(Math.floor(Math.random() * h.length), 1)[0], f.id); }
       if (+R.drawUpTo && !hasOwn) { const need = +R.drawUpTo - (t.hands[f.id] || []).length; if (need > 0) runEffects(p, t, f.id, `líznout ${need}`, "Dobrání", 1, ctx); }

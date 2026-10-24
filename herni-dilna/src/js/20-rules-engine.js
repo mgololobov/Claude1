@@ -1,6 +1,6 @@
 // ---------- Hlídání pravidel ----------
 const CATS = { lizat: "Líznutí karty", nakup: "Nákup z trhu", vylozit: "Vyložení karty", zahrat: "Zahrání karty na stůl", akce: "Položení na akci / rondel", pohyb: "Pohyb jednotky", boj: "Boj", sacek: "Tahání ze sáčku", kostky: "Hod kostkami", dilek: "Položení dílku", trasa: "Stavba trasy", obchod: "Obchod a burza", draha: "Tah po dráze" };
-const TRIGGERS = { kolo: "Začátek kola", faze: "Začátek fáze", tah: "Začátek tahu hráče", nakup: "Hráč koupí kartu", vylozit: "Hráč vyloží kartu", sacek: "Hráč vytáhne žeton", pohyb: "Jednotka vstoupí na terén", dilek: "Hráč položí dílek", kontrola: "Pole získá vlastníka", boj: "Výsledek boje", hod: "Hod na produkci (součet)", kostka: "Hráč vezme kostku (hodnota)", technologie: "Hráč získá technologii", mistnost: "Odhalena místnost (název)", hrozba: "Hrozba dosáhla maxima", kod: "Kód prolomen (počet pokusů)", lokace: "Odhalena lokace (název karty)", ohnisko: "Ohnisko v místě (název)", doruceni: "Doručena zakázka (místo)" };
+const TRIGGERS = { kolo: "Začátek kola", faze: "Začátek fáze", tah: "Začátek tahu hráče", nakup: "Hráč koupí kartu", vylozit: "Hráč vyloží kartu", sacek: "Hráč vytáhne žeton", pohyb: "Jednotka vstoupí na terén", dilek: "Hráč položí dílek", kontrola: "Pole získá vlastníka", boj: "Výsledek boje", hod: "Hod na produkci (součet)", kostka: "Hráč vezme kostku (hodnota)", technologie: "Hráč získá technologii", mistnost: "Odhalena místnost (název)", hrozba: "Hrozba dosáhla maxima", kod: "Kód prolomen (počet pokusů)", lokace: "Odhalena lokace (název karty)", ohnisko: "Ohnisko v místě (název)", doruceni: "Doručena zakázka (místo)", porazeni: "Hráč porazí příšeru (název)" };
 function defaultRules() {
   return { strict: false, handLimit: "", actionsPerTurn: "", actCats: ["nakup", "vylozit", "akce"], phaseOf: {}, stackLimit: "", moveRange: true, moveOnce: true, ownUnits: false, playCost: "",
     autoIncome: false, drawUpTo: "", fog: false, ownTurn: false, roundOnWrap: false, sight: 6, timerAuto: false, win: { vp: "", turns: "", elimination: false }, triggers: [] };
@@ -81,7 +81,7 @@ function execCmd(p, t, fid, cmd, src, depth, ctx, out) {
     const who = (m[1] || "hráč").toLowerCase(); const dv = parseInt(m[2].replace(/\s/g, ""), 10); const r = resByName(p, m[3]);
     if (!r) { out.push(`neznámý zdroj „${m[3]}“`); return; }
     const owners = r.global ? ["_g"] : who === "všichni" ? pl.map(f => f.id) : who === "ostatní" ? pl.filter(f => f.id !== fid).map(f => f.id) : [fid];
-    owners.forEach(o => { t.res[o] = t.res[o] || {}; t.res[o][r.id] = Math.max(0, Math.min(resMax(r), (t.res[o][r.id] || 0) + dv)); });
+    owners.forEach(o => { t.res[o] = t.res[o] || {}; const before = t.res[o][r.id] || 0; t.res[o][r.id] = Math.max(0, Math.min(resMax(r), before + dv)); if (o !== "_g") cbPool(p, t, r, t.res[o][r.id] - before); });
     out.push(`${who !== "hráč" ? who + " " : ""}${dv > 0 ? "+" : ""}${dv} ${r.name}`); return;
   }
   if ((m = cmd.match(/^líznout\s+(\d+)(?:\s+z\s+(.+))?$/i))) {
@@ -107,6 +107,12 @@ function execCmd(p, t, fid, cmd, src, depth, ctx, out) {
     const c = d.cards.find(x => x.id === cId); const pos = freeSpot(t); t.items.push({ uid: uid(), kind: "card", deckId: d.id, cardId: cId, x: pos.x, y: pos.y, faceUp: true, rot: 0 });
     out.push(`událost: ${c.title}`); if (c.effect && depth < 3) runEffects(p, t, fid, c.effect, c.title, depth + 1, ctx); return;
   }
+  if ((m = cmd.match(/^vyhostit\s+(\d+)$/i))) {
+    const n = +m[1]; const h = t.hands[fid] || []; if (!h.length) { out.push("není co vyhostit"); return; }
+    if (ctx && ctx.auto) { for (let i = 0; i < n && h.length; i++) { let w = 0; h.forEach((x, j) => { if (cardValue(p, cardOf(p, x).c) < cardValue(p, cardOf(p, h[w]).c)) w = j; }); (t.banished = t.banished || []).push(h.splice(w, 1)[0]); } out.push(`vyhoštěno ${n}`); return; }
+    const f = p.factions.find(x => x.id === fid); setTimeout(() => pickFromHand(p, t, f, { n: Math.min(n, h.length), title: "Vyhostit ze hry", hint: "Vybrané karty se odstraní ze hry.", done: picks => { (t.banished = t.banished || []).push(...picks); logEv(t, `${f.name} vyhošťuje ${picks.length}`); touch(p); render(); } }), 50);
+    out.push("vybírá karty k vyhoštění"); return;
+  }
   if ((m = cmd.match(/^odhodit\s+(\d+)$/i))) {
     const h = t.hands[fid] || []; let k = 0; for (let i = 0; i < +m[1] && h.length; i++) { discardCard(t, h.splice(Math.floor(Math.random() * h.length), 1)[0], fid); k++; } out.push(`odhozeno náhodně ${k}`); return;
   }
@@ -130,6 +136,7 @@ function checkWin(p, t) {
   if (+W.vp) { const top = pl.map(f => ({ f, s: scoreOf(p, t, f.id).total })).filter(x => x.s >= +W.vp).sort((a, b) => b.s - a.s)[0]; if (top) { if (!W.finishRound) return declareWinner(p, t, top.f.id, `dosáhl ${W.vp} bodů`); if (!t.lastRound) { t.lastRound = true; logEv(t, `${top.f.name} má ${W.vp} bodů – dohrává se kolo`); toast("Poslední kolo – dohraje se do konce"); } } }
   if (W.elimination && p.units.length) { const alive = new Set(t.items.filter(i => i.kind === "unit").map(i => (p.units.find(u => u.id === i.unitId) || {}).factionId).filter(Boolean)); if (t.items.some(i => i.kind === "unit") && alive.size === 1) return declareWinner(p, t, [...alive][0], "soupeř nemá žádné jednotky"); }
   if (+p.track.length && pl.length) { const f = pl.find(x => (t.trackPos[x.id] || 0) >= +p.track.length); if (f) return declareWinner(p, t, f.id, "první v cíli dráhy"); }
+  cbCheckLife(p, t);
 }
 function endGameByTurns(p, t) {
   const sc = p.scenarios.find(s => s.id === t.scenarioId); const limit = sc ? +sc.turns : +p.ruleset.win.turns;
@@ -164,9 +171,9 @@ function endTurn(p, t, done) {
   const R = p.ruleset; const cp = curPlayer(p, t); const pl = players(p, t);
   const finish = () => {
     if (cp && +R.drawUpTo) { const need = +R.drawUpTo - (t.hands[cp.id] || []).length; if (need > 0) runEffects(p, t, cp.id, `líznout ${need}`, "Dobrání do limitu"); }
-    t.acts = 0; t.moved = {};
+    t.acts = 0; t.moved = {}; cbEndTurn(p, t, cp && cp.id);
     if (pl.length) { t.curF = (t.curF + 1) % pl.length; if (t.curF === 0 && R.roundOnWrap) newRound(p, t); }
-    const nx = curPlayer(p, t); if (nx) { logEv(t, `na tahu ${nx.name}`); fireTriggers(p, t, "tah", nx.id, null); }
+    const nx = curPlayer(p, t); if (nx) { cbStartTurn(p, t, nx.id); logEv(t, `na tahu ${nx.name}`); fireTriggers(p, t, "tah", nx.id, null); }
     t.timer = t.timer && t.timer.len ? { len: t.timer.len, end: Date.now() + t.timer.len * 1000 } : null; S.timerFired = false;
     checkWin(p, t); done();
   };

@@ -49,3 +49,5 @@
 .bc { position: relative; width: 69mm; height: 94mm; padding: 3mm; background: var(--bc, #fbfaf6) center / cover no-repeat; }
 .bc .pcard { border: 0 !important; }
 .bc .cm { position: absolute; inset: -3mm; width: calc(100% + 6mm); height: calc(100% + 6mm); overflow: visible; pointer-events: none; }
+.pcard .ptb { position: absolute; right: .35em; bottom: .35em; background: #fbfaf6; border: .1em solid var(--c); border-radius: .4em; padding: 0 .35em; font: 800 .8em/1.4 var(--f-mono, monospace); z-index: 3; color: #1d1d1b; }
+.pcard .ptb.fg { background: #2a2a2a; color: #fff; border-color: #2a2a2a; }

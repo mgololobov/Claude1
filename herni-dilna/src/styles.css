@@ -325,3 +325,6 @@ details.cfx { border: 1px solid var(--line); border-radius: 10px; padding: 6px 1
 .net-svg .ngoods { font: 700 11px var(--f-body); fill: #2b2620; paint-order: stroke; stroke: #fff; stroke-width: 3px; }
 .net-svg .nnode { cursor: pointer; } #netWrap .net-svg { max-width: 100%; height: auto; touch-action: none; }
 .boardlayer.netlayer { pointer-events: auto; }
+.company { border-left: 5px solid var(--c); padding-left: 10px; }
+.market { display: flex; flex-wrap: wrap; gap: 3px; } .market .mk { position: relative; min-width: 38px; padding: 4px 2px 12px; text-align: center; border: 1px solid var(--line); border-radius: 6px; font: 700 .75rem var(--f-mono); background: var(--surface); }
+.market .mk i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin: 0 1px; position: relative; top: 4px; border: 1px solid rgba(0,0,0,.4); }
