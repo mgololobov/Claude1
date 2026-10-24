@@ -32,7 +32,10 @@ function simTile(p, t, f) {
   if (!best) return; t.tilesPlaced[best.k] = { id, rot: best.rot, fid: f.id }; after(p, t, "dilek", f.id, tl.name);
 }
 function simExtraMoves(p, t, f) {
-  const out = []; const b = tableBoard(p); if (!b) return out;
+  const out = []; const b = tableBoard(p);
+  (p.techs || []).forEach(x => { if (techState(p, t, f.id, x) !== "buy") return; const cost = costItems(p, x.cost).reduce((a, c) => a + c.n * (c.r.vp ? 1 : .35), 0);
+    out.push({ v: (+x.vp || 0) + effectValue(p, x.effect) * 2 - cost * .5 + .4, card: x.name, run() { buyTech(p, t, f.id, x); } }); });
+  if (!b) return out;
   if (p.units.length && t.items.some(i => i.kind === "unit" && (unitOf(p, i) || {}).factionId === f.id)) out.push({ v: 1.5, war: true, run() { simWar(p, t, f); checkWin(p, t); } });
   if (p.tiles.length && t.tileStack && t.tileStack.length) out.push({ v: 1.2, run() { simTile(p, t, f); } });
   return out;

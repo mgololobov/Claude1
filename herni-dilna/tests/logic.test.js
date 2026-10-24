@@ -216,11 +216,58 @@ test("online: mimo svůj tah nejde měnit stůl", () => {
   t.turnLock = false; p.online.seat = "bert"; S.undoBase = JSON.stringify(t); assert.equal(A.onlineBlocked(p), false);
 });
 test("kostky: zápis hodu, procentová kostka a rozdělení součtu", () => {
-  assert.deepEqual(A.parseDice("2k6 + k8 + 3"), { dice: [6, 6, 8], mod: 3 });
-  assert.deepEqual(A.parseDice("k%"), { dice: [100], mod: 0 });
-  assert.deepEqual(A.parseDice("3d12-1"), { dice: [12, 12, 12], mod: -1 });
+  assert.deepEqual(A.parseDice("2k6 + k8 + 3"), { dice: [6, 6, 8], custom: [], mod: 3 });
+  assert.deepEqual(A.parseDice("k%"), { dice: [100], custom: [], mod: 0 });
+  assert.deepEqual(A.parseDice("3d12-1"), { dice: [12, 12, 12], custom: [], mod: -1 });
+  const cd = [{ id: "o", name: "Kostka osudu", faces: ["★", "2"] }, { id: "n", name: "Číselná", faces: ["1", "-1", "3"] }];
+  assert.deepEqual(A.parseDice("2k6 + 2× Kostka osudu", cd), { dice: [6, 6], custom: ["o", "o"], mod: 0 });
+  assert.deepEqual(A.parseDice("číselná+1", cd), { dice: [], custom: ["n"], mod: 1 }); assert.equal(A.parseDice("2× Neznámá", cd), null);
+  const mix = A.poolSummary([{ type: "std", s: 6, v: 4 }, { type: "c", id: "n", v: 2 }, { type: "c", id: "n", v: 1 }, { type: "c", id: "o", v: 0 }], 0, cd);
+  assert.equal(mix.expr, "k6 + 2× Číselná + Kostka osudu"); assert.equal(mix.sum, 6, "4 + 3 − 1, hvězdička se nepočítá"); assert.equal(mix.nums, 3);
   assert.equal(A.parseDice("2x6"), null); assert.equal(A.parseDice("k1"), null);
   const d = A.diceDistribution([6, 6]); assert.ok(Math.abs(d[7] - 6 / 36) < 1e-12); assert.ok(Math.abs(d.reduce((a, b) => a + b, 0) - 1) < 1e-12);
   const s = A.poolSummary([{ type: "std", s: 6, v: 3 }, { type: "std", s: 6, v: 4 }, { type: "std", s: 100, v: 55 }], 2);
   assert.equal(s.expr, "2k6 + k% + 2"); assert.equal(s.sum, 64);
+});
+
+test("technologie: předpoklady, cena, efekt a body", () => {
+  const { p, t, res } = game(2, { techs: [{ id: "k", name: "Kolo", cost: "2 Mince", req: "", effect: "+1 Body", vp: 2 }, { id: "v", name: "Vůz", cost: "1 Mince", req: "Kolo", effect: "", vp: 3 }] });
+  assert.equal(A.techState(p, t, "anna", p.techs[1]), "locked");
+  assert.ok(A.buyTech(p, t, "anna", p.techs[0])); assert.equal(res("anna"), 1); assert.equal(res("anna", "b"), 1);
+  assert.equal(A.techState(p, t, "anna", p.techs[1]), "buy"); assert.equal(A.scoreOf(p, t, "anna").goals, 2);
+});
+test("veřejné cíle: nejvíc, za každých N a podmínka", () => {
+  const { p, t } = game(2, { goals: [{ id: "a", kind: "most", what: "Mince", pts: 5 }, { id: "b", kind: "each", what: "Mince", n: 2, pts: 1 }, { id: "c", kind: "cond", what: "Mince >= 4", pts: 3 }] });
+  t.res.anna.m = 5; t.res.bert.m = 2;
+  assert.equal(A.goalsScore(p, t, "anna"), 5 + 2 + 3); assert.equal(A.goalsScore(p, t, "bert"), 1);
+  t.res.bert.m = 5; assert.equal(A.goalPoints(p, t, "bert", p.goals[0]), 5, "při shodě získají body oba");
+});
+test("posily přijdou v daném kole na zadané pole", () => {
+  const { p, t, put } = war(); void put; p.scenarios = [A.normalize({ ...p, scenarios: [{ id: "s", name: "S", turns: 5, reinf: [{ id: "r", turn: 2, qty: 2, unitId: "a", cell: "0501" }] }] }).scenarios[0]];
+  t.scenarioId = "s"; const before = t.items.length; A.newRound(p, t);
+  assert.equal(t.turn, 2); assert.equal(t.items.length, before + 2); assert.equal(A.cellUnder(p, t.items[t.items.length - 1]), "4,0");
+});
+test("stav jednotek a posun sloupce za terén", () => {
+  const { p, t, put } = war(); const a = put("a", 1), d = put("d", 2); p.terrains[0].shift = -1;
+  assert.equal(A.unitAttack(p, t, a), 6); a.st = { dis: true }; assert.equal(A.unitAttack(p, t, a), 3);
+  assert.equal(A.defShift(p, t, d), -1, "terén s posunem −1 pomáhá obránci"); d.st = { dug: true }; assert.equal(A.defShift(p, t, d), -2, "zakopaný obránce o další sloupec");
+});
+test("aktivace tažením žetonů", () => {
+  const { p, t } = game(2, { chits: "1. divize; Bert\nJízda; Anna" });
+  const c = A.drawChit(p, t); assert.ok(c); assert.equal(A.curPlayer(p, t).id, c.fid);
+  A.drawChit(p, t); assert.equal(A.drawChit(p, t), null, "kalíšek je prázdný"); A.newRound(p, t); assert.equal(t.chitsOut.length, 0);
+});
+test("karetní hry: hromádka, riskování, sázky a sestavy", () => {
+  const cards = [["r5", "♥", 5], ["r6", "♥", 6], ["r7", "♥", 7], ["s5", "♠", 5], ["k5", "♣", 5]].map(([id, suit, value]) => ({ id, title: id, suit, value, qty: 1, type: "", cost: "", text: "", vp: "", icon: "", effect: "" }));
+  const { p, t } = game(2, { decks: [{ id: "d", name: "K", color: "#333", back: "K", market: 0, cards }] });
+  const h = id => ({ deckId: "d", cardId: id });
+  t.shed = { pile: [h("r5")] }; assert.ok(A.shedOk(p, t, h("r6")), "stejná barva"); assert.ok(A.shedOk(p, t, h("s5")), "stejná hodnota"); t.shed.pile.push(h("s5")); assert.ok(!A.shedOk(p, t, h("r6")));
+  assert.equal(A.meldKind(p, [h("r5"), h("r6"), h("r7")]), "postupka"); assert.equal(A.meldKind(p, [h("r5"), h("s5"), h("k5")]), "trojice"); assert.equal(A.meldKind(p, [h("r5"), h("r7"), h("s5")]), null);
+  p.push = { deckId: "d", mode: "dup", limit: 21 }; t.push = { fid: "anna", row: [h("r5"), h("r6")] }; assert.equal(A.pushBust(p, t), false); t.push.row.push(h("s5")); assert.equal(A.pushBust(p, t), true, "pětka podruhé");
+  p.push.mode = "sum"; p.push.limit = 15; t.push.row = [h("r5"), h("r6")]; assert.equal(A.pushPoints(p, t), 11); A.pushStop(p, t, "anna"); assert.equal(t.res.anna.b, 11);
+  p.trickBid = { on: true, hit: 10, per: 2, miss: 2 }; t.won = { anna: 2, bert: 1 }; t.bids = { anna: 2, bert: 3 }; A.scoreBids(p, t); assert.equal(t.res.anna.b, 11 + 14); assert.equal(t.res.bert.b, 0, "−4 nejde pod nulu");
+});
+test("simulace kupuje technologie", () => {
+  const p = A.exampleTrade(); p.techs = [{ id: "x", name: "Sklady", cost: "3 Mince", req: "", effect: "", vp: 4 }]; const S = A.__S(); S.projects = [p]; S.currentId = p.id;
+  const gs = Array.from({ length: 10 }, () => A.simGame(p, { rounds: 10, policy: "greedy", actions: 2 })); assert.ok(gs.some(g => g.seats.some(s => s.played.includes("Sklady"))));
 });

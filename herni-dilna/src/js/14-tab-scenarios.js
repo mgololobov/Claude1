@@ -20,6 +20,7 @@ function renderScenarios(main, p) {
       </div>
       <div class="row"><span class="hint">Hlídaný cíl na konci posledního kola:</span><select data-shf="${s.id}" style="width:auto"><option value="">nehlídat</option>${p.factions.map(f => `<option value="${f.id}" ${f.id === s.holdF ? "selected" : ""}>${esc(f.name)}</option>`).join("")}</select>
         <span class="hint">musí ovládat pole</span><input type="text" data-shl="${s.id}" value="${esc(s.holdLabels || "")}" placeholder="Brod, Most" style="width:180px" aria-label="Popisky polí"></div>
+      ${reinfHTML(p, s)}
       <div class="row"><button class="btn small" data-dup="${s.id}">Duplikovat</button><button class="btn small danger" data-del="${s.id}">Smazat</button></div>
     </div>`).join("") : `<div class="empty">Zatím žádný scénář.</div>`}
     <div class="panel"><h2>Kampaň a legacy</h2>
@@ -36,6 +37,7 @@ function renderScenarios(main, p) {
   tin("data-sn", "name"); tin("data-sd", "desc"); tin("data-sv", "victory"); tin("data-ss", "special"); tin("data-st", "turns", v => Math.max(1, parseInt(v, 10) || 1));
   $$("[data-sb]", main).forEach(i => i.onchange = () => { Sc(i.dataset.sb).boardId = i.value; touch(p); });
   $$("[data-shf]", main).forEach(i => i.onchange = () => { Sc(i.dataset.shf).holdF = i.value; touch(p); });
+  wireReinf(main, p);
   $$("[data-shl]", main).forEach(i => i.addEventListener("input", () => { Sc(i.dataset.shl).holdLabels = i.value; touch(p); }));
   $("#cmpAdd").onclick = () => { const v = $("#cmpText").value.trim(); if (!v) return; p.campaign.log.push({ id: uid(), date: today(), text: v }); touch(p); render(); };
   $$("[data-cmpdel]", main).forEach(b => b.onclick = () => { p.campaign.log = p.campaign.log.filter(e => e.id !== b.dataset.cmpdel); touch(p); render(); });

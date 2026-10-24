@@ -185,6 +185,7 @@ function editUnit(p, unit) {
         <div class="grid" style="grid-template-columns:repeat(3,1fr)"><input type="number" id="u-ra" value="${esc(u.rAtt)}" aria-label="Útok oslabené"><input type="number" id="u-rd" value="${esc(u.rDef)}" aria-label="Obrana oslabené"><input type="number" id="u-rm" value="${esc(u.rMov)}" aria-label="Pohyb oslabené"></div>
         <label class="f" style="width:120px">Počet žetonů<input type="number" id="u-q" min="0" max="99" value="${u.qty}"></label>
         <label class="chk"><input type="checkbox" id="u-hq" ${u.hq ? "checked" : ""}> Velitelství – zdroj zásobování</label>
+        <label class="f" style="width:140px">Dostřel (polí)<input type="number" id="u-range" min="0" max="30" value="${esc(u.range || "")}" placeholder="–"></label>
         <label class="chk"><input type="checkbox" id="u-big" ${u.big ? "checked" : ""}> Velký žeton (zabírá víc místa)</label>
       </div>
       <div id="u-prev" style="display:flex;flex-direction:column;align-items:center;gap:10px;font-size:20px"></div>
@@ -196,7 +197,7 @@ function editUnit(p, unit) {
   const num = v => v === "" ? "" : +v;
   const read = () => { u.name = $("#u-name", d).value; u.factionId = $("#u-f", d).value; u.symbol = $("#u-sym", d).value; u.size = $("#u-size", d).value; u.symText = $("#u-symtext", d).value; u.note = $("#u-note", d).value;
     u.att = num($("#u-a", d).value); u.def = num($("#u-d", d).value); u.mov = num($("#u-m", d).value); u.rAtt = num($("#u-ra", d).value); u.rDef = num($("#u-rd", d).value); u.rMov = num($("#u-rm", d).value);
-    u.qty = Math.max(0, Math.min(99, parseInt($("#u-q", d).value, 10) || 0)); u.hq = $("#u-hq", d).checked; u.big = $("#u-big", d).checked; };
+    u.qty = Math.max(0, Math.min(99, parseInt($("#u-q", d).value, 10) || 0)); u.hq = $("#u-hq", d).checked; u.big = $("#u-big", d).checked; u.range = $("#u-range", d).value === "" ? "" : +$("#u-range", d).value; };
   const prev = () => { read(); $("#u-prev", d).innerHTML = unitHTML(p, u) + (hasReduced(u) ? unitHTML(p, u, true) : "") + `<span class="hint" style="font-size:.8rem">líc${hasReduced(u) ? " / rub" : ""}</span>`; };
   d.addEventListener("input", prev); d.addEventListener("change", prev); prev();
   $("#u-save", d).onclick = () => { read(); if (isNew) p.units.push(u); else Object.assign(unit, u); touch(p); closeDialog(); render(); toast(isNew ? "Jednotka přidána" : "Jednotka uložena"); };
@@ -223,6 +224,7 @@ function editCard(p, deck, card) {
           <label class="f">Barva / symbol<input type="text" id="c-suit" value="${esc(c.suit)}" placeholder="♥, Oheň…"></label>
           <label class="f">Hodnota<input type="text" id="c-value" value="${esc(c.value)}" placeholder="7"></label>
           <label class="f">Vítězné body<input type="text" id="c-vp" value="${esc(c.vp)}" placeholder="2"></label>
+          <label class="f" title="Karta jde zahrát za operace, nebo jako událost">Operace<input type="number" id="c-ops" min="0" max="9" value="${esc(c.ops || "")}" placeholder="–"></label>
         </div>
         <label class="f" style="width:170px">Vzácnost<select id="c-rarity">${Object.entries(RARITIES).map(([k, v]) => `<option value="${k}" ${k === (c.rarity || "") ? "selected" : ""}>${v}</option>`).join("")}</select></label>
         <label class="f">Text karty<textarea id="c-text">${esc(c.text)}</textarea></label>
@@ -239,7 +241,7 @@ function editCard(p, deck, card) {
       <div class="row">${isNew ? "" : `<button class="btn danger" id="c-del">Smazat</button><button class="btn" id="c-dup">Duplikovat</button>`}</div>
       <div class="row"><button class="btn" data-close>Zrušit</button><button class="btn primary" id="c-save">Uložit kartu</button></div>
     </div>`, true);
-  const read = () => { ["title", "type", "cost", "text", "suit", "value", "vp", "icon", "effect", "rarity"].forEach(k => c[k] = $("#c-" + k, d).value); c.locked = $("#c-locked", d).checked; c.qty = Math.max(0, Math.min(99, parseInt($("#c-qty", d).value, 10) || 0)); };
+  const read = () => { ["title", "type", "cost", "text", "suit", "value", "vp", "icon", "effect", "rarity", "ops"].forEach(k => c[k] = $("#c-" + k, d).value); c.locked = $("#c-locked", d).checked; c.qty = Math.max(0, Math.min(99, parseInt($("#c-qty", d).value, 10) || 0)); };
   const prev = () => { read(); $("#c-prev", d).innerHTML = cardHTML(c, deck); };
   d.addEventListener("input", prev); d.addEventListener("change", prev); prev();
   setTimeout(() => $("#c-title", d).focus(), 30);

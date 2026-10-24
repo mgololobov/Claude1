@@ -57,6 +57,8 @@ function buildRulebook(p) {
   const sp = trackSpaces(p); H("Zvláštní pole dráhy", Object.keys(sp).length ? `<ul>${Object.entries(sp).map(([i, e]) => `<li>${i}: ${esc(describeEffect(e))}</li>`).join("")}</ul>` : "");
   const win = []; if (+R.win.vp) win.push(`Vyhrává, kdo první dosáhne ${R.win.vp} bodů.`); if (+R.win.turns) win.push(`Hra končí po ${R.win.turns}. kole, vyhrává nejvíc bodů.`); if (R.win.elimination) win.push("Vyhrává strana, které jako jediné zůstanou jednotky."); if (+p.track.length) win.push("Kdo první dojde do cíle dráhy, vyhrává.");
   p.scenarios.forEach(s => win.push(`Scénář „${esc(s.name)}“: ${esc(s.victory || "")}`));
+  moreRulebook(p).forEach(([tt, bb]) => H(tt, bb));
+  if (p.goals.length || p.techs.some(x => +x.vp)) win.push("K bodům se přičtou veřejné cíle a body z technologií.");
   H("Konec hry", win.length ? `<ul>${win.map(x => `<li>${x}</li>`).join("")}</ul>` : "");
   p.decks.forEach(d => H(`Přehled karet – ${d.name}`, `<table><tr><th>Karta</th><th>Počet</th><th>Cena</th><th>Text a efekt</th></tr>${d.cards.map(c => `<tr><td>${esc(c.title)}</td><td>${c.qty}</td><td>${esc(c.cost || "")}</td><td>${esc(c.text || "")}${c.effect ? `<br><i>${esc(describeEffect(c.effect))}</i>` : ""}</td></tr>`).join("")}</table>`));
   const body = sec.map(x => `<h2>${esc(x.t)}</h2>${x.b}`).join("\n");

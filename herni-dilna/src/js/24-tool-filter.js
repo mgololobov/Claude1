@@ -15,6 +15,10 @@ function toolRelevant(p, k) {
     case "boj": return p.units.length > 0;
     case "uzemi": return p.boards.length > 0;
     case "hraci": return p.factions.length > 0;
+    case "aktivace": return !!String(p.chits || "").trim();
+    case "rozvoj": return (p.techs || []).length > 0 || (p.goals || []).length > 0;
+    case "hromadka": return !!(p.shed && p.shed.deckId);
+    case "riskuj": return !!(p.push && p.push.deckId);
     default: return true;
   }
 }

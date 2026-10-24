@@ -289,3 +289,8 @@ button.die { border: 0; padding: 0; }
 .inklayer { position: absolute; left: 0; top: 0; pointer-events: none; z-index: 900; }
 .mat.inkmode { cursor: crosshair; }
 .die.wide { width: 52px; font-size: .9rem; }
+.titem .usts { position: absolute; left: -6px; bottom: -8px; display: flex; gap: 2px; pointer-events: none; }
+.ust { background: #161616; color: #fff; border-radius: 4px; font-size: 10px; min-width: 16px; height: 16px; display: grid; place-items: center; padding: 0 2px; }
+.tech { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; }
+.tech.own { background: color-mix(in srgb, var(--good, #2f7a45) 12%, transparent); }
+.tech.locked { opacity: .55; }

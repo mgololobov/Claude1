@@ -79,7 +79,7 @@ function enemyCells(p, t, it) {
 }
 function computeRange(p, t, it) {
   const b = tableBoard(p); if (!b) return null; const k0 = cellUnder(p, it); if (!k0) return null;
-  const u = p.units.find(x => x.id === it.unitId); if (!u) return null; const mp = +(it.reduced && hasReduced(u) ? u.rMov : u.mov) || 0;
+  const u = p.units.find(x => x.id === it.unitId); if (!u) return null; let mp = +(it.reduced && hasReduced(u) ? u.rMov : u.mov) || 0; if (it.st && it.st.tired) mp = Math.floor(mp / 2);
   const enemy = new Set(enemyCells(p, t, it)), zoc = new Set();
   if (p.zoc) enemy.forEach(k => { const [c, r] = k.split(",").map(Number); neighbors(b, c, r).forEach(([x, y]) => zoc.add(x + "," + y)); });
   const cost = k => { const ter = terrainOf(p, b, k) || p.terrains[0]; const v = parseFloat(ter ? ter.move : 1); return isFinite(v) && v > 0 ? v : Infinity; };
@@ -117,13 +117,14 @@ function scoreOf(p, t, fid) {
   }
   const tricks = (t.won[fid] || 0) * (+p.scoring.trick || 0);
   let tickets = 0; ((p.routes || {}).tickets || []).forEach(tk => { if (tk.fid && tk.fid !== fid) return; if (t.links && routeConnected(p, t, fid, tk.a, tk.b)) tickets += +tk.pts || 0; });
-  return { base, cardVp, sets, tricks, tickets, total: base + cardVp + sets + tricks + tickets };
+  const goals = goalsScore(p, t, fid);
+  return { base, cardVp, sets, tricks, tickets, goals, total: base + cardVp + sets + tricks + tickets + goals };
 }
 function clockMs(t) { const c = t.clock || {}; return (c.acc || 0) + (c.run ? Date.now() - c.start : 0); }
 function fmtClock(ms) { const s = Math.floor(ms / 1000); const h = Math.floor(s / 3600); return (h ? h + ":" : "") + pad2(Math.floor(s / 60) % 60) + ":" + pad2(s % 60); }
 onInit(() => setInterval(() => { const el = document.getElementById("clock"); const p = P(); if (el && p && p.table) el.textContent = fmtClock(clockMs(p.table)); }, 1000));
 
-const TOOLS = [["stul", "Komponenty"], ["kolo", "Kolo"], ["hraci", "Hráči"], ["trh", "Trh"], ["akce", "Akce"], ["ruce", "Ruce"], ["draft", "Draft"], ["styk", "Štych"], ["program", "Program"], ["drazba", "Dražba"], ["obchod", "Obchod"], ["sacek", "Sáček"], ["kostky", "Kostky"], ["dilky", "Dílky"], ["draha", "Dráha"], ["tajne", "Tajné"], ["boj", "Boj"], ["uzemi", "Území"]];
+const TOOLS = [["stul", "Komponenty"], ["kolo", "Kolo"], ["hraci", "Hráči"], ["trh", "Trh"], ["akce", "Akce"], ["ruce", "Ruce"], ["draft", "Draft"], ["styk", "Štych"], ["program", "Program"], ["drazba", "Dražba"], ["obchod", "Obchod"], ["sacek", "Sáček"], ["kostky", "Kostky"], ["dilky", "Dílky"], ["draha", "Dráha"], ["tajne", "Tajné"], ["boj", "Boj"], ["uzemi", "Území"], ["aktivace", "Aktivace"], ["rozvoj", "Rozvoj"], ["hromadka", "Hromádka"], ["riskuj", "Riskuj"]];
 function renderTable(main, p) {
   const t = ensureTable(p);
   const b = tableBoard(p); const g = b ? geo(b) : null;
@@ -133,7 +134,7 @@ function renderTable(main, p) {
   const selItem = t.items.find(i => i.uid === S.sel);
   const rangeItem = S.rangeUid && t.items.find(i => i.uid === S.rangeUid);
   const range = rangeItem ? computeRange(p, t, rangeItem) : null;
-  const losItem = S.losUid && t.items.find(i => i.uid === S.losUid); const losK = losItem && cellUnder(p, losItem); const los = losK && b ? visibleFrom(p, b, losK, +p.ruleset.sight || 6) : null;
+  const losItem = S.losUid && t.items.find(i => i.uid === S.losUid); const losK = losItem && cellUnder(p, losItem); const los = losK && b ? visibleFrom(p, b, losK, S.losR || +p.ruleset.sight || 6) : null;
   S.fog = fogHidden(p, t); S.supCache = {};
   const cp = curPlayer(p, t);
   if (!TOOLS.find(x => x[0] === S.tool)) S.tool = "stul";
@@ -149,7 +150,7 @@ function renderTable(main, p) {
       ${(p.ruleset.fog || p.factions.some(f => f.hidden)) && p.units.length ? `<label class="f" style="flex-direction:row;align-items:center;gap:8px">Pohled<select id="view"><option value="">Vidím vše (rozhodčí)</option>${p.factions.map(f => `<option value="${f.id}" ${S.view === f.id ? "selected" : ""}>${esc(f.name)}</option>`).join("")}</select></label>` : ""}
       ${selItem ? selBarHTML(p, selItem) : ""}
       <div class="tools" role="toolbar">${TOOLS.filter(([k]) => S.allTools || toolRelevant(p, k) || S.tool === k).map(([k, l]) => `<button data-tool="${k}" aria-pressed="${S.tool === k}">${l}</button>`).join("")}${TOOLS.some(([k]) => !toolRelevant(p, k)) ? `<button data-alltools aria-pressed="false" title="Nástroje, které tato hra zatím nepoužívá">${S.allTools ? "Méně" : "Další…"}</button>` : ""}</div>
-      ${({ stul: sideComponents, kolo: sideTurn, hraci: sidePlayers, trh: sideMarket, akce: sideActions, ruce: sideHands, draft: sideDraft, styk: sideTrick, program: sideProgram, drazba: sideAuction, sacek: sideBag, kostky: sideDice, boj: sideCombat, uzemi: sideTerritory, dilky: sideTiles, draha: sideTrack, obchod: sideTrade, tajne: sideSecret })[S.tool](p, t)}
+      ${({ stul: sideComponents, kolo: sideTurn, hraci: sidePlayers, trh: sideMarket, akce: sideActions, ruce: sideHands, draft: sideDraft, styk: sideTrick, program: sideProgram, drazba: sideAuction, sacek: sideBag, kostky: sideDice, boj: sideCombat, uzemi: sideTerritory, dilky: sideTiles, draha: sideTrack, obchod: sideTrade, tajne: sideSecret, aktivace: sideActivation, rozvoj: sideDevelop, hromadka: sideShed, riskuj: sidePush })[S.tool](p, t)}
     </aside></div>`;
   S.justRolled = false;
   S.undoBase = JSON.stringify(p.table);
@@ -163,7 +164,7 @@ function itemHTML(p, i) {
   else if (i.kind === "unit") { const u = p.units.find(x => x.id === i.unitId); if (!u) return ""; const fg = S.fog;
     if (fg && fg.has(i.uid + ":gone")) return "";
     if (fg && fg.has(i.uid + ":block")) { const f = p.factions.find(x => x.id === u.factionId); inner = `<div class="unit" style="background:${f ? f.color : "#888"}" title="Nepřátelská jednotka"></div>`; }
-    else inner = unitHTML(p, u, i.reduced) + (inSupply(p, p.table, i) ? "" : `<span class="oos" title="Mimo zásobování">⚠</span>`); }
+    else inner = unitHTML(p, u, i.reduced) + (inSupply(p, p.table, i) ? "" : `<span class="oos" title="Mimo zásobování">⚠</span>`) + (i.st ? `<span class="usts">${stBadges(i)}</span>` : ""); }
   else { const tk = p.tokens.find(x => x.id === i.tokenId); if (!tk) return ""; inner = tokenHTML(tk, i.value) + (tk.text ? "" : `<span class="token-label">${esc(tk.name)}</span>`); }
   return `<div class="titem ${i.uid === S.sel ? "sel" : ""}" data-uid="${i.uid}" style="left:${i.x}px;top:${i.y}px;transform:rotate(${i.rot || 0}deg)">${inner}</div>`;
 }
@@ -182,7 +183,8 @@ function selBarHTML(p, i) {
     const en = k && b ? enemyCells(p, p.table, i) : []; const near = en.length ? Math.min(...en.map(e => hexDist(b, k, e))) : null;
     return `<div class="selbar"><b>${esc(u.name)} <span class="mono" style="font-weight:400">${esc(unitVals(u, i.reduced))}</span>${p.table.moved && p.table.moved[i.uid] ? ` <span class="count">· táhla</span>` : ""}</b>
       ${k ? `<span class="hint">Pole ${k.split(",").map(n => pad2(+n + 1)).join("")}${ter ? " · " + esc(ter.name) + ` (pohyb ${esc(ter.move)}, obrana ×${ter.def})` : ""}${b.labels[k] ? " · " + esc(b.labels[k]) : ""}${near != null ? ` · nejbližší nepřítel ${near} ${plural(near, "pole", "pole", "polí")}` : ""}</span>` : ""}
-      <div class="row">${k ? `<button class="btn small ${S.rangeUid === i.uid ? "on" : ""}" data-sa="range">Dosah pohybu</button><button class="btn small ${S.losUid === i.uid ? "on" : ""}" data-sa="los">Výhled</button>` : ""}${hasReduced(u) ? `<button class="btn small" data-sa="flip">${i.reduced ? "Obnovit" : "Oslabit"}</button>` : ""}<button class="btn small" data-sa="rot">Natočit</button></div>
+      <div class="row">${k ? `<button class="btn small ${S.rangeUid === i.uid ? "on" : ""}" data-sa="range">Dosah pohybu</button><button class="btn small ${S.losUid === i.uid && !S.losR ? "on" : ""}" data-sa="los">Výhled</button>${+u.range ? `<button class="btn small ${S.losUid === i.uid && S.losR ? "on" : ""}" data-sa="fire">Dostřel ${u.range}</button>` : ""}` : ""}${hasReduced(u) ? `<button class="btn small" data-sa="flip">${i.reduced ? "Obnovit" : "Oslabit"}</button>` : ""}<button class="btn small" data-sa="rot">Natočit</button></div>
+      <div class="row">${Object.entries(UNIT_ST).map(([k, v]) => `<button class="btn small ${i.st && i.st[k] ? "on" : ""}" data-ust="${k}" title="${v[2]}">${v[1]} ${v[0]}</button>`).join("")}</div>
       <div class="row"><button class="btn small" data-sa="asAtt">Útočí</button><button class="btn small" data-sa="addAtt">+ k útoku</button><button class="btn small" data-sa="asDef">Brání</button></div>
       <div class="row"><button class="btn small" data-sa="dup">Duplikovat</button><button class="btn small danger" data-sa="remove">Zničit</button></div></div>`;
   }
@@ -300,7 +302,8 @@ function sideHands(p, t) {
   const ownDeck = f && ((t.pdeck[f.id] || []).length || (t.pdisc[f.id] || []).length);
   return `<section><div class="eyebrow">Ruce hráčů</div><div class="fchips">${p.factions.map(x => `<button class="fchip" data-handf="${x.id}" aria-pressed="${x.id === S.handF}" ${seat && x.id !== seat ? "disabled" : ""}><span class="dot" style="background:${x.color};border-radius:50%"></span>${esc(x.name)} <span class="count">${(t.hands[x.id] || []).length}</span></button>`).join("")}</div></section>
     ${f ? `<section>${S.showHand ? `<div class="row spread"><b>Ruka: ${esc(f.name)}</b><button class="btn small" id="hideHand">Skrýt</button></div>
-      ${hand.length ? miniCards(p, hand, i => `<button class="btn small" data-hplay="${i}">Na stůl</button><button class="btn small" data-htab="${i}">Vyložit</button><button class="btn small" data-hdisc="${i}" aria-label="Odhodit">✕</button>`) : `<div class="hint">Ruka je prázdná.</div>`}`
+      ${hand.length ? miniCards(p, hand, i => `${+(cardOf(p, hand[i]).c || {}).ops ? `<button class="btn small primary" data-hops="${i}">Operace ${cardOf(p, hand[i]).c.ops}</button><button class="btn small" data-htab="${i}">Událost</button>` : `<button class="btn small" data-hplay="${i}">Na stůl</button><button class="btn small" data-htab="${i}">Vyložit</button>`}<button class="btn small" data-hdisc="${i}" aria-label="Odhodit">✕</button>`) : `<div class="hint">Ruka je prázdná.</div>`}
+      ${hand.length >= (+p.melds.min || 3) && p.decks.some(d => d.cards.some(c => c.suit && c.value)) ? `<button class="btn small" id="meld">Vyložit sestavu</button>` : ""}`
       : `<button class="btn primary" id="showHand">Ukázat ruku – ${esc(f.name)} (${hand.length})</button><p class="hint">Karty v ruce vidí jen ten, kdo právě drží iPad.</p>`}</section>
       ${hand.length ? `<section><button class="btn small" id="mulligan">Mulligan – vrátit ruku a líznout znovu</button></section>` : ""}
       <section><div class="eyebrow">Líznout do ruky</div><div class="row">${ownDeck ? `<button class="btn small primary" data-own="1" data-ownf="${f.id}">Z vlastního balíčku</button>` : ""}${p.decks.filter(d => !d.starter).map(d => `<button class="btn small" data-hdraw="${d.id}" ${t.piles[d.id].length ? "" : "disabled"}><span class="dot" style="background:${d.color}"></span>${esc(d.name)}</button>`).join("")}</div></section>` : `<p class="hint">Nejdřív vytvoř strany v Mechanikách.</p>`}`;
@@ -343,7 +346,7 @@ function sideTrick(p, t) {
         : (cp ? `<button class="btn primary" id="playTrick">Vynést kartu – ${esc(cp.name)} (${(t.hands[cp.id] || []).length})</button>` : "")}</section>
     <section><div class="eyebrow">Získané štychy</div><div class="score"><span></span><span></span><span class="hint">Štychů</span><span></span>
       ${pl.map(x => `<span class="dot" style="background:${x.color};border-radius:50%"></span><b>${esc(x.name)}</b><span class="mono">${t.won[x.id] || 0}</span><span></span>`).join("")}</div>
-      <button class="btn small" id="trickReset">Vynulovat štychy</button></section>`;
+      <button class="btn small" id="trickReset">Vynulovat štychy</button></section>${trickBidHTML(p, t)}`;
 }
 function sideProgram(p, t) {
   const P_ = t.prog; const pl = players(p, t);
@@ -414,19 +417,20 @@ function sideBag(p, t) {
 }
 function sideDice(p, t) {
   const pool = S.pool; const std = pool.filter(d => d.type === "std"); const tally = {};
-  pool.filter(d => d.type === "c").forEach(d => { const cd = p.cdice.find(x => x.id === d.id); const f = cd ? cd.faces[d.v] : ""; if (f) tally[f] = (tally[f] || 0) + 1; });
-  const ps = poolSummary(pool, S.diceMod || 0);
+  pool.filter(d => d.type === "c").forEach(d => { const cd = p.cdice.find(x => x.id === d.id); const f = cd ? cd.faces[d.v] : ""; if (f && faceNum(f) == null) tally[f] = (tally[f] || 0) + 1; });
+  const ps = poolSummary(pool, S.diceMod || 0, p.cdice);
   return `<section><div class="eyebrow">Kostky</div>
     <div class="row"><label class="f" style="flex-direction:row;align-items:center;gap:8px">Počet <input type="number" id="diceN" min="1" max="20" value="${S.diceN || 2}" style="width:70px"></label>
       <label class="chk"><input type="checkbox" id="diceAdd" ${S.diceAdd ? "checked" : ""}> Přidávat k hodu (různé kostky najednou)</label></div>
     <div class="dice-btns">${DIE_SIDES.map(s => `<button class="btn small" data-roll="${s}" ${s === 100 ? 'title="Procentová kostka 1–100"' : ""}>${dieLabel(s)}</button>`).join("")}</div>
     <div class="row"><label class="f" style="flex-direction:row;align-items:center;gap:8px">Stěn <input type="number" id="diceS" min="2" max="1000" value="${S.diceS || 7}" style="width:80px"></label><button class="btn small" id="rollS">Hodit</button></div>
-    <div class="row"><input type="text" id="diceExpr" value="${esc(S.diceExpr || "")}" placeholder="např. 2k6+k8+3" aria-label="Zápis hodu" style="flex:1;min-width:120px"><button class="btn small primary" id="rollExpr">Hodit</button></div></section>
+    <div class="row"><input type="text" id="diceExpr" value="${esc(S.diceExpr || "")}" placeholder="${p.cdice[0] ? `např. 2k6 + 2× ${esc(p.cdice[0].name)}` : "např. 2k6+k8+3"}" aria-label="Zápis hodu" style="flex:1;min-width:120px"><button class="btn small primary" id="rollExpr">Hodit</button></div></section>
+    ${diceDraftHTML(p, t)}
     ${p.cdice.length ? `<section><div class="eyebrow">Vlastní kostky – přidat do hodu</div><div class="row">${p.cdice.map(d => `<button class="btn small" data-cdie="${d.id}"><span class="dot" style="background:${d.color}"></span>${esc(d.name)} <span class="count">${d.faces.length} st.</span></button>`).join("")}</div></section>` : ""}
     <section><div class="eyebrow">Hod${S.rerolls ? ` · přehozeno ${S.rerolls}×` : ""}</div>
       <div class="dice-out" aria-live="polite">${pool.map((d, i) => { if (d.type === "std") return `<button class="die ${d.lock ? "lock" : ""} ${S.justRolled && !d.lock ? "roll" : ""} ${String(d.v).length > 2 ? "wide" : ""}" data-lock="${i}">${d.v}<small>${dieLabel(d.s)}</small></button>`;
         const cd = p.cdice.find(x => x.id === d.id); if (!cd) return ""; return `<button class="die cust ${d.lock ? "lock" : ""} ${S.justRolled && !d.lock ? "roll" : ""}" data-lock="${i}" style="--c:${cd.color};color:${inkFor(cd.color)}">${esc(cd.faces[d.v]) || "·"}</button>`; }).join("") || `<span class="hint">Zatím se neházelo.</span>`}</div>
-      ${ps && (std.length > 1 || S.diceMod) ? `<span class="mono">${esc(ps.expr)} = <b>${ps.sum}</b></span>` : ""}
+      ${ps && ps.nums && (ps.nums > 1 || S.diceMod) ? `<span class="mono">${esc(ps.expr)} = <b>${ps.sum}</b></span>` : ""}
       ${Object.keys(tally).length ? `<span class="mono">${Object.entries(tally).map(([f, n]) => `${esc(f)} ×${n}`).join(" · ")}</span>` : ""}
       ${pool.length ? `<p class="hint">Klepnutím kostku zamkneš (odložíš stranou), zbytek můžeš přehodit.</p><div class="row"><button class="btn small primary" id="reroll">Přehodit nezamčené</button><button class="btn small" id="poolClear">Vyprázdnit</button></div>` : ""}
       ${S.diceLog.length ? `<div class="log">${S.diceLog.map(l => `<span>${esc(l)}</span>`).join("")}</div>` : ""}</section>`;
@@ -645,16 +649,18 @@ function wireTable(main, p, t) {
   on("[data-bagadd]", el => { bs().in.push(+el.dataset.bagadd); save(); render(); toast("Žeton přidán do sáčku"); });
   // kostky
   if (q("diceN")) q("diceN").onchange = e => { S.diceN = Math.max(1, Math.min(12, parseInt(e.target.value, 10) || 1)); };
-  const logPool = () => { const std = S.pool.filter(d => d.type === "std"); const cust = S.pool.filter(d => d.type === "c").map(d => { const cd = p.cdice.find(x => x.id === d.id); return cd ? (cd.faces[d.v] || "·") : ""; }); const ps = poolSummary(S.pool, S.diceMod || 0);
-    S.diceLog.unshift([std.length ? `${ps.expr}: ${std.map(d => d.v).join(", ")}${std.length > 1 || S.diceMod ? " = " + ps.sum : ""}` : "", cust.join(" ")].filter(Boolean).join(" · ")); S.diceLog = S.diceLog.slice(0, 10);
-    if (std.length) logEv(t, `hod ${ps.expr} = ${ps.sum}`); };
+  const logPool = () => { const std = S.pool.filter(d => d.type === "std"); const cust = S.pool.filter(d => d.type === "c").map(d => { const cd = p.cdice.find(x => x.id === d.id); return cd ? (cd.faces[d.v] || "·") : ""; }); const ps = poolSummary(S.pool, S.diceMod || 0, p.cdice); if (!ps) return;
+    const vals = [...std.map(d => d.v), ...cust].join(", ");
+    S.diceLog.unshift(`${ps.expr}: ${vals}${ps.nums > 1 || S.diceMod ? " = " + ps.sum : ""}`); S.diceLog = S.diceLog.slice(0, 10);
+    logEv(t, `hod ${ps.expr}: ${vals}${ps.nums ? " = " + ps.sum : ""}`); };
   const diceN = () => { const n = Math.max(1, Math.min(20, parseInt(q("diceN").value, 10) || 1)); S.diceN = n; return n; };
-  const rollStd = (list, mod) => { if (!gate(p, t, "kostky")) return; const add = S.diceAdd && mod == null; if (!add) { S.pool = []; S.diceMod = mod || 0; S.rerolls = 0; }
-    list.forEach(s => S.pool.push({ type: "std", s, v: rnd(s), lock: false })); logPool(); S.justRolled = true; render(); };
+  const rollStd = (list, mod, custom = []) => { if (!gate(p, t, "kostky")) return; const add = S.diceAdd && mod == null; if (!add) { S.pool = []; S.diceMod = mod || 0; S.rerolls = 0; }
+    list.forEach(s => S.pool.push({ type: "std", s, v: rnd(s), lock: false }));
+    custom.forEach(id => { const cd = p.cdice.find(x => x.id === id); if (cd) S.pool.push({ type: "c", id, v: rnd(cd.faces.length) - 1, lock: false }); }); logPool(); S.justRolled = true; render(); };
   on("[data-roll]", el => { const s = +el.dataset.roll; rollStd(Array.from({ length: diceN() }, () => s)); });
   if (q("diceAdd")) q("diceAdd").onchange = e => { S.diceAdd = e.target.checked; };
   if (q("rollS")) q("rollS").onclick = () => { const s = Math.max(2, Math.min(1000, parseInt(q("diceS").value, 10) || 6)); S.diceS = s; rollStd(Array.from({ length: diceN() }, () => s)); };
-  if (q("rollExpr")) q("rollExpr").onclick = () => { S.diceExpr = q("diceExpr").value; const r = parseDice(S.diceExpr); if (!r) { toast("Nerozumím zápisu – piš třeba 2k6+k8+3 nebo k%"); return; } rollStd(r.dice, r.mod); };
+  if (q("rollExpr")) q("rollExpr").onclick = () => { S.diceExpr = q("diceExpr").value; const r = parseDice(S.diceExpr, p.cdice); if (!r) { toast(`Nerozumím zápisu – piš třeba 2k6+k8+3, k%${p.cdice[0] ? " nebo 2× " + p.cdice[0].name : ""}`); return; } rollStd(r.dice, r.mod, r.custom); };
   if (q("diceExpr")) q("diceExpr").addEventListener("keydown", e => { if (e.key === "Enter") q("rollExpr").click(); });
   on("[data-cdie]", el => { const cd = p.cdice.find(x => x.id === el.dataset.cdie); if (!S.diceAdd && S.pool.some(d => d.type === "std")) S.pool = []; const n = S.diceAdd ? diceN() : 1; for (let i = 0; i < n; i++) S.pool.push({ type: "c", id: cd.id, v: rnd(cd.faces.length) - 1, lock: false }); logPool(); S.justRolled = true; render(); });
   on("[data-lock]", el => { const d = S.pool[+el.dataset.lock]; d.lock = !d.lock; render(); });
@@ -674,7 +680,7 @@ function wireTable(main, p, t) {
   if (q("ctrlAuto")) q("ctrlAuto").onclick = () => { let n = 0; t.items.filter(i => i.kind === "unit").forEach(i => { const k = cellUnder(p, i); const u = p.units.find(x => x.id === i.unitId); if (k && u && u.factionId) { t.control[k] = u.factionId; n++; } }); save(); render(); toast(`Přiděleno ${n} ${plural(n, "pole", "pole", "polí")}`); };
   // vybraná položka
   const selItem = t.items.find(i => i.uid === S.sel);
-  wireExtra(main, p, t, save); wireR4(main, p, t, save); wireWar(main, p, t, save); wireIpad(main, p, t, save); wireOnline(main, p, t, save);
+  wireExtra(main, p, t, save); wireR4(main, p, t, save); wireWar(main, p, t, save); wireIpad(main, p, t, save); wireOnline(main, p, t, save); wireMore(main, p, t, save);
   const cardTo = (el, where) => { if (where === "tab" && !gate(p, t, "vylozit")) return; const i = selItem; t.items = t.items.filter(x => x !== i); const fid = el.dataset[where === "hand" ? "tohand" : "totab"]; const h = { deckId: i.deckId, cardId: i.cardId }; (where === "hand" ? (t.hands[fid] = t.hands[fid] || []) : (t.tableau[fid] = t.tableau[fid] || [])).push(h); if (where === "tab") { const c = cardOf(p, h).c; logEv(t, `${p.factions.find(f => f.id === fid).name} vykládá ${c.title}`); if (c.effect) runEffects(p, t, fid, c.effect, c.title); after(p, t, "vylozit", fid, c.type); } S.sel = null; save(); render(); };
   on("[data-tohand]", el => cardTo(el, "hand")); on("[data-totab]", el => cardTo(el, "tab"));
   on("[data-sa]", el => {
@@ -682,7 +688,8 @@ function wireTable(main, p, t) {
     if (a === "flip") { if (i.kind === "unit") i.reduced = !i.reduced; else i.faceUp = !i.faceUp; }
     else if (a === "rot") i.rot = ((i.rot || 0) + (i.kind === "unit" ? 60 : 90)) % 360;
     else if (a === "range") { S.rangeUid = S.rangeUid === i.uid ? null : i.uid; render(); return; }
-    else if (a === "los") { S.losUid = S.losUid === i.uid ? null : i.uid; render(); return; }
+    else if (a === "los") { S.losUid = S.losUid === i.uid && !S.losR ? null : i.uid; S.losR = null; render(); return; }
+    else if (a === "fire") return;
     else if (a === "discard" || a === "bottom" || a === "top") { t.items = t.items.filter(x => x !== i); S.sel = null; if (a === "discard") t.discard[i.deckId].push(i.cardId); else if (a === "bottom") t.piles[i.deckId].unshift(i.cardId); else t.piles[i.deckId].push(i.cardId); }
     else if (a === "plus") i.value = (i.value || 0) + 1;
     else if (a === "plus5") i.value = (i.value || 0) + 5;
@@ -692,9 +699,9 @@ function wireTable(main, p, t) {
     else if (a === "asAtt" || a === "addAtt" || a === "asDef") {
       const u = p.units.find(x => x.id === i.unitId); const v = +(i.reduced ? u.rAtt : u.att) || 0, dv = +(i.reduced ? u.rDef : u.def) || 0;
       S.tool = "boj"; C.mode = "crt"; C.res = null;
-      const half = a !== "asDef" && !inSupply(p, t, i); const va = half ? Math.floor(v / 2) : v;
+      const half = a !== "asDef" && !inSupply(p, t, i); const va = a !== "asDef" ? unitAttack(p, t, i) : v;
       if (a === "asAtt") { C.att = va; C.attUids = [i.uid]; } else if (a === "addAtt") { C.att = (+C.att || 0) + va; C.attUids = [...(C.attUids || []), i.uid]; }
-      else { C.defUid = i.uid; C.def = dv; const k = cellUnder(p, i); const b = tableBoard(p); const ter = k && b ? terrainOf(p, b, k) : null; C.terrainId = ter ? ter.id : (p.terrains[0] || {}).id; }
+      else { C.defUid = i.uid; C.shift = defShift(p, t, i); C.def = dv; const k = cellUnder(p, i); const b = tableBoard(p); const ter = k && b ? terrainOf(p, b, k) : null; C.terrainId = ter ? ter.id : (p.terrains[0] || {}).id; }
       render(); toast(a === "asDef" ? `Obrana ${dv}` : `Útok ${C.att}${half ? " (mimo zásobování – polovina)" : ""}`); return;
     }
     save(); render();

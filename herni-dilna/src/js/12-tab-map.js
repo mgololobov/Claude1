@@ -42,6 +42,7 @@ function renderMap(main, p) {
         <label class="f" style="width:80px">Pohyb<input type="text" data-trm="${t.id}" value="${esc(t.move)}"></label>
         <label class="f" style="width:90px">Obrana ×<input type="number" step="0.5" data-trd="${t.id}" value="${esc(t.def)}"></label>
         <label class="f" style="width:80px">Body<input type="number" data-trv="${t.id}" value="${esc(t.vp)}"></label>
+        <label class="f" style="width:96px" title="Posun sloupce bojové tabulky; záporný pomáhá obránci">Posun CRT<input type="number" data-trs="${t.id}" value="${esc(t.shift || 0)}"></label>
         <label class="f" style="width:64px">Barva<input type="color" data-trx="${t.id}" value="${t.color}" style="width:52px;height:40px;border:0;background:none;padding:0"></label>
         <label class="chk"><input type="checkbox" data-trb="${t.id}" ${t.blocks ? "checked" : ""}> Blokuje výhled</label>
         <label class="f" style="width:130px">Produkuje<select data-trp="${t.id}"><option value="">nic</option>${p.resources.filter(r => !r.global).map(r => `<option value="${r.id}" ${r.id === t.produces ? "selected" : ""}>${esc(r.name)}</option>`).join("")}</select></label>
@@ -83,7 +84,7 @@ function renderMap(main, p) {
   $("#addTerr").onclick = () => { p.terrains.push({ id: uid(), name: "Nový terén", color: COLORS[p.terrains.length % COLORS.length], glyph: "", move: "1", def: 1, vp: 0 }); touch(p); render(); };
   const tr = id => p.terrains.find(t => t.id === id);
   const tin = (attr, key, conv = v => v, rer) => $$(`[${attr}]`, main).forEach(i => { i.addEventListener("input", () => { tr(i.getAttribute(attr))[key] = conv(i.value); touch(p); }); if (rer) i.addEventListener("change", render); });
-  tin("data-trn", "name", v => v, true); tin("data-trg", "glyph", v => v, true); tin("data-trm", "move"); tin("data-trd", "def", v => +v || 1); tin("data-trv", "vp", v => +v || 0);
+  tin("data-trn", "name", v => v, true); tin("data-trg", "glyph", v => v, true); tin("data-trm", "move"); tin("data-trd", "def", v => +v || 1); tin("data-trv", "vp", v => +v || 0); tin("data-trs", "shift", v => parseInt(v, 10) || 0);
   $$("[data-trx]", main).forEach(x => x.addEventListener("change", () => { tr(x.dataset.trx).color = x.value; touch(p); render(); }));
   $$("[data-trb]", main).forEach(x => x.onchange = () => { tr(x.dataset.trb).blocks = x.checked; touch(p); });
   $$("[data-trp]", main).forEach(x => x.onchange = () => { tr(x.dataset.trp).produces = x.value; touch(p); });
