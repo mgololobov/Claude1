@@ -333,6 +333,17 @@ details.cfx { border: 1px solid var(--line); border-radius: 10px; padding: 6px 1
 .company { border-left: 5px solid var(--c); padding-left: 10px; }
 .market { display: flex; flex-wrap: wrap; gap: 3px; } .market .mk { position: relative; min-width: 38px; padding: 4px 2px 12px; text-align: center; border: 1px solid var(--line); border-radius: 6px; font: 700 .75rem var(--f-mono); background: var(--surface); }
 .market .mk i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin: 0 1px; position: relative; top: 4px; border: 1px solid rgba(0,0,0,.4); }
+.panel.off > :not(h2):not(.ptoggle):not(h3) { display: none; }
+.panel.off > h3 { display: none; }
+.panel.off { opacity: .85; }
+.panel.off .ptoggle { display: inline-flex; }
+.startguide .steps { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px; counter-reset: st; }
+.startguide .steps li { counter-increment: st; }
+.startguide .steps button { width: 100%; text-align: left; border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 10px 12px 10px 42px; position: relative; display: flex; flex-direction: column; gap: 2px; min-height: 64px; color: var(--ink); }
+.startguide .steps button::before { content: counter(st); position: absolute; left: 10px; top: 10px; width: 24px; height: 24px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); font-weight: 800; display: grid; place-items: center; font-size: .85rem; }
+.startguide .steps li.ok button { opacity: .6; } .startguide .steps li.ok button::before { content: "✓"; background: var(--good); color: #fff; }
+.startguide .steps span { font-size: .85rem; color: var(--muted); }
+.secnav { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent); padding-right: 24px; }
 </style>
 <style id="card-css">
 /* Vzhled karet. Všechny rozměry jsou v em, velikost karty určuje jen font-size (16px = šířka 150 px). */
@@ -907,7 +918,9 @@ function terrainOf(p, b, k) { const id = b.terrain[k]; return p.terrains.find(t 
 // Neměnné vrstvy mapy (terén, popisky, regiony) se drží v mezipaměti – u velkých map se jinak skládají při každém překreslení.
 const SVG_CACHE = new Map();
 function boardStatic(p, b) {
-  const key = JSON.stringify([b.type, b.size, b.cols, b.rows, b.terrain, b.labels, b.numbers, b.regions, b.bg, b.coords, b.regionColors, p.terrains]);
+  // Obrázek pozadí může mít stovky kB – do klíče jde jen jeho délka a konec.
+  const bgKey = b.bg ? [b.bg.url || "", (b.bg.data || "").length, (b.bg.data || "").slice(-40), b.bg.opacity, b.bg.terrainOpacity] : null;
+  const key = JSON.stringify([b.type, b.size, b.cols, b.rows, b.terrain, b.labels, b.numbers, b.regions, bgKey, b.coords, b.regionColors, p.terrains]);
   let c = SVG_CACHE.get(b.id); if (c && c.key === key) return c;
   const g = geo(b); const cells = [], marks = [], regs = []; const base = p.terrains[0];
   for (let c2 = 0; c2 < b.cols; c2++) for (let r = 0; r < b.rows; r++) {
@@ -1085,7 +1098,7 @@ function render() {
   processPending(P()); uiAfterRender(main);
   const cp = P(); if (cp && !DU.last[cp.id]) DU.last[cp.id] = designKey(cp); updateUndoBtn();
 }
-onInit(() => $("#projSel").addEventListener("change", e => { S.currentId = e.target.value; S.sel = null; S.deckId = null; S.boardId = null; S.undo = []; S.rangeUid = null; S.pool = []; lsWrite(); render(); }));
+onInit(() => $("#projSel").addEventListener("change", e => { S.currentId = e.target.value; S.tool = primaryTool(P()); S.sel = null; S.deckId = null; S.boardId = null; S.undo = []; S.rangeUid = null; S.pool = []; lsWrite(); render(); }));
 onInit(() => $("#undoDesign").addEventListener("click", undoDesign));
 onInit(() => $("#newProj").addEventListener("click", () => { const p = blankProject(); S.projects.unshift(p); S.currentId = p.id; S.tab = "prehled"; touch(p); render(); toast("Nová hra založena"); }));
 onInit(() => $$(".tab").forEach(b => b.addEventListener("click", () => { S.tab = b.dataset.tab; try { localStorage.setItem(LS_KEY + "-tab", S.tab); } catch {} render(); })));
@@ -1220,7 +1233,7 @@ function renderOverview(main, p) {
   const nCards = p.decks.reduce((n, d) => n + d.cards.reduce((m, c) => m + (+c.qty || 0), 0), 0);
   const nUnits = p.units.reduce((n, u) => n + (+u.qty || 0), 0);
   main.innerHTML = `<div class="page">
-    ${exampleBanner(p)}
+    ${exampleBanner(p)}${startGuideHTML(p)}
     <div class="two">
       <div class="panel">
         <div class="eyebrow">Hra · verze ${esc(p.version)}</div>
@@ -1260,7 +1273,7 @@ function renderOverview(main, p) {
       </div>
       ${overviewExtras(p)}
     </div></div>`;
-  wireBanner(main);
+  wireBanner(main); wireStartGuide(main, p);
   const bind = (id, key) => $("#" + id).addEventListener("input", e => { p[key] = e.target.value; touch(p); if (key === "name") $("#projSel").selectedOptions[0].textContent = p.name; });
   bind("o-name", "name"); bind("o-version", "version"); bind("o-players", "players"); bind("o-time", "time"); bind("o-age", "age"); bind("o-summary", "summary"); bind("o-rules", "rules");
   ["o-name", "o-version", "o-players", "o-time", "o-age"].forEach(id => $("#" + id).addEventListener("change", () => render()));
@@ -1673,7 +1686,7 @@ function renderMap(main, p) {
         ${p.terrains.length > 1 ? `<button class="btn small danger" data-trdel="${t.id}" aria-label="Smazat terén">✕</button>` : ""}</div>`).join("")}</div>
     </div>${netEditorHTML(p)}</div>`;
   wireBanner(main); wireNetEditor(main, p);
-  $("#addBoard").onclick = () => { const nb = { id: uid(), name: "Mapa " + (p.boards.length + 1), type: "hex", cols: 12, rows: 9, size: 34, terrain: {}, labels: {}, bg: null }; p.boards.push(nb); S.boardId = nb.id; touch(p); render(); };
+  $("#addBoard").onclick = () => { const nb = { id: uid(), name: "Mapa " + (p.boards.length + 1), type: "hex", cols: 12, rows: 9, size: 34, terrain: {}, labels: {}, regions: {}, numbers: {}, bg: null }; p.boards.push(nb); S.boardId = nb.id; touch(p); render(); };
   $$("[data-board]", main).forEach(x => x.onclick = () => { S.boardId = x.dataset.board; render(); });
   $$("[data-tool]", main).forEach(x => x.onclick = () => { S.edTool = x.dataset.tool; render(); });
   if (b) {
@@ -1767,7 +1780,7 @@ function renderMechanics(main, p) {
       <div class="panel">
         <h2>Fáze kola</h2>
         <p class="hint">Jedna fáze na řádek. Na stole je pak přepínáš tlačítkem Další fáze.</p>
-        <textarea id="phases" style="min-height:150px">${esc(p.phases.join("\n"))}</textarea>
+        <textarea id="phases" aria-label="Fáze kola, jedna na řádek" style="min-height:150px">${esc(p.phases.join("\n"))}</textarea>
       </div>
     </div>
     <div class="panel">
@@ -1825,13 +1838,13 @@ function renderMechanics(main, p) {
         <p class="hint">Hráči staví síť úseků mezi sousedními poli mapy (jako Ticket to Ride). Cíl je dvojice popisků na mapě – spojený cíl přidá body.</p>
         <div class="grid" style="grid-template-columns:1fr 80px"><label class="f">Úsek stojí<select id="rtCost">${resOpt(p.routes.cost, "Nic")}</select></label><label class="f">Kolik<input type="number" min="1" id="rtPrice" value="${+p.routes.price || 1}"></label></div>
         <label class="chk"><input type="checkbox" id="rtExcl" ${p.routes.exclusive ? "checked" : ""}> Úsek může patřit jen jednomu hráči</label>
-        ${(p.routes.tickets || []).map(x => `<div class="row"><input type="text" data-tka="${x.id}" value="${esc(x.a)}" placeholder="Odkud" style="width:110px"><input type="text" data-tkb="${x.id}" value="${esc(x.b)}" placeholder="Kam" style="width:110px"><input type="number" data-tkp="${x.id}" value="${x.pts}" style="width:70px" aria-label="Body"><select data-tkf="${x.id}" style="width:auto"><option value="">všichni</option>${p.factions.map(f => `<option value="${f.id}" ${f.id === x.fid ? "selected" : ""}>${esc(f.name)}</option>`).join("")}</select><button class="btn small danger" data-tkdel="${x.id}" aria-label="Smazat cíl">✕</button></div>`).join("")}
+        ${(p.routes.tickets || []).map(x => `<div class="row"><input type="text" data-tka="${x.id}" value="${esc(x.a)}" placeholder="Odkud" style="width:110px"><input type="text" data-tkb="${x.id}" value="${esc(x.b)}" placeholder="Kam" style="width:110px"><input type="number" data-tkp="${x.id}" value="${x.pts}" style="width:70px" aria-label="Body"><select data-tkf="${x.id}" style="width:auto" aria-label="Pro koho cíl platí"><option value="">všichni</option>${p.factions.map(f => `<option value="${f.id}" ${f.id === x.fid ? "selected" : ""}>${esc(f.name)}</option>`).join("")}</select><button class="btn small danger" data-tkdel="${x.id}" aria-label="Smazat cíl">✕</button></div>`).join("")}
         <button class="btn small" id="addTk">+ Cíl</button></div>
     </div>
     <div class="two">
       <div class="panel"><h2>Burza a většiny</h2>
         <label class="f">Platidlo burzy<select id="stCur">${resOpt(p.stock.currency, "Burza vypnutá")}</select></label>
-        ${p.stock.goods.map((g, i) => `<div class="row"><select data-sgr="${i}" style="width:auto">${p.resources.filter(r => !r.global).map(r => `<option value="${r.id}" ${r.id === g.resId ? "selected" : ""}>${esc(r.name)}</option>`).join("")}</select>
+        ${p.stock.goods.map((g, i) => `<div class="row"><select data-sgr="${i}" style="width:auto" aria-label="Zboží na burze">${p.resources.filter(r => !r.global).map(r => `<option value="${r.id}" ${r.id === g.resId ? "selected" : ""}>${esc(r.name)}</option>`).join("")}</select>
           <label class="f" style="flex-direction:row;align-items:center;gap:4px">cena<input type="number" data-sgp="${i}" value="${g.price}" style="width:64px"></label><label class="f" style="flex-direction:row;align-items:center;gap:4px">od<input type="number" data-sgmin="${i}" value="${g.min}" style="width:60px"></label><label class="f" style="flex-direction:row;align-items:center;gap:4px">do<input type="number" data-sgmax="${i}" value="${g.max}" style="width:60px"></label><button class="btn small danger" data-sgdel="${i}" aria-label="Odebrat komoditu">✕</button></div>`).join("")}
         <button class="btn small" id="addGood" ${p.resources.length ? "" : "disabled"}>+ Komodita</button>
         <p class="hint">Cena komodity roste s každým nákupem a klesá s prodejem.</p><hr class="sep">
@@ -1962,7 +1975,7 @@ function renderScenarios(main, p) {
         <label class="f">Podmínky vítězství<textarea data-sv="${s.id}" style="min-height:90px">${esc(s.victory)}</textarea></label>
         <label class="f">Zvláštní pravidla<textarea data-ss="${s.id}" style="min-height:90px">${esc(s.special)}</textarea></label>
       </div>
-      <div class="row"><span class="hint">Hlídaný cíl na konci posledního kola:</span><select data-shf="${s.id}" style="width:auto"><option value="">nehlídat</option>${p.factions.map(f => `<option value="${f.id}" ${f.id === s.holdF ? "selected" : ""}>${esc(f.name)}</option>`).join("")}</select>
+      <div class="row"><span class="hint">Hlídaný cíl na konci posledního kola:</span><select data-shf="${s.id}" style="width:auto" aria-label="Strana, která musí ovládat pole"><option value="">nehlídat</option>${p.factions.map(f => `<option value="${f.id}" ${f.id === s.holdF ? "selected" : ""}>${esc(f.name)}</option>`).join("")}</select>
         <span class="hint">musí ovládat pole</span><input type="text" data-shl="${s.id}" value="${esc(s.holdLabels || "")}" placeholder="Brod, Most" style="width:180px" aria-label="Popisky polí"></div>
       ${reinfHTML(p, s)}
       <div class="row"><button class="btn small" data-dup="${s.id}">Duplikovat</button><button class="btn small danger" data-del="${s.id}">Smazat</button></div>
@@ -1976,7 +1989,7 @@ function renderScenarios(main, p) {
   </div>`;
   wireBanner(main);
   const Sc = id => p.scenarios.find(s => s.id === id);
-  $("#addSc").onclick = () => { p.scenarios.push({ id: uid(), name: "Scénář " + (p.scenarios.length + 1), turns: 6, boardId: p.boards[0] ? p.boards[0].id : "", desc: "", victory: "", special: "", setup: { items: [], control: {} } }); touch(p); render(); };
+  $("#addSc").onclick = () => { p.scenarios.push({ id: uid(), name: "Scénář " + (p.scenarios.length + 1), turns: 6, boardId: p.boards[0] ? p.boards[0].id : "", desc: "", victory: "", special: "", setup: { items: [], control: {} }, reinf: [] }); touch(p); render(); };
   const tin = (attr, key, conv = v => v) => $$(`[${attr}]`, main).forEach(i => i.addEventListener("input", () => { Sc(i.getAttribute(attr))[key] = conv(i.value); touch(p); }));
   tin("data-sn", "name"); tin("data-sd", "desc"); tin("data-sv", "victory"); tin("data-ss", "special"); tin("data-st", "turns", v => Math.max(1, parseInt(v, 10) || 1));
   $$("[data-sb]", main).forEach(i => i.onchange = () => { const s = Sc(i.dataset.sb); if (i.value.startsWith("net:")) { s.netId = i.value.slice(4); s.boardId = ""; } else { s.boardId = i.value; s.netId = ""; } touch(p); });
@@ -2067,7 +2080,8 @@ function renderRules(main, p) {
           <span><b>pokud Mince >= 3: +1 Body, líznout 1</b> · jen když platí podmínka</span>
           <span><b>zaplať 2 Mince: +1 Body</b> · provede se, jen když hráč zaplatí; víc zdrojů: <b>zaplať 1 Dřevo + 1 Cihly: …</b></span>
           <span><b>nastav Mince 0</b> · nastaví zdroj na hodnotu (třeba vynulování peněz na začátku tahu)</span>
-          <span><b>jednou za kolo: +2 Mince</b> · na začátku efektu; také „jednou za tah“, „jednou za hru“</span></div>
+          <span><b>jednou za kolo: +2 Mince</b> · na začátku efektu; také „jednou za tah“, „jednou za hru“</span>
+          <span><b>první hráč</b> · hráč začíná příští kolo</span><span><b>vyhostit 1</b> · hráč odstraní kartu z ruky ze hry</span></div>
         <p class="hint">Víc příkazů odděl středníkem, uvnitř volby, podmínky a platby čárkou. Stejný zápis funguje v poli „Efekt“ u karet a u zvláštních polí dráhy. Podmínky: <b>Mince >= 3</b>, <b>ruka &lt; 2</b>, <b>kolo = 5</b>, <b>skóre > 10</b>.</p></div>
       <div class="panel"><h3>Vyzkoušet efekt</h3><p class="hint">Provede efekt na stole pro hráče na tahu – ověříš si, že ho aplikace rozumí.</p>
         <input type="text" id="tryEff" placeholder="+2 Mince; líznout 1"><button class="btn primary" id="tryGo">Provést</button><div id="tryOut" class="hint"></div></div>
@@ -2227,7 +2241,7 @@ function renderAnalysis(main, p) {
     <div><h2>Analýza a vyvážení</h2><p class="hint" style="margin-top:4px">Simulace, pravděpodobnosti a statistiky, které pomůžou nastavit počty karet, kostky a bojovou tabulku ještě před testem.</p></div>
     ${simPanelHTML(p)}${tunePanelHTML(p)}
     <div class="two">
-      <div class="panel"><div class="row spread"><h3>Složení balíčku</h3>${p.decks.length ? `<select id="anDeck" style="width:auto">${p.decks.map(d => `<option value="${d.id}" ${d.id === A.deckId ? "selected" : ""}>${esc(d.name)}</option>`).join("")}</select>` : ""}</div>
+      <div class="panel"><div class="row spread"><h3>Složení balíčku</h3>${p.decks.length ? `<select id="anDeck" aria-label="Balíček k rozboru" style="width:auto">${p.decks.map(d => `<option value="${d.id}" ${d.id === A.deckId ? "selected" : ""}>${esc(d.name)}</option>`).join("")}</select>` : ""}</div>
         ${deck && cards.length ? `<div class="stat-row"><div class="stat"><span class="eyebrow">Karet</span><b>${cards.length}</b></div><div class="stat"><span class="eyebrow">Průměrná cena</span><b>${avg(costs).toLocaleString("cs-CZ", { maximumFractionDigits: 1 })}</b></div>
           <div class="stat"><span class="eyebrow">Průměr bodů</span><b>${avg(cards.map(c => parseFloat(c.vp)).filter(v => !isNaN(v))).toLocaleString("cs-CZ", { maximumFractionDigits: 1 })}</b></div></div>
           <div class="eyebrow">Podle typu</div><div class="bars">${group("type").map(([k, v]) => bar(k, v, cards.length, `${v} · ${Math.round(v / cards.length * 100)} %`)).join("")}</div>
@@ -2557,6 +2571,8 @@ function ensureTable(p) {
   const fresh = !p.table;
   if (!p.table) p.table = { items: [], piles: {}, discard: {} };
   const t = p.table;
+  // Hra bez mapy, ale se sítí míst, ukáže síť na stole hned.
+  if (fresh && !p.boards.length && (p.nets || []).length) t.netId = p.nets[0].id;
   t.control = t.control || {}; t.hands = t.hands || {}; t.actionsTaken = t.actionsTaken || {};
   t.res = t.res || {}; t.tableau = t.tableau || {}; t.pdeck = t.pdeck || {}; t.pdisc = t.pdisc || {}; t.market = t.market || {};
   t.bags = t.bags || {}; t.won = t.won || {}; t.trick = t.trick || []; t.rondel = t.rondel || {}; t.clock = t.clock || { run: false, start: 0, acc: 0 };
@@ -3640,8 +3656,35 @@ function lintProject(p) {
   if (Object.values(p.ruleset.phaseOf).some(a => a && a.length) && !p.phases.length) W("Pravidla omezují činnosti na fáze, ale hra nemá žádné fáze.");
   if (p.ruleset.win.vp && !p.resources.some(r => r.vp)) W("Cíl „vyhrává, kdo dosáhne bodů“ potřebuje zdroj označený jako Vítězné body.");
   if (!String(p.summary || "").trim()) W("Hra nemá krátký popis – hodí se pro testery i poradce.");
-  const size = JSON.stringify(p).length; if (size > 200000) E(`Projekt má ${Math.round(size / 1024)} kB. Ukládání k účtu zvládne nejvýš 256 kB – zmenši obrázek mapy nebo vymaž záznam hry.`);
+  // Obrázky, stůl, testy a verze se ukládají zvlášť; limit 256 kB hlídá jen samotný návrh.
+  const size = JSON.stringify(splitProject(p)[""]).length; if (size > 230000) E(`Návrh hry má ${Math.round(size / 1024)} kB, k účtu se uloží nejvýš 250 kB – zkrať texty nebo rozděl hru.`);
+  lintMore(p, E, W);
   return out;
+}
+
+// Kontroly novějších mechanik: chybějící odkazy, efekty a nastavení, které nedává smysl.
+function lintMore(p, E, W) {
+  const R = id => p.resources.find(r => r.id === id); const eff = (label, e) => checkEffect(p, e).forEach(x => E(`${label}: ${x}.`));
+  p.decks.forEach(d => d.cards.forEach(c => { eff(`Karta „${c.title}“ – příjem`, c.income); eff(`Karta „${c.title}“ – aktivace`, c.act);
+    if ((c.pow !== "" && c.pow != null) !== (c.tough !== "" && c.tough != null)) W(`Karta „${c.title}“ má jen sílu, nebo jen odolnost – bytost potřebuje obojí.`); }));
+  (p.techs || []).forEach(x => { eff(`Technologie „${x.name}“`, x.effect); techNames(x.req).forEach(n => { if (!p.techs.some(y => y.name.toLowerCase() === n)) E(`Technologie „${x.name}“ vyžaduje neexistující „${n}“.`); });
+    String(x.cost || "").split(/[,+;]/).map(s => s.trim()).filter(Boolean).forEach(s => { const m = s.match(/^(\d+)\s+(.+)$/); if (!m || !resByName(p, m[2])) E(`Technologie „${x.name}“: cenu „${s}“ nerozumím (piš např. 3 Mince).`); }); });
+  (p.goals || []).forEach(g => { if (!String(g.what || "").trim()) W(`Veřejný cíl „${g.name || "bez názvu"}“ nemá, co se počítá.`); });
+  if (p.cmap && p.cmap.on && !p.decks.find(d => d.id === p.cmap.deckId)) E("Mapa z karet lokací je zapnutá, ale nemá vybraný balíček lokací.");
+  if (p.cmap && p.cmap.on && p.cmap.apRes && !R(p.cmap.apRes)) E("Mapa z karet platí pohyb smazaným zdrojem.");
+  if (p.netCubes && p.netCubes.on && !p.nets.length) W("Kostičky na místech jsou zapnuté, ale hra nemá žádnou síť míst.");
+  p.nets.forEach(n => { const names = n.nodes.map(x => x.name.trim().toLowerCase()); if (new Set(names).size < names.length) W(`Síť „${n.name}“ má dvě místa se stejným jménem.`);
+    n.nodes.forEach(x => { if (!n.links.some(l => l.a === x.id || l.b === x.id)) W(`Místo „${x.name}“ v síti „${n.name}“ nemá žádnou cestu.`); }); });
+  const places = new Set([...p.nets.flatMap(n => n.nodes.map(x => x.name)), ...p.boards.flatMap(b => Object.values(b.labels)), ...p.decks.flatMap(d => d.cards.map(c => c.title))].map(s => String(s).trim().toLowerCase()));
+  if (p.deliver && p.deliver.on) p.contracts.forEach(c => { [c.from, c.to].forEach(l => { if (l && !places.has(l.trim().toLowerCase())) E(`Zakázka ${c.good}: místo „${l}“ není v síti, na mapě ani mezi kartami lokací.`); }); eff(`Zakázka ${c.good}`, c.reward); });
+  if (p.rail && p.rail.on) { if (!R(p.rail.cashRes)) E("18xx: vyber zdroj, kterým hráči platí (Peníze hráčů)."); if (!p.rail.companies.length) W("18xx je zapnuté, ale nemá žádné společnosti.");
+    if (nums(p.rail.market).length < 3) E("18xx: burza potřebuje aspoň 3 kurzy."); p.rail.companies.forEach(c => { if (c.home && !p.nets.some(n => n.nodes.some(x => same(x.name, c.home)))) W(`Společnost „${c.name}“: domovské místo „${c.home}“ není v žádné síti.`); }); }
+  if (p.cb) { if (p.cb.lifeRes && !R(p.cb.lifeRes)) E("Životy hráče odkazují na smazaný zdroj."); if (p.cb.fightRes && !R(p.cb.fightRes)) E("Síla na příšery odkazuje na smazaný zdroj.");
+    if (p.decks.some(d => d.cards.some(c => +c.fight)) && !p.cb.fightRes) W("Některé karty jdou porazit, ale v Mechanikách není nastavená síla na porážení příšer."); }
+  p.resources.forEach(r => { if (r.pool && !R(r.pool)) E(`Zdroj „${r.name}“ se bere ze smazané zásoby.`); });
+  if (p.ruleset.win.poolEnd && !p.resources.some(r => r.pool)) W("Konec při prázdné zásobě je zapnutý, ale žádný zdroj se ze zásoby nebere.");
+  p.scenarios.forEach(s => (s.reinf || []).forEach(r => { if (!p.units.find(u => u.id === r.unitId)) E(`Scénář „${s.name}“: posila odkazuje na smazanou jednotku.`); }));
+  chitList(p).forEach(c => { if (!c.fid) W(`Žeton aktivace „${c.name}“ nemá stranu (piš „Název; Strana“).`); });
 }
 
 // ---------- Nástroje podle hry ----------
@@ -4030,7 +4073,7 @@ function simPanelHTML(p) {
   const R = S.simRes && S.simRes.pid === p.id ? S.simRes.r : null;
   const bar = (label, val, max, txt) => `<div class="bar"><span class="n" title="${esc(label)}">${esc(label)}</span><span class="tr"><span class="fl" style="width:${max ? Math.round(val / max * 100) : 0}%"></span></span><span class="v">${txt}</span></div>`;
   return `<div class="panel"><div class="row spread"><h2>Automatické testování</h2><span class="count">simulace</span></div>
-    <p class="hint">Počítač odehraje stovky her podle tvých karet, efektů, akcí, zdrojů a pravidel a ukáže vyváženost. Umí trh, vykládání karet s efekty, akční pole, rondel, role, dráhu, automat, pohyb a boj na mapě, dílky, štychy, dražbu karet z trhu a cíle hry. Trasy přeskočí.</p>
+    <p class="hint">Počítač odehraje stovky her podle tvých karet, efektů, akcí, zdrojů a pravidel a ukáže vyváženost. Umí trh a deck building, vykládání karet s efekty, akční pole, rondel, role, dráhu, automat, pohyb a boj na hexové mapě, dílky, štychy, dražbu karet z trhu, technologie, příšery v centrální řadě a cíle hry. Nehraje trasy, síť míst, mapu z karet, výpravu, souboj bytostí, rozsévání a 18xx.</p>
     <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(130px,1fr))">
       <label class="f">Počet her<input type="number" min="10" max="2000" data-so="games" value="${O.games}"></label>
       <label class="f">Nejvýš kol<input type="number" min="1" max="200" data-so="rounds" value="${O.rounds}"></label>
@@ -4257,7 +4300,7 @@ líznout 2 | líznout 1 z Balíček | táhnout 2 z Sáček | posun +3 | ostatní
 vyber: +2 Mince | líznout 1   (volba hráče)
 pokud Mince >= 3: +1 Body, líznout 1   (podmínka; také ruka, kolo, skóre)
 zaplať 1 Dřevo + 1 Cihly: +1 Body   (platba)
-nastav Mince 0 | odhodit 1 | zpráva Text | vítěz | první hráč (začíná příští kolo)
+nastav Mince 0 | odhodit 1 | vyhostit 1 (karta z ruky ze hry) | zpráva Text | vítěz | první hráč (začíná příští kolo)
 Na začátek lze dát: jednou za kolo: … / jednou za tah: … / jednou za hru: …`;
 function aiContext(p) {
   return `Zdroje: ${p.resources.map(r => r.name).join(", ") || "žádné"}. Balíčky: ${p.decks.map(d => d.name).join(", ") || "žádné"}. Sáčky: ${p.bags.map(b => b.name).join(", ") || "žádné"}.${+p.track.length ? " Hra má závodní dráhu." : ""}`;
@@ -5065,15 +5108,15 @@ function wireMoreMech(main, p) {
 // Posily ve scénáři
 function reinfHTML(p, s) {
   return `<div class="eyebrow">Posily podle kola</div>
-    ${(s.reinf || []).map(r => `<div class="row"><span class="hint">kolo</span><input type="number" min="1" data-rf="turn|${s.id}|${r.id}" value="${esc(r.turn)}" style="width:64px">
+    ${(s.reinf || []).map(r => `<div class="row"><span class="hint">kolo</span><input type="number" min="1" data-rf="turn|${s.id}|${r.id}" value="${esc(r.turn)}" style="width:64px" aria-label="Kolo příchodu posily">
       <input type="number" min="1" max="20" data-rf="qty|${s.id}|${r.id}" value="${esc(r.qty || 1)}" style="width:56px" aria-label="Počet"><span class="hint">×</span>
-      <select data-rf="unitId|${s.id}|${r.id}" style="width:auto">${p.units.map(u => `<option value="${u.id}" ${u.id === r.unitId ? "selected" : ""}>${esc(u.name)} (${esc(fname(p, u.factionId))})</option>`).join("")}</select>
+      <select data-rf="unitId|${s.id}|${r.id}" style="width:auto" aria-label="Jednotka posily">${p.units.map(u => `<option value="${u.id}" ${u.id === r.unitId ? "selected" : ""}>${esc(u.name)} (${esc(fname(p, u.factionId))})</option>`).join("")}</select>
       <span class="hint">na pole</span><input type="text" data-rf="cell|${s.id}|${r.id}" value="${esc(r.cell)}" placeholder="0304 nebo popisek" style="width:130px"><button class="btn small danger" data-rfdel="${s.id}|${r.id}" aria-label="Smazat posilu">✕</button></div>`).join("")}
     ${p.units.length ? `<button class="btn small" data-rfadd="${s.id}">+ Posila</button>` : `<span class="hint">Nejdřív vytvoř jednotky.</span>`}`;
 }
 function wireReinf(main, p) {
   const Sc = id => p.scenarios.find(s => s.id === id);
-  $$("[data-rfadd]", main).forEach(b => b.onclick = () => { const s = Sc(b.dataset.rfadd); s.reinf.push({ id: uid(), turn: 2, qty: 1, unitId: p.units[0].id, cell: "" }); touch(p); render(); });
+  $$("[data-rfadd]", main).forEach(b => b.onclick = () => { const s = Sc(b.dataset.rfadd); (s.reinf = s.reinf || []).push({ id: uid(), turn: 2, qty: 1, unitId: p.units[0].id, cell: "" }); touch(p); render(); });
   $$("[data-rf]", main).forEach(i => i.addEventListener("change", () => { const [k, sid, rid] = i.dataset.rf.split("|"); const r = Sc(sid).reinf.find(x => x.id === rid); r[k] = ["turn", "qty"].includes(k) ? Math.max(1, +i.value || 1) : i.value; touch(p); }));
   $$("[data-rfdel]", main).forEach(b => b.onclick = () => { const [sid, rid] = b.dataset.rfdel.split("|"); const s = Sc(sid); s.reinf = s.reinf.filter(x => x.id !== rid); touch(p); render(); });
 }
@@ -5139,9 +5182,45 @@ function sectionNav(main) {
   heads.forEach((h, i) => { const b = document.createElement("button"); b.type = "button"; b.textContent = h.textContent.trim(); b.onclick = () => h.closest(".panel").scrollIntoView({ behavior: "smooth", block: "start" }); nav.appendChild(b); void i; });
   const after = page.querySelector(".banner"); if (after) after.after(nav); else page.prepend(nav);
 }
+// Panely volitelných mechanik se sbalí, dokud je hra nemá zapnuté – Mechaniky pak nejsou nekonečně dlouhé.
+const PANEL_TOGGLES = ["cmOn", "dlOn", "ncOn", "rlOn", "ddOn", "lgOn", "cdOn"];
+function collapseOffPanels(main) {
+  if (S.tab !== "mechaniky") return;
+  PANEL_TOGGLES.forEach(id => { const inp = main.querySelector("#" + id); if (!inp) return; const panel = inp.closest(".panel"); const lab = inp.closest("label"); if (!panel || !lab) return;
+    lab.classList.add("ptoggle"); const others = [...panel.querySelectorAll(PANEL_TOGGLES.map(x => "#" + x).join(","))]; const on = others.some(x => x.checked);
+    panel.classList.toggle("off", !on); inp.addEventListener("change", () => setTimeout(render, 0)); });
+}
 function uiAfterRender(main) {
-  sectionNav(main);
+  sectionNav(main); collapseOffPanels(main);
   const tab = document.querySelector(`.tab[aria-selected="true"]`); if (tab && tab.scrollIntoView) { const bar = tab.parentElement; const r = tab.getBoundingClientRect(), rb = bar.getBoundingClientRect(); if (r.left < rb.left || r.right > rb.right) bar.scrollLeft += r.left - rb.left - 16; }
+}
+// Hlavní nástroj stolu podle toho, jakou hru projekt používá – otevře se po přepnutí hry.
+function primaryTool(p) {
+  const order = [["spolecnosti", () => p.rail && p.rail.on], ["lokace", () => p.cmap && p.cmap.on], ["vyprava", () => toolRelevant(p, "vyprava")], ["souboj", () => toolRelevant(p, "souboj")],
+    ["kameny", () => p.stones && p.stones.on], ["rozsevani", () => p.mancala && p.mancala.on], ["zakazky", () => p.deliver && p.deliver.on], ["styk", () => +p.scoring.trick > 0],
+    ["dilky", () => p.tiles.length], ["draha", () => +p.track.length], ["trh", () => p.decks.some(d => +d.market > 0)], ["akce", () => p.actions.length], ["boj", () => p.units.length]];
+  const hit = order.find(([, f]) => f()); return hit ? hit[0] : "stul";
+}
+// Průvodce prvními kroky – zmizí, když je hotovo nebo ho uživatel skryje.
+function startSteps(p) {
+  return [
+    ["Popiš hru", "Název, krátký popis a pravidla vlastními slovy.", "prehled", !!String(p.summary || "").trim()],
+    ["Strany a zdroje", "Kdo hraje a s čím (mince, suroviny, body).", "mechaniky", p.factions.length > 0 && p.resources.length > 0],
+    ["Komponenty", "Karty, jednotky, žetony nebo mapa.", "komponenty", p.decks.some(d => d.cards.length) || p.units.length > 0 || p.boards.length > 0 || p.nets.length > 0 || p.tokens.length > 0],
+    ["Pravidla a cíl hry", "Jak se vyhrává a co má stůl hlídat.", "pravidla", !!(p.ruleset.win.vp || p.ruleset.win.turns || p.ruleset.win.elimination || p.ruleset.win.poolEnd || p.scenarios.length || +p.track.length)],
+    ["Zahraj si", "Vyzkoušej hru na herním stole.", "stul", !!(p.table && (p.table.log || []).length > 2)],
+    ["Otestuj", "Zapiš testovací hru nebo spusť simulaci.", "testy", p.sessions.length > 0],
+  ];
+}
+function startGuideHTML(p) {
+  if (p.isExample || p.hideStart) return ""; const st = startSteps(p); const done = st.filter(x => x[3]).length; if (done === st.length) return "";
+  return `<div class="panel startguide"><div class="row spread"><h2>Jak začít</h2><span class="row"><span class="count">${done} z ${st.length}</span><button class="btn small" id="sgHide">Skrýt</button></span></div>
+    <ol class="steps">${st.map(([t, d, tab, ok]) => `<li class="${ok ? "ok" : ""}"><button type="button" data-sgo="${tab}"><b>${ok ? "✓ " : ""}${t}</b><span>${d}</span></button></li>`).join("")}</ol>
+    <p class="hint">Inspiraci najdeš v ukázkových hrách (výběr hry nahoře) – změnou se uloží jako tvoje.</p></div>`;
+}
+function wireStartGuide(main, p) {
+  $$("[data-sgo]", main).forEach(b => b.onclick = () => { if (b.dataset.sgo === "prehled") { const ta = main.querySelector(".panel:not(.startguide) textarea"); if (ta) { ta.scrollIntoView({ behavior: "smooth", block: "center" }); ta.focus({ preventScroll: true }); } return; } S.tab = b.dataset.sgo; render(); });
+  const h = document.getElementById("sgHide"); if (h) h.onclick = () => { p.hideStart = true; touch(p); render(); };
 }
 
 // ---------- Dungeon crawler: životy, hrdinové a příšery, automat příšer, místnosti, stavy, zkušenosti, poklady, hrozba ----------
@@ -5223,7 +5302,7 @@ function sideCrawl(p, t) {
       ${S.crawlLog ? `<div class="log">${S.crawlLog.map(l => `<span>${esc(l)}</span>`).join("")}</div>` : ""}</section>
     ${heroes.length ? `<section><div class="eyebrow">Hrdinové</div>${heroes.map(h => { const hp = unitHp(p, h); return `<div class="row spread"><b>${esc(unitOf(p, h).name)}</b><span class="mono">${hp != null ? `♥ ${hp}/${unitMaxHp(p, h)}` : ""} · úr. ${crawlLevel(p, h)} · ${h.xp || 0} XP${stBadges(h) ? " · " + stBadges(h) : ""}</span></div>`; }).join("")}</section>` : ""}
     ${loot ? `<section><div class="eyebrow">Poklady</div><button class="btn small" id="crLoot" ${t.piles[loot.id].length ? "" : "disabled"}>Hledat poklad (${t.piles[loot.id].length})</button><span class="hint"> karta jde do ruky hráče na tahu</span></section>` : ""}
-    ${+p.crawl.doom ? `<section><div class="eyebrow">Hrozba</div><div class="track-bar"><span style="width:${Math.min(100, Math.round((t.doom || 0) / +p.crawl.doom * 100))}%"></span></div><div class="row spread"><span class="mono">${t.doom || 0} / ${p.crawl.doom}</span><span class="row"><button class="btn small" data-doom="-1">−</button><button class="btn small" data-doom="1">+</button></span></div><p class="hint">Roste každé kolo samo.</p></section>` : ""}
+    ${+p.crawl.doom ? `<section><div class="eyebrow">Hrozba</div><div class="track-bar"><span style="width:${Math.min(100, Math.round((t.doom || 0) / +p.crawl.doom * 100))}%"></span></div><div class="row spread"><span class="mono">${t.doom || 0} / ${p.crawl.doom}</span><span class="row"><button class="btn small" data-doom="-1" aria-label="Snížit hrozbu">−</button><button class="btn small" data-doom="1" aria-label="Zvýšit hrozbu">+</button></span></div><p class="hint">Roste každé kolo samo.</p></section>` : ""}
     ${p.crawl.rooms && rooms.length ? `<section><div class="eyebrow">Místnosti</div><p class="hint">Hrdina místnost odhalí vstupem. Místnosti jsou oblasti nakreslené v záložce Mapa.</p><div class="row">${rooms.map(n => `<button class="btn small ${rev.includes(n) ? "on" : ""}" data-room="${esc(n)}">${rev.includes(n) ? "✓ " : ""}${esc(n)}</button>`).join("")}</div></section>` : ""}`;
 }
 function wireCrawl(main, p, t, save) {

@@ -4,7 +4,7 @@ function renderOverview(main, p) {
   const nCards = p.decks.reduce((n, d) => n + d.cards.reduce((m, c) => m + (+c.qty || 0), 0), 0);
   const nUnits = p.units.reduce((n, u) => n + (+u.qty || 0), 0);
   main.innerHTML = `<div class="page">
-    ${exampleBanner(p)}
+    ${exampleBanner(p)}${startGuideHTML(p)}
     <div class="two">
       <div class="panel">
         <div class="eyebrow">Hra · verze ${esc(p.version)}</div>
@@ -44,7 +44,7 @@ function renderOverview(main, p) {
       </div>
       ${overviewExtras(p)}
     </div></div>`;
-  wireBanner(main);
+  wireBanner(main); wireStartGuide(main, p);
   const bind = (id, key) => $("#" + id).addEventListener("input", e => { p[key] = e.target.value; touch(p); if (key === "name") $("#projSel").selectedOptions[0].textContent = p.name; });
   bind("o-name", "name"); bind("o-version", "version"); bind("o-players", "players"); bind("o-time", "time"); bind("o-age", "age"); bind("o-summary", "summary"); bind("o-rules", "rules");
   ["o-name", "o-version", "o-players", "o-time", "o-age"].forEach(id => $("#" + id).addEventListener("change", () => render()));

@@ -21,7 +21,7 @@ function render() {
   processPending(P()); uiAfterRender(main);
   const cp = P(); if (cp && !DU.last[cp.id]) DU.last[cp.id] = designKey(cp); updateUndoBtn();
 }
-onInit(() => $("#projSel").addEventListener("change", e => { S.currentId = e.target.value; S.sel = null; S.deckId = null; S.boardId = null; S.undo = []; S.rangeUid = null; S.pool = []; lsWrite(); render(); }));
+onInit(() => $("#projSel").addEventListener("change", e => { S.currentId = e.target.value; S.tool = primaryTool(P()); S.sel = null; S.deckId = null; S.boardId = null; S.undo = []; S.rangeUid = null; S.pool = []; lsWrite(); render(); }));
 onInit(() => $("#undoDesign").addEventListener("click", undoDesign));
 onInit(() => $("#newProj").addEventListener("click", () => { const p = blankProject(); S.projects.unshift(p); S.currentId = p.id; S.tab = "prehled"; touch(p); render(); toast("Nová hra založena"); }));
 onInit(() => $$(".tab").forEach(b => b.addEventListener("click", () => { S.tab = b.dataset.tab; try { localStorage.setItem(LS_KEY + "-tab", S.tab); } catch {} render(); })));

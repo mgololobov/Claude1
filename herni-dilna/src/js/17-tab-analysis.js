@@ -38,7 +38,7 @@ function renderAnalysis(main, p) {
     <div><h2>Analýza a vyvážení</h2><p class="hint" style="margin-top:4px">Simulace, pravděpodobnosti a statistiky, které pomůžou nastavit počty karet, kostky a bojovou tabulku ještě před testem.</p></div>
     ${simPanelHTML(p)}${tunePanelHTML(p)}
     <div class="two">
-      <div class="panel"><div class="row spread"><h3>Složení balíčku</h3>${p.decks.length ? `<select id="anDeck" style="width:auto">${p.decks.map(d => `<option value="${d.id}" ${d.id === A.deckId ? "selected" : ""}>${esc(d.name)}</option>`).join("")}</select>` : ""}</div>
+      <div class="panel"><div class="row spread"><h3>Složení balíčku</h3>${p.decks.length ? `<select id="anDeck" aria-label="Balíček k rozboru" style="width:auto">${p.decks.map(d => `<option value="${d.id}" ${d.id === A.deckId ? "selected" : ""}>${esc(d.name)}</option>`).join("")}</select>` : ""}</div>
         ${deck && cards.length ? `<div class="stat-row"><div class="stat"><span class="eyebrow">Karet</span><b>${cards.length}</b></div><div class="stat"><span class="eyebrow">Průměrná cena</span><b>${avg(costs).toLocaleString("cs-CZ", { maximumFractionDigits: 1 })}</b></div>
           <div class="stat"><span class="eyebrow">Průměr bodů</span><b>${avg(cards.map(c => parseFloat(c.vp)).filter(v => !isNaN(v))).toLocaleString("cs-CZ", { maximumFractionDigits: 1 })}</b></div></div>
           <div class="eyebrow">Podle typu</div><div class="bars">${group("type").map(([k, v]) => bar(k, v, cards.length, `${v} · ${Math.round(v / cards.length * 100)} %`)).join("")}</div>

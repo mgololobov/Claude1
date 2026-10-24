@@ -20,7 +20,7 @@ function renderMechanics(main, p) {
       <div class="panel">
         <h2>Fáze kola</h2>
         <p class="hint">Jedna fáze na řádek. Na stole je pak přepínáš tlačítkem Další fáze.</p>
-        <textarea id="phases" style="min-height:150px">${esc(p.phases.join("\n"))}</textarea>
+        <textarea id="phases" aria-label="Fáze kola, jedna na řádek" style="min-height:150px">${esc(p.phases.join("\n"))}</textarea>
       </div>
     </div>
     <div class="panel">
@@ -78,13 +78,13 @@ function renderMechanics(main, p) {
         <p class="hint">Hráči staví síť úseků mezi sousedními poli mapy (jako Ticket to Ride). Cíl je dvojice popisků na mapě – spojený cíl přidá body.</p>
         <div class="grid" style="grid-template-columns:1fr 80px"><label class="f">Úsek stojí<select id="rtCost">${resOpt(p.routes.cost, "Nic")}</select></label><label class="f">Kolik<input type="number" min="1" id="rtPrice" value="${+p.routes.price || 1}"></label></div>
         <label class="chk"><input type="checkbox" id="rtExcl" ${p.routes.exclusive ? "checked" : ""}> Úsek může patřit jen jednomu hráči</label>
-        ${(p.routes.tickets || []).map(x => `<div class="row"><input type="text" data-tka="${x.id}" value="${esc(x.a)}" placeholder="Odkud" style="width:110px"><input type="text" data-tkb="${x.id}" value="${esc(x.b)}" placeholder="Kam" style="width:110px"><input type="number" data-tkp="${x.id}" value="${x.pts}" style="width:70px" aria-label="Body"><select data-tkf="${x.id}" style="width:auto"><option value="">všichni</option>${p.factions.map(f => `<option value="${f.id}" ${f.id === x.fid ? "selected" : ""}>${esc(f.name)}</option>`).join("")}</select><button class="btn small danger" data-tkdel="${x.id}" aria-label="Smazat cíl">✕</button></div>`).join("")}
+        ${(p.routes.tickets || []).map(x => `<div class="row"><input type="text" data-tka="${x.id}" value="${esc(x.a)}" placeholder="Odkud" style="width:110px"><input type="text" data-tkb="${x.id}" value="${esc(x.b)}" placeholder="Kam" style="width:110px"><input type="number" data-tkp="${x.id}" value="${x.pts}" style="width:70px" aria-label="Body"><select data-tkf="${x.id}" style="width:auto" aria-label="Pro koho cíl platí"><option value="">všichni</option>${p.factions.map(f => `<option value="${f.id}" ${f.id === x.fid ? "selected" : ""}>${esc(f.name)}</option>`).join("")}</select><button class="btn small danger" data-tkdel="${x.id}" aria-label="Smazat cíl">✕</button></div>`).join("")}
         <button class="btn small" id="addTk">+ Cíl</button></div>
     </div>
     <div class="two">
       <div class="panel"><h2>Burza a většiny</h2>
         <label class="f">Platidlo burzy<select id="stCur">${resOpt(p.stock.currency, "Burza vypnutá")}</select></label>
-        ${p.stock.goods.map((g, i) => `<div class="row"><select data-sgr="${i}" style="width:auto">${p.resources.filter(r => !r.global).map(r => `<option value="${r.id}" ${r.id === g.resId ? "selected" : ""}>${esc(r.name)}</option>`).join("")}</select>
+        ${p.stock.goods.map((g, i) => `<div class="row"><select data-sgr="${i}" style="width:auto" aria-label="Zboží na burze">${p.resources.filter(r => !r.global).map(r => `<option value="${r.id}" ${r.id === g.resId ? "selected" : ""}>${esc(r.name)}</option>`).join("")}</select>
           <label class="f" style="flex-direction:row;align-items:center;gap:4px">cena<input type="number" data-sgp="${i}" value="${g.price}" style="width:64px"></label><label class="f" style="flex-direction:row;align-items:center;gap:4px">od<input type="number" data-sgmin="${i}" value="${g.min}" style="width:60px"></label><label class="f" style="flex-direction:row;align-items:center;gap:4px">do<input type="number" data-sgmax="${i}" value="${g.max}" style="width:60px"></label><button class="btn small danger" data-sgdel="${i}" aria-label="Odebrat komoditu">✕</button></div>`).join("")}
         <button class="btn small" id="addGood" ${p.resources.length ? "" : "disabled"}>+ Komodita</button>
         <p class="hint">Cena komodity roste s každým nákupem a klesá s prodejem.</p><hr class="sep">

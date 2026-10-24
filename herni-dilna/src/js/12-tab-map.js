@@ -49,7 +49,7 @@ function renderMap(main, p) {
         ${p.terrains.length > 1 ? `<button class="btn small danger" data-trdel="${t.id}" aria-label="Smazat terén">✕</button>` : ""}</div>`).join("")}</div>
     </div>${netEditorHTML(p)}</div>`;
   wireBanner(main); wireNetEditor(main, p);
-  $("#addBoard").onclick = () => { const nb = { id: uid(), name: "Mapa " + (p.boards.length + 1), type: "hex", cols: 12, rows: 9, size: 34, terrain: {}, labels: {}, bg: null }; p.boards.push(nb); S.boardId = nb.id; touch(p); render(); };
+  $("#addBoard").onclick = () => { const nb = { id: uid(), name: "Mapa " + (p.boards.length + 1), type: "hex", cols: 12, rows: 9, size: 34, terrain: {}, labels: {}, regions: {}, numbers: {}, bg: null }; p.boards.push(nb); S.boardId = nb.id; touch(p); render(); };
   $$("[data-board]", main).forEach(x => x.onclick = () => { S.boardId = x.dataset.board; render(); });
   $$("[data-tool]", main).forEach(x => x.onclick = () => { S.edTool = x.dataset.tool; render(); });
   if (b) {

@@ -14,6 +14,8 @@ function ensureTable(p) {
   const fresh = !p.table;
   if (!p.table) p.table = { items: [], piles: {}, discard: {} };
   const t = p.table;
+  // Hra bez mapy, ale se sítí míst, ukáže síť na stole hned.
+  if (fresh && !p.boards.length && (p.nets || []).length) t.netId = p.nets[0].id;
   t.control = t.control || {}; t.hands = t.hands || {}; t.actionsTaken = t.actionsTaken || {};
   t.res = t.res || {}; t.tableau = t.tableau || {}; t.pdeck = t.pdeck || {}; t.pdisc = t.pdisc || {}; t.market = t.market || {};
   t.bags = t.bags || {}; t.won = t.won || {}; t.trick = t.trick || []; t.rondel = t.rondel || {}; t.clock = t.clock || { run: false, start: 0, acc: 0 };

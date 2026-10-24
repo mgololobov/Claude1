@@ -286,15 +286,15 @@ function wireMoreMech(main, p) {
 // Posily ve scénáři
 function reinfHTML(p, s) {
   return `<div class="eyebrow">Posily podle kola</div>
-    ${(s.reinf || []).map(r => `<div class="row"><span class="hint">kolo</span><input type="number" min="1" data-rf="turn|${s.id}|${r.id}" value="${esc(r.turn)}" style="width:64px">
+    ${(s.reinf || []).map(r => `<div class="row"><span class="hint">kolo</span><input type="number" min="1" data-rf="turn|${s.id}|${r.id}" value="${esc(r.turn)}" style="width:64px" aria-label="Kolo příchodu posily">
       <input type="number" min="1" max="20" data-rf="qty|${s.id}|${r.id}" value="${esc(r.qty || 1)}" style="width:56px" aria-label="Počet"><span class="hint">×</span>
-      <select data-rf="unitId|${s.id}|${r.id}" style="width:auto">${p.units.map(u => `<option value="${u.id}" ${u.id === r.unitId ? "selected" : ""}>${esc(u.name)} (${esc(fname(p, u.factionId))})</option>`).join("")}</select>
+      <select data-rf="unitId|${s.id}|${r.id}" style="width:auto" aria-label="Jednotka posily">${p.units.map(u => `<option value="${u.id}" ${u.id === r.unitId ? "selected" : ""}>${esc(u.name)} (${esc(fname(p, u.factionId))})</option>`).join("")}</select>
       <span class="hint">na pole</span><input type="text" data-rf="cell|${s.id}|${r.id}" value="${esc(r.cell)}" placeholder="0304 nebo popisek" style="width:130px"><button class="btn small danger" data-rfdel="${s.id}|${r.id}" aria-label="Smazat posilu">✕</button></div>`).join("")}
     ${p.units.length ? `<button class="btn small" data-rfadd="${s.id}">+ Posila</button>` : `<span class="hint">Nejdřív vytvoř jednotky.</span>`}`;
 }
 function wireReinf(main, p) {
   const Sc = id => p.scenarios.find(s => s.id === id);
-  $$("[data-rfadd]", main).forEach(b => b.onclick = () => { const s = Sc(b.dataset.rfadd); s.reinf.push({ id: uid(), turn: 2, qty: 1, unitId: p.units[0].id, cell: "" }); touch(p); render(); });
+  $$("[data-rfadd]", main).forEach(b => b.onclick = () => { const s = Sc(b.dataset.rfadd); (s.reinf = s.reinf || []).push({ id: uid(), turn: 2, qty: 1, unitId: p.units[0].id, cell: "" }); touch(p); render(); });
   $$("[data-rf]", main).forEach(i => i.addEventListener("change", () => { const [k, sid, rid] = i.dataset.rf.split("|"); const r = Sc(sid).reinf.find(x => x.id === rid); r[k] = ["turn", "qty"].includes(k) ? Math.max(1, +i.value || 1) : i.value; touch(p); }));
   $$("[data-rfdel]", main).forEach(b => b.onclick = () => { const [sid, rid] = b.dataset.rfdel.split("|"); const s = Sc(sid); s.reinf = s.reinf.filter(x => x.id !== rid); touch(p); render(); });
 }

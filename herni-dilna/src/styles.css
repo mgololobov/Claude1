@@ -328,3 +328,14 @@ details.cfx { border: 1px solid var(--line); border-radius: 10px; padding: 6px 1
 .company { border-left: 5px solid var(--c); padding-left: 10px; }
 .market { display: flex; flex-wrap: wrap; gap: 3px; } .market .mk { position: relative; min-width: 38px; padding: 4px 2px 12px; text-align: center; border: 1px solid var(--line); border-radius: 6px; font: 700 .75rem var(--f-mono); background: var(--surface); }
 .market .mk i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin: 0 1px; position: relative; top: 4px; border: 1px solid rgba(0,0,0,.4); }
+.panel.off > :not(h2):not(.ptoggle):not(h3) { display: none; }
+.panel.off > h3 { display: none; }
+.panel.off { opacity: .85; }
+.panel.off .ptoggle { display: inline-flex; }
+.startguide .steps { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px; counter-reset: st; }
+.startguide .steps li { counter-increment: st; }
+.startguide .steps button { width: 100%; text-align: left; border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 10px 12px 10px 42px; position: relative; display: flex; flex-direction: column; gap: 2px; min-height: 64px; color: var(--ink); }
+.startguide .steps button::before { content: counter(st); position: absolute; left: 10px; top: 10px; width: 24px; height: 24px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); font-weight: 800; display: grid; place-items: center; font-size: .85rem; }
+.startguide .steps li.ok button { opacity: .6; } .startguide .steps li.ok button::before { content: "✓"; background: var(--good); color: #fff; }
+.startguide .steps span { font-size: .85rem; color: var(--muted); }
+.secnav { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent); padding-right: 24px; }

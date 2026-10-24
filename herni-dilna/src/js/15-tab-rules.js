@@ -58,7 +58,8 @@ function renderRules(main, p) {
           <span><b>pokud Mince >= 3: +1 Body, líznout 1</b> · jen když platí podmínka</span>
           <span><b>zaplať 2 Mince: +1 Body</b> · provede se, jen když hráč zaplatí; víc zdrojů: <b>zaplať 1 Dřevo + 1 Cihly: …</b></span>
           <span><b>nastav Mince 0</b> · nastaví zdroj na hodnotu (třeba vynulování peněz na začátku tahu)</span>
-          <span><b>jednou za kolo: +2 Mince</b> · na začátku efektu; také „jednou za tah“, „jednou za hru“</span></div>
+          <span><b>jednou za kolo: +2 Mince</b> · na začátku efektu; také „jednou za tah“, „jednou za hru“</span>
+          <span><b>první hráč</b> · hráč začíná příští kolo</span><span><b>vyhostit 1</b> · hráč odstraní kartu z ruky ze hry</span></div>
         <p class="hint">Víc příkazů odděl středníkem, uvnitř volby, podmínky a platby čárkou. Stejný zápis funguje v poli „Efekt“ u karet a u zvláštních polí dráhy. Podmínky: <b>Mince >= 3</b>, <b>ruka &lt; 2</b>, <b>kolo = 5</b>, <b>skóre > 10</b>.</p></div>
       <div class="panel"><h3>Vyzkoušet efekt</h3><p class="hint">Provede efekt na stole pro hráče na tahu – ověříš si, že ho aplikace rozumí.</p>
         <input type="text" id="tryEff" placeholder="+2 Mince; líznout 1"><button class="btn primary" id="tryGo">Provést</button><div id="tryOut" class="hint"></div></div>

@@ -24,7 +24,43 @@ function sectionNav(main) {
   heads.forEach((h, i) => { const b = document.createElement("button"); b.type = "button"; b.textContent = h.textContent.trim(); b.onclick = () => h.closest(".panel").scrollIntoView({ behavior: "smooth", block: "start" }); nav.appendChild(b); void i; });
   const after = page.querySelector(".banner"); if (after) after.after(nav); else page.prepend(nav);
 }
+// Panely volitelných mechanik se sbalí, dokud je hra nemá zapnuté – Mechaniky pak nejsou nekonečně dlouhé.
+const PANEL_TOGGLES = ["cmOn", "dlOn", "ncOn", "rlOn", "ddOn", "lgOn", "cdOn"];
+function collapseOffPanels(main) {
+  if (S.tab !== "mechaniky") return;
+  PANEL_TOGGLES.forEach(id => { const inp = main.querySelector("#" + id); if (!inp) return; const panel = inp.closest(".panel"); const lab = inp.closest("label"); if (!panel || !lab) return;
+    lab.classList.add("ptoggle"); const others = [...panel.querySelectorAll(PANEL_TOGGLES.map(x => "#" + x).join(","))]; const on = others.some(x => x.checked);
+    panel.classList.toggle("off", !on); inp.addEventListener("change", () => setTimeout(render, 0)); });
+}
 function uiAfterRender(main) {
-  sectionNav(main);
+  sectionNav(main); collapseOffPanels(main);
   const tab = document.querySelector(`.tab[aria-selected="true"]`); if (tab && tab.scrollIntoView) { const bar = tab.parentElement; const r = tab.getBoundingClientRect(), rb = bar.getBoundingClientRect(); if (r.left < rb.left || r.right > rb.right) bar.scrollLeft += r.left - rb.left - 16; }
+}
+// Hlavní nástroj stolu podle toho, jakou hru projekt používá – otevře se po přepnutí hry.
+function primaryTool(p) {
+  const order = [["spolecnosti", () => p.rail && p.rail.on], ["lokace", () => p.cmap && p.cmap.on], ["vyprava", () => toolRelevant(p, "vyprava")], ["souboj", () => toolRelevant(p, "souboj")],
+    ["kameny", () => p.stones && p.stones.on], ["rozsevani", () => p.mancala && p.mancala.on], ["zakazky", () => p.deliver && p.deliver.on], ["styk", () => +p.scoring.trick > 0],
+    ["dilky", () => p.tiles.length], ["draha", () => +p.track.length], ["trh", () => p.decks.some(d => +d.market > 0)], ["akce", () => p.actions.length], ["boj", () => p.units.length]];
+  const hit = order.find(([, f]) => f()); return hit ? hit[0] : "stul";
+}
+// Průvodce prvními kroky – zmizí, když je hotovo nebo ho uživatel skryje.
+function startSteps(p) {
+  return [
+    ["Popiš hru", "Název, krátký popis a pravidla vlastními slovy.", "prehled", !!String(p.summary || "").trim()],
+    ["Strany a zdroje", "Kdo hraje a s čím (mince, suroviny, body).", "mechaniky", p.factions.length > 0 && p.resources.length > 0],
+    ["Komponenty", "Karty, jednotky, žetony nebo mapa.", "komponenty", p.decks.some(d => d.cards.length) || p.units.length > 0 || p.boards.length > 0 || p.nets.length > 0 || p.tokens.length > 0],
+    ["Pravidla a cíl hry", "Jak se vyhrává a co má stůl hlídat.", "pravidla", !!(p.ruleset.win.vp || p.ruleset.win.turns || p.ruleset.win.elimination || p.ruleset.win.poolEnd || p.scenarios.length || +p.track.length)],
+    ["Zahraj si", "Vyzkoušej hru na herním stole.", "stul", !!(p.table && (p.table.log || []).length > 2)],
+    ["Otestuj", "Zapiš testovací hru nebo spusť simulaci.", "testy", p.sessions.length > 0],
+  ];
+}
+function startGuideHTML(p) {
+  if (p.isExample || p.hideStart) return ""; const st = startSteps(p); const done = st.filter(x => x[3]).length; if (done === st.length) return "";
+  return `<div class="panel startguide"><div class="row spread"><h2>Jak začít</h2><span class="row"><span class="count">${done} z ${st.length}</span><button class="btn small" id="sgHide">Skrýt</button></span></div>
+    <ol class="steps">${st.map(([t, d, tab, ok]) => `<li class="${ok ? "ok" : ""}"><button type="button" data-sgo="${tab}"><b>${ok ? "✓ " : ""}${t}</b><span>${d}</span></button></li>`).join("")}</ol>
+    <p class="hint">Inspiraci najdeš v ukázkových hrách (výběr hry nahoře) – změnou se uloží jako tvoje.</p></div>`;
+}
+function wireStartGuide(main, p) {
+  $$("[data-sgo]", main).forEach(b => b.onclick = () => { if (b.dataset.sgo === "prehled") { const ta = main.querySelector(".panel:not(.startguide) textarea"); if (ta) { ta.scrollIntoView({ behavior: "smooth", block: "center" }); ta.focus({ preventScroll: true }); } return; } S.tab = b.dataset.sgo; render(); });
+  const h = document.getElementById("sgHide"); if (h) h.onclick = () => { p.hideStart = true; touch(p); render(); };
 }

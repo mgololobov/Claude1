@@ -3,6 +3,18 @@
 Webová aplikace (běží i na iPadu) pro vývoj, prototypování a testování deskových, karetních her a wargames.
 Publikuje se jako jeden soubor `dist/index.html`, ale zdroják je rozdělený do menších modulů.
 
+## Co aplikace umí
+
+- **Návrh:** karty (šablony, písma, obrázky, vzácnost, rámečky), jednotky a žetony, mapy (hexy, čtverce, oblasti, terén), sítě míst a cest, dílky, sáčky, vlastní kostky, scénáře a kampaň, verze návrhu.
+- **Pravidla:** jazyk efektů, automatická pravidla „Když… pak…“, hlídání fází a limitů (upozorňovat / vynucovat), cíle hry.
+- **Euro:** výběr akcí (pole, rondel, role), trh, deck building, technologie, veřejné cíle, draft kostek, burza a většiny, produkce, rozvoz zboží, vyčerpání karet a příjem z vyložených karet.
+- **Karetní:** draft, štychy se sázkami, odhazovací hromádka, riskování, sestavy, dražby, blafování, souboj bytostí (Magic), centrální řada s příšerami a zásoba cti (Ascension).
+- **Wargame:** bojová tabulka a kostky, provedení výsledku, zóny kontroly, mlha války, výhled a dostřel, zásobování, iniciativa, skrytý pohyb, posily, aktivace žetony, stavy jednotek, karty za operace.
+- **Dungeon crawler a kooperace:** hrdinové a příšery se životy, automat příšer, zakryté místnosti, zkušenosti, poklady, hrozba, mapa z karet lokací (Warfighter), kostičky s ohnisky (Pandemie).
+- **Logické a abstraktní:** kameny (řada, sevření, otáčení, gravitace, propojení okrajů), lámání kódu, rozsévání (mancala).
+- **18xx:** akciové společnosti, prezident, burza, vlaky s fázemi a rezivěním, dividendy, odhad tržeb.
+- **Testování:** herní stůl pro iPad (zvětšení, kreslení perem), hra online, záznamy testů s dotazníkem, simulace stovek her s laděním parametrů, příručka a tisk karet.
+
 ## Struktura
 
 ```

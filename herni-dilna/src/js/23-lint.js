@@ -50,6 +50,33 @@ function lintProject(p) {
   if (Object.values(p.ruleset.phaseOf).some(a => a && a.length) && !p.phases.length) W("Pravidla omezují činnosti na fáze, ale hra nemá žádné fáze.");
   if (p.ruleset.win.vp && !p.resources.some(r => r.vp)) W("Cíl „vyhrává, kdo dosáhne bodů“ potřebuje zdroj označený jako Vítězné body.");
   if (!String(p.summary || "").trim()) W("Hra nemá krátký popis – hodí se pro testery i poradce.");
-  const size = JSON.stringify(p).length; if (size > 200000) E(`Projekt má ${Math.round(size / 1024)} kB. Ukládání k účtu zvládne nejvýš 256 kB – zmenši obrázek mapy nebo vymaž záznam hry.`);
+  // Obrázky, stůl, testy a verze se ukládají zvlášť; limit 256 kB hlídá jen samotný návrh.
+  const size = JSON.stringify(splitProject(p)[""]).length; if (size > 230000) E(`Návrh hry má ${Math.round(size / 1024)} kB, k účtu se uloží nejvýš 250 kB – zkrať texty nebo rozděl hru.`);
+  lintMore(p, E, W);
   return out;
+}
+
+// Kontroly novějších mechanik: chybějící odkazy, efekty a nastavení, které nedává smysl.
+function lintMore(p, E, W) {
+  const R = id => p.resources.find(r => r.id === id); const eff = (label, e) => checkEffect(p, e).forEach(x => E(`${label}: ${x}.`));
+  p.decks.forEach(d => d.cards.forEach(c => { eff(`Karta „${c.title}“ – příjem`, c.income); eff(`Karta „${c.title}“ – aktivace`, c.act);
+    if ((c.pow !== "" && c.pow != null) !== (c.tough !== "" && c.tough != null)) W(`Karta „${c.title}“ má jen sílu, nebo jen odolnost – bytost potřebuje obojí.`); }));
+  (p.techs || []).forEach(x => { eff(`Technologie „${x.name}“`, x.effect); techNames(x.req).forEach(n => { if (!p.techs.some(y => y.name.toLowerCase() === n)) E(`Technologie „${x.name}“ vyžaduje neexistující „${n}“.`); });
+    String(x.cost || "").split(/[,+;]/).map(s => s.trim()).filter(Boolean).forEach(s => { const m = s.match(/^(\d+)\s+(.+)$/); if (!m || !resByName(p, m[2])) E(`Technologie „${x.name}“: cenu „${s}“ nerozumím (piš např. 3 Mince).`); }); });
+  (p.goals || []).forEach(g => { if (!String(g.what || "").trim()) W(`Veřejný cíl „${g.name || "bez názvu"}“ nemá, co se počítá.`); });
+  if (p.cmap && p.cmap.on && !p.decks.find(d => d.id === p.cmap.deckId)) E("Mapa z karet lokací je zapnutá, ale nemá vybraný balíček lokací.");
+  if (p.cmap && p.cmap.on && p.cmap.apRes && !R(p.cmap.apRes)) E("Mapa z karet platí pohyb smazaným zdrojem.");
+  if (p.netCubes && p.netCubes.on && !p.nets.length) W("Kostičky na místech jsou zapnuté, ale hra nemá žádnou síť míst.");
+  p.nets.forEach(n => { const names = n.nodes.map(x => x.name.trim().toLowerCase()); if (new Set(names).size < names.length) W(`Síť „${n.name}“ má dvě místa se stejným jménem.`);
+    n.nodes.forEach(x => { if (!n.links.some(l => l.a === x.id || l.b === x.id)) W(`Místo „${x.name}“ v síti „${n.name}“ nemá žádnou cestu.`); }); });
+  const places = new Set([...p.nets.flatMap(n => n.nodes.map(x => x.name)), ...p.boards.flatMap(b => Object.values(b.labels)), ...p.decks.flatMap(d => d.cards.map(c => c.title))].map(s => String(s).trim().toLowerCase()));
+  if (p.deliver && p.deliver.on) p.contracts.forEach(c => { [c.from, c.to].forEach(l => { if (l && !places.has(l.trim().toLowerCase())) E(`Zakázka ${c.good}: místo „${l}“ není v síti, na mapě ani mezi kartami lokací.`); }); eff(`Zakázka ${c.good}`, c.reward); });
+  if (p.rail && p.rail.on) { if (!R(p.rail.cashRes)) E("18xx: vyber zdroj, kterým hráči platí (Peníze hráčů)."); if (!p.rail.companies.length) W("18xx je zapnuté, ale nemá žádné společnosti.");
+    if (nums(p.rail.market).length < 3) E("18xx: burza potřebuje aspoň 3 kurzy."); p.rail.companies.forEach(c => { if (c.home && !p.nets.some(n => n.nodes.some(x => same(x.name, c.home)))) W(`Společnost „${c.name}“: domovské místo „${c.home}“ není v žádné síti.`); }); }
+  if (p.cb) { if (p.cb.lifeRes && !R(p.cb.lifeRes)) E("Životy hráče odkazují na smazaný zdroj."); if (p.cb.fightRes && !R(p.cb.fightRes)) E("Síla na příšery odkazuje na smazaný zdroj.");
+    if (p.decks.some(d => d.cards.some(c => +c.fight)) && !p.cb.fightRes) W("Některé karty jdou porazit, ale v Mechanikách není nastavená síla na porážení příšer."); }
+  p.resources.forEach(r => { if (r.pool && !R(r.pool)) E(`Zdroj „${r.name}“ se bere ze smazané zásoby.`); });
+  if (p.ruleset.win.poolEnd && !p.resources.some(r => r.pool)) W("Konec při prázdné zásobě je zapnutý, ale žádný zdroj se ze zásoby nebere.");
+  p.scenarios.forEach(s => (s.reinf || []).forEach(r => { if (!p.units.find(u => u.id === r.unitId)) E(`Scénář „${s.name}“: posila odkazuje na smazanou jednotku.`); }));
+  chitList(p).forEach(c => { if (!c.fid) W(`Žeton aktivace „${c.name}“ nemá stranu (piš „Název; Strana“).`); });
 }

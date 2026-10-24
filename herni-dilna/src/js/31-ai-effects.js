@@ -5,7 +5,7 @@ líznout 2 | líznout 1 z Balíček | táhnout 2 z Sáček | posun +3 | ostatní
 vyber: +2 Mince | líznout 1   (volba hráče)
 pokud Mince >= 3: +1 Body, líznout 1   (podmínka; také ruka, kolo, skóre)
 zaplať 1 Dřevo + 1 Cihly: +1 Body   (platba)
-nastav Mince 0 | odhodit 1 | zpráva Text | vítěz | první hráč (začíná příští kolo)
+nastav Mince 0 | odhodit 1 | vyhostit 1 (karta z ruky ze hry) | zpráva Text | vítěz | první hráč (začíná příští kolo)
 Na začátek lze dát: jednou za kolo: … / jednou za tah: … / jednou za hru: …`;
 function aiContext(p) {
   return `Zdroje: ${p.resources.map(r => r.name).join(", ") || "žádné"}. Balíčky: ${p.decks.map(d => d.name).join(", ") || "žádné"}. Sáčky: ${p.bags.map(b => b.name).join(", ") || "žádné"}.${+p.track.length ? " Hra má závodní dráhu." : ""}`;

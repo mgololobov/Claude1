@@ -18,7 +18,7 @@ function renderScenarios(main, p) {
         <label class="f">Podmínky vítězství<textarea data-sv="${s.id}" style="min-height:90px">${esc(s.victory)}</textarea></label>
         <label class="f">Zvláštní pravidla<textarea data-ss="${s.id}" style="min-height:90px">${esc(s.special)}</textarea></label>
       </div>
-      <div class="row"><span class="hint">Hlídaný cíl na konci posledního kola:</span><select data-shf="${s.id}" style="width:auto"><option value="">nehlídat</option>${p.factions.map(f => `<option value="${f.id}" ${f.id === s.holdF ? "selected" : ""}>${esc(f.name)}</option>`).join("")}</select>
+      <div class="row"><span class="hint">Hlídaný cíl na konci posledního kola:</span><select data-shf="${s.id}" style="width:auto" aria-label="Strana, která musí ovládat pole"><option value="">nehlídat</option>${p.factions.map(f => `<option value="${f.id}" ${f.id === s.holdF ? "selected" : ""}>${esc(f.name)}</option>`).join("")}</select>
         <span class="hint">musí ovládat pole</span><input type="text" data-shl="${s.id}" value="${esc(s.holdLabels || "")}" placeholder="Brod, Most" style="width:180px" aria-label="Popisky polí"></div>
       ${reinfHTML(p, s)}
       <div class="row"><button class="btn small" data-dup="${s.id}">Duplikovat</button><button class="btn small danger" data-del="${s.id}">Smazat</button></div>
@@ -32,7 +32,7 @@ function renderScenarios(main, p) {
   </div>`;
   wireBanner(main);
   const Sc = id => p.scenarios.find(s => s.id === id);
-  $("#addSc").onclick = () => { p.scenarios.push({ id: uid(), name: "Scénář " + (p.scenarios.length + 1), turns: 6, boardId: p.boards[0] ? p.boards[0].id : "", desc: "", victory: "", special: "", setup: { items: [], control: {} } }); touch(p); render(); };
+  $("#addSc").onclick = () => { p.scenarios.push({ id: uid(), name: "Scénář " + (p.scenarios.length + 1), turns: 6, boardId: p.boards[0] ? p.boards[0].id : "", desc: "", victory: "", special: "", setup: { items: [], control: {} }, reinf: [] }); touch(p); render(); };
   const tin = (attr, key, conv = v => v) => $$(`[${attr}]`, main).forEach(i => i.addEventListener("input", () => { Sc(i.getAttribute(attr))[key] = conv(i.value); touch(p); }));
   tin("data-sn", "name"); tin("data-sd", "desc"); tin("data-sv", "victory"); tin("data-ss", "special"); tin("data-st", "turns", v => Math.max(1, parseInt(v, 10) || 1));
   $$("[data-sb]", main).forEach(i => i.onchange = () => { const s = Sc(i.dataset.sb); if (i.value.startsWith("net:")) { s.netId = i.value.slice(4); s.boardId = ""; } else { s.boardId = i.value; s.netId = ""; } touch(p); });
