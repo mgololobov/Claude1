@@ -3,8 +3,8 @@ const TOOL_GROUPS = [
   ["Hra", ["stul", "kolo", "hraci", "ruce"]],
   ["Karty", ["trh", "draft", "styk", "program", "hromadka", "riskuj", "tajne"]],
   ["Náhoda", ["kostky", "sacek"]],
-  ["Ekonomika", ["akce", "obchod", "drazba", "rozvoj", "draha"]],
-  ["Mapa a boj", ["boj", "uzemi", "dilky", "aktivace", "vyprava", "lokace"]],
+  ["Ekonomika", ["akce", "obchod", "drazba", "rozvoj", "draha", "zakazky"]],
+  ["Mapa a boj", ["boj", "uzemi", "dilky", "aktivace", "vyprava", "lokace", "sit"]],
   ["Logika", ["kameny", "kod", "rozsevani"]],
 ];
 function toolsHTML(p) {

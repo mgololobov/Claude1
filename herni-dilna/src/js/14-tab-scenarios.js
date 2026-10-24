@@ -9,7 +9,7 @@ function renderScenarios(main, p) {
       <div class="row spread"><input type="text" data-sn="${s.id}" value="${esc(s.name)}" style="font-family:var(--f-display);font-weight:700;font-size:1.2rem;max-width:420px" aria-label="Název scénáře">
         <div class="row"><button class="btn primary" data-play="${s.id}">Spustit na stole</button><button class="btn" data-save="${s.id}">Uložit rozestavění ze stolu</button></div></div>
       <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr))">
-        <label class="f">Mapa<select data-sb="${s.id}"><option value="">Bez mapy</option>${p.boards.map(b => `<option value="${b.id}" ${b.id === s.boardId ? "selected" : ""}>${esc(b.name)}</option>`).join("")}</select></label>
+        <label class="f">Mapa<select data-sb="${s.id}"><option value="">Bez mapy</option>${p.boards.map(b => `<option value="${b.id}" ${b.id === s.boardId ? "selected" : ""}>${esc(b.name)}</option>`).join("")}${p.nets.length ? `<optgroup label="Sítě míst">${p.nets.map(n => `<option value="net:${n.id}" ${!s.boardId && n.id === s.netId ? "selected" : ""}>${esc(n.name)}</option>`).join("")}</optgroup>` : ""}</select></label>
         <label class="f">Počet kol<input type="number" min="1" max="99" data-st="${s.id}" value="${esc(s.turns)}"></label>
         <div class="f"><span>Rozestavění</span><span style="color:var(--ink);font-weight:400;padding-top:10px">${cnt(s)} ${plural(cnt(s), "položka", "položky", "položek")}, ${Object.keys((s.setup && s.setup.control) || {}).length} ovládaných polí</span></div>
       </div>
@@ -35,7 +35,7 @@ function renderScenarios(main, p) {
   $("#addSc").onclick = () => { p.scenarios.push({ id: uid(), name: "Scénář " + (p.scenarios.length + 1), turns: 6, boardId: p.boards[0] ? p.boards[0].id : "", desc: "", victory: "", special: "", setup: { items: [], control: {} } }); touch(p); render(); };
   const tin = (attr, key, conv = v => v) => $$(`[${attr}]`, main).forEach(i => i.addEventListener("input", () => { Sc(i.getAttribute(attr))[key] = conv(i.value); touch(p); }));
   tin("data-sn", "name"); tin("data-sd", "desc"); tin("data-sv", "victory"); tin("data-ss", "special"); tin("data-st", "turns", v => Math.max(1, parseInt(v, 10) || 1));
-  $$("[data-sb]", main).forEach(i => i.onchange = () => { Sc(i.dataset.sb).boardId = i.value; touch(p); });
+  $$("[data-sb]", main).forEach(i => i.onchange = () => { const s = Sc(i.dataset.sb); if (i.value.startsWith("net:")) { s.netId = i.value.slice(4); s.boardId = ""; } else { s.boardId = i.value; s.netId = ""; } touch(p); });
   $$("[data-shf]", main).forEach(i => i.onchange = () => { Sc(i.dataset.shf).holdF = i.value; touch(p); });
   wireReinf(main, p);
   $$("[data-shl]", main).forEach(i => i.addEventListener("input", () => { Sc(i.dataset.shl).holdLabels = i.value; touch(p); }));
@@ -50,14 +50,14 @@ function renderScenarios(main, p) {
     const s = Sc(b.dataset.save); const t = ensureTable(p);
     const n = t.items.filter(i => i.kind !== "card").length;
     confirmDialog("Uložit rozestavění?", `Do scénáře se uloží ${n} jednotek a žetonů ze stolu a kontrola území. Karty se neukládají – ty se při spuštění zamíchají.`, "Uložit", () => {
-      s.setup = { items: clone(t.items.filter(i => i.kind !== "card")), control: clone(t.control) }; if (t.boardId) s.boardId = t.boardId; touch(p); render(); toast("Rozestavění uloženo do scénáře"); });
+      s.setup = { items: clone(t.items.filter(i => i.kind !== "card")), control: clone(t.control) }; if (t.boardId) { s.boardId = t.boardId; s.netId = ""; } else if (t.netId) { s.netId = t.netId; s.boardId = ""; } touch(p); render(); toast("Rozestavění uloženo do scénáře"); });
   });
   $$("[data-dup]", main).forEach(b => b.onclick = () => { const n = clone(Sc(b.dataset.dup)); n.id = uid(); n.name += " (kopie)"; p.scenarios.push(n); touch(p); render(); });
   $$("[data-del]", main).forEach(b => b.onclick = () => confirmDialog("Smazat scénář?", "Nejde to vrátit.", "Smazat", () => { p.scenarios = p.scenarios.filter(s => s.id !== b.dataset.del); touch(p); render(); }));
 }
 function startScenario(p, s) {
   p.table = null; const t = ensureTable(p);
-  t.boardId = s.boardId || null; t.scenarioId = s.id; t.turn = 1; t.phaseIdx = 0;
+  t.boardId = s.boardId || null; t.netId = s.boardId ? null : (s.netId || null); t.scenarioId = s.id; t.turn = 1; t.phaseIdx = 0;
   t.items = clone((s.setup && s.setup.items) || []).map(i => ({ ...i, uid: uid() }));
   t.control = clone((s.setup && s.setup.control) || {});
   S.sel = null; S.tool = "kolo"; S.tab = "stul"; touch(p); render(); toast(`Scénář „${s.name}“ připraven`);

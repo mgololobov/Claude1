@@ -143,6 +143,24 @@ const OUT = path.join(__dirname, "out"); fs.mkdirSync(OUT, { recursive: true });
     if (!/rozsévá/.test(await ev(() => P().table.log[0] + P().table.log[1]))) throw new Error("nerozsévá");
     await pg.click("[data-tool=kolo]"); await pg.fill("#cdSec", "5"); await pg.click("#cdStart"); if (!(await ev(() => S.cdEnd))) throw new Error("odpočet neběží");
   });
+  await step("síť míst: plavba po cestách a rozvoz zboží", async () => {
+    await sel(9); await pg.click("[data-tab=scenare]"); await pg.click("[data-play]");
+    if (!(await pg.$(".netlayer .nnode"))) throw new Error("síť se nevykreslila");
+    await pg.click("[data-tool=zakazky]"); await pg.click("#dlStart");
+    const info = await ev(() => { const p = P(), t = p.table, net = tableNet(p); const ship = t.items[0]; const ham = net.nodes.find(n => n.name === "Hamburk"); return { uid: ship.uid, x: BX + ham.x, y: BY + ham.y }; });
+    const it = await pg.$(`.titem[data-uid="${info.uid}"]`); const bb = await it.boundingBox(); const mat = await (await pg.$("#mat")).boundingBox();
+    await pg.mouse.move(bb.x + 20, bb.y + 20); await pg.mouse.down(); await pg.mouse.move(mat.x + info.x, mat.y + info.y, { steps: 8 }); await pg.mouse.up();
+    if ((await ev(() => locName(P(), P().table, P().table.items.find(i => i.uid === S.sel)))) !== "Hamburk") throw new Error("loď nedoplula do Hamburku");
+    const riga = await ev(() => tableNet(P()).nodes.find(n => n.name === "Riga").id); await pg.click(`.netlayer [data-nid="${riga}"]`); if (!(await pg.$("#nOwn"))) throw new Error("detail místa se neukázal");
+    await pg.screenshot({ path: path.join(OUT, "sit.png") });
+  });
+  await step("editor sítě míst", async () => {
+    await pg.click("[data-tab=mapa]"); await pg.click("#addNet"); await pg.$eval("#netEd", e => e.scrollIntoView({ block: "center" })); const svg = await (await pg.$("#netEd")).boundingBox();
+    await pg.mouse.click(svg.x + 100, svg.y + 100); await pg.mouse.click(svg.x + 300, svg.y + 150);
+    await pg.click('[data-ntool="link"]'); const ids = await ev(() => P().nets[P().nets.length - 1].nodes.map(n => n.id));
+    await pg.click(`#netEd [data-nid="${ids[0]}"]`); await pg.click(`#netEd [data-nid="${ids[1]}"]`);
+    if ((await ev(() => P().nets[P().nets.length - 1].links.length)) !== 1) throw new Error("cesta nevznikla");
+  });
   await step("telefon – Přehled", async () => { await pg.setViewportSize({ width: 400, height: 820 }); await pg.click("[data-tab=prehled]"); await pg.screenshot({ path: path.join(OUT, "telefon.png") }); });
   await b.close();
   console.log(`\n${fails.length ? fails.length + " kroků selhalo:\n" + fails.join("\n") : "Všechny kroky prošly."}\n${errors.length ? "Chyby v konzoli:\n" + errors.join("\n") : "Bez chyb v konzoli."}`);

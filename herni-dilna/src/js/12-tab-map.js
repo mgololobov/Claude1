@@ -47,8 +47,8 @@ function renderMap(main, p) {
         <label class="chk"><input type="checkbox" data-trb="${t.id}" ${t.blocks ? "checked" : ""}> Blokuje výhled</label>
         <label class="f" style="width:130px">Produkuje<select data-trp="${t.id}"><option value="">nic</option>${p.resources.filter(r => !r.global).map(r => `<option value="${r.id}" ${r.id === t.produces ? "selected" : ""}>${esc(r.name)}</option>`).join("")}</select></label>
         ${p.terrains.length > 1 ? `<button class="btn small danger" data-trdel="${t.id}" aria-label="Smazat terén">✕</button>` : ""}</div>`).join("")}</div>
-    </div></div>`;
-  wireBanner(main);
+    </div>${netEditorHTML(p)}</div>`;
+  wireBanner(main); wireNetEditor(main, p);
   $("#addBoard").onclick = () => { const nb = { id: uid(), name: "Mapa " + (p.boards.length + 1), type: "hex", cols: 12, rows: 9, size: 34, terrain: {}, labels: {}, bg: null }; p.boards.push(nb); S.boardId = nb.id; touch(p); render(); };
   $$("[data-board]", main).forEach(x => x.onclick = () => { S.boardId = x.dataset.board; render(); });
   $$("[data-tool]", main).forEach(x => x.onclick = () => { S.edTool = x.dataset.tool; render(); });

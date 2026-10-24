@@ -320,3 +320,8 @@ button.die { border: 0; padding: 0; }
 .pit:disabled { opacity: .55; }
 .mancala .store { width: 44px; border-radius: 22px; border: 3px solid var(--c); display: grid; place-items: center; font-weight: 800; font-family: var(--f-mono); background: var(--surface); }
 details.cfx { border: 1px solid var(--line); border-radius: 10px; padding: 6px 10px; } details.cfx summary { font-weight: 700; cursor: pointer; min-height: 32px; display: flex; align-items: center; }
+.net-svg .nname { font: 700 12px var(--f-body); fill: #2b2620; paint-order: stroke; stroke: #efe9da; stroke-width: 3px; }
+.net-svg .nvp { font: 800 13px var(--f-mono); fill: #2b2620; } .net-svg .ncost { font: 700 11px var(--f-mono); fill: #2b2620; }
+.net-svg .ngoods { font: 700 11px var(--f-body); fill: #2b2620; paint-order: stroke; stroke: #fff; stroke-width: 3px; }
+.net-svg .nnode { cursor: pointer; } #netWrap .net-svg { max-width: 100%; height: auto; touch-action: none; }
+.boardlayer.netlayer { pointer-events: auto; }

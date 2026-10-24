@@ -37,6 +37,8 @@ src/js/NN-*.js       moduly; sestavují se v pořadí čísel
   41-logic           kameny na mapě (řada, sevření, otáčení, gravitace, propojení okrajů), lámání kódu
   42-cardmap         mapa z karet lokací (řada nebo mřížka), pohyb za akce, krytí, odhalování, nepřátelé, cíl
   43-extra           vyčerpání karet, příjem z vyložených karet, přesýpací hodiny, rozsévání (mancala)
+  44-network         síť míst a cest: editor, pohyb po cestách, vlastnictví míst, kostičky s ohnisky
+  45-deliver         rozvoz zboží: zakázky, náklad, naložení a doručení
   99-main            spuštění
 tests/harness.js     načte moduly do Node bez prohlížeče
 tests/*.test.js      testy herní logiky

@@ -121,7 +121,7 @@ test("obnova poškozených pravidel z verze 4", () => {
 });
 
 test("všechny ukázkové hry projdou kontrolou návrhu bez chyb", () => {
-  for (const make of [A.exampleWar, A.exampleTrade, A.exampleAlchemy, A.exampleTricks, A.exampleTiles, A.exampleRace, A.exampleIsland, A.exampleCrypt, A.examplePatrol]) {
+  for (const make of [A.exampleWar, A.exampleTrade, A.exampleAlchemy, A.exampleTricks, A.exampleTiles, A.exampleRace, A.exampleIsland, A.exampleCrypt, A.examplePatrol, A.exampleHansa]) {
     const p = make(); const errs = A.lintProject(p).filter(x => x.lv === "err");
     assert.deepEqual(errs.map(e => e.t), [], p.name);
   }
@@ -327,4 +327,31 @@ test("vyčerpání karet, příjem z vyložených karet a rozsévání", () => {
   p.mancala = { on: true, pits: 6, seeds: 4, capture: true, extra: true }; A.mancalaInit(p, t);
   const r = A.mancalaSow(p, t, 0, 2); assert.equal(r.again, true, "4 semínka z 3. jamky končí ve skladu"); assert.equal(t.mancala.store[0], 1);
   assert.equal(t.mancala.pits.reduce((a, b) => a + b, 0) + t.mancala.store[0] + t.mancala.store[1], 48, "semínka se neztrácí");
+});
+
+test("síť míst: pohyb po cestách, ceny, vlastnictví a body", () => {
+  const p = A.exampleHansa(); const S = A.__S(); S.projects = [p]; S.currentId = p.id; const sc = p.scenarios[0];
+  p.table = null; const t = A.ensureTable(p); t.netId = sc.netId; t.items = JSON.parse(JSON.stringify(sc.setup.items)); const net = A.tableNet(p);
+  const ship = t.items[0]; const [lub, ham, bre, ber, sto] = net.nodes; assert.equal(A.netNodeOf(p, t, ship), lub.id);
+  assert.deepEqual(A.netNeighbors(net, lub.id).map(x => x.id).sort(), [ham.id, sto.id, net.nodes[5].id].sort());
+  assert.equal(A.netCosts(net, lub.id)[ber.id], 3, "Lübeck → Hamburk → Bergen = 1 + 2");
+  A.netPlace(p, t, ship, bre.id); assert.ok(A.netMove(p, t, ship, lub.id), "Brémy za 2");
+  t.moved = {}; p.ruleset.strict = true; A.netPlace(p, t, ship, net.nodes[6].id); assert.equal(A.netMove(p, t, ship, bre.id), false, "Brémy → Riga stojí 4, loď má pohyb 3");
+  void sto;
+  t.control = { [lub.id]: p.factions[0].id }; assert.equal(A.netVp(p, t, p.factions[0].id), 1); assert.equal(A.scoreOf(p, t, p.factions[0].id).goals, 1);
+});
+test("síť míst: kostičky a ohniska se šíří řetězem", () => {
+  const p = A.exampleHansa(); p.netCubes = { on: true, max: 2, rate: 1, name: "Mor", color: "#c00" }; const S = A.__S(); S.projects = [p]; S.currentId = p.id;
+  p.table = null; const t = A.ensureTable(p); t.netId = p.nets[0].id; const net = A.tableNet(p); const [lub, ham] = net.nodes;
+  t.cubes = { [lub.id]: 2, [ham.id]: 2 }; A.addCubes(p, t, lub.id, 1);
+  assert.equal(t.outbreaks, 2, "Lübeck vybuchne a strhne Hamburk"); assert.equal(t.cubes[lub.id], 2, "ohnisko se do stejného místa nevrací"); assert.equal(t.cubes[net.nodes[2].id], 1, "Brémy od Hamburku");
+});
+test("rozvoz zboží: zakázka, naložení, kapacita a doručení", () => {
+  const p = A.exampleHansa(); p.contracts = [{ id: "c1", good: "Sůl", from: "Lübeck", to: "Hamburk", reward: "+3 Zlato", qty: 1 }, { id: "c2", good: "Ryby", from: "Lübeck", to: "Brémy", reward: "+2 Zlato", qty: 1 }]; p.deliver.open = 2;
+  const S = A.__S(); S.projects = [p]; S.currentId = p.id; p.table = null; const t = A.ensureTable(p); t.netId = p.nets[0].id; t.items = JSON.parse(JSON.stringify(p.scenarios[0].setup.items));
+  const ship = t.items[0]; const net = A.tableNet(p); A.dlStart(p, t);
+  assert.equal(t.dl.open.length, 2); assert.equal(t.goods["Lübeck"].length, 2); assert.equal(A.locName(p, t, ship), "Lübeck");
+  assert.ok(A.loadGood(p, t, ship, "Sůl")); assert.equal(A.deliverables(p, t, ship).length, 0, "v Lübecku se sůl nedoručuje");
+  A.netPlace(p, t, ship, net.nodes[1].id); assert.equal(A.deliverables(p, t, ship).length, 1);
+  assert.ok(A.deliverGood(p, t, ship, "c1")); assert.equal(t.res[p.factions[0].id].zlato, 3); assert.equal(ship.cargo.length, 0); assert.equal(t.dl.done, 1);
 });

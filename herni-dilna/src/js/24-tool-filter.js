@@ -24,6 +24,8 @@ function toolRelevant(p, k) {
     case "kod": return !!(p.code && p.code.on);
     case "lokace": return !!(p.cmap && p.cmap.on);
     case "rozsevani": return !!(p.mancala && p.mancala.on);
+    case "sit": return !!(p.table && p.table.netId && !p.table.boardId);
+    case "zakazky": return !!(p.deliver && p.deliver.on);
     default: return true;
   }
 }

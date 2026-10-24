@@ -292,3 +292,27 @@ function examplePatrol() {
     table: null,
   });
 }
+function exampleHansa() {
+  const blue = { id: uid(), name: "Modrá koga", color: "#3f6fb0" }, red = { id: uid(), name: "Červená koga", color: "#b0402c" };
+  const N = (name, x, y, vp = 0) => ({ id: uid(), name, x, y, vp });
+  const nodes = [N("Lübeck", 380, 430, 1), N("Hamburk", 250, 470), N("Brémy", 120, 420), N("Bergen", 140, 110), N("Stockholm", 600, 150, 1), N("Gdaňsk", 620, 440), N("Riga", 780, 300, 1)];
+  const L = (a, b, cost = 1) => ({ a: nodes[a].id, b: nodes[b].id, cost });
+  const net = { id: uid(), name: "Baltské moře", w: 900, h: 560, nodes, links: [L(0, 1), L(1, 2), L(2, 3, 2), L(0, 4, 2), L(0, 5), L(5, 6), L(4, 6), L(3, 4, 3), L(1, 3, 2)] };
+  const U = (name, f) => ({ id: uid(), name, factionId: f.id, symbol: "zasobovani", symText: "", size: "", att: "", def: "", mov: 3, rAtt: "", rDef: "", rMov: "", qty: 1, note: "", cap: 2 });
+  const units = [U("Koga", blue), U("Koga", red)];
+  const at = (u, n, k) => ({ uid: uid(), kind: "unit", unitId: u.id, x: Math.round(BX + n.x - 26 + k * 7), y: Math.round(BY + n.y - 26 - k * 7), reduced: false, rot: 0 });
+  const C = (good, from, to, reward, qty = 1) => ({ id: uid(), good, from, to, reward, qty });
+  return normalize({
+    id: uid(), isExample: true, updatedAt: Date.now(), name: "Hanzovní cesty", version: "0.1", players: "2", time: "30 min", age: "10+",
+    summary: "Obchodníci plují po Baltu mezi hanzovními městy a vozí zboží podle zakázek. Kdo první získá 12 zlatých, vyhrává.",
+    rules: "TAH\n1. Pluj lodí po cestách (pohyb 3, přerušovaná cesta stojí víc).\n2. V přístavu nalož zboží, které tam čeká, nebo doruč zboží podle zakázky.\n3. Loď uveze 2 zboží.\n\nKONEC\nKdo první získá 12 zlatých, vyhrává.",
+    changelog: [], factions: [blue, red], phases: ["Plavba", "Obchod"],
+    resources: [{ id: "zlato", name: "Zlato", color: "#c98a12", icon: "🪙", start: 0, income: 0, max: "", vp: true, global: false }],
+    units, nets: [net], deliver: { on: true, cap: 2, open: 3 },
+    contracts: [C("Sůl", "Lübeck", "Bergen", "+3 Zlato", 2), C("Ryby", "Bergen", "Hamburk", "+3 Zlato", 2), C("Kožešiny", "Riga", "Brémy", "+4 Zlato"), C("Dřevo", "Stockholm", "Lübeck", "+2 Zlato", 2),
+      C("Jantar", "Gdaňsk", "Hamburk", "+2 Zlato"), C("Sukno", "Brémy", "Riga", "+4 Zlato"), C("Vosk", "Riga", "Stockholm", "+2 Zlato"), C("Obilí", "Gdaňsk", "Bergen", "+4 Zlato")],
+    ruleset: Object.assign(defaultRules(), { moveRange: true, moveOnce: true, win: { vp: 12, turns: "", elimination: false } }),
+    scenarios: [{ id: uid(), name: "Jarní plavba", turns: 12, boardId: "", netId: net.id, desc: "Obě kogy kotví v Lübecku.", victory: "12 zlatých.", special: "", setup: { items: [at(units[0], nodes[0], 0), at(units[1], nodes[0], 1)], control: {} } }],
+    decks: [], table: null,
+  });
+}
