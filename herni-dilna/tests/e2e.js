@@ -128,6 +128,21 @@ const OUT = path.join(__dirname, "out"); fs.mkdirSync(OUT, { recursive: true });
     await pg.click("[data-tool=kod]"); await pg.click("#cdNew"); for (let i = 0; i < 4; i++) await pg.click("[data-cds]");
     await pg.click("#cdGo"); if ((await ev(() => P().table.code.guesses.length)) !== 1) throw new Error("pokus nevyhodnocen");
   });
+  await step("mapa z karet lokací: vyložení, pohyb a tah nepřátel", async () => {
+    await sel(8); await pg.click("[data-tab=stul]"); await pg.click("[data-tool=lokace]"); await pg.click("#cmBuild");
+    if ((await ev(() => P().table.cmap.cards.length)) !== 6) throw new Error("mapa nevyložena");
+    const uidH = await ev(() => P().table.items.find(i => isHero(P(), i)).uid);
+    const it = await pg.$(`.titem[data-uid="${uidH}"]`); const bb = await it.boundingBox(); const tgt = await ev(() => cmapBox(P(), 1));
+    const mat = await (await pg.$("#mat")).boundingBox(); await pg.mouse.move(bb.x + 20, bb.y + 20); await pg.mouse.down(); await pg.mouse.move(mat.x + tgt.x + 60, mat.y + tgt.y + 100, { steps: 8 }); await pg.mouse.up();
+    if ((await ev(() => cmapIndexOf(P(), P().table, P().table.items.find(i => i.uid === S.sel)))) !== 1) throw new Error("voják nepřešel na 2. kartu");
+    if (!(await ev(() => P().table.cmap.cards[1].rev))) throw new Error("lokace se neodhalila");
+    await pg.click("[data-tool=lokace]"); await pg.click("#cmMon"); await pg.screenshot({ path: path.join(OUT, "lokace.png") });
+  });
+  await step("rozsévání a přesýpací hodiny", async () => {
+    await ev(() => { const p = P(); p.mancala.on = true; touch(p); render(); }); await pg.click("[data-tool=rozsevani]"); await pg.click("#mcStart"); await pg.click(".pit:not([disabled])");
+    if (!/rozsévá/.test(await ev(() => P().table.log[0] + P().table.log[1]))) throw new Error("nerozsévá");
+    await pg.click("[data-tool=kolo]"); await pg.fill("#cdSec", "5"); await pg.click("#cdStart"); if (!(await ev(() => S.cdEnd))) throw new Error("odpočet neběží");
+  });
   await step("telefon – Přehled", async () => { await pg.setViewportSize({ width: 400, height: 820 }); await pg.click("[data-tab=prehled]"); await pg.screenshot({ path: path.join(OUT, "telefon.png") }); });
   await b.close();
   console.log(`\n${fails.length ? fails.length + " kroků selhalo:\n" + fails.join("\n") : "Všechny kroky prošly."}\n${errors.length ? "Chyby v konzoli:\n" + errors.join("\n") : "Bez chyb v konzoli."}`);

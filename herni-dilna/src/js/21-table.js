@@ -124,11 +124,11 @@ function clockMs(t) { const c = t.clock || {}; return (c.acc || 0) + (c.run ? Da
 function fmtClock(ms) { const s = Math.floor(ms / 1000); const h = Math.floor(s / 3600); return (h ? h + ":" : "") + pad2(Math.floor(s / 60) % 60) + ":" + pad2(s % 60); }
 onInit(() => setInterval(() => { const el = document.getElementById("clock"); const p = P(); if (el && p && p.table) el.textContent = fmtClock(clockMs(p.table)); }, 1000));
 
-const TOOLS = [["stul", "Komponenty"], ["kolo", "Kolo"], ["hraci", "Hráči"], ["trh", "Trh"], ["akce", "Akce"], ["ruce", "Ruce"], ["draft", "Draft"], ["styk", "Štych"], ["program", "Program"], ["drazba", "Dražba"], ["obchod", "Obchod"], ["sacek", "Sáček"], ["kostky", "Kostky"], ["dilky", "Dílky"], ["draha", "Dráha"], ["tajne", "Tajné"], ["boj", "Boj"], ["uzemi", "Území"], ["aktivace", "Aktivace"], ["rozvoj", "Rozvoj"], ["hromadka", "Hromádka"], ["riskuj", "Riskuj"], ["vyprava", "Výprava"], ["kameny", "Kameny"], ["kod", "Kód"]];
+const TOOLS = [["stul", "Komponenty"], ["kolo", "Kolo"], ["hraci", "Hráči"], ["trh", "Trh"], ["akce", "Akce"], ["ruce", "Ruce"], ["draft", "Draft"], ["styk", "Štych"], ["program", "Program"], ["drazba", "Dražba"], ["obchod", "Obchod"], ["sacek", "Sáček"], ["kostky", "Kostky"], ["dilky", "Dílky"], ["draha", "Dráha"], ["tajne", "Tajné"], ["boj", "Boj"], ["uzemi", "Území"], ["aktivace", "Aktivace"], ["rozvoj", "Rozvoj"], ["hromadka", "Hromádka"], ["riskuj", "Riskuj"], ["vyprava", "Výprava"], ["kameny", "Kameny"], ["kod", "Kód"], ["lokace", "Lokace"], ["rozsevani", "Rozsévání"]];
 function renderTable(main, p) {
   const t = ensureTable(p);
   const b = tableBoard(p); const g = b ? geo(b) : null;
-  S.matW = Math.max(1600, b ? Math.ceil(BX + g.W + 360) : 0); S.matH = Math.max(1100, b ? Math.ceil(BY + g.H + 220) : 0);
+  const cms = cmapMatSize(p, t); S.matW = Math.max(1600, b ? Math.ceil(BX + g.W + 360) : 0, cms[0]); S.matH = Math.max(1100, b ? Math.ceil(BY + g.H + 220) : 0, cms[1]);
   const keep = $(".mat-scroll") ? [$(".mat-scroll").scrollLeft, $(".mat-scroll").scrollTop] : null;
   const keepSide = $(".side") ? $(".side").scrollTop : 0;
   const selItem = t.items.find(i => i.uid === S.sel);
@@ -142,7 +142,7 @@ function renderTable(main, p) {
     <div class="mat-area">${zoomBarHTML(t)}<div class="mat-scroll"><div class="mat-sizer" style="width:${S.matW * zoomOf()}px;height:${S.matH * zoomOf()}px"><div class="mat ${S.ctrlMode && b ? "ctrlmode" : ""} ${S.inkMode ? "inkmode" : ""}" id="mat" style="width:${S.matW}px;height:${S.matH}px;transform:scale(${zoomOf()})">
       <div class="mat-ruler">${Array.from({ length: Math.ceil(S.matW / 100) }, (_, i) => `<span style="left:${i * 100}px">${i * 10}</span>`).join("")}</div>
       ${b ? `<div class="boardlayer" style="left:${BX}px;top:${BY}px">${boardSVG(p, b, t.control, { range, los, tiles: t.tilesPlaced, links: t.links, routeSel: S.routeSel, dark: crawlDarkSet(p, t), stones: t.stones })}</div>` : ""}
-      ${t.items.map(i => itemHTML(p, i)).join("")}${ghostsHTML(p, t)}${inkSVG(t, S.matW, S.matH)}
+      ${cmapHTML(p, t)}${t.items.map(i => itemHTML(p, i)).join("")}${ghostsHTML(p, t)}${inkSVG(t, S.matW, S.matH)}
     </div></div></div></div>
     <aside class="side">
       <div class="row spread"><button class="btn small" id="undo" ${S.undo.length ? "" : "disabled"}>↶ Zpět</button>${cp ? `<span class="fchip" style="cursor:default"><span class="dot" style="background:${cp.color};border-radius:50%"></span>${esc(cp.name)}</span>` : ""}</div>
@@ -150,7 +150,7 @@ function renderTable(main, p) {
       ${(p.ruleset.fog || p.factions.some(f => f.hidden)) && p.units.length ? `<label class="f" style="flex-direction:row;align-items:center;gap:8px">Pohled<select id="view"><option value="">Vidím vše (rozhodčí)</option>${p.factions.map(f => `<option value="${f.id}" ${S.view === f.id ? "selected" : ""}>${esc(f.name)}</option>`).join("")}</select></label>` : ""}
       ${selItem ? selBarHTML(p, selItem) : ""}
       ${toolsHTML(p)}
-      ${({ stul: sideComponents, kolo: sideTurn, hraci: sidePlayers, trh: sideMarket, akce: sideActions, ruce: sideHands, draft: sideDraft, styk: sideTrick, program: sideProgram, drazba: sideAuction, sacek: sideBag, kostky: sideDice, boj: sideCombat, uzemi: sideTerritory, dilky: sideTiles, draha: sideTrack, obchod: sideTrade, tajne: sideSecret, aktivace: sideActivation, rozvoj: sideDevelop, hromadka: sideShed, riskuj: sidePush, vyprava: sideCrawl, kameny: sideStones, kod: sideCode })[S.tool](p, t)}
+      ${({ stul: sideComponents, kolo: sideTurn, hraci: sidePlayers, trh: sideMarket, akce: sideActions, ruce: sideHands, draft: sideDraft, styk: sideTrick, program: sideProgram, drazba: sideAuction, sacek: sideBag, kostky: sideDice, boj: sideCombat, uzemi: sideTerritory, dilky: sideTiles, draha: sideTrack, obchod: sideTrade, tajne: sideSecret, aktivace: sideActivation, rozvoj: sideDevelop, hromadka: sideShed, riskuj: sidePush, vyprava: sideCrawl, kameny: sideStones, kod: sideCode, lokace: sideCmap, rozsevani: sideMancala })[S.tool](p, t)}
     </aside></div>`;
   S.justRolled = false;
   S.undoBase = JSON.stringify(p.table);
@@ -228,6 +228,7 @@ function sideTurn(p, t) {
     ${p.factions.length ? `<section><div class="eyebrow">Pořadí a tah</div>${fchipsHTML(p, t)}
       ${cp && cp.ability ? `<div class="selbar" style="border-color:${cp.color}"><span class="eyebrow">Schopnost · ${esc(cp.name)}</span><span>${esc(cp.ability)}</span></div>` : ""}
       <div class="row"><button class="btn small primary" id="nextPlayer">Ukončit tah</button><button class="btn small" id="ordRand">Náhodné pořadí</button>${p.resources.some(r => r.vp && !r.global) ? `<button class="btn small" id="ordScore">Nejméně bodů první</button>` : ""}${+p.track.length ? `<button class="btn small" id="ordTrack">Nejvíc vzadu na dráze</button>` : ""}<button class="btn small" id="ordReset">Výchozí</button></div></section>` : ""}
+    ${countdownHTML()}
     <section><div class="eyebrow">Stopky hry</div><div class="row spread"><span class="turnbig mono" id="clock">${fmtClock(clockMs(t))}</span>
       <span class="row"><button class="btn small ${t.clock.run ? "" : "primary"}" id="clockRun">${t.clock.run ? "Pauza" : "Start"}</button><button class="btn small" id="clockReset">Vynulovat</button></span></div>
       <button class="btn small" id="logGame">Zapsat odehranou hru…</button></section>
@@ -264,7 +265,7 @@ function sidePlayers(p, t) {
       <span class="mono hint">balíček ${(t.pdeck[f.id] || []).length} · odhoz ${(t.pdisc[f.id] || []).length} · ruka ${(t.hands[f.id] || []).length} · vyloženo ${tab.length}</span>
       <div class="row"><button class="btn small primary" data-own="1">Líznout 1</button><button class="btn small" data-own="5">Líznout 5</button><button class="btn small" id="cleanup">Úklid: ruka a vyložené do odhozu</button></div></section>` : ""}
     <section><div class="eyebrow">Vyložené karty (${tab.length})</div>
-      ${tab.length ? miniCards(p, tab, i => `<button class="btn small" data-tabhand="${i}">Do ruky</button><button class="btn small" data-tabdisc="${i}" aria-label="Odhodit">✕</button>`) : `<span class="hint">Karty vyložíš z ruky, z trhu nebo ze stolu.</span>`}</section>`;
+      ${tab.length ? miniCards(p, tab, i => `${tabCardBtns(p, t, f.id, i)}<button class="btn small" data-tabhand="${i}">Do ruky</button><button class="btn small" data-tabdisc="${i}" aria-label="Odhodit">✕</button>`) : `<span class="hint">Karty vyložíš z ruky, z trhu nebo ze stolu.</span>`}</section>`;
 }
 function sideMarket(p, t) {
   const ds = p.decks.filter(d => +d.market > 0);
@@ -682,7 +683,7 @@ function wireTable(main, p, t) {
   if (q("ctrlAuto")) q("ctrlAuto").onclick = () => { let n = 0; t.items.filter(i => i.kind === "unit").forEach(i => { const k = cellUnder(p, i); const u = p.units.find(x => x.id === i.unitId); if (k && u && u.factionId) { t.control[k] = u.factionId; n++; } }); save(); render(); toast(`Přiděleno ${n} ${plural(n, "pole", "pole", "polí")}`); };
   // vybraná položka
   const selItem = t.items.find(i => i.uid === S.sel);
-  wireExtra(main, p, t, save); wireR4(main, p, t, save); wireWar(main, p, t, save); wireIpad(main, p, t, save); wireOnline(main, p, t, save); wireMore(main, p, t, save); wireCrawl(main, p, t, save); wireLogic(main, p, t, save);
+  wireExtra(main, p, t, save); wireR4(main, p, t, save); wireWar(main, p, t, save); wireIpad(main, p, t, save); wireOnline(main, p, t, save); wireMore(main, p, t, save); wireCrawl(main, p, t, save); wireLogic(main, p, t, save); wireCmap(main, p, t, save); wireExtra2(main, p, t, save);
   const cardTo = (el, where) => { if (where === "tab" && !gate(p, t, "vylozit")) return; const i = selItem; t.items = t.items.filter(x => x !== i); const fid = el.dataset[where === "hand" ? "tohand" : "totab"]; const h = { deckId: i.deckId, cardId: i.cardId }; (where === "hand" ? (t.hands[fid] = t.hands[fid] || []) : (t.tableau[fid] = t.tableau[fid] || [])).push(h); if (where === "tab") { const c = cardOf(p, h).c; logEv(t, `${p.factions.find(f => f.id === fid).name} vykládá ${c.title}`); if (c.effect) runEffects(p, t, fid, c.effect, c.title); after(p, t, "vylozit", fid, c.type); } S.sel = null; save(); render(); };
   on("[data-tohand]", el => cardTo(el, "hand")); on("[data-totab]", el => cardTo(el, "tab"));
   on("[data-sa]", el => {
@@ -737,6 +738,7 @@ function wireTable(main, p, t) {
     const it = t.items.find(i => i.uid === el.dataset.uid); if (!it) return;
     el.setPointerCapture(e.pointerId);
     const sx = e.clientX, sy = e.clientY, ox = it.x, oy = it.y; let moved = false;
+    const cmFrom = it.kind === "unit" ? cmapIndexOf(p, t, it) : null;
     const origin = it.kind === "unit" ? cellUnder(p, it) : null; const originRange = origin && p.ruleset.moveRange ? computeRange(p, t, it) : null;
     el.style.zIndex = 999;
     const move = ev => {
@@ -766,6 +768,7 @@ function wireTable(main, p, t) {
             after(p, t, "pohyb", u.factionId, ter ? ter.name : ""); crawlOnMove(p, t, it, k);
           }
         }
+        if (it.kind === "unit" && cmapOn(p, t) && !b && !cmapMove(p, t, it, cmFrom)) { it.x = ox; it.y = oy; render(); return; }
         S.sel = it.uid; save(); render(); return;
       }
       const now = Date.now(); const lt = S.lastTap || {};

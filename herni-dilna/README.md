@@ -35,6 +35,8 @@ src/js/NN-*.js       moduly; sestavují se v pořadí čísel
   39-ui              skupiny nástrojů na stole, navigace po dlouhých stránkách
   40-crawler         dungeon crawler: životy, hrdinové a příšery, automat příšer, místnosti, stavy, XP, poklady, hrozba
   41-logic           kameny na mapě (řada, sevření, otáčení, gravitace, propojení okrajů), lámání kódu
+  42-cardmap         mapa z karet lokací (řada nebo mřížka), pohyb za akce, krytí, odhalování, nepřátelé, cíl
+  43-extra           vyčerpání karet, příjem z vyložených karet, přesýpací hodiny, rozsévání (mancala)
   99-main            spuštění
 tests/harness.js     načte moduly do Node bez prohlížeče
 tests/*.test.js      testy herní logiky

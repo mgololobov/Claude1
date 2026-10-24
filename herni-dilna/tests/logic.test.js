@@ -121,7 +121,7 @@ test("obnova poškozených pravidel z verze 4", () => {
 });
 
 test("všechny ukázkové hry projdou kontrolou návrhu bez chyb", () => {
-  for (const make of [A.exampleWar, A.exampleTrade, A.exampleAlchemy, A.exampleTricks, A.exampleTiles, A.exampleRace, A.exampleIsland, A.exampleCrypt]) {
+  for (const make of [A.exampleWar, A.exampleTrade, A.exampleAlchemy, A.exampleTricks, A.exampleTiles, A.exampleRace, A.exampleIsland, A.exampleCrypt, A.examplePatrol]) {
     const p = make(); const errs = A.lintProject(p).filter(x => x.lv === "err");
     assert.deepEqual(errs.map(e => e.t), [], p.name);
   }
@@ -301,4 +301,30 @@ test("lámání kódu: černé a bílé kolíky", () => {
   assert.deepEqual(A.scoreGuess(["a", "b", "c", "d"], ["a", "c", "b", "x"]), { black: 1, white: 2 });
   assert.deepEqual(A.scoreGuess(["a", "a", "b", "b"], ["a", "b", "a", "a"]), { black: 1, white: 2 });
   const p = A.normalize({ id: "x", name: "K", decks: [], code: { len: 5, symbols: "1,2,3", dup: true } }); assert.equal(A.newCode(p).length, 5);
+});
+
+test("mapa z karet: řada, pohyb za akce, odhalení, nepřátelé a cíl", () => {
+  const p = A.examplePatrol(); const S = A.__S(); S.projects = [p]; S.currentId = p.id; const t = A.ensureTable(p);
+  const sg = p.units[0]; const h = { uid: "h", kind: "unit", unitId: sg.id, x: 0, y: 0, reduced: false, rot: 0 }; t.items.push(h);
+  assert.equal(A.buildCmap(p, t), ""); assert.equal(t.cmap.cards.length, 6); assert.equal(A.cmapCard(p, t, 5).title, "Radiostanice", "cíl je poslední");
+  assert.equal(A.cmapIndexOf(p, t, h), 0, "voják stojí na startu");
+  const box = A.cmapBox(p, 1); h.x = box.x + 20; h.y = box.y + 80; const cost = parseInt(A.cmapCard(p, t, 1).move, 10) || 1;
+  assert.ok(A.cmapMove(p, t, h, 0)); assert.equal(t.res[sg.factionId].akce, 3 - cost); assert.ok(t.cmap.cards[1].rev);
+  const spawned = t.items.filter(i => A.isMonster(p, i)).length; assert.equal(spawned, +A.cmapCard(p, t, 1).spawn || 0);
+  const far = A.cmapBox(p, 4); h.x = far.x + 20; h.y = far.y + 80; p.ruleset.strict = true; assert.equal(A.cmapMove(p, t, h, 1), false, "nesousední karta");
+  t.res[sg.factionId].akce = 9; const end = A.cmapBox(p, 5); h.x = end.x + 20; h.y = end.y + 80; p.ruleset.strict = false; A.cmapMove(p, t, h, 4); assert.match(t.winner.why, /Radiostanice/);
+});
+test("mapa z karet: mřížka a vzdálenosti", () => {
+  const p = A.examplePatrol(); p.cmap.layout = "grid"; p.cmap.cols = 3; p.cmap.rows = 2;
+  assert.deepEqual(A.cmapCell(p, 4), [1, 1]); assert.equal(A.cmapDist(p, 0, 4), 2); p.cmap.diag = true; assert.equal(A.cmapDist(p, 0, 4), 1);
+  p.cmap.layout = "row"; p.cmap.perRow = 3; assert.deepEqual(A.cmapCell(p, 3), [2, 1], "řada se láme hadovitě"); assert.equal(A.cmapDist(p, 2, 3), 1);
+  const S = A.__S(); S.projects = [p]; S.currentId = p.id; const t = A.ensureTable(p); p.cmap.layout = "grid"; assert.equal(A.buildCmap(p, t), ""); assert.equal(t.cmap.cards.length, 6);
+});
+test("vyčerpání karet, příjem z vyložených karet a rozsévání", () => {
+  const { p, t, res } = game(); p.decks[0].cards[0].income = "+1 Mince"; p.decks[0].cards[0].act = "+2 Mince";
+  t.tableau.anna = [{ deckId: "d", cardId: "c1" }]; A.newRound(p, t); assert.equal(res("anna"), 3 + 1, "příjem z vyložené karty");
+  assert.ok(A.useCard(p, t, "anna", 0)); assert.equal(res("anna"), 6); assert.equal(A.useCard(p, t, "anna", 0), false, "vyčerpanou nejde použít"); A.newRound(p, t); assert.ok(!t.tableau.anna[0].ex);
+  p.mancala = { on: true, pits: 6, seeds: 4, capture: true, extra: true }; A.mancalaInit(p, t);
+  const r = A.mancalaSow(p, t, 0, 2); assert.equal(r.again, true, "4 semínka z 3. jamky končí ve skladu"); assert.equal(t.mancala.store[0], 1);
+  assert.equal(t.mancala.pits.reduce((a, b) => a + b, 0) + t.mancala.store[0] + t.mancala.store[1], 48, "semínka se neztrácí");
 });

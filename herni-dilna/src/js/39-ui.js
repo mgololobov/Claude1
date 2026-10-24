@@ -4,12 +4,13 @@ const TOOL_GROUPS = [
   ["Karty", ["trh", "draft", "styk", "program", "hromadka", "riskuj", "tajne"]],
   ["Náhoda", ["kostky", "sacek"]],
   ["Ekonomika", ["akce", "obchod", "drazba", "rozvoj", "draha"]],
-  ["Mapa a boj", ["boj", "uzemi", "dilky", "aktivace", "vyprava", "kameny"]],
-  ["Logika", ["kod"]],
+  ["Mapa a boj", ["boj", "uzemi", "dilky", "aktivace", "vyprava", "lokace"]],
+  ["Logika", ["kameny", "kod", "rozsevani"]],
 ];
 function toolsHTML(p) {
   const label = k => (TOOLS.find(x => x[0] === k) || [])[1]; const show = k => label(k) && (S.allTools || toolRelevant(p, k) || S.tool === k);
-  const groups = TOOL_GROUPS.map(([g, ks]) => [g, ks.filter(show)]).filter(([, ks]) => ks.length);
+  const grouped = TOOL_GROUPS.flatMap(([, ks]) => ks);
+  const groups = [...TOOL_GROUPS, ["Další", TOOLS.map(x => x[0]).filter(k => !grouped.includes(k))]].map(([g, ks]) => [g, ks.filter(show)]).filter(([, ks]) => ks.length);
   const hidden = TOOLS.some(([k]) => !toolRelevant(p, k));
   return `<div class="toolgroups" role="toolbar" aria-label="Nástroje stolu">${groups.map(([g, ks]) => `<div class="toolgroup"><span class="tg-label">${g}</span><div class="tools">${ks.map(k => `<button data-tool="${k}" aria-pressed="${S.tool === k}">${label(k)}</button>`).join("")}</div></div>`).join("")}
     ${hidden ? `<button class="btn small tg-more" data-alltools aria-pressed="${!!S.allTools}" title="Nástroje, které tato hra zatím nepoužívá">${S.allTools ? "Jen nástroje této hry" : "Všechny nástroje…"}</button>` : ""}</div>`;

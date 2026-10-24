@@ -6,7 +6,8 @@ function normalizeCrawl(p) {
 function unitHp(p, i) { const u = unitOf(p, i); return u && +u.hp ? Math.max(0, +u.hp + crawlLevel(p, i) - 1 - (i.dmg || 0)) : null; }
 function unitMaxHp(p, i) { const u = unitOf(p, i); return u && +u.hp ? +u.hp + crawlLevel(p, i) - 1 : null; }
 function crawlLevel(p, i) { return 1 + Math.floor((i.xp || 0) / Math.max(1, +p.crawl.levelXp || 5)); }
-const isHero = (p, i) => (unitOf(p, i) || {}).kind === "hero", isMonster = (p, i) => (unitOf(p, i) || {}).kind === "monster";
+function isHero(p, i) { return (unitOf(p, i) || {}).kind === "hero"; }
+function isMonster(p, i) { return (unitOf(p, i) || {}).kind === "monster"; }
 function hpBadge(p, i) { const hp = unitHp(p, i); if (hp == null) return ""; const mx = unitMaxHp(p, i);
   return `<span class="hpb" title="Životy ${hp} z ${mx}"><span style="width:${Math.round(hp / mx * 100)}%"></span><b>♥${hp}</b>${isHero(p, i) ? `<i>${crawlLevel(p, i)}</i>` : ""}</span>`; }
 // Zranění: v nule jednotka padne, hrdina za zabitou příšeru dostane zkušenosti.
@@ -21,12 +22,14 @@ function damage(p, t, it, n, by) {
 // Útok: útočník hází tolik kostek, kolik má útok, obránce tolik, kolik má obranu; zranění = zásahy − bloky.
 function crawlAttack(p, t, a, d) {
   const ua = unitOf(p, a), ud = unitOf(p, d); const s = +p.dice.sides || 6;
-  const ad = Array.from({ length: Math.max(0, unitAttack(p, t, a)) }, () => rnd(s)), dd = Array.from({ length: Math.max(0, +(d.reduced ? ud.rDef : ud.def) || 0) }, () => rnd(s));
+  const ad = Array.from({ length: Math.max(0, unitAttack(p, t, a)) }, () => rnd(s)), dd = Array.from({ length: Math.max(0, (+(d.reduced ? ud.rDef : ud.def) || 0) + coverOf(p, t, d)) }, () => rnd(s));
   const hits = ad.filter(v => v >= p.dice.aHit).length, blocks = dd.filter(v => v >= p.dice.dHit).length; const dmg = Math.max(0, hits - blocks);
   const res = `${ua.name} útočí na ${ud.name}: ${ad.join(",") || "–"} proti ${dd.join(",") || "–"} → ${dmg} ${plural(dmg, "zranění", "zranění", "zranění")}`;
   const after2 = dmg ? damage(p, t, d, dmg, a) : ""; logEv(t, res + (after2 ? "; " + after2 : "")); return res + (after2 ? ". " + after2 : "");
 }
 function targetsOf(p, t, it) {
+  if (cmapOn(p, t)) { const i0 = cmapIndexOf(p, t, it); const u0 = unitOf(p, it); if (i0 == null || !u0) return []; const reach = Math.max(0, +u0.range || 0);
+    return t.items.filter(o => o.kind === "unit" && o !== it && (unitOf(p, o) || {}).factionId !== u0.factionId && cmapDist(p, i0, cmapIndexOf(p, t, o)) <= reach).sort((x, y) => (unitHp(p, x) ?? 99) - (unitHp(p, y) ?? 99)); }
   const b = tableBoard(p); const k = cellUnder(p, it); const u = unitOf(p, it); if (!b || !k || !u) return [];
   const reach = Math.max(1, +u.range || 1);
   return t.items.filter(o => o.kind === "unit" && o !== it && (unitOf(p, o) || {}).factionId !== u.factionId && cellUnder(p, o) && hexDist(b, k, cellUnder(p, o)) <= reach && (reach === 1 || hasLOS(p, b, k, cellUnder(p, o))))
@@ -34,6 +37,7 @@ function targetsOf(p, t, it) {
 }
 // Automat příšer: každá příšera jde k nejbližšímu hrdinovi a zaútočí, když dosáhne.
 function monsterTurn(p, t) {
+  if (cmapOn(p, t)) return cmapMonsterTurn(p, t);
   const b = tableBoard(p); if (!b) return ["Tah příšer potřebuje mapu"]; const out = []; const dark = crawlDarkSet(p, t);
   t.items.filter(i => isMonster(p, i)).forEach(m => {
     if (!t.items.includes(m)) return; const km = cellUnder(p, m); if (!km || dark.has(km)) return; if (m.st && m.st.stun) { m.st.stun = false; out.push(`${unitOf(p, m).name} je omráčená`); return; }

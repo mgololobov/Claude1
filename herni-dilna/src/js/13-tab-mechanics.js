@@ -118,7 +118,7 @@ function renderMechanics(main, p) {
           <p class="hint">Dosah pohybu na stole počítá s cenou terénu (Mapa) a pohybem jednotky. Terén s pohybem „–“ je neprůchodný.</p>
         </div>
       </div>
-    </div>${moreMechHTML(p)}<div class="two">${crawlMechHTML(p)}${logicMechHTML(p)}</div></div>`;
+    </div>${moreMechHTML(p)}<div class="two">${crawlMechHTML(p)}${logicMechHTML(p)}</div><div class="two">${cmapMechHTML(p)}${extraMechHTML(p)}</div></div>`;
   wireBanner(main);
   const F = id => p.factions.find(f => f.id === id);
   $("#addF").onclick = () => { p.factions.push({ id: uid(), name: "Strana " + (p.factions.length + 1), color: COLORS[p.factions.length % COLORS.length], ability: "" }); touch(p); render(); };
@@ -188,5 +188,5 @@ function renderMechanics(main, p) {
   $("#roles").addEventListener("input", e => { p.roles = e.target.value; touch(p); });
   $("#bluffPen").addEventListener("input", e => { p.bluffPenalty = e.target.value; touch(p); });
   $("#prodMode").onchange = e => { p.production.mode = e.target.value; touch(p); };
-  wireMoreMech(main, p); wireCrawlMech(main, p); wireLogicMech(main, p);
+  wireMoreMech(main, p); wireCrawlMech(main, p); wireLogicMech(main, p); wireCmapMech(main, p); wireExtraMech(main, p);
 }

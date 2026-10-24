@@ -271,3 +271,24 @@ function exampleCrypt() {
     decks: [{ id: "poklady", name: "Poklady", color: "#c98a12", back: "POKLAD", market: 0, cards: [c("Lektvar", "Vyléčí 2 životy (ručně na stole).", "", 2), c("Zlaťáky", "Získáš 2 zlata.", "+2 Zlato", 3), c("Svitek", "Hrozba klesne o 1 (ručně).", "", 1)] }],
   });
 }
+function examplePatrol() {
+  const sq = { id: uid(), name: "Četa", color: "#556b3a" }, en = { id: uid(), name: "Nepřítel", color: "#8a3a2c" };
+  const U = (name, f, symbol, a, d, m, extra) => ({ id: uid(), name, factionId: f.id, symbol, symText: "", size: "", att: a, def: d, mov: m, rAtt: "", rDef: "", rMov: "", qty: 1, note: "", ...extra });
+  const units = [U("Seržant", sq, "pechota", 3, 2, 1, { kind: "hero", hp: 5, range: 1 }), U("Kulometčík", sq, "pechota", 4, 1, 1, { kind: "hero", hp: 4, range: 1 }), U("Odstřelovač", sq, "jezdectvo", 3, 1, 1, { kind: "hero", hp: 3, range: 2 }),
+    U("Hlídka", en, "pechota", 2, 1, 1, { kind: "monster", hp: 2, xp: 1, range: 0 }), U("Kulometné hnízdo", en, "delo", 3, 2, 0, { kind: "monster", hp: 3, xp: 2, range: 1 })];
+  const L = (title, text, move, cover, spawn, qty, type = "Lokace") => ({ id: uid(), title, type, cost: "", text, qty, suit: "", value: "", vp: "", icon: "", effect: "", move, cover, spawn });
+  return normalize({
+    id: uid(), isExample: true, updatedAt: Date.now(), name: "Hlídka", version: "0.1", players: "1–2", time: "30 min", age: "12+",
+    summary: "Kooperativní taktická hra ve stylu Warfighteru. Četa postupuje po kartách lokací k radiostanici. Každá nová lokace může skrývat nepřítele.",
+    rules: "TAH\n1. Každý voják má na začátku tahu 3 akce.\n2. Pohyb na sousední lokaci stojí akce podle karty, útok stojí 1 akci (odečti ručně).\n3. Konec tahu – tlačítko Tah nepřátel v nástroji Lokace.\n\nCÍL\nDojít na kartu Radiostanice.",
+    changelog: [], factions: [sq, en], phases: ["Četa", "Nepřítel"],
+    resources: [{ id: "akce", name: "Akce", color: "#3f6fb0", icon: "⚡", start: 3, income: 0, max: 6, vp: false, global: false }],
+    units, dice: { sides: 6, aHit: 4, dHit: 5 }, crawl: { rooms: false, lootDeck: "", levelXp: 3, doom: "" },
+    cmap: { on: true, deckId: "lok", layout: "row", length: 6, perRow: 6, apRes: "akce", winOnReach: true, enemyMove: true },
+    ruleset: Object.assign(defaultRules(), { win: { vp: "", turns: "", elimination: false }, triggers: [{ id: uid(), on: "tah", param: "", cond: "", effect: "nastav Akce 3" }] }),
+    decks: [{ id: "lok", name: "Lokace", color: "#556b3a", back: "LOKACE", market: 0, cards: [
+      L("Lesík", "Stromy dávají krytí.", 1, 1, 1, 2), L("Otevřené pole", "Rychlý postup bez krytí.", 1, 0, 0, 2), L("Vesnice", "Domy plné nepřátel.", 1, 2, 2, 1),
+      L("Bažina", "Pomalý postup.", 2, 0, 1, 1), L("Most", "Úzké místo.", 1, 0, 1, 1), L("Radiostanice", "Cíl mise.", 1, 1, 2, 1, "Cíl")] }],
+    table: null,
+  });
+}
