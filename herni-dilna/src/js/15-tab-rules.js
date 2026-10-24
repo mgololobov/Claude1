@@ -27,6 +27,7 @@ function renderRules(main, p) {
         <h3>Konec hry</h3>
         <div class="grid" style="grid-template-columns:1fr 1fr"><label class="f">Vyhrává, kdo dosáhne bodů<input type="number" data-rw="vp" value="${esc(R.win.vp)}" placeholder="–"></label>
         <label class="f">Hra končí po kole (bez scénáře)<input type="number" data-rw="turns" value="${esc(R.win.turns)}" placeholder="–"></label></div>
+        <label class="chk"><input type="checkbox" data-rwb="finishRound" ${R.win.finishRound ? "checked" : ""}> Po dosažení bodů se dohraje kolo (všichni mají stejně tahů)</label>
         <label class="chk"><input type="checkbox" data-rwb="elimination" ${R.win.elimination ? "checked" : ""}> Vyhrává strana, které jako jediné zůstanou jednotky</label>
         <p class="hint">Cíl dráhy a správné obvinění v dedukci ukončí hru samy. Scénář může mít vlastní cíl (záložka Scénáře).</p>
       </div>

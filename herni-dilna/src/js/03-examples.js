@@ -4,10 +4,11 @@ function exampleTrade() {
   const c = (title, type, cost, text, qty) => ({ id: uid(), title, type, cost, text, qty });
   return normalize({
     id: uid(), isExample: true, updatedAt: Date.now(),
-    name: "Přístavní kupci", version: "0.3", players: "2–4", time: "40 min", age: "10+",
+    name: "Přístavní kupci", version: "0.4", players: "2–4", time: "40 min", age: "10+",
     summary: "Hráči jsou kupci v hanzovním přístavu. Výběrem akcí nakupují zboží, plní zakázky lodí a stavějí sklady. Vyhrává ten, kdo jako první získá 15 bodů.",
-    rules: "PŘÍPRAVA\n1. Draftem si každý vybere 3 karty Zboží do začátku.\n2. Každý hráč dostane 3 mince a 2 kupce.\n3. Otočte 2 karty Zakázek.\n\nKOLO\n1. Výběr akcí – hráči po směru hodin pokládají kupce na volná pole akcí.\n2. Provedení akcí – akce se vyhodnotí shora dolů.\n3. Úklid – kupci se vrátí, první hráč se posune.\n\nKONEC HRY\nHra končí, jakmile někdo dosáhne 15 bodů. Dohraje se kolo.",
+    rules: "PŘÍPRAVA\n1. Draftem si každý vybere 3 karty Zboží do začátku.\n2. Každý hráč dostane 3 mince a 2 kupce.\n3. Otočte 2 karty Zakázek.\n\nKOLO\n1. Výběr akcí – hráči po směru hodin pokládají kupce na volná pole akcí.\n2. Provedení akcí – akce se vyhodnotí shora dolů.\n3. Úklid – kupci se vrátí. Kdo vzal Radnici, začíná příští kolo, jinak se první hráč posune.\n\nKONEC HRY\nHra končí, jakmile někdo dosáhne 15 bodů. Dohraje se kolo.",
     changelog: [
+      { id: uid(), ver: "0.4", date: "2026-10-24", note: "Radnice už nedává 2 mince – simulace ukázala, že kdo ji vzal, zůstal prvním hráčem celou hru a vyhrál přes 70 % her." },
       { id: uid(), ver: "0.3", date: "2026-10-12", note: "Loděnice zdražena ze 3 na 4 mince, první hráč měl moc velkou výhodu." },
       { id: uid(), ver: "0.2", date: "2026-10-01", note: "Volné akce nahrazeny výběrem akcí s omezeným počtem míst." },
     ],
@@ -15,12 +16,12 @@ function exampleTrade() {
     phases: ["Výběr akcí", "Provedení akcí", "Úklid"],
     resources: [{ id: "mince", name: "Mince", color: "#c98a12", start: 3, income: 1, max: "", vp: false, global: false }, { id: "body", name: "Body", color: "#2f7a45", start: 0, income: 0, max: "", vp: true, global: false }],
     marketCur: "mince", scoring: { field: "type", table: "0,2,5,9", trick: 0 },
-    ruleset: Object.assign(defaultRules(), { autoIncome: true, win: { vp: 15, turns: "", elimination: false } }),
+    ruleset: Object.assign(defaultRules(), { autoIncome: true, win: { vp: 15, turns: "", elimination: false, finishRound: true } }),
     actions: [
       { id: uid(), name: "Trh", text: "Kup 1 kartu Zboží za její cenu.", slots: 2 },
       { id: uid(), name: "Přístav", text: "Splň 1 zakázku a získej body.", slots: 1, effect: "líznout 1 z Zakázky" },
       { id: uid(), name: "Loděnice", text: "Zaplať 4 mince, postav sklad (3 body).", slots: 1, effect: "zaplať 4 Mince: +3 Body" },
-      { id: uid(), name: "Radnice", text: "Vezmi 2 mince a staň se prvním hráčem.", slots: 1, effect: "+2 Mince" },
+      { id: uid(), name: "Radnice", text: "Staň se prvním hráčem v příštím kole.", slots: 1, effect: "první hráč" },
     ],
     decks: [
       { id: d1, name: "Zboží", color: "#3f6fb0", back: "ZBOŽÍ", market: 4, cards: [

@@ -16,6 +16,7 @@ function describeEffect(text) {
     if ((m = c.match(/^odhodit\s+(\d+)$/i))) return `odhoď náhodně ${m[1]} ${plural(+m[1], "kartu", "karty", "karet")}`;
     if ((m = c.match(/^(?:zpráva|oznámení)\s+(.+)$/i))) return `„${m[1]}“`;
     if (/^(vítěz|vyhrává|konec hry)$/i.test(c)) return "vyhráváš";
+    if (/^(první hráč|začínáš)$/i.test(c)) return "příští kolo začínáš";
     return c; };
   body.split(/[;\n]/).map(s => s.trim()).filter(Boolean).forEach(c => parts.push(one(c)));
   const s = (once ? parts.shift() + " " : "") + parts.join("; "); return s.charAt(0).toUpperCase() + s.slice(1) + ".";

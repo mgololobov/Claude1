@@ -34,7 +34,7 @@ function condOk(p, t, fid, cond) {
 }
 // Jazyk efektů. Příkazy se oddělují středníkem nebo novým řádkem, uvnitř volby a podmínky čárkou.
 //   +2 Mince · všichni +1 Zlato · ostatní -1 Body · soupeř -1 Body · líznout 1 [z Balíček] · táhnout 1 z Sáček
-//   posun +2 · odhodit 1 · událost z Balíček · zpráva Text · vítěz
+//   posun +2 · odhodit 1 · událost z Balíček · zpráva Text · vítěz · první hráč
 //   vyber: +2 Mince | líznout 1 · pokud Mince >= 3: +1 Body · zaplať 2 Mince: +1 Body, líznout 1
 //   na začátku: jednou za kolo: … / jednou za tah: … / jednou za hru: …
 // ctx.auto = volby a cíle rozhodne počítač (simulace, testy); jinak čekají v t.pending na hráče.
@@ -111,6 +111,7 @@ function execCmd(p, t, fid, cmd, src, depth, ctx, out) {
     const h = t.hands[fid] || []; let k = 0; for (let i = 0; i < +m[1] && h.length; i++) { discardCard(t, h.splice(Math.floor(Math.random() * h.length), 1)[0], fid); k++; } out.push(`odhozeno náhodně ${k}`); return;
   }
   if ((m = cmd.match(/^(?:zpráva|oznámení)\s+(.+)$/i))) { out.push(m[1]); if (!ctx) toast(m[1]); return; }
+  if (/^(první hráč|začínáš)$/i.test(cmd)) { t.firstNext = fid; const f = p.factions.find(x => x.id === fid); out.push(`${f ? f.name : ""} začíná příští kolo`); return; }
   if (/^(vítěz|vyhrává|konec hry)$/i.test(cmd)) { declareWinner(p, t, fid, src || "efekt"); out.push("konec hry"); return; }
   out.push(`nerozumím „${cmd}“`);
 }
@@ -126,7 +127,7 @@ function fireTriggers(p, t, on, fid, param) {
 function declareWinner(p, t, fid, why) { if (t.winner) return; const f = p.factions.find(x => x.id === fid); t.winner = { fid, why }; logEv(t, `🏆 Vítěz: ${f ? f.name : "?"} (${why})`); toast(`Vítěz: ${f ? f.name : "?"}`); }
 function checkWin(p, t) {
   if (t.winner) return; const W = p.ruleset.win; const pl = players(p, t);
-  if (+W.vp) { const top = pl.map(f => ({ f, s: scoreOf(p, t, f.id).total })).filter(x => x.s >= +W.vp).sort((a, b) => b.s - a.s)[0]; if (top) return declareWinner(p, t, top.f.id, `dosáhl ${W.vp} bodů`); }
+  if (+W.vp) { const top = pl.map(f => ({ f, s: scoreOf(p, t, f.id).total })).filter(x => x.s >= +W.vp).sort((a, b) => b.s - a.s)[0]; if (top) { if (!W.finishRound) return declareWinner(p, t, top.f.id, `dosáhl ${W.vp} bodů`); if (!t.lastRound) { t.lastRound = true; logEv(t, `${top.f.name} má ${W.vp} bodů – dohrává se kolo`); toast("Poslední kolo – dohraje se do konce"); } } }
   if (W.elimination && p.units.length) { const alive = new Set(t.items.filter(i => i.kind === "unit").map(i => (p.units.find(u => u.id === i.unitId) || {}).factionId).filter(Boolean)); if (t.items.some(i => i.kind === "unit") && alive.size === 1) return declareWinner(p, t, [...alive][0], "soupeř nemá žádné jednotky"); }
   if (+p.track.length && pl.length) { const f = pl.find(x => (t.trackPos[x.id] || 0) >= +p.track.length); if (f) return declareWinner(p, t, f.id, "první v cíli dráhy"); }
 }
@@ -143,7 +144,14 @@ function endGameByTurns(p, t) {
   const top = players(p, t).map(f => ({ f, s: scoreOf(p, t, f.id).total })).sort((a, b) => b.s - a.s)[0];
   if (top) declareWinner(p, t, top.f.id, `nejvíc bodů po ${limit}. kole`);
 }
+// Dohrání kola: po bodovém cíli se kolo dokončí a vyhrává nejvíc bodů (při shodě remíza).
+function finishLastRound(p, t) {
+  if (!t.lastRound || t.winner) return false; const sc = players(p, t).map(f => ({ f, s: scoreOf(p, t, f.id).total })); const mx = Math.max(...sc.map(x => x.s)); const top = sc.filter(x => x.s === mx);
+  declareWinner(p, t, top[0].f.id, top.length > 1 ? `remíza ${top.map(x => x.f.name).join(" a ")} (${mx} bodů)` : `nejvíc bodů po dohrání kola (${mx})`); if (top.length > 1) t.winner.tie = top.map(x => x.f.id); return true;
+}
 function newRound(p, t) {
+  if (finishLastRound(p, t)) return;
+  if (t.firstNext) { const ids = players(p, t).map(f => f.id); const i = ids.indexOf(t.firstNext); if (i > 0) t.order = [...ids.slice(i), ...ids.slice(0, i)]; t.curF = 0; t.firstNext = null; }
   t.turn++; t.phaseIdx = 0; t.acts = 0; t.moved = {};
   if (p.ruleset.autoIncome) p.resources.forEach(r => { if (!+r.income) return; (r.global ? ["_g"] : p.factions.map(f => f.id)).forEach(o => { t.res[o] = t.res[o] || {}; t.res[o][r.id] = Math.max(0, Math.min(resMax(r), (t.res[o][r.id] || 0) + +r.income)); }); });
   logEv(t, `začíná ${t.turn}. kolo`);

@@ -196,3 +196,22 @@ test("ladění parametrů a kolo rozhodnutí", () => {
   const g = A.simGame(p, { rounds: 10, policy: "lookahead", actions: 2 }); assert.ok(g.hist.length >= 1);
   const w = A.exampleWar(); S.projects = [w]; S.currentId = w.id; const wg = A.simGame(w, { rounds: 8, policy: "greedy", actions: 1 }); assert.ok(wg.rounds >= 1);
 });
+test("první hráč a dohrání kola", () => {
+  const { p, t } = game(3); A.runEffects(p, t, "cyril", "první hráč", "Radnice", 0, { auto: true });
+  A.newRound(p, t); assert.equal(A.curPlayer(p, t).id, "cyril", "Cyril začíná další kolo");
+  p.ruleset.win.vp = 3; p.ruleset.win.finishRound = true; t.res.anna.b = 3; A.checkWin(p, t);
+  assert.ok(!t.winner && t.lastRound, "s dohráním kola se ještě nevyhrává");
+  t.res.bert.b = 3; A.newRound(p, t); assert.ok(t.winner.tie && t.winner.tie.length === 2, "shoda bodů je remíza");
+});
+test("simulace štychů a dražby z trhu", () => {
+  const p = A.exampleTricks(); const S = A.__S(); S.projects = [p]; S.currentId = p.id;
+  const g = A.simGame(p, { rounds: 2, policy: "greedy", actions: 1 }); assert.ok(g.seats.some(s => s.score > 0), "někdo vzal štych");
+  const q = A.exampleTrade(); q.marketAuction = true; S.projects = [q]; S.currentId = q.id;
+  const gs = Array.from({ length: 10 }, () => A.simGame(q, { rounds: 10, policy: "greedy", actions: 2 })); assert.ok(gs.some(x => x.seats.some(s => s.played.length)));
+});
+test("online: mimo svůj tah nejde měnit stůl", () => {
+  const { p, t } = game(); const S = A.__S(); p.online = { code: "X", host: false, seat: "bert" }; t.turnLock = true; t.curF = 0;
+  S.undoBase = JSON.stringify(t); assert.equal(A.onlineBlocked(p), true);
+  p.online.seat = "anna"; assert.equal(A.onlineBlocked(p), false);
+  t.turnLock = false; p.online.seat = "bert"; S.undoBase = JSON.stringify(t); assert.equal(A.onlineBlocked(p), false);
+});

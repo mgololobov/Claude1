@@ -45,7 +45,7 @@ function normalize(p) {
     p.rules = keys.map(k => p.rules[k]).join("");
   }
   if (typeof p.rules !== "string") p.rules = "";
-  p.ruleset = Object.assign(defaultRules(), p.ruleset || {}); p.ruleset.win = Object.assign({ vp: "", turns: "", elimination: false }, p.ruleset.win || {});
+  p.ruleset = Object.assign(defaultRules(), p.ruleset || {}); p.ruleset.win = Object.assign({ vp: "", turns: "", elimination: false, finishRound: false }, p.ruleset.win || {});
   ["triggers", "actCats"].forEach(k => { if (!Array.isArray(p.ruleset[k])) p.ruleset[k] = defaultRules()[k]; }); if (!p.ruleset.phaseOf || typeof p.ruleset.phaseOf !== "object") p.ruleset.phaseOf = {};
   p.tiles = p.tiles || []; p.tileRules = p.tileRules || { match: true, adjacent: true };
   p.track = p.track || { length: 0, die: 6, spaces: "", autoNext: true }; p.routes = p.routes || { cost: "", price: 1, exclusive: true, tickets: [] };

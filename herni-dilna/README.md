@@ -60,6 +60,7 @@ Efekty karet, akcí, polí dráhy, startu stran a automatických pravidel:
 | `zaplať 1 Dřevo + 1 Cihly: +1 Body` | platba |
 | `nastav Mince 0` | nastaví zdroj |
 | `jednou za kolo: …`, `jednou za tah: …`, `jednou za hru: …` | omezení použití |
+| `první hráč` | hráč začíná příští kolo |
 | `odhodit 1`, `zpráva Text`, `vítěz` | ostatní |
 
 Do textu karty se ikona zdroje vloží zápisem `{Mince}`.

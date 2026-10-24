@@ -120,3 +120,34 @@ function wireTunePanel(main, p) {
   if (q("tuVers")) q("tuVers").onclick = () => go([{ label: "současný návrh", value: null, project: () => clone(p) }, ...p.versions.map(v => ({ label: "verze " + v.ver, value: null, project: () => normalize({ ...clone(v.snap), id: p.id }) }))], true);
   $$("[data-tuuse]", main).forEach(b => b.onclick = () => { const x = S.tuneRes.rows[+b.dataset.tuuse]; setParam(p, T.key, x.value); touch(p); render(); toast("Hodnota nastavena: " + x.label); });
 }
+// Štychy: každé kolo se rozdá z balíčku s barvami a hodnotami a odehrají se všechny štychy.
+function trickDeck(p) { return p.decks.find(d => d.cards.some(c => c.suit && c.value)); }
+function simTrickRound(p, t, pl, start, greedy, played) {
+  const d = trickDeck(p); if (!d) return; const n = pl.length; const ids = shuffle(d.cards.flatMap(c => Array.from({ length: Math.max(0, +c.qty || 0) }, () => c.id)));
+  const per = Math.min(+p.ruleset.drawUpTo || 10, Math.floor(ids.length / n)); pl.forEach((f, i) => { t.hands[f.id] = ids.slice(i * per, i * per + per).map(cardId => ({ deckId: d.id, cardId })); });
+  const val = h => parseFloat(cardOf(p, h).c.value) || 0, suit = h => cardOf(p, h).c.suit;
+  let lead = start;
+  while ((t.hands[pl[lead].id] || []).length) {
+    t.trick = [];
+    for (let j = 0; j < n; j++) { const f = pl[(lead + j) % n]; const hand = t.hands[f.id]; if (!hand.length) continue;
+      const ls = t.trick.length ? suit(t.trick[0]) : null; let legal = ls && t.follow !== false && hand.some(h => suit(h) === ls) ? hand.filter(h => suit(h) === ls) : hand;
+      let h;
+      if (!greedy) h = legal[Math.floor(Math.random() * legal.length)];
+      else if (!t.trick.length) h = legal.reduce((a, b) => (val(b) > val(a) ? b : a));
+      else { const best = trickWinner(p, t); const beats = legal.filter(x => { t.trick.push({ ...x, fid: f.id }); const w = trickWinner(p, t); t.trick.pop(); return w.cardId === x.cardId && w.fid === f.id; });
+        h = beats.length ? beats.reduce((a, b) => (val(b) < val(a) ? b : a)) : legal.reduce((a, b) => (val(b) < val(a) ? b : a)); void best; }
+      hand.splice(hand.indexOf(h), 1); t.trick.push({ ...h, fid: f.id }); played[f.id].add(cardOf(p, h).c.title); }
+    const w = trickWinner(p, t); t.won[w.fid] = (t.won[w.fid] || 0) + 1; after(p, t, "styk", w.fid); lead = pl.findIndex(f => f.id === w.fid); t.trick = [];
+  }
+}
+// Dražba karty z trhu: každý přihazuje do své hodnoty karty, vyhrává nejvyšší za cenu druhého + 1.
+function simAuction(p, t, d, i, hasOwn) {
+  const cId = t.market[d.id][i]; const c = d.cards.find(x => x.id === cId); const cur = p.resources.find(r => r.id === p.marketCur); const start = parseFloat(c.cost) || 0;
+  const bids = p.factions.filter(f => !f.bot).map(f => { const have = cur ? ((t.res[f.id] || {})[cur.id] || 0) : 99; return { f, max: Math.min(have, Math.floor(Math.max(0, cardValue(p, c)) / .35 * (.6 + Math.random() * .5))) }; }).sort((a, b) => b.max - a.max);
+  t.market[d.id][i] = null;
+  if (!bids.length || bids[0].max < start) { (t.discard[d.id] = t.discard[d.id] || []).push(cId); refillMarket(p, t, d); return; }
+  const w = bids[0]; const price = Math.min(w.max, Math.max(start, (bids[1] ? bids[1].max : start - 1) + 1)); if (cur) t.res[w.f.id][cur.id] -= price;
+  const h = { deckId: d.id, cardId: cId, own: true };
+  if (hasOwn) (t.pdisc[w.f.id] = t.pdisc[w.f.id] || []).push(h); else { (t.tableau[w.f.id] = t.tableau[w.f.id] || []).push(h); if (c.effect) runEffects(p, t, w.f.id, c.effect, c.title); }
+  logEv(t, `${w.f.name} vydražil ${c.title} za ${price}`); refillMarket(p, t, d); after(p, t, "nakup", w.f.id, c.type);
+}

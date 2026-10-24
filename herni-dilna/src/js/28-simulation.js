@@ -3,7 +3,7 @@
 // akční pole, rondel, výběr rolí, závodní dráhu, automat, příjem, automatická pravidla a cíle hry.
 // Použije rozestavení prvního scénáře a produkci z polí s čísly.
 // Na mapě táhnou jednotky k cíli a útočí podle bojové tabulky, dílky se kladou na nejlepší místo (36-sim-extra).
-// Neumí: trasy, štychy a dražby – ty se v simulaci přeskočí.
+// Štychy se rozdají a odehrají po kolech, karty z trhu se při zapnuté dražbě draží. Neumí trasy.
 function effectValue(p, text) {
   let v = 0;
   String(text || "").replace(/^jednou\s+za\s+(kolo|tah|hru)\s*:\s*/i, "").split(/[;\n,|]/).forEach(raw => {
@@ -28,6 +28,7 @@ function simMoves(p, t, f, hasOwn, greedy) {
   }
   p.decks.filter(d => +d.market > 0).forEach(d => (t.market[d.id] || []).forEach((cId, i) => {
     if (!cId) return; const c = d.cards.find(x => x.id === cId); const price = parseFloat(c.cost) || 0;
+    if (p.marketAuction) { if (!cur || res(cur.id) >= price) moves.push({ v: cardValue(p, c) * .6 + .2, card: c.title, run() { simAuction(p, t, d, i, hasOwn); } }); return; }
     if (cur && price && res(cur.id) < price) return;
     moves.push({ v: cardValue(p, c) - (cur ? .2 * price : 0) + .3, card: c.title, run() {
       if (cur && price) t.res[f.id][cur.id] -= price; t.market[d.id][i] = null; const h = { deckId: d.id, cardId: cId, own: true };
@@ -40,6 +41,7 @@ function simMoves(p, t, f, hasOwn, greedy) {
     const c = cardOf(p, h).c; if (!c) return; const price = parseFloat(c.cost) || 0;
     if (payR && price && res(payR.id) < price) return;
     if (hasOwn) return;
+    const pay = String(c.effect || "").match(/^zaplať\s+(\d+)\s+([^:+]+?)\s*:/i); if (pay) { const pr = resByName(p, pay[2]); if (pr && res(pr.id) < +pay[1]) return; }
     moves.push({ v: cardValue(p, c) + .2, card: c.title, run() { const hand = t.hands[f.id]; const hh = hand.splice(hand.indexOf(h), 1)[0]; (t.tableau[f.id] = t.tableau[f.id] || []).push(hh); playDone(p, t, f.id, hh, "vylozit"); } });
   });
   if (p.actionMode === "slots") p.actions.forEach(a => {
@@ -73,18 +75,22 @@ function simGame(p0, opt) {
   const sc = p.scenarios[0]; if (sc && sc.setup) { t.boardId = sc.boardId || t.boardId; t.items = clone(sc.setup.items || []).map(i => ({ ...i, uid: uid() })); t.control = clone(sc.setup.control || {}); t.scenarioId = sc.id; }
   const prodBoard = tableBoard(p); const produce = prodBoard && Object.keys(prodBoard.numbers || {}).length;
   const pl = players(p, t); const R = p.ruleset; const hasOwn = p.decks.some(d => d.starter);
+  const trickGame = +p.scoring.trick > 0 && !!trickDeck(p);
   const apt = Math.max(1, +R.actionsPerTurn || +opt.actions || 2);
   const drain = () => { let guard = 0; while (t.pending && t.pending.length && guard++ < 50) { const it = t.pending.shift(); if (it.kind === "choice") { const i = ctx.choose ? ctx.choose(it.opts) : Math.floor(Math.random() * it.opts.length); runEffects(p, t, it.fid, it.opts[i].split(",").join(";"), it.src, 1, ctx); } else { const opp = pl.filter(x => x.id !== it.fid); const o = ctx.target ? ctx.target(opp) : opp[Math.floor(Math.random() * opp.length)]; if (o) runEffects(p, t, o.id, it.effect, it.src, 1, ctx); } } };
   pl.forEach(f => { if (hasOwn) drawOwn(t, f.id, 5); else if (+R.drawUpTo) runEffects(p, t, f.id, `líznout ${R.drawUpTo}`, "Start", 1, ctx); });
   drain();
   const played = {}; pl.forEach(f => played[f.id] = new Set());
-  let rounds = 0;
+  let rounds = 0, start = 0;
   while (!t.winner && rounds < opt.rounds) {
     rounds++;
-    if (rounds > 1) { newRound(p, t); t.actionsTaken = {}; if (p.actionMode === "roles") { t.roleBonus = t.roleBonus || {}; p.actions.forEach(a => { if (!(t.rolePick || {})[a.id]) t.roleBonus[a.id] = (t.roleBonus[a.id] || 0) + 1; }); t.rolePick = {}; } drain(); }
+    const fn = t.firstNext; if (rounds > 1) start = fn ? Math.max(0, pl.findIndex(f => f.id === fn)) : opt.rotateStart === false ? start : (start + 1) % pl.length;
+    if (rounds > 1) { newRound(p, t); t.order = null; t.actionsTaken = {}; if (p.actionMode === "roles") { t.roleBonus = t.roleBonus || {}; p.actions.forEach(a => { if (!(t.rolePick || {})[a.id]) t.roleBonus[a.id] = (t.roleBonus[a.id] || 0) + 1; }); t.rolePick = {}; } drain(); }
     if (produce) { const sum = rnd(6) + rnd(6); productionRoll(p, t, sum); fireTriggers(p, t, "hod", pl[0].id, sum); drain(); }
+    if (trickGame) { simTrickRound(p, t, pl, start, greedy, played); checkWin(p, t); hist.push(pl.map(f => simScore(p, t, f.id))); continue; }
     for (let k = 0; k < pl.length && !t.winner; k++) {
-      const s = opt.rotateStart === false ? k : (k + rounds - 1) % pl.length; // začínající hráč se každé kolo posune
+      // Začíná hráč určený efektem „první hráč“, jinak se začínající hráč každé kolo posune.
+      const s = (start + k) % pl.length;
       t.curF = s; t.acts = 0; const f = pl[s];
       fireTriggers(p, t, "tah", f.id, null); drain();
       if (hasOwn && !f.bot) { [...(t.hands[f.id] || [])].forEach(h => { const c = cardOf(p, h).c; if (!c || !(t.hands[f.id] || []).includes(h)) return; const hand = t.hands[f.id]; hand.splice(hand.indexOf(h), 1); (t.tableau[f.id] = t.tableau[f.id] || []).push(h); played[f.id].add(c.title); playDone(p, t, f.id, h, "vylozit"); drain(); }); t.acts = 0; }
@@ -93,7 +99,9 @@ function simGame(p0, opt) {
         if (look && moves.length > 1) { const bi = lookaheadPick(p, t, f, () => simMoves(p, t, f, hasOwn, greedy)); moves = simMoves(p, t, f, hasOwn, greedy); if (bi >= 0 && moves[bi]) moves = [moves[bi]]; }
         const noisy = moves.map(m => ({ m, s: m.v + Math.random() * .4 })); const mv = greedy ? noisy.reduce((b, x) => (x.s > b.s ? x : b)).m : moves[Math.floor(Math.random() * moves.length)];
         if (mv.card) played[f.id].add(mv.card);
+        const sb = opt.trace ? simScore(p, t, f.id) : 0; const cb = opt.trace ? JSON.stringify(t.res[f.id]) : "";
         mv.run(); drain(); checkWin(p, t);
+        if (opt.trace) opt.trace.push({ r: rounds, pos: k, seat: s, mv: mv.card || mv.label || mv.name || "?", n: moves.length, d: simScore(p, t, f.id) - sb, res: cb + "→" + JSON.stringify(t.res[f.id]) });
         if (f.bot) break;
       }
       if (hasOwn) { (t.hands[f.id] || []).forEach(h => discardCard(t, h, f.id)); t.hands[f.id] = []; const keep = []; (t.tableau[f.id] || []).forEach(h => h.own ? discardCard(t, h, f.id) : keep.push(h)); t.tableau[f.id] = keep; drawOwn(t, f.id, 5); }
@@ -103,12 +111,14 @@ function simGame(p0, opt) {
     }
     hist.push(pl.map(f => simScore(p, t, f.id)));
   }
+  finishLastRound(p, t);
   const scores = pl.map(f => simScore(p, t, f.id));
   // Výhra se při shodě bodů dělí mezi všechny nejlepší, aby remízy nezvýhodňovaly první místo.
   let share = pl.map(() => 0); const wi = t.winner ? pl.findIndex(f => f.id === t.winner.fid) : -1;
-  if (wi >= 0) share[wi] = 1; else { const mx = Math.max(...scores); const top = scores.map((s, i) => s === mx ? i : -1).filter(i => i >= 0); top.forEach(i => share[i] = 1 / top.length); }
+  if (wi >= 0 && t.winner.tie) t.winner.tie.forEach(id => { const i = pl.findIndex(f => f.id === id); if (i >= 0) share[i] = 1 / t.winner.tie.length; });
+  else if (wi >= 0) share[wi] = 1; else { const mx = Math.max(...scores); const top = scores.map((s, i) => s === mx ? i : -1).filter(i => i >= 0); top.forEach(i => share[i] = 1 / top.length); }
   const winIdx = share.indexOf(Math.max(...share));
-  const reason = t.winner ? t.winner.why.replace(/\d+\.?\s*kol[ea]?/g, "N. kole").replace(/dosáhl \d+ bodů/, "bodový cíl") : `limit ${opt.rounds} kol simulace`;
+  const reason = t.winner ? t.winner.why.replace(/\d+\.?\s*kol[ea]?/g, "N. kole").replace(/dosáhl \d+ bodů/, "bodový cíl").replace(/^remíza.*/, "remíza po dohrání kola").replace(/nejvíc bodů po dohrání kola.*/, "bodový cíl, dohrané kolo") : `limit ${opt.rounds} kol simulace`;
   const res = {}; p.resources.filter(r => !r.global).forEach(r => { res[r.name] = pl.reduce((a, f) => a + ((t.res[f.id] || {})[r.id] || 0), 0) / pl.length; });
   S.silent = S0;
   return { seats: pl.map((f, i) => ({ fid: f.id, name: f.name, seat: i, score: scores[i], played: [...played[f.id]] })), winIdx, share, rounds, reason, res, hist };
@@ -152,7 +162,7 @@ function simPanelHTML(p) {
   const R = S.simRes && S.simRes.pid === p.id ? S.simRes.r : null;
   const bar = (label, val, max, txt) => `<div class="bar"><span class="n" title="${esc(label)}">${esc(label)}</span><span class="tr"><span class="fl" style="width:${max ? Math.round(val / max * 100) : 0}%"></span></span><span class="v">${txt}</span></div>`;
   return `<div class="panel"><div class="row spread"><h2>Automatické testování</h2><span class="count">simulace</span></div>
-    <p class="hint">Počítač odehraje stovky her podle tvých karet, efektů, akcí, zdrojů a pravidel a ukáže vyváženost. Umí trh, vykládání karet s efekty, akční pole, rondel, role, dráhu, automat, pohyb a boj na mapě, dílky a cíle hry. Trasy, štychy a dražby přeskočí.</p>
+    <p class="hint">Počítač odehraje stovky her podle tvých karet, efektů, akcí, zdrojů a pravidel a ukáže vyváženost. Umí trh, vykládání karet s efekty, akční pole, rondel, role, dráhu, automat, pohyb a boj na mapě, dílky, štychy, dražbu karet z trhu a cíle hry. Trasy přeskočí.</p>
     <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(130px,1fr))">
       <label class="f">Počet her<input type="number" min="10" max="2000" data-so="games" value="${O.games}"></label>
       <label class="f">Nejvýš kol<input type="number" min="1" max="200" data-so="rounds" value="${O.rounds}"></label>

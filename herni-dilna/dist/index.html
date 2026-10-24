@@ -448,7 +448,7 @@ function normalize(p) {
     p.rules = keys.map(k => p.rules[k]).join("");
   }
   if (typeof p.rules !== "string") p.rules = "";
-  p.ruleset = Object.assign(defaultRules(), p.ruleset || {}); p.ruleset.win = Object.assign({ vp: "", turns: "", elimination: false }, p.ruleset.win || {});
+  p.ruleset = Object.assign(defaultRules(), p.ruleset || {}); p.ruleset.win = Object.assign({ vp: "", turns: "", elimination: false, finishRound: false }, p.ruleset.win || {});
   ["triggers", "actCats"].forEach(k => { if (!Array.isArray(p.ruleset[k])) p.ruleset[k] = defaultRules()[k]; }); if (!p.ruleset.phaseOf || typeof p.ruleset.phaseOf !== "object") p.ruleset.phaseOf = {};
   p.tiles = p.tiles || []; p.tileRules = p.tileRules || { match: true, adjacent: true };
   p.track = p.track || { length: 0, die: 6, spaces: "", autoNext: true }; p.routes = p.routes || { cost: "", price: 1, exclusive: true, tickets: [] };
@@ -465,10 +465,11 @@ function exampleTrade() {
   const c = (title, type, cost, text, qty) => ({ id: uid(), title, type, cost, text, qty });
   return normalize({
     id: uid(), isExample: true, updatedAt: Date.now(),
-    name: "Přístavní kupci", version: "0.3", players: "2–4", time: "40 min", age: "10+",
+    name: "Přístavní kupci", version: "0.4", players: "2–4", time: "40 min", age: "10+",
     summary: "Hráči jsou kupci v hanzovním přístavu. Výběrem akcí nakupují zboží, plní zakázky lodí a stavějí sklady. Vyhrává ten, kdo jako první získá 15 bodů.",
-    rules: "PŘÍPRAVA\n1. Draftem si každý vybere 3 karty Zboží do začátku.\n2. Každý hráč dostane 3 mince a 2 kupce.\n3. Otočte 2 karty Zakázek.\n\nKOLO\n1. Výběr akcí – hráči po směru hodin pokládají kupce na volná pole akcí.\n2. Provedení akcí – akce se vyhodnotí shora dolů.\n3. Úklid – kupci se vrátí, první hráč se posune.\n\nKONEC HRY\nHra končí, jakmile někdo dosáhne 15 bodů. Dohraje se kolo.",
+    rules: "PŘÍPRAVA\n1. Draftem si každý vybere 3 karty Zboží do začátku.\n2. Každý hráč dostane 3 mince a 2 kupce.\n3. Otočte 2 karty Zakázek.\n\nKOLO\n1. Výběr akcí – hráči po směru hodin pokládají kupce na volná pole akcí.\n2. Provedení akcí – akce se vyhodnotí shora dolů.\n3. Úklid – kupci se vrátí. Kdo vzal Radnici, začíná příští kolo, jinak se první hráč posune.\n\nKONEC HRY\nHra končí, jakmile někdo dosáhne 15 bodů. Dohraje se kolo.",
     changelog: [
+      { id: uid(), ver: "0.4", date: "2026-10-24", note: "Radnice už nedává 2 mince – simulace ukázala, že kdo ji vzal, zůstal prvním hráčem celou hru a vyhrál přes 70 % her." },
       { id: uid(), ver: "0.3", date: "2026-10-12", note: "Loděnice zdražena ze 3 na 4 mince, první hráč měl moc velkou výhodu." },
       { id: uid(), ver: "0.2", date: "2026-10-01", note: "Volné akce nahrazeny výběrem akcí s omezeným počtem míst." },
     ],
@@ -476,12 +477,12 @@ function exampleTrade() {
     phases: ["Výběr akcí", "Provedení akcí", "Úklid"],
     resources: [{ id: "mince", name: "Mince", color: "#c98a12", start: 3, income: 1, max: "", vp: false, global: false }, { id: "body", name: "Body", color: "#2f7a45", start: 0, income: 0, max: "", vp: true, global: false }],
     marketCur: "mince", scoring: { field: "type", table: "0,2,5,9", trick: 0 },
-    ruleset: Object.assign(defaultRules(), { autoIncome: true, win: { vp: 15, turns: "", elimination: false } }),
+    ruleset: Object.assign(defaultRules(), { autoIncome: true, win: { vp: 15, turns: "", elimination: false, finishRound: true } }),
     actions: [
       { id: uid(), name: "Trh", text: "Kup 1 kartu Zboží za její cenu.", slots: 2 },
       { id: uid(), name: "Přístav", text: "Splň 1 zakázku a získej body.", slots: 1, effect: "líznout 1 z Zakázky" },
       { id: uid(), name: "Loděnice", text: "Zaplať 4 mince, postav sklad (3 body).", slots: 1, effect: "zaplať 4 Mince: +3 Body" },
-      { id: uid(), name: "Radnice", text: "Vezmi 2 mince a staň se prvním hráčem.", slots: 1, effect: "+2 Mince" },
+      { id: uid(), name: "Radnice", text: "Staň se prvním hráčem v příštím kole.", slots: 1, effect: "první hráč" },
     ],
     decks: [
       { id: d1, name: "Zboží", color: "#3f6fb0", back: "ZBOŽÍ", market: 4, cards: [
@@ -1816,6 +1817,7 @@ function renderRules(main, p) {
         <h3>Konec hry</h3>
         <div class="grid" style="grid-template-columns:1fr 1fr"><label class="f">Vyhrává, kdo dosáhne bodů<input type="number" data-rw="vp" value="${esc(R.win.vp)}" placeholder="–"></label>
         <label class="f">Hra končí po kole (bez scénáře)<input type="number" data-rw="turns" value="${esc(R.win.turns)}" placeholder="–"></label></div>
+        <label class="chk"><input type="checkbox" data-rwb="finishRound" ${R.win.finishRound ? "checked" : ""}> Po dosažení bodů se dohraje kolo (všichni mají stejně tahů)</label>
         <label class="chk"><input type="checkbox" data-rwb="elimination" ${R.win.elimination ? "checked" : ""}> Vyhrává strana, které jako jediné zůstanou jednotky</label>
         <p class="hint">Cíl dráhy a správné obvinění v dedukci ukončí hru samy. Scénář může mít vlastní cíl (záložka Scénáře).</p>
       </div>
@@ -2095,7 +2097,7 @@ function condOk(p, t, fid, cond) {
 }
 // Jazyk efektů. Příkazy se oddělují středníkem nebo novým řádkem, uvnitř volby a podmínky čárkou.
 //   +2 Mince · všichni +1 Zlato · ostatní -1 Body · soupeř -1 Body · líznout 1 [z Balíček] · táhnout 1 z Sáček
-//   posun +2 · odhodit 1 · událost z Balíček · zpráva Text · vítěz
+//   posun +2 · odhodit 1 · událost z Balíček · zpráva Text · vítěz · první hráč
 //   vyber: +2 Mince | líznout 1 · pokud Mince >= 3: +1 Body · zaplať 2 Mince: +1 Body, líznout 1
 //   na začátku: jednou za kolo: … / jednou za tah: … / jednou za hru: …
 // ctx.auto = volby a cíle rozhodne počítač (simulace, testy); jinak čekají v t.pending na hráče.
@@ -2172,6 +2174,7 @@ function execCmd(p, t, fid, cmd, src, depth, ctx, out) {
     const h = t.hands[fid] || []; let k = 0; for (let i = 0; i < +m[1] && h.length; i++) { discardCard(t, h.splice(Math.floor(Math.random() * h.length), 1)[0], fid); k++; } out.push(`odhozeno náhodně ${k}`); return;
   }
   if ((m = cmd.match(/^(?:zpráva|oznámení)\s+(.+)$/i))) { out.push(m[1]); if (!ctx) toast(m[1]); return; }
+  if (/^(první hráč|začínáš)$/i.test(cmd)) { t.firstNext = fid; const f = p.factions.find(x => x.id === fid); out.push(`${f ? f.name : ""} začíná příští kolo`); return; }
   if (/^(vítěz|vyhrává|konec hry)$/i.test(cmd)) { declareWinner(p, t, fid, src || "efekt"); out.push("konec hry"); return; }
   out.push(`nerozumím „${cmd}“`);
 }
@@ -2187,7 +2190,7 @@ function fireTriggers(p, t, on, fid, param) {
 function declareWinner(p, t, fid, why) { if (t.winner) return; const f = p.factions.find(x => x.id === fid); t.winner = { fid, why }; logEv(t, `🏆 Vítěz: ${f ? f.name : "?"} (${why})`); toast(`Vítěz: ${f ? f.name : "?"}`); }
 function checkWin(p, t) {
   if (t.winner) return; const W = p.ruleset.win; const pl = players(p, t);
-  if (+W.vp) { const top = pl.map(f => ({ f, s: scoreOf(p, t, f.id).total })).filter(x => x.s >= +W.vp).sort((a, b) => b.s - a.s)[0]; if (top) return declareWinner(p, t, top.f.id, `dosáhl ${W.vp} bodů`); }
+  if (+W.vp) { const top = pl.map(f => ({ f, s: scoreOf(p, t, f.id).total })).filter(x => x.s >= +W.vp).sort((a, b) => b.s - a.s)[0]; if (top) { if (!W.finishRound) return declareWinner(p, t, top.f.id, `dosáhl ${W.vp} bodů`); if (!t.lastRound) { t.lastRound = true; logEv(t, `${top.f.name} má ${W.vp} bodů – dohrává se kolo`); toast("Poslední kolo – dohraje se do konce"); } } }
   if (W.elimination && p.units.length) { const alive = new Set(t.items.filter(i => i.kind === "unit").map(i => (p.units.find(u => u.id === i.unitId) || {}).factionId).filter(Boolean)); if (t.items.some(i => i.kind === "unit") && alive.size === 1) return declareWinner(p, t, [...alive][0], "soupeř nemá žádné jednotky"); }
   if (+p.track.length && pl.length) { const f = pl.find(x => (t.trackPos[x.id] || 0) >= +p.track.length); if (f) return declareWinner(p, t, f.id, "první v cíli dráhy"); }
 }
@@ -2204,7 +2207,14 @@ function endGameByTurns(p, t) {
   const top = players(p, t).map(f => ({ f, s: scoreOf(p, t, f.id).total })).sort((a, b) => b.s - a.s)[0];
   if (top) declareWinner(p, t, top.f.id, `nejvíc bodů po ${limit}. kole`);
 }
+// Dohrání kola: po bodovém cíli se kolo dokončí a vyhrává nejvíc bodů (při shodě remíza).
+function finishLastRound(p, t) {
+  if (!t.lastRound || t.winner) return false; const sc = players(p, t).map(f => ({ f, s: scoreOf(p, t, f.id).total })); const mx = Math.max(...sc.map(x => x.s)); const top = sc.filter(x => x.s === mx);
+  declareWinner(p, t, top[0].f.id, top.length > 1 ? `remíza ${top.map(x => x.f.name).join(" a ")} (${mx} bodů)` : `nejvíc bodů po dohrání kola (${mx})`); if (top.length > 1) t.winner.tie = top.map(x => x.f.id); return true;
+}
 function newRound(p, t) {
+  if (finishLastRound(p, t)) return;
+  if (t.firstNext) { const ids = players(p, t).map(f => f.id); const i = ids.indexOf(t.firstNext); if (i > 0) t.order = [...ids.slice(i), ...ids.slice(0, i)]; t.curF = 0; t.firstNext = null; }
   t.turn++; t.phaseIdx = 0; t.acts = 0; t.moved = {};
   if (p.ruleset.autoIncome) p.resources.forEach(r => { if (!+r.income) return; (r.global ? ["_g"] : p.factions.map(f => f.id)).forEach(o => { t.res[o] = t.res[o] || {}; t.res[o][r.id] = Math.max(0, Math.min(resMax(r), (t.res[o][r.id] || 0) + +r.income)); }); });
   logEv(t, `začíná ${t.turn}. kolo`);
@@ -2574,8 +2584,9 @@ function sideMarket(p, t) {
   const cur = p.resources.find(r => r.id === p.marketCur); const cp = curPlayer(p, t);
   return `<section><div class="eyebrow">Kupuje</div>${fchipsHTML(p, t)}${cur && cp ? `<span class="hint">${esc(cp.name)} má ${(t.res[cp.id] || {})[cur.id] ?? 0} × ${esc(cur.name)}</span>` : ""}</section>
     ${ds.map(d => `<section><div class="row spread"><div class="eyebrow">${esc(d.name)} · v balíčku ${t.piles[d.id].length}</div><button class="btn small" data-mrefresh="${d.id}">Vyměnit trh</button></div>
-      <div class="hand mini">${t.market[d.id].map((cId, i) => { const c = cId && d.cards.find(x => x.id === cId); return c ? `<div class="hc">${cardHTML(c, d)}<div class="row"><button class="btn small primary" data-mbuy="${d.id}|${i}">Koupit</button><button class="btn small" data-mhand="${d.id}|${i}" aria-label="Do ruky">Ruka</button><button class="btn small" data-mtab="${d.id}|${i}" aria-label="Vyložit">Vyložit</button></div></div>` : `<div class="hc empty" style="padding:8px;font-size:.8rem">prázdné</div>`; }).join("")}</div>
-      <p class="hint">Koupit = do odhozu vlastního balíčku hráče (deck building).</p></section>`).join("")}`;
+      <div class="hand mini">${t.market[d.id].map((cId, i) => { const c = cId && d.cards.find(x => x.id === cId); return c ? `<div class="hc">${cardHTML(c, d)}<div class="row">${p.marketAuction ? `<button class="btn small primary" data-mauc="${d.id}|${i}">Dražit</button>` : `<button class="btn small primary" data-mbuy="${d.id}|${i}">Koupit</button>`}<button class="btn small" data-mhand="${d.id}|${i}" aria-label="Do ruky">Ruka</button><button class="btn small" data-mtab="${d.id}|${i}" aria-label="Vyložit">Vyložit</button></div></div>` : `<div class="hc empty" style="padding:8px;font-size:.8rem">prázdné</div>`; }).join("")}</div>
+      <p class="hint">Koupit = do odhozu vlastního balíčku hráče (deck building).</p></section>`).join("")}
+    <section><label class="chk"><input type="checkbox" id="mAuc" ${p.marketAuction ? "checked" : ""}> Karty z trhu se draží (otevřená dražba od ceny karty)</label></section>`;
 }
 function sideActions(p, t) {
   if (!p.actions.length) return `<p class="hint">Akce nadefinuješ v záložce Mechaniky.</p>`;
@@ -2796,7 +2807,7 @@ function sideTerritory(p, t) {
 }
 
 function wireTable(main, p, t) {
-  const save = () => { const now = JSON.stringify(p.table); if (S.undoBase && now !== S.undoBase) { S.undo.push(S.undoBase); if (S.undo.length > 40) S.undo.shift(); } S.undoBase = now; touch(p); };
+  const save = () => { if (onlineBlocked(p)) { p.table = JSON.parse(S.undoBase); render(); return; } const now = JSON.stringify(p.table); if (S.undoBase && now !== S.undoBase) { S.undo.push(S.undoBase); if (S.undo.length > 40) S.undo.shift(); } S.undoBase = now; touch(p); };
   const on = (sel, fn) => $$(sel, main).forEach(el => el.addEventListener("click", () => fn(el)));
   const q = id => document.getElementById(id);
   const pl = players(p, t); const cp = curPlayer(p, t);
@@ -2852,6 +2863,9 @@ function wireTable(main, p, t) {
     if (dest === "tab" && c.effect) runEffects(p, t, cp.id, c.effect, c.title);
     refillMarket(p, t, d); after(p, t, cat, cp.id, c.type); save(); render(); toast(`${c.title} → ${cp.name}`);
   };
+  if (q("mAuc")) q("mAuc").onchange = e => { p.marketAuction = e.target.checked; touch(p); render(); };
+  on("[data-mauc]", el => { const [dId, i] = el.dataset.mauc.split("|"); const d = p.decks.find(x => x.id === dId); const c = d.cards.find(x => x.id === t.market[dId][+i]); if (!c || !gate(p, t, "nakup")) return;
+    t.auction = { item: c.title, bid: parseFloat(c.cost) || 0, leader: null, passed: [], card: { dId, i: +i } }; S.tool = "drazba"; S.aucMode = "open"; save(); render(); });
   on("[data-mbuy]", el => takeMarket(el.dataset.mbuy, "buy")); on("[data-mhand]", el => takeMarket(el.dataset.mhand, "hand")); on("[data-mtab]", el => takeMarket(el.dataset.mtab, "tab"));
   on("[data-mrefresh]", el => { const d = p.decks.find(x => x.id === el.dataset.mrefresh); t.market[d.id].forEach(c => { if (c) t.discard[d.id].push(c); }); t.market[d.id] = []; refillMarket(p, t, d); save(); render(); });
   // akce a rondel
@@ -2911,7 +2925,12 @@ function wireTable(main, p, t) {
   on("[data-abid]", el => { const [fid, dv] = el.dataset.abid.split("|"); const A = t.auction; A.bid += +dv; A.leader = fid; save(); render(); });
   on("[data-apass]", el => { t.auction.passed.push(el.dataset.apass); save(); render(); });
   const pay = (fid, v) => { const cur = p.resources.find(r => r.id === p.marketCur); if (!cur) return; t.res[fid] = t.res[fid] || {}; t.res[fid][cur.id] = (t.res[fid][cur.id] || 0) - v; toast(`Zaplaceno ${v} × ${cur.name}`); };
-  if (q("aPay")) q("aPay").onclick = () => { pay(t.auction.leader, t.auction.bid); t.auction = null; save(); render(); };
+  if (q("aPay")) q("aPay").onclick = () => { const A = t.auction; pay(A.leader, A.bid);
+    if (A.card) { const d = p.decks.find(x => x.id === A.card.dId); const cId = d && t.market[d.id][A.card.i]; const c = cId && d.cards.find(x => x.id === cId);
+      if (c) { t.market[d.id][A.card.i] = null; const h = { deckId: d.id, cardId: cId, own: true }; const f = p.factions.find(x => x.id === A.leader);
+        if (p.decks.some(x => x.starter)) (t.pdisc[A.leader] = t.pdisc[A.leader] || []).push(h); else { (t.tableau[A.leader] = t.tableau[A.leader] || []).push(h); if (c.effect) runEffects(p, t, A.leader, c.effect, c.title); }
+        logEv(t, `${f ? f.name : ""} vydražil ${c.title} za ${A.bid}`); refillMarket(p, t, d); after(p, t, "nakup", A.leader, c.type); } }
+    t.auction = null; save(); render(); };
   if (q("aEnd")) q("aEnd").onclick = () => { t.auction = null; save(); render(); };
   if (q("zGo")) q("zGo").onclick = () => { t.sealed = { mode: S.aucMode, item: q("zItem").value.trim(), options: q("zOpts") ? q("zOpts").value.split(",").map(s => s.trim()).filter(Boolean) : [], entries: {}, revealed: false }; save(); render(); };
   on("[data-zent]", el => {
@@ -3329,7 +3348,7 @@ function checkEffect(p, text) {
     if ((m = cmd.match(/^událost(?:\s+z\s+(.+))?$/i))) { if (m[1] && !p.decks.find(d => d.name.toLowerCase() === m[1].trim().toLowerCase())) bad.push(`neznámý balíček „${m[1]}“`); return; }
     if ((m = cmd.match(/^táhnout\s+(\d+)\s+z\s+(.+)$/i))) { if (!p.bags.find(b => b.name.toLowerCase() === m[2].trim().toLowerCase())) bad.push(`neznámý sáček „${m[2]}“`); return; }
     if (/^(všichni|ostatní)?\s*posun\s+([+-]?\d+)$/i.test(cmd)) { if (!+p.track.length) bad.push("posun bez závodní dráhy"); return; }
-    if (/^odhodit\s+\d+$/i.test(cmd) || /^(zpráva|oznámení)\s+.+$/i.test(cmd) || /^(vítěz|vyhrává|konec hry)$/i.test(cmd)) return;
+    if (/^odhodit\s+\d+$/i.test(cmd) || /^(zpráva|oznámení)\s+.+$/i.test(cmd) || /^(vítěz|vyhrává|konec hry)$/i.test(cmd) || /^(první hráč|začínáš)$/i.test(cmd)) return;
     bad.push(`nerozumím „${cmd}“`);
   };
   body.split(/[;\n]/).map(s => s.trim()).filter(Boolean).forEach(check);
@@ -3582,7 +3601,7 @@ function processPending(p) {
 // akční pole, rondel, výběr rolí, závodní dráhu, automat, příjem, automatická pravidla a cíle hry.
 // Použije rozestavení prvního scénáře a produkci z polí s čísly.
 // Na mapě táhnou jednotky k cíli a útočí podle bojové tabulky, dílky se kladou na nejlepší místo (36-sim-extra).
-// Neumí: trasy, štychy a dražby – ty se v simulaci přeskočí.
+// Štychy se rozdají a odehrají po kolech, karty z trhu se při zapnuté dražbě draží. Neumí trasy.
 function effectValue(p, text) {
   let v = 0;
   String(text || "").replace(/^jednou\s+za\s+(kolo|tah|hru)\s*:\s*/i, "").split(/[;\n,|]/).forEach(raw => {
@@ -3607,6 +3626,7 @@ function simMoves(p, t, f, hasOwn, greedy) {
   }
   p.decks.filter(d => +d.market > 0).forEach(d => (t.market[d.id] || []).forEach((cId, i) => {
     if (!cId) return; const c = d.cards.find(x => x.id === cId); const price = parseFloat(c.cost) || 0;
+    if (p.marketAuction) { if (!cur || res(cur.id) >= price) moves.push({ v: cardValue(p, c) * .6 + .2, card: c.title, run() { simAuction(p, t, d, i, hasOwn); } }); return; }
     if (cur && price && res(cur.id) < price) return;
     moves.push({ v: cardValue(p, c) - (cur ? .2 * price : 0) + .3, card: c.title, run() {
       if (cur && price) t.res[f.id][cur.id] -= price; t.market[d.id][i] = null; const h = { deckId: d.id, cardId: cId, own: true };
@@ -3619,6 +3639,7 @@ function simMoves(p, t, f, hasOwn, greedy) {
     const c = cardOf(p, h).c; if (!c) return; const price = parseFloat(c.cost) || 0;
     if (payR && price && res(payR.id) < price) return;
     if (hasOwn) return;
+    const pay = String(c.effect || "").match(/^zaplať\s+(\d+)\s+([^:+]+?)\s*:/i); if (pay) { const pr = resByName(p, pay[2]); if (pr && res(pr.id) < +pay[1]) return; }
     moves.push({ v: cardValue(p, c) + .2, card: c.title, run() { const hand = t.hands[f.id]; const hh = hand.splice(hand.indexOf(h), 1)[0]; (t.tableau[f.id] = t.tableau[f.id] || []).push(hh); playDone(p, t, f.id, hh, "vylozit"); } });
   });
   if (p.actionMode === "slots") p.actions.forEach(a => {
@@ -3652,18 +3673,22 @@ function simGame(p0, opt) {
   const sc = p.scenarios[0]; if (sc && sc.setup) { t.boardId = sc.boardId || t.boardId; t.items = clone(sc.setup.items || []).map(i => ({ ...i, uid: uid() })); t.control = clone(sc.setup.control || {}); t.scenarioId = sc.id; }
   const prodBoard = tableBoard(p); const produce = prodBoard && Object.keys(prodBoard.numbers || {}).length;
   const pl = players(p, t); const R = p.ruleset; const hasOwn = p.decks.some(d => d.starter);
+  const trickGame = +p.scoring.trick > 0 && !!trickDeck(p);
   const apt = Math.max(1, +R.actionsPerTurn || +opt.actions || 2);
   const drain = () => { let guard = 0; while (t.pending && t.pending.length && guard++ < 50) { const it = t.pending.shift(); if (it.kind === "choice") { const i = ctx.choose ? ctx.choose(it.opts) : Math.floor(Math.random() * it.opts.length); runEffects(p, t, it.fid, it.opts[i].split(",").join(";"), it.src, 1, ctx); } else { const opp = pl.filter(x => x.id !== it.fid); const o = ctx.target ? ctx.target(opp) : opp[Math.floor(Math.random() * opp.length)]; if (o) runEffects(p, t, o.id, it.effect, it.src, 1, ctx); } } };
   pl.forEach(f => { if (hasOwn) drawOwn(t, f.id, 5); else if (+R.drawUpTo) runEffects(p, t, f.id, `líznout ${R.drawUpTo}`, "Start", 1, ctx); });
   drain();
   const played = {}; pl.forEach(f => played[f.id] = new Set());
-  let rounds = 0;
+  let rounds = 0, start = 0;
   while (!t.winner && rounds < opt.rounds) {
     rounds++;
-    if (rounds > 1) { newRound(p, t); t.actionsTaken = {}; if (p.actionMode === "roles") { t.roleBonus = t.roleBonus || {}; p.actions.forEach(a => { if (!(t.rolePick || {})[a.id]) t.roleBonus[a.id] = (t.roleBonus[a.id] || 0) + 1; }); t.rolePick = {}; } drain(); }
+    const fn = t.firstNext; if (rounds > 1) start = fn ? Math.max(0, pl.findIndex(f => f.id === fn)) : opt.rotateStart === false ? start : (start + 1) % pl.length;
+    if (rounds > 1) { newRound(p, t); t.order = null; t.actionsTaken = {}; if (p.actionMode === "roles") { t.roleBonus = t.roleBonus || {}; p.actions.forEach(a => { if (!(t.rolePick || {})[a.id]) t.roleBonus[a.id] = (t.roleBonus[a.id] || 0) + 1; }); t.rolePick = {}; } drain(); }
     if (produce) { const sum = rnd(6) + rnd(6); productionRoll(p, t, sum); fireTriggers(p, t, "hod", pl[0].id, sum); drain(); }
+    if (trickGame) { simTrickRound(p, t, pl, start, greedy, played); checkWin(p, t); hist.push(pl.map(f => simScore(p, t, f.id))); continue; }
     for (let k = 0; k < pl.length && !t.winner; k++) {
-      const s = opt.rotateStart === false ? k : (k + rounds - 1) % pl.length; // začínající hráč se každé kolo posune
+      // Začíná hráč určený efektem „první hráč“, jinak se začínající hráč každé kolo posune.
+      const s = (start + k) % pl.length;
       t.curF = s; t.acts = 0; const f = pl[s];
       fireTriggers(p, t, "tah", f.id, null); drain();
       if (hasOwn && !f.bot) { [...(t.hands[f.id] || [])].forEach(h => { const c = cardOf(p, h).c; if (!c || !(t.hands[f.id] || []).includes(h)) return; const hand = t.hands[f.id]; hand.splice(hand.indexOf(h), 1); (t.tableau[f.id] = t.tableau[f.id] || []).push(h); played[f.id].add(c.title); playDone(p, t, f.id, h, "vylozit"); drain(); }); t.acts = 0; }
@@ -3672,7 +3697,9 @@ function simGame(p0, opt) {
         if (look && moves.length > 1) { const bi = lookaheadPick(p, t, f, () => simMoves(p, t, f, hasOwn, greedy)); moves = simMoves(p, t, f, hasOwn, greedy); if (bi >= 0 && moves[bi]) moves = [moves[bi]]; }
         const noisy = moves.map(m => ({ m, s: m.v + Math.random() * .4 })); const mv = greedy ? noisy.reduce((b, x) => (x.s > b.s ? x : b)).m : moves[Math.floor(Math.random() * moves.length)];
         if (mv.card) played[f.id].add(mv.card);
+        const sb = opt.trace ? simScore(p, t, f.id) : 0; const cb = opt.trace ? JSON.stringify(t.res[f.id]) : "";
         mv.run(); drain(); checkWin(p, t);
+        if (opt.trace) opt.trace.push({ r: rounds, pos: k, seat: s, mv: mv.card || mv.label || mv.name || "?", n: moves.length, d: simScore(p, t, f.id) - sb, res: cb + "→" + JSON.stringify(t.res[f.id]) });
         if (f.bot) break;
       }
       if (hasOwn) { (t.hands[f.id] || []).forEach(h => discardCard(t, h, f.id)); t.hands[f.id] = []; const keep = []; (t.tableau[f.id] || []).forEach(h => h.own ? discardCard(t, h, f.id) : keep.push(h)); t.tableau[f.id] = keep; drawOwn(t, f.id, 5); }
@@ -3682,12 +3709,14 @@ function simGame(p0, opt) {
     }
     hist.push(pl.map(f => simScore(p, t, f.id)));
   }
+  finishLastRound(p, t);
   const scores = pl.map(f => simScore(p, t, f.id));
   // Výhra se při shodě bodů dělí mezi všechny nejlepší, aby remízy nezvýhodňovaly první místo.
   let share = pl.map(() => 0); const wi = t.winner ? pl.findIndex(f => f.id === t.winner.fid) : -1;
-  if (wi >= 0) share[wi] = 1; else { const mx = Math.max(...scores); const top = scores.map((s, i) => s === mx ? i : -1).filter(i => i >= 0); top.forEach(i => share[i] = 1 / top.length); }
+  if (wi >= 0 && t.winner.tie) t.winner.tie.forEach(id => { const i = pl.findIndex(f => f.id === id); if (i >= 0) share[i] = 1 / t.winner.tie.length; });
+  else if (wi >= 0) share[wi] = 1; else { const mx = Math.max(...scores); const top = scores.map((s, i) => s === mx ? i : -1).filter(i => i >= 0); top.forEach(i => share[i] = 1 / top.length); }
   const winIdx = share.indexOf(Math.max(...share));
-  const reason = t.winner ? t.winner.why.replace(/\d+\.?\s*kol[ea]?/g, "N. kole").replace(/dosáhl \d+ bodů/, "bodový cíl") : `limit ${opt.rounds} kol simulace`;
+  const reason = t.winner ? t.winner.why.replace(/\d+\.?\s*kol[ea]?/g, "N. kole").replace(/dosáhl \d+ bodů/, "bodový cíl").replace(/^remíza.*/, "remíza po dohrání kola").replace(/nejvíc bodů po dohrání kola.*/, "bodový cíl, dohrané kolo") : `limit ${opt.rounds} kol simulace`;
   const res = {}; p.resources.filter(r => !r.global).forEach(r => { res[r.name] = pl.reduce((a, f) => a + ((t.res[f.id] || {})[r.id] || 0), 0) / pl.length; });
   S.silent = S0;
   return { seats: pl.map((f, i) => ({ fid: f.id, name: f.name, seat: i, score: scores[i], played: [...played[f.id]] })), winIdx, share, rounds, reason, res, hist };
@@ -3731,7 +3760,7 @@ function simPanelHTML(p) {
   const R = S.simRes && S.simRes.pid === p.id ? S.simRes.r : null;
   const bar = (label, val, max, txt) => `<div class="bar"><span class="n" title="${esc(label)}">${esc(label)}</span><span class="tr"><span class="fl" style="width:${max ? Math.round(val / max * 100) : 0}%"></span></span><span class="v">${txt}</span></div>`;
   return `<div class="panel"><div class="row spread"><h2>Automatické testování</h2><span class="count">simulace</span></div>
-    <p class="hint">Počítač odehraje stovky her podle tvých karet, efektů, akcí, zdrojů a pravidel a ukáže vyváženost. Umí trh, vykládání karet s efekty, akční pole, rondel, role, dráhu, automat, pohyb a boj na mapě, dílky a cíle hry. Trasy, štychy a dražby přeskočí.</p>
+    <p class="hint">Počítač odehraje stovky her podle tvých karet, efektů, akcí, zdrojů a pravidel a ukáže vyváženost. Umí trh, vykládání karet s efekty, akční pole, rondel, role, dráhu, automat, pohyb a boj na mapě, dílky, štychy, dražbu karet z trhu a cíle hry. Trasy přeskočí.</p>
     <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(130px,1fr))">
       <label class="f">Počet her<input type="number" min="10" max="2000" data-so="games" value="${O.games}"></label>
       <label class="f">Nejvýš kol<input type="number" min="1" max="200" data-so="rounds" value="${O.rounds}"></label>
@@ -3885,12 +3914,19 @@ function onlinePush(p) {
   ON.timer = setTimeout(async () => { const db = await cap("db"); if (!db) return; ON.busy = ON.busy.then(() => onlineWrite(db, p.online.code, onlineParts(p))).catch(() => setSaveState("Online: neodesláno")); }, 350);
 }
 function leaveOnline(p) { if (ON.unsub) ON.unsub(); ON.unsub = null; S.projects = S.projects.filter(x => x !== p); if (!S.projects.length) S.projects.push(blankProject()); S.currentId = S.projects[0].id; render(); }
+// Zámek tahu: v online hře smí stůl měnit jen hráč, který je právě na tahu (posuzuje se stav před změnou).
+function onlineBlocked(p) {
+  if (!p.online || !S.undoBase) return false; const base = JSON.parse(S.undoBase); if (!base || !base.turnLock) return false;
+  const cur = curPlayer(p, base); const seat = p.online.seat; if (cur && seat === cur.id) return false;
+  toast(seat ? `Teď hraje ${cur ? cur.name : "jiný hráč"} – počkej na svůj tah` : "Pozorovatel nemůže měnit stůl – vyber, za koho hraješ"); return true;
+}
 function onlineHTML(p, t) {
   if (p.online) {
     const seat = p.online.seat;
     return `<section><div class="eyebrow">Online hra · kód <span class="mono">${esc(p.online.code)}</span></div>
       <label class="f">Hraji za<select id="onSeat"><option value="">Pozoruji (vidím vše)</option>${p.factions.map(f => `<option value="${f.id}" ${seat === f.id ? "selected" : ""}>${esc(f.name)}</option>`).join("")}</select></label>
       <p class="hint">Ruce ostatních hráčů a jejich skryté jednotky neuvidíš. Změny na stole se ostatním ukážou do pár sekund.</p>
+      ${p.online.host ? `<label class="chk"><input type="checkbox" id="onLock" ${t.turnLock ? "checked" : ""}> Měnit stůl smí jen hráč na tahu</label>` : t.turnLock ? `<p class="hint">🔒 Stůl smí měnit jen hráč na tahu.</p>` : ""}
       <div class="row"><button class="btn small" id="onFb">Napsat zpětnou vazbu</button><button class="btn small danger" id="onLeave">Opustit hru</button></div></section>`;
   }
   return `<section><div class="eyebrow">Hra více lidí naráz</div><p class="hint">Každý hraje na svém zařízení, ruce zůstanou soukromé.</p>
@@ -3940,6 +3976,7 @@ function wireOnline(main, p, t, save) {
   if (q("onJoin")) q("onJoin").onclick = joinDialog;
   if (q("onLeave")) q("onLeave").onclick = () => leaveOnline(p);
   if (q("onFb")) q("onFb").onclick = () => feedbackDialog(p);
+  if (q("onLock")) q("onLock").onchange = e => { t.turnLock = e.target.checked; S.undoBase = JSON.stringify(t); touch(p); render(); };
   if (q("onSeat")) q("onSeat").onchange = e => { p.online.seat = e.target.value; S.view = e.target.value || ""; if (e.target.value) { S.handF = e.target.value; S.showHand = false; } render(); };
 }
 
@@ -3950,7 +3987,7 @@ líznout 2 | líznout 1 z Balíček | táhnout 2 z Sáček | posun +3 | ostatní
 vyber: +2 Mince | líznout 1   (volba hráče)
 pokud Mince >= 3: +1 Body, líznout 1   (podmínka; také ruka, kolo, skóre)
 zaplať 1 Dřevo + 1 Cihly: +1 Body   (platba)
-nastav Mince 0 | odhodit 1 | zpráva Text | vítěz
+nastav Mince 0 | odhodit 1 | zpráva Text | vítěz | první hráč (začíná příští kolo)
 Na začátek lze dát: jednou za kolo: … / jednou za tah: … / jednou za hru: …`;
 function aiContext(p) {
   return `Zdroje: ${p.resources.map(r => r.name).join(", ") || "žádné"}. Balíčky: ${p.decks.map(d => d.name).join(", ") || "žádné"}. Sáčky: ${p.bags.map(b => b.name).join(", ") || "žádné"}.${+p.track.length ? " Hra má závodní dráhu." : ""}`;
@@ -4004,6 +4041,7 @@ function describeEffect(text) {
     if ((m = c.match(/^odhodit\s+(\d+)$/i))) return `odhoď náhodně ${m[1]} ${plural(+m[1], "kartu", "karty", "karet")}`;
     if ((m = c.match(/^(?:zpráva|oznámení)\s+(.+)$/i))) return `„${m[1]}“`;
     if (/^(vítěz|vyhrává|konec hry)$/i.test(c)) return "vyhráváš";
+    if (/^(první hráč|začínáš)$/i.test(c)) return "příští kolo začínáš";
     return c; };
   body.split(/[;\n]/).map(s => s.trim()).filter(Boolean).forEach(c => parts.push(one(c)));
   const s = (once ? parts.shift() + " " : "") + parts.join("; "); return s.charAt(0).toUpperCase() + s.slice(1) + ".";
@@ -4400,6 +4438,37 @@ function wireTunePanel(main, p) {
     go(vals.map(v => ({ label: String(v), value: v, project: () => { const q2 = clone(p); setParam(q2, T.key, v); return q2; } })), false); };
   if (q("tuVers")) q("tuVers").onclick = () => go([{ label: "současný návrh", value: null, project: () => clone(p) }, ...p.versions.map(v => ({ label: "verze " + v.ver, value: null, project: () => normalize({ ...clone(v.snap), id: p.id }) }))], true);
   $$("[data-tuuse]", main).forEach(b => b.onclick = () => { const x = S.tuneRes.rows[+b.dataset.tuuse]; setParam(p, T.key, x.value); touch(p); render(); toast("Hodnota nastavena: " + x.label); });
+}
+// Štychy: každé kolo se rozdá z balíčku s barvami a hodnotami a odehrají se všechny štychy.
+function trickDeck(p) { return p.decks.find(d => d.cards.some(c => c.suit && c.value)); }
+function simTrickRound(p, t, pl, start, greedy, played) {
+  const d = trickDeck(p); if (!d) return; const n = pl.length; const ids = shuffle(d.cards.flatMap(c => Array.from({ length: Math.max(0, +c.qty || 0) }, () => c.id)));
+  const per = Math.min(+p.ruleset.drawUpTo || 10, Math.floor(ids.length / n)); pl.forEach((f, i) => { t.hands[f.id] = ids.slice(i * per, i * per + per).map(cardId => ({ deckId: d.id, cardId })); });
+  const val = h => parseFloat(cardOf(p, h).c.value) || 0, suit = h => cardOf(p, h).c.suit;
+  let lead = start;
+  while ((t.hands[pl[lead].id] || []).length) {
+    t.trick = [];
+    for (let j = 0; j < n; j++) { const f = pl[(lead + j) % n]; const hand = t.hands[f.id]; if (!hand.length) continue;
+      const ls = t.trick.length ? suit(t.trick[0]) : null; let legal = ls && t.follow !== false && hand.some(h => suit(h) === ls) ? hand.filter(h => suit(h) === ls) : hand;
+      let h;
+      if (!greedy) h = legal[Math.floor(Math.random() * legal.length)];
+      else if (!t.trick.length) h = legal.reduce((a, b) => (val(b) > val(a) ? b : a));
+      else { const best = trickWinner(p, t); const beats = legal.filter(x => { t.trick.push({ ...x, fid: f.id }); const w = trickWinner(p, t); t.trick.pop(); return w.cardId === x.cardId && w.fid === f.id; });
+        h = beats.length ? beats.reduce((a, b) => (val(b) < val(a) ? b : a)) : legal.reduce((a, b) => (val(b) < val(a) ? b : a)); void best; }
+      hand.splice(hand.indexOf(h), 1); t.trick.push({ ...h, fid: f.id }); played[f.id].add(cardOf(p, h).c.title); }
+    const w = trickWinner(p, t); t.won[w.fid] = (t.won[w.fid] || 0) + 1; after(p, t, "styk", w.fid); lead = pl.findIndex(f => f.id === w.fid); t.trick = [];
+  }
+}
+// Dražba karty z trhu: každý přihazuje do své hodnoty karty, vyhrává nejvyšší za cenu druhého + 1.
+function simAuction(p, t, d, i, hasOwn) {
+  const cId = t.market[d.id][i]; const c = d.cards.find(x => x.id === cId); const cur = p.resources.find(r => r.id === p.marketCur); const start = parseFloat(c.cost) || 0;
+  const bids = p.factions.filter(f => !f.bot).map(f => { const have = cur ? ((t.res[f.id] || {})[cur.id] || 0) : 99; return { f, max: Math.min(have, Math.floor(Math.max(0, cardValue(p, c)) / .35 * (.6 + Math.random() * .5))) }; }).sort((a, b) => b.max - a.max);
+  t.market[d.id][i] = null;
+  if (!bids.length || bids[0].max < start) { (t.discard[d.id] = t.discard[d.id] || []).push(cId); refillMarket(p, t, d); return; }
+  const w = bids[0]; const price = Math.min(w.max, Math.max(start, (bids[1] ? bids[1].max : start - 1) + 1)); if (cur) t.res[w.f.id][cur.id] -= price;
+  const h = { deckId: d.id, cardId: cId, own: true };
+  if (hasOwn) (t.pdisc[w.f.id] = t.pdisc[w.f.id] || []).push(h); else { (t.tableau[w.f.id] = t.tableau[w.f.id] || []).push(h); if (c.effect) runEffects(p, t, w.f.id, c.effect, c.title); }
+  logEv(t, `${w.f.name} vydražil ${c.title} za ${price}`); refillMarket(p, t, d); after(p, t, "nakup", w.f.id, c.type);
 }
 
 // ---------- Spuštění ----------

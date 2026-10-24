@@ -49,12 +49,19 @@ function onlinePush(p) {
   ON.timer = setTimeout(async () => { const db = await cap("db"); if (!db) return; ON.busy = ON.busy.then(() => onlineWrite(db, p.online.code, onlineParts(p))).catch(() => setSaveState("Online: neodesláno")); }, 350);
 }
 function leaveOnline(p) { if (ON.unsub) ON.unsub(); ON.unsub = null; S.projects = S.projects.filter(x => x !== p); if (!S.projects.length) S.projects.push(blankProject()); S.currentId = S.projects[0].id; render(); }
+// Zámek tahu: v online hře smí stůl měnit jen hráč, který je právě na tahu (posuzuje se stav před změnou).
+function onlineBlocked(p) {
+  if (!p.online || !S.undoBase) return false; const base = JSON.parse(S.undoBase); if (!base || !base.turnLock) return false;
+  const cur = curPlayer(p, base); const seat = p.online.seat; if (cur && seat === cur.id) return false;
+  toast(seat ? `Teď hraje ${cur ? cur.name : "jiný hráč"} – počkej na svůj tah` : "Pozorovatel nemůže měnit stůl – vyber, za koho hraješ"); return true;
+}
 function onlineHTML(p, t) {
   if (p.online) {
     const seat = p.online.seat;
     return `<section><div class="eyebrow">Online hra · kód <span class="mono">${esc(p.online.code)}</span></div>
       <label class="f">Hraji za<select id="onSeat"><option value="">Pozoruji (vidím vše)</option>${p.factions.map(f => `<option value="${f.id}" ${seat === f.id ? "selected" : ""}>${esc(f.name)}</option>`).join("")}</select></label>
       <p class="hint">Ruce ostatních hráčů a jejich skryté jednotky neuvidíš. Změny na stole se ostatním ukážou do pár sekund.</p>
+      ${p.online.host ? `<label class="chk"><input type="checkbox" id="onLock" ${t.turnLock ? "checked" : ""}> Měnit stůl smí jen hráč na tahu</label>` : t.turnLock ? `<p class="hint">🔒 Stůl smí měnit jen hráč na tahu.</p>` : ""}
       <div class="row"><button class="btn small" id="onFb">Napsat zpětnou vazbu</button><button class="btn small danger" id="onLeave">Opustit hru</button></div></section>`;
   }
   return `<section><div class="eyebrow">Hra více lidí naráz</div><p class="hint">Každý hraje na svém zařízení, ruce zůstanou soukromé.</p>
@@ -104,5 +111,6 @@ function wireOnline(main, p, t, save) {
   if (q("onJoin")) q("onJoin").onclick = joinDialog;
   if (q("onLeave")) q("onLeave").onclick = () => leaveOnline(p);
   if (q("onFb")) q("onFb").onclick = () => feedbackDialog(p);
+  if (q("onLock")) q("onLock").onchange = e => { t.turnLock = e.target.checked; S.undoBase = JSON.stringify(t); touch(p); render(); };
   if (q("onSeat")) q("onSeat").onchange = e => { p.online.seat = e.target.value; S.view = e.target.value || ""; if (e.target.value) { S.handF = e.target.value; S.showHand = false; } render(); };
 }

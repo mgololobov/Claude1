@@ -268,8 +268,9 @@ function sideMarket(p, t) {
   const cur = p.resources.find(r => r.id === p.marketCur); const cp = curPlayer(p, t);
   return `<section><div class="eyebrow">Kupuje</div>${fchipsHTML(p, t)}${cur && cp ? `<span class="hint">${esc(cp.name)} má ${(t.res[cp.id] || {})[cur.id] ?? 0} × ${esc(cur.name)}</span>` : ""}</section>
     ${ds.map(d => `<section><div class="row spread"><div class="eyebrow">${esc(d.name)} · v balíčku ${t.piles[d.id].length}</div><button class="btn small" data-mrefresh="${d.id}">Vyměnit trh</button></div>
-      <div class="hand mini">${t.market[d.id].map((cId, i) => { const c = cId && d.cards.find(x => x.id === cId); return c ? `<div class="hc">${cardHTML(c, d)}<div class="row"><button class="btn small primary" data-mbuy="${d.id}|${i}">Koupit</button><button class="btn small" data-mhand="${d.id}|${i}" aria-label="Do ruky">Ruka</button><button class="btn small" data-mtab="${d.id}|${i}" aria-label="Vyložit">Vyložit</button></div></div>` : `<div class="hc empty" style="padding:8px;font-size:.8rem">prázdné</div>`; }).join("")}</div>
-      <p class="hint">Koupit = do odhozu vlastního balíčku hráče (deck building).</p></section>`).join("")}`;
+      <div class="hand mini">${t.market[d.id].map((cId, i) => { const c = cId && d.cards.find(x => x.id === cId); return c ? `<div class="hc">${cardHTML(c, d)}<div class="row">${p.marketAuction ? `<button class="btn small primary" data-mauc="${d.id}|${i}">Dražit</button>` : `<button class="btn small primary" data-mbuy="${d.id}|${i}">Koupit</button>`}<button class="btn small" data-mhand="${d.id}|${i}" aria-label="Do ruky">Ruka</button><button class="btn small" data-mtab="${d.id}|${i}" aria-label="Vyložit">Vyložit</button></div></div>` : `<div class="hc empty" style="padding:8px;font-size:.8rem">prázdné</div>`; }).join("")}</div>
+      <p class="hint">Koupit = do odhozu vlastního balíčku hráče (deck building).</p></section>`).join("")}
+    <section><label class="chk"><input type="checkbox" id="mAuc" ${p.marketAuction ? "checked" : ""}> Karty z trhu se draží (otevřená dražba od ceny karty)</label></section>`;
 }
 function sideActions(p, t) {
   if (!p.actions.length) return `<p class="hint">Akce nadefinuješ v záložce Mechaniky.</p>`;
@@ -490,7 +491,7 @@ function sideTerritory(p, t) {
 }
 
 function wireTable(main, p, t) {
-  const save = () => { const now = JSON.stringify(p.table); if (S.undoBase && now !== S.undoBase) { S.undo.push(S.undoBase); if (S.undo.length > 40) S.undo.shift(); } S.undoBase = now; touch(p); };
+  const save = () => { if (onlineBlocked(p)) { p.table = JSON.parse(S.undoBase); render(); return; } const now = JSON.stringify(p.table); if (S.undoBase && now !== S.undoBase) { S.undo.push(S.undoBase); if (S.undo.length > 40) S.undo.shift(); } S.undoBase = now; touch(p); };
   const on = (sel, fn) => $$(sel, main).forEach(el => el.addEventListener("click", () => fn(el)));
   const q = id => document.getElementById(id);
   const pl = players(p, t); const cp = curPlayer(p, t);
@@ -546,6 +547,9 @@ function wireTable(main, p, t) {
     if (dest === "tab" && c.effect) runEffects(p, t, cp.id, c.effect, c.title);
     refillMarket(p, t, d); after(p, t, cat, cp.id, c.type); save(); render(); toast(`${c.title} → ${cp.name}`);
   };
+  if (q("mAuc")) q("mAuc").onchange = e => { p.marketAuction = e.target.checked; touch(p); render(); };
+  on("[data-mauc]", el => { const [dId, i] = el.dataset.mauc.split("|"); const d = p.decks.find(x => x.id === dId); const c = d.cards.find(x => x.id === t.market[dId][+i]); if (!c || !gate(p, t, "nakup")) return;
+    t.auction = { item: c.title, bid: parseFloat(c.cost) || 0, leader: null, passed: [], card: { dId, i: +i } }; S.tool = "drazba"; S.aucMode = "open"; save(); render(); });
   on("[data-mbuy]", el => takeMarket(el.dataset.mbuy, "buy")); on("[data-mhand]", el => takeMarket(el.dataset.mhand, "hand")); on("[data-mtab]", el => takeMarket(el.dataset.mtab, "tab"));
   on("[data-mrefresh]", el => { const d = p.decks.find(x => x.id === el.dataset.mrefresh); t.market[d.id].forEach(c => { if (c) t.discard[d.id].push(c); }); t.market[d.id] = []; refillMarket(p, t, d); save(); render(); });
   // akce a rondel
@@ -605,7 +609,12 @@ function wireTable(main, p, t) {
   on("[data-abid]", el => { const [fid, dv] = el.dataset.abid.split("|"); const A = t.auction; A.bid += +dv; A.leader = fid; save(); render(); });
   on("[data-apass]", el => { t.auction.passed.push(el.dataset.apass); save(); render(); });
   const pay = (fid, v) => { const cur = p.resources.find(r => r.id === p.marketCur); if (!cur) return; t.res[fid] = t.res[fid] || {}; t.res[fid][cur.id] = (t.res[fid][cur.id] || 0) - v; toast(`Zaplaceno ${v} × ${cur.name}`); };
-  if (q("aPay")) q("aPay").onclick = () => { pay(t.auction.leader, t.auction.bid); t.auction = null; save(); render(); };
+  if (q("aPay")) q("aPay").onclick = () => { const A = t.auction; pay(A.leader, A.bid);
+    if (A.card) { const d = p.decks.find(x => x.id === A.card.dId); const cId = d && t.market[d.id][A.card.i]; const c = cId && d.cards.find(x => x.id === cId);
+      if (c) { t.market[d.id][A.card.i] = null; const h = { deckId: d.id, cardId: cId, own: true }; const f = p.factions.find(x => x.id === A.leader);
+        if (p.decks.some(x => x.starter)) (t.pdisc[A.leader] = t.pdisc[A.leader] || []).push(h); else { (t.tableau[A.leader] = t.tableau[A.leader] || []).push(h); if (c.effect) runEffects(p, t, A.leader, c.effect, c.title); }
+        logEv(t, `${f ? f.name : ""} vydražil ${c.title} za ${A.bid}`); refillMarket(p, t, d); after(p, t, "nakup", A.leader, c.type); } }
+    t.auction = null; save(); render(); };
   if (q("aEnd")) q("aEnd").onclick = () => { t.auction = null; save(); render(); };
   if (q("zGo")) q("zGo").onclick = () => { t.sealed = { mode: S.aucMode, item: q("zItem").value.trim(), options: q("zOpts") ? q("zOpts").value.split(",").map(s => s.trim()).filter(Boolean) : [], entries: {}, revealed: false }; save(); render(); };
   on("[data-zent]", el => {

@@ -80,6 +80,12 @@ const OUT = path.join(__dirname, "out"); fs.mkdirSync(OUT, { recursive: true });
     await sel(1); await pg.click("[data-tab=analyza]"); await pg.fill("#tuVals", "10, 20"); await pg.dispatchEvent("#tuVals", "change"); await pg.fill("#tuGames", "20"); await pg.dispatchEvent("#tuGames", "change");
     await pg.click("#tuRun"); await pg.waitForSelector("[data-tuuse]", { timeout: 30000 });
   });
+  await step("dražba karty z trhu", async () => {
+    await sel(1); await pg.click("[data-tab=stul]"); await pg.click("[data-tool=trh]"); await pg.check("#mAuc"); await pg.click("[data-mauc]");
+    const ids = await ev(() => P().factions.map(f => f.id)); await ev(() => { const t = P().table; Object.values(t.res).forEach(r => { r.mince = 10; }); });
+    await pg.click(`[data-abid="${ids[0]}|1"]`); await pg.click(`[data-apass="${ids[1]}"]`); await pg.click(`[data-apass="${ids[2]}"]`); await pg.click("#aPay");
+    const log = await ev(() => P().table.log[0]); if (!/vydražil/.test(log)) throw new Error(log);
+  });
   await step("telefon – Přehled", async () => { await pg.setViewportSize({ width: 400, height: 820 }); await pg.click("[data-tab=prehled]"); await pg.screenshot({ path: path.join(OUT, "telefon.png") }); });
   await b.close();
   console.log(`\n${fails.length ? fails.length + " kroků selhalo:\n" + fails.join("\n") : "Všechny kroky prošly."}\n${errors.length ? "Chyby v konzoli:\n" + errors.join("\n") : "Bez chyb v konzoli."}`);
