@@ -288,3 +288,4 @@ button.die { border: 0; padding: 0; }
 .zoombar .zsep { width: 1px; height: 26px; background: var(--line); margin: 0 4px; }
 .inklayer { position: absolute; left: 0; top: 0; pointer-events: none; z-index: 900; }
 .mat.inkmode { cursor: crosshair; }
+.die.wide { width: 52px; font-size: .9rem; }

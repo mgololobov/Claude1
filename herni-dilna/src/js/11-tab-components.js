@@ -60,12 +60,14 @@ function renderComponents(main, p) {
       </div>
       <div class="panel">
         <div class="row spread"><h2>Vlastní kostky</h2><button class="btn small" id="addDie">+ Kostka</button></div>
-        <p class="hint">Stěny odděl čárkou. Symbol se může opakovat, prázdná stěna je „nic“. Např. ⚔,⚔,🛡,💰,★,</p>
+        <p class="hint">Stěny odděl čárkou. Symbol se může opakovat, prázdná stěna je „nic“. Např. ⚔,⚔,🛡,💰,★, – kostka může mít 2 až 100 stěn.</p>
+        <div class="row"><span class="hint">Nová kostka s čísly:</span>${[4, 8, 10, 12, 20].map(s => `<button class="btn small" data-dnew="${s}">k${s}</button>`).join("")}</div>
         ${p.cdice.length ? p.cdice.map(d => `<div class="item-row">
           <input type="color" data-dc="${d.id}" value="${d.color}" aria-label="Barva kostky" style="width:44px;height:36px;border:0;background:none;padding:0">
           <input type="text" data-dn="${d.id}" value="${esc(d.name)}" aria-label="Název kostky" style="width:150px">
+          <label class="f" style="flex-direction:row;align-items:center;gap:6px;width:auto">Stěn<input type="number" data-dfn="${d.id}" min="2" max="100" value="${d.faces.length}" style="width:70px"></label>
           <input type="text" data-df="${d.id}" value="${esc(d.faces.join(","))}" aria-label="Stěny kostky" style="flex:1;min-width:160px;width:auto">
-          <span class="row">${d.faces.map(f => `<span class="die cust" style="--c:${d.color};width:30px;height:30px;font-size:.8rem;color:${inkFor(d.color)}">${esc(f) || "·"}</span>`).join("")}</span>
+          <span class="row">${d.faces.slice(0, 20).map(f => `<span class="die cust" style="--c:${d.color};width:30px;height:30px;font-size:.8rem;color:${inkFor(d.color)}">${esc(f) || "·"}</span>`).join("")}${d.faces.length > 20 ? `<span class="hint">… ${d.faces.length} stěn</span>` : ""}</span>
           <button class="btn small danger" data-ddel="${d.id}" aria-label="Smazat kostku">✕</button></div>`).join("") : `<div class="empty">Žádné vlastní kostky.</div>`}
       </div>
     </div>
@@ -140,7 +142,9 @@ function renderComponents(main, p) {
   $("#addDie").onclick = () => { p.cdice.push({ id: uid(), name: "Kostka " + (p.cdice.length + 1), color: "#4a4a48", faces: ["⚔", "⚔", "🛡", "★", "", ""] }); touch(p); render(); };
   $$("[data-dn]", main).forEach(i => i.addEventListener("input", () => { D(i.dataset.dn).name = i.value; touch(p); }));
   $$("[data-dc]", main).forEach(i => i.addEventListener("change", () => { D(i.dataset.dc).color = i.value; touch(p); render(); }));
-  $$("[data-df]", main).forEach(i => i.addEventListener("change", () => { const f = i.value.split(",").map(s => s.trim()); D(i.dataset.df).faces = f.length >= 2 ? f.slice(0, 20) : ["1", "2"]; touch(p); render(); }));
+  $$("[data-df]", main).forEach(i => i.addEventListener("change", () => { const f = i.value.split(",").map(s => s.trim()); D(i.dataset.df).faces = f.length >= 2 ? f.slice(0, 100) : ["1", "2"]; touch(p); render(); }));
+  $$("[data-dfn]", main).forEach(i => i.addEventListener("change", () => { const d = D(i.dataset.dfn); const n = Math.max(2, Math.min(100, parseInt(i.value, 10) || 6)); const f = d.faces.slice(0, n); while (f.length < n) f.push(String(f.length + 1)); d.faces = f; touch(p); render(); }));
+  $$("[data-dnew]", main).forEach(b => b.onclick = () => { const s = +b.dataset.dnew; p.cdice.push({ id: uid(), name: "k" + s, color: "#4a4a48", faces: Array.from({ length: s }, (_, i) => String(i + 1)) }); touch(p); render(); });
   $$("[data-ddel]", main).forEach(x => x.onclick = () => { p.cdice = p.cdice.filter(d => d.id !== x.dataset.ddel); touch(p); render(); });
   // dílky
   const TL = id => p.tiles.find(x => x.id === id);

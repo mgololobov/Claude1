@@ -415,14 +415,18 @@ function sideBag(p, t) {
 function sideDice(p, t) {
   const pool = S.pool; const std = pool.filter(d => d.type === "std"); const tally = {};
   pool.filter(d => d.type === "c").forEach(d => { const cd = p.cdice.find(x => x.id === d.id); const f = cd ? cd.faces[d.v] : ""; if (f) tally[f] = (tally[f] || 0) + 1; });
-  return `<section><div class="eyebrow">Standardní kostky</div>
-    <label class="f" style="flex-direction:row;align-items:center;gap:8px">Počet <input type="number" id="diceN" min="1" max="12" value="${S.diceN || 2}" style="width:76px"></label>
-    <div class="dice-btns">${[4, 6, 8, 10, 12, 20].map(s => `<button class="btn small" data-roll="${s}">k${s}</button>`).join("")}</div></section>
-    ${p.cdice.length ? `<section><div class="eyebrow">Vlastní kostky – přidat do hodu</div><div class="row">${p.cdice.map(d => `<button class="btn small" data-cdie="${d.id}"><span class="dot" style="background:${d.color}"></span>${esc(d.name)}</button>`).join("")}</div></section>` : ""}
+  const ps = poolSummary(pool, S.diceMod || 0);
+  return `<section><div class="eyebrow">Kostky</div>
+    <div class="row"><label class="f" style="flex-direction:row;align-items:center;gap:8px">Počet <input type="number" id="diceN" min="1" max="20" value="${S.diceN || 2}" style="width:70px"></label>
+      <label class="chk"><input type="checkbox" id="diceAdd" ${S.diceAdd ? "checked" : ""}> Přidávat k hodu (různé kostky najednou)</label></div>
+    <div class="dice-btns">${DIE_SIDES.map(s => `<button class="btn small" data-roll="${s}" ${s === 100 ? 'title="Procentová kostka 1–100"' : ""}>${dieLabel(s)}</button>`).join("")}</div>
+    <div class="row"><label class="f" style="flex-direction:row;align-items:center;gap:8px">Stěn <input type="number" id="diceS" min="2" max="1000" value="${S.diceS || 7}" style="width:80px"></label><button class="btn small" id="rollS">Hodit</button></div>
+    <div class="row"><input type="text" id="diceExpr" value="${esc(S.diceExpr || "")}" placeholder="např. 2k6+k8+3" aria-label="Zápis hodu" style="flex:1;min-width:120px"><button class="btn small primary" id="rollExpr">Hodit</button></div></section>
+    ${p.cdice.length ? `<section><div class="eyebrow">Vlastní kostky – přidat do hodu</div><div class="row">${p.cdice.map(d => `<button class="btn small" data-cdie="${d.id}"><span class="dot" style="background:${d.color}"></span>${esc(d.name)} <span class="count">${d.faces.length} st.</span></button>`).join("")}</div></section>` : ""}
     <section><div class="eyebrow">Hod${S.rerolls ? ` · přehozeno ${S.rerolls}×` : ""}</div>
-      <div class="dice-out" aria-live="polite">${pool.map((d, i) => { if (d.type === "std") return `<button class="die ${d.lock ? "lock" : ""} ${S.justRolled && !d.lock ? "roll" : ""}" data-lock="${i}">${d.v}<small>k${d.s}</small></button>`;
+      <div class="dice-out" aria-live="polite">${pool.map((d, i) => { if (d.type === "std") return `<button class="die ${d.lock ? "lock" : ""} ${S.justRolled && !d.lock ? "roll" : ""} ${String(d.v).length > 2 ? "wide" : ""}" data-lock="${i}">${d.v}<small>${dieLabel(d.s)}</small></button>`;
         const cd = p.cdice.find(x => x.id === d.id); if (!cd) return ""; return `<button class="die cust ${d.lock ? "lock" : ""} ${S.justRolled && !d.lock ? "roll" : ""}" data-lock="${i}" style="--c:${cd.color};color:${inkFor(cd.color)}">${esc(cd.faces[d.v]) || "·"}</button>`; }).join("") || `<span class="hint">Zatím se neházelo.</span>`}</div>
-      ${std.length > 1 ? `<span class="mono">součet ${std.reduce((a, d) => a + d.v, 0)}</span>` : ""}
+      ${ps && (std.length > 1 || S.diceMod) ? `<span class="mono">${esc(ps.expr)} = <b>${ps.sum}</b></span>` : ""}
       ${Object.keys(tally).length ? `<span class="mono">${Object.entries(tally).map(([f, n]) => `${esc(f)} ×${n}`).join(" · ")}</span>` : ""}
       ${pool.length ? `<p class="hint">Klepnutím kostku zamkneš (odložíš stranou), zbytek můžeš přehodit.</p><div class="row"><button class="btn small primary" id="reroll">Přehodit nezamčené</button><button class="btn small" id="poolClear">Vyprázdnit</button></div>` : ""}
       ${S.diceLog.length ? `<div class="log">${S.diceLog.map(l => `<span>${esc(l)}</span>`).join("")}</div>` : ""}</section>`;
@@ -459,7 +463,7 @@ function sideCombat(p, t) {
       <div class="grid" style="grid-template-columns:1fr 1fr">
         <label class="f">Kostek útočník<input type="number" id="cAD" min="0" max="20" value="${C.aDice}"></label>
         <label class="f">Kostek obránce<input type="number" id="cDD" min="0" max="20" value="${C.dDice}"></label></div>
-      <div class="hint">Zásah útočníka na ${p.dice.aHit}+, obránce na ${p.dice.dHit}+ (změníš v Mechanikách).</div>
+      <div class="hint">Kostky k${+p.dice.sides || 6}: zásah útočníka na ${p.dice.aHit}+, obránce na ${p.dice.dHit}+ (změníš v Mechanikách).</div>
       <button class="btn primary" id="cRollD">Hodit</button>
       ${C.dres ? `<div class="eyebrow">Útočník – ${C.dres.aHits} ${plural(C.dres.aHits, "zásah", "zásahy", "zásahů")}</div><div class="dice-out">${C.dres.a.map(v => `<span class="die roll ${v >= p.dice.aHit ? "hit" : "miss"}">${v}</span>`).join("")}</div>
         <div class="eyebrow">Obránce – ${C.dres.dHits} ${plural(C.dres.dHits, "zásah", "zásahy", "zásahů")}</div><div class="dice-out">${C.dres.d.map(v => `<span class="die roll ${v >= p.dice.dHit ? "hit" : "miss"}">${v}</span>`).join("")}</div>` : ""}
@@ -641,19 +645,27 @@ function wireTable(main, p, t) {
   on("[data-bagadd]", el => { bs().in.push(+el.dataset.bagadd); save(); render(); toast("Žeton přidán do sáčku"); });
   // kostky
   if (q("diceN")) q("diceN").onchange = e => { S.diceN = Math.max(1, Math.min(12, parseInt(e.target.value, 10) || 1)); };
-  const logPool = () => { const std = S.pool.filter(d => d.type === "std"); const cust = S.pool.filter(d => d.type === "c").map(d => { const cd = p.cdice.find(x => x.id === d.id); return cd ? (cd.faces[d.v] || "·") : ""; });
-    S.diceLog.unshift([std.length ? std.map(d => d.v).join(", ") + (std.length > 1 ? " = " + std.reduce((a, d) => a + d.v, 0) : "") : "", cust.join(" ")].filter(Boolean).join(" · ")); S.diceLog = S.diceLog.slice(0, 10); };
-  on("[data-roll]", el => { if (!gate(p, t, "kostky")) return; const s = +el.dataset.roll, n = Math.max(1, Math.min(12, parseInt(q("diceN").value, 10) || 1)); S.diceN = n; S.pool = Array.from({ length: n }, () => ({ type: "std", s, v: rnd(s), lock: false })); S.rerolls = 0; logPool(); S.justRolled = true; render(); });
-  on("[data-cdie]", el => { const cd = p.cdice.find(x => x.id === el.dataset.cdie); S.pool.push({ type: "c", id: cd.id, v: rnd(cd.faces.length) - 1, lock: false }); logPool(); S.justRolled = true; render(); });
+  const logPool = () => { const std = S.pool.filter(d => d.type === "std"); const cust = S.pool.filter(d => d.type === "c").map(d => { const cd = p.cdice.find(x => x.id === d.id); return cd ? (cd.faces[d.v] || "·") : ""; }); const ps = poolSummary(S.pool, S.diceMod || 0);
+    S.diceLog.unshift([std.length ? `${ps.expr}: ${std.map(d => d.v).join(", ")}${std.length > 1 || S.diceMod ? " = " + ps.sum : ""}` : "", cust.join(" ")].filter(Boolean).join(" · ")); S.diceLog = S.diceLog.slice(0, 10);
+    if (std.length) logEv(t, `hod ${ps.expr} = ${ps.sum}`); };
+  const diceN = () => { const n = Math.max(1, Math.min(20, parseInt(q("diceN").value, 10) || 1)); S.diceN = n; return n; };
+  const rollStd = (list, mod) => { if (!gate(p, t, "kostky")) return; const add = S.diceAdd && mod == null; if (!add) { S.pool = []; S.diceMod = mod || 0; S.rerolls = 0; }
+    list.forEach(s => S.pool.push({ type: "std", s, v: rnd(s), lock: false })); logPool(); S.justRolled = true; render(); };
+  on("[data-roll]", el => { const s = +el.dataset.roll; rollStd(Array.from({ length: diceN() }, () => s)); });
+  if (q("diceAdd")) q("diceAdd").onchange = e => { S.diceAdd = e.target.checked; };
+  if (q("rollS")) q("rollS").onclick = () => { const s = Math.max(2, Math.min(1000, parseInt(q("diceS").value, 10) || 6)); S.diceS = s; rollStd(Array.from({ length: diceN() }, () => s)); };
+  if (q("rollExpr")) q("rollExpr").onclick = () => { S.diceExpr = q("diceExpr").value; const r = parseDice(S.diceExpr); if (!r) { toast("Nerozumím zápisu – piš třeba 2k6+k8+3 nebo k%"); return; } rollStd(r.dice, r.mod); };
+  if (q("diceExpr")) q("diceExpr").addEventListener("keydown", e => { if (e.key === "Enter") q("rollExpr").click(); });
+  on("[data-cdie]", el => { const cd = p.cdice.find(x => x.id === el.dataset.cdie); if (!S.diceAdd && S.pool.some(d => d.type === "std")) S.pool = []; const n = S.diceAdd ? diceN() : 1; for (let i = 0; i < n; i++) S.pool.push({ type: "c", id: cd.id, v: rnd(cd.faces.length) - 1, lock: false }); logPool(); S.justRolled = true; render(); });
   on("[data-lock]", el => { const d = S.pool[+el.dataset.lock]; d.lock = !d.lock; render(); });
   if (q("reroll")) q("reroll").onclick = () => { S.pool.forEach(d => { if (d.lock) return; if (d.type === "std") d.v = rnd(d.s); else { const cd = p.cdice.find(x => x.id === d.id); if (cd) d.v = rnd(cd.faces.length) - 1; } }); S.rerolls = (S.rerolls || 0) + 1; logPool(); S.justRolled = true; render(); };
-  if (q("poolClear")) q("poolClear").onclick = () => { S.pool = []; S.rerolls = 0; render(); };
+  if (q("poolClear")) q("poolClear").onclick = () => { S.pool = []; S.rerolls = 0; S.diceMod = 0; render(); };
   // boj
   on("[data-cmode]", el => { C.mode = el.dataset.cmode; render(); });
   const cin = (id, key, conv = v => +v || 0) => { const el = q(id); if (el) el.addEventListener("change", () => { C[key] = conv(el.value); C.res = null; render(); }); };
   cin("cAtt", "att"); cin("cDef", "def"); cin("cTer", "terrainId", v => v); cin("cShift", "shift"); cin("cAD", "aDice"); cin("cDD", "dDice");
   if (q("cRoll")) q("cRoll").onclick = () => { if (!gate(p, t, "boj")) return; const { defEff, col } = combatCalc(p); const roll = rnd(p.crt.rows.length); const out = p.crt.rows[roll - 1][col]; C.res = { roll, ci: col, col: p.crt.cols[col], out }; C.log.unshift(`${C.att} : ${defEff} (${ratioText(+C.att || 0, defEff)}) → ${p.crt.cols[col]}, hod ${roll} = ${out}`); C.log = C.log.slice(0, 12); logEv(t, `boj ${C.att}:${defEff} (${p.crt.cols[col]}), hod ${roll} → ${out}`); after(p, t, "boj", (cp || {}).id, out); save(); render(); };
-  if (q("cRollD")) q("cRollD").onclick = () => { if (!gate(p, t, "boj")) return; const a = Array.from({ length: Math.min(20, +C.aDice || 0) }, () => rnd(6)), d = Array.from({ length: Math.min(20, +C.dDice || 0) }, () => rnd(6)); C.dres = { a, d, aHits: a.filter(v => v >= p.dice.aHit).length, dHits: d.filter(v => v >= p.dice.dHit).length }; C.log.unshift(`Kostky ${a.length} vs ${d.length}: útočník ${C.dres.aHits} zás., obránce ${C.dres.dHits} zás.`); C.log = C.log.slice(0, 12); render(); };
+  if (q("cRollD")) q("cRollD").onclick = () => { if (!gate(p, t, "boj")) return; const ds = +p.dice.sides || 6; const a = Array.from({ length: Math.min(20, +C.aDice || 0) }, () => rnd(ds)), d = Array.from({ length: Math.min(20, +C.dDice || 0) }, () => rnd(ds)); C.dres = { a, d, aHits: a.filter(v => v >= p.dice.aHit).length, dHits: d.filter(v => v >= p.dice.dHit).length }; C.log.unshift(`Kostky ${a.length} vs ${d.length}: útočník ${C.dres.aHits} zás., obránce ${C.dres.dHits} zás.`); C.log = C.log.slice(0, 12); render(); };
   if (q("cClear")) q("cClear").onclick = () => { C.att = 0; C.def = 0; C.res = null; C.shift = 0; C.attUids = []; C.defUid = null; render(); };
   // území
   if (q("ctrlMode")) q("ctrlMode").onclick = () => { S.ctrlMode = !S.ctrlMode; S.sel = null; render(); };

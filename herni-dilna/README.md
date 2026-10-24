@@ -29,6 +29,7 @@ src/js/NN-*.js       moduly; sestavují se v pořadí čísel
   34-war             provedení boje, zásobování, iniciativa, skrytý pohyb
   35-ipad            zvětšení stolu dvěma prsty, kreslení perem
   36-sim-extra       simulace války a dílků, hledání dopředu, průběh skóre, ladění variant
+  37-dice            kostky s libovolným počtem stěn, k%, smíšený hod, zápis 2k6+k8+3
   99-main            spuštění
 tests/harness.js     načte moduly do Node bez prohlížeče
 tests/*.test.js      testy herní logiky

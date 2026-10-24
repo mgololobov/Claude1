@@ -215,3 +215,12 @@ test("online: mimo svůj tah nejde měnit stůl", () => {
   p.online.seat = "anna"; assert.equal(A.onlineBlocked(p), false);
   t.turnLock = false; p.online.seat = "bert"; S.undoBase = JSON.stringify(t); assert.equal(A.onlineBlocked(p), false);
 });
+test("kostky: zápis hodu, procentová kostka a rozdělení součtu", () => {
+  assert.deepEqual(A.parseDice("2k6 + k8 + 3"), { dice: [6, 6, 8], mod: 3 });
+  assert.deepEqual(A.parseDice("k%"), { dice: [100], mod: 0 });
+  assert.deepEqual(A.parseDice("3d12-1"), { dice: [12, 12, 12], mod: -1 });
+  assert.equal(A.parseDice("2x6"), null); assert.equal(A.parseDice("k1"), null);
+  const d = A.diceDistribution([6, 6]); assert.ok(Math.abs(d[7] - 6 / 36) < 1e-12); assert.ok(Math.abs(d.reduce((a, b) => a + b, 0) - 1) < 1e-12);
+  const s = A.poolSummary([{ type: "std", s: 6, v: 3 }, { type: "std", s: 6, v: 4 }, { type: "std", s: 100, v: 55 }], 2);
+  assert.equal(s.expr, "2k6 + k% + 2"); assert.equal(s.sum, 64);
+});

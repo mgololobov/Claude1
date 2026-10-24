@@ -108,9 +108,10 @@ function renderMechanics(main, p) {
         <div style="display:flex;flex-direction:column;gap:10px;min-width:0">
           <label class="f">Vysvětlivky výsledků<textarea id="legend" style="min-height:120px">${esc(crt.legend)}</textarea></label>
           <h3>Kostkový boj</h3>
-          <div class="grid" style="grid-template-columns:1fr 1fr">
-            <label class="f">Útočník zasahuje na<input type="number" min="1" max="6" id="aHit" value="${p.dice.aHit}"></label>
-            <label class="f">Obránce zasahuje na<input type="number" min="1" max="6" id="dHit" value="${p.dice.dHit}"></label>
+          <div class="grid" style="grid-template-columns:1fr 1fr 1fr">
+            <label class="f">Stěn kostky<select id="dSides">${[4, 6, 8, 10, 12, 20].map(s => `<option ${s === (+p.dice.sides || 6) ? "selected" : ""}>${s}</option>`).join("")}</select></label>
+            <label class="f">Útočník zasahuje na<input type="number" min="1" max="${+p.dice.sides || 6}" id="aHit" value="${p.dice.aHit}"></label>
+            <label class="f">Obránce zasahuje na<input type="number" min="1" max="${+p.dice.sides || 6}" id="dHit" value="${p.dice.dHit}"></label>
           </div>
           <h3>Pohyb</h3>
           <label class="chk"><input type="checkbox" id="zoc" ${p.zoc ? "checked" : ""}> Zóny kontroly: vstup na pole sousedící s nepřítelem ukončí pohyb</label>
@@ -159,8 +160,10 @@ function renderMechanics(main, p) {
   $("#rowDel").onclick = () => { if (crt.rows.length < 2) return; crt.rows.pop(); touch(p); render(); };
   $("#crtReset").onclick = () => confirmDialog("Obnovit výchozí tabulku?", "Tvoje úpravy tabulky se přepíšou.", "Obnovit", () => { p.crt = defaultCRT(); touch(p); render(); });
   $("#legend").addEventListener("input", e => { crt.legend = e.target.value; touch(p); });
-  $("#aHit").addEventListener("input", e => { p.dice.aHit = Math.max(1, Math.min(6, +e.target.value || 5)); touch(p); });
-  $("#dHit").addEventListener("input", e => { p.dice.dHit = Math.max(1, Math.min(6, +e.target.value || 5)); touch(p); });
+  const dS = () => +p.dice.sides || 6;
+  $("#dSides").onchange = e => { p.dice.sides = +e.target.value; p.dice.aHit = Math.min(p.dice.aHit, dS()); p.dice.dHit = Math.min(p.dice.dHit, dS()); touch(p); render(); };
+  $("#aHit").addEventListener("input", e => { p.dice.aHit = Math.max(1, Math.min(dS(), +e.target.value || 5)); touch(p); });
+  $("#dHit").addEventListener("input", e => { p.dice.dHit = Math.max(1, Math.min(dS(), +e.target.value || 5)); touch(p); });
   $("#zoc").onchange = e => { p.zoc = e.target.checked; touch(p); };
   // dráha, trasy, burza, role
   $("#trLen").addEventListener("change", e => { p.track.length = Math.max(0, Math.min(120, +e.target.value || 0)); touch(p); });

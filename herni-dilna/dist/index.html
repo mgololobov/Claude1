@@ -293,6 +293,7 @@ button.die { border: 0; padding: 0; }
 .zoombar .zsep { width: 1px; height: 26px; background: var(--line); margin: 0 4px; }
 .inklayer { position: absolute; left: 0; top: 0; pointer-events: none; z-index: 900; }
 .mat.inkmode { cursor: crosshair; }
+.die.wide { width: 52px; font-size: .9rem; }
 </style>
 <style id="card-css">
 /* Vzhled karet. Všechny rozměry jsou v em, velikost karty určuje jen font-size (16px = šířka 150 px). */
@@ -1159,12 +1160,14 @@ function renderComponents(main, p) {
       </div>
       <div class="panel">
         <div class="row spread"><h2>Vlastní kostky</h2><button class="btn small" id="addDie">+ Kostka</button></div>
-        <p class="hint">Stěny odděl čárkou. Symbol se může opakovat, prázdná stěna je „nic“. Např. ⚔,⚔,🛡,💰,★,</p>
+        <p class="hint">Stěny odděl čárkou. Symbol se může opakovat, prázdná stěna je „nic“. Např. ⚔,⚔,🛡,💰,★, – kostka může mít 2 až 100 stěn.</p>
+        <div class="row"><span class="hint">Nová kostka s čísly:</span>${[4, 8, 10, 12, 20].map(s => `<button class="btn small" data-dnew="${s}">k${s}</button>`).join("")}</div>
         ${p.cdice.length ? p.cdice.map(d => `<div class="item-row">
           <input type="color" data-dc="${d.id}" value="${d.color}" aria-label="Barva kostky" style="width:44px;height:36px;border:0;background:none;padding:0">
           <input type="text" data-dn="${d.id}" value="${esc(d.name)}" aria-label="Název kostky" style="width:150px">
+          <label class="f" style="flex-direction:row;align-items:center;gap:6px;width:auto">Stěn<input type="number" data-dfn="${d.id}" min="2" max="100" value="${d.faces.length}" style="width:70px"></label>
           <input type="text" data-df="${d.id}" value="${esc(d.faces.join(","))}" aria-label="Stěny kostky" style="flex:1;min-width:160px;width:auto">
-          <span class="row">${d.faces.map(f => `<span class="die cust" style="--c:${d.color};width:30px;height:30px;font-size:.8rem;color:${inkFor(d.color)}">${esc(f) || "·"}</span>`).join("")}</span>
+          <span class="row">${d.faces.slice(0, 20).map(f => `<span class="die cust" style="--c:${d.color};width:30px;height:30px;font-size:.8rem;color:${inkFor(d.color)}">${esc(f) || "·"}</span>`).join("")}${d.faces.length > 20 ? `<span class="hint">… ${d.faces.length} stěn</span>` : ""}</span>
           <button class="btn small danger" data-ddel="${d.id}" aria-label="Smazat kostku">✕</button></div>`).join("") : `<div class="empty">Žádné vlastní kostky.</div>`}
       </div>
     </div>
@@ -1239,7 +1242,9 @@ function renderComponents(main, p) {
   $("#addDie").onclick = () => { p.cdice.push({ id: uid(), name: "Kostka " + (p.cdice.length + 1), color: "#4a4a48", faces: ["⚔", "⚔", "🛡", "★", "", ""] }); touch(p); render(); };
   $$("[data-dn]", main).forEach(i => i.addEventListener("input", () => { D(i.dataset.dn).name = i.value; touch(p); }));
   $$("[data-dc]", main).forEach(i => i.addEventListener("change", () => { D(i.dataset.dc).color = i.value; touch(p); render(); }));
-  $$("[data-df]", main).forEach(i => i.addEventListener("change", () => { const f = i.value.split(",").map(s => s.trim()); D(i.dataset.df).faces = f.length >= 2 ? f.slice(0, 20) : ["1", "2"]; touch(p); render(); }));
+  $$("[data-df]", main).forEach(i => i.addEventListener("change", () => { const f = i.value.split(",").map(s => s.trim()); D(i.dataset.df).faces = f.length >= 2 ? f.slice(0, 100) : ["1", "2"]; touch(p); render(); }));
+  $$("[data-dfn]", main).forEach(i => i.addEventListener("change", () => { const d = D(i.dataset.dfn); const n = Math.max(2, Math.min(100, parseInt(i.value, 10) || 6)); const f = d.faces.slice(0, n); while (f.length < n) f.push(String(f.length + 1)); d.faces = f; touch(p); render(); }));
+  $$("[data-dnew]", main).forEach(b => b.onclick = () => { const s = +b.dataset.dnew; p.cdice.push({ id: uid(), name: "k" + s, color: "#4a4a48", faces: Array.from({ length: s }, (_, i) => String(i + 1)) }); touch(p); render(); });
   $$("[data-ddel]", main).forEach(x => x.onclick = () => { p.cdice = p.cdice.filter(d => d.id !== x.dataset.ddel); touch(p); render(); });
   // dílky
   const TL = id => p.tiles.find(x => x.id === id);
@@ -1646,9 +1651,10 @@ function renderMechanics(main, p) {
         <div style="display:flex;flex-direction:column;gap:10px;min-width:0">
           <label class="f">Vysvětlivky výsledků<textarea id="legend" style="min-height:120px">${esc(crt.legend)}</textarea></label>
           <h3>Kostkový boj</h3>
-          <div class="grid" style="grid-template-columns:1fr 1fr">
-            <label class="f">Útočník zasahuje na<input type="number" min="1" max="6" id="aHit" value="${p.dice.aHit}"></label>
-            <label class="f">Obránce zasahuje na<input type="number" min="1" max="6" id="dHit" value="${p.dice.dHit}"></label>
+          <div class="grid" style="grid-template-columns:1fr 1fr 1fr">
+            <label class="f">Stěn kostky<select id="dSides">${[4, 6, 8, 10, 12, 20].map(s => `<option ${s === (+p.dice.sides || 6) ? "selected" : ""}>${s}</option>`).join("")}</select></label>
+            <label class="f">Útočník zasahuje na<input type="number" min="1" max="${+p.dice.sides || 6}" id="aHit" value="${p.dice.aHit}"></label>
+            <label class="f">Obránce zasahuje na<input type="number" min="1" max="${+p.dice.sides || 6}" id="dHit" value="${p.dice.dHit}"></label>
           </div>
           <h3>Pohyb</h3>
           <label class="chk"><input type="checkbox" id="zoc" ${p.zoc ? "checked" : ""}> Zóny kontroly: vstup na pole sousedící s nepřítelem ukončí pohyb</label>
@@ -1697,8 +1703,10 @@ function renderMechanics(main, p) {
   $("#rowDel").onclick = () => { if (crt.rows.length < 2) return; crt.rows.pop(); touch(p); render(); };
   $("#crtReset").onclick = () => confirmDialog("Obnovit výchozí tabulku?", "Tvoje úpravy tabulky se přepíšou.", "Obnovit", () => { p.crt = defaultCRT(); touch(p); render(); });
   $("#legend").addEventListener("input", e => { crt.legend = e.target.value; touch(p); });
-  $("#aHit").addEventListener("input", e => { p.dice.aHit = Math.max(1, Math.min(6, +e.target.value || 5)); touch(p); });
-  $("#dHit").addEventListener("input", e => { p.dice.dHit = Math.max(1, Math.min(6, +e.target.value || 5)); touch(p); });
+  const dS = () => +p.dice.sides || 6;
+  $("#dSides").onchange = e => { p.dice.sides = +e.target.value; p.dice.aHit = Math.min(p.dice.aHit, dS()); p.dice.dHit = Math.min(p.dice.dHit, dS()); touch(p); render(); };
+  $("#aHit").addEventListener("input", e => { p.dice.aHit = Math.max(1, Math.min(dS(), +e.target.value || 5)); touch(p); });
+  $("#dHit").addEventListener("input", e => { p.dice.dHit = Math.max(1, Math.min(dS(), +e.target.value || 5)); touch(p); });
   $("#zoc").onchange = e => { p.zoc = e.target.checked; touch(p); };
   // dráha, trasy, burza, role
   $("#trLen").addEventListener("change", e => { p.track.length = Math.max(0, Math.min(120, +e.target.value || 0)); touch(p); });
@@ -1976,7 +1984,7 @@ function binPMF(n, p, k) { return Math.exp(lnC(n, k) + k * Math.log(p || 1e-300)
 function diceDist(N, S) { let d = [1]; for (let i = 0; i < N; i++) { const nd = new Array(d.length + S).fill(0); d.forEach((v, s) => { for (let f = 1; f <= S; f++) nd[s + f] += v / S; }); d = nd; } return d; }
 const pct = v => (v * 100).toLocaleString("cs-CZ", { maximumFractionDigits: v < .01 ? 2 : 1 }) + " %";
 function renderAnalysis(main, p) {
-  const A = S.an = S.an || { N: 40, K: 4, n: 7, k: 1, dN: 2, dS: 6, dT: 7, hN: 3, hH: 5, hK: 1 };
+  const A = S.an = S.an || { N: 40, K: 4, n: 7, k: 1, dN: 2, dS: 6, dT: 7, hN: 3, hH: 5, hK: 1, hS: 6 };
   if (!p.decks.find(d => d.id === A.deckId)) A.deckId = p.decks[0] ? p.decks[0].id : null;
   const deck = p.decks.find(d => d.id === A.deckId);
   const cards = deck ? deck.cards.flatMap(c => Array.from({ length: +c.qty || 0 }, () => c)) : [];
@@ -1999,7 +2007,7 @@ function renderAnalysis(main, p) {
   const dN = Math.max(1, Math.min(20, +A.dN || 1)), dS = Math.max(2, Math.min(100, +A.dS || 6)), dT = +A.dT || 0;
   const dist = diceDist(dN, dS); const pGe = dist.reduce((a, v, s) => a + (s >= dT ? v : 0), 0);
   const maxD = Math.max(...dist); const exp = dN * (dS + 1) / 2;
-  const hN = Math.max(1, Math.min(40, +A.hN || 1)), hH = Math.max(1, Math.min(6, +A.hH || 5)), hp = (7 - hH) / 6, hK = Math.max(0, +A.hK || 0);
+  const hN = Math.max(1, Math.min(40, +A.hN || 1)), hS = Math.max(2, Math.min(100, +A.hS || 6)), hH = Math.max(1, Math.min(hS, +A.hH || 5)), hp = (hS + 1 - hH) / hS, hK = Math.max(0, +A.hK || 0);
   const hits = Array.from({ length: hN + 1 }, (_, i) => binPMF(hN, hp, i));
   // CRT
   const crt = p.crt; const outs = [...new Set(crt.rows.flat().filter(Boolean))];
@@ -2039,9 +2047,10 @@ function renderAnalysis(main, p) {
         ${dist.length <= 121 ? `<div class="histo">${dist.map((v, s) => s < dN ? "" : `<span title="${s}: ${pct(v)}" style="height:${Math.round(v / maxD * 100)}%;${s >= dT ? "background:var(--accent)" : ""}"></span>`).join("")}</div><div class="row spread mono hint"><span>${dN}</span><span>${dN * dS}</span></div>` : ""}
       </div>
       <div class="panel"><h3>Zásahy kostkami</h3>
-        <div class="grid" style="grid-template-columns:repeat(3,1fr)">
-          <label class="f">Kostek k6<input type="number" min="1" max="40" data-an="hN" value="${hN}"></label>
-          <label class="f">Zásah na<input type="number" min="1" max="6" data-an="hH" value="${hH}"></label>
+        <div class="grid" style="grid-template-columns:repeat(4,1fr)">
+          <label class="f">Kostek<input type="number" min="1" max="40" data-an="hN" value="${hN}"></label>
+          <label class="f">Stěn<input type="number" min="2" max="100" data-an="hS" value="${hS}"></label>
+          <label class="f">Zásah na<input type="number" min="1" max="${hS}" data-an="hH" value="${hH}"></label>
           <label class="f">Chci zásahů<input type="number" min="0" data-an="hK" value="${hK}"></label></div>
         <div class="result"><span>Aspoň ${hK} ${plural(hK, "zásah", "zásahy", "zásahů")} (šance jedné kostky ${pct(hp)})</span><b>${pct(hits.slice(hK).reduce((a, v) => a + v, 0))}</b><span>průměrně ${(hN * hp).toLocaleString("cs-CZ", { maximumFractionDigits: 2 })} zásahu</span></div>
         <div class="bars">${hits.map((v, i) => bar(`${i} ${plural(i, "zásah", "zásahy", "zásahů")}`, v, Math.max(...hits), pct(v))).join("")}</div>
@@ -2731,14 +2740,18 @@ function sideBag(p, t) {
 function sideDice(p, t) {
   const pool = S.pool; const std = pool.filter(d => d.type === "std"); const tally = {};
   pool.filter(d => d.type === "c").forEach(d => { const cd = p.cdice.find(x => x.id === d.id); const f = cd ? cd.faces[d.v] : ""; if (f) tally[f] = (tally[f] || 0) + 1; });
-  return `<section><div class="eyebrow">Standardní kostky</div>
-    <label class="f" style="flex-direction:row;align-items:center;gap:8px">Počet <input type="number" id="diceN" min="1" max="12" value="${S.diceN || 2}" style="width:76px"></label>
-    <div class="dice-btns">${[4, 6, 8, 10, 12, 20].map(s => `<button class="btn small" data-roll="${s}">k${s}</button>`).join("")}</div></section>
-    ${p.cdice.length ? `<section><div class="eyebrow">Vlastní kostky – přidat do hodu</div><div class="row">${p.cdice.map(d => `<button class="btn small" data-cdie="${d.id}"><span class="dot" style="background:${d.color}"></span>${esc(d.name)}</button>`).join("")}</div></section>` : ""}
+  const ps = poolSummary(pool, S.diceMod || 0);
+  return `<section><div class="eyebrow">Kostky</div>
+    <div class="row"><label class="f" style="flex-direction:row;align-items:center;gap:8px">Počet <input type="number" id="diceN" min="1" max="20" value="${S.diceN || 2}" style="width:70px"></label>
+      <label class="chk"><input type="checkbox" id="diceAdd" ${S.diceAdd ? "checked" : ""}> Přidávat k hodu (různé kostky najednou)</label></div>
+    <div class="dice-btns">${DIE_SIDES.map(s => `<button class="btn small" data-roll="${s}" ${s === 100 ? 'title="Procentová kostka 1–100"' : ""}>${dieLabel(s)}</button>`).join("")}</div>
+    <div class="row"><label class="f" style="flex-direction:row;align-items:center;gap:8px">Stěn <input type="number" id="diceS" min="2" max="1000" value="${S.diceS || 7}" style="width:80px"></label><button class="btn small" id="rollS">Hodit</button></div>
+    <div class="row"><input type="text" id="diceExpr" value="${esc(S.diceExpr || "")}" placeholder="např. 2k6+k8+3" aria-label="Zápis hodu" style="flex:1;min-width:120px"><button class="btn small primary" id="rollExpr">Hodit</button></div></section>
+    ${p.cdice.length ? `<section><div class="eyebrow">Vlastní kostky – přidat do hodu</div><div class="row">${p.cdice.map(d => `<button class="btn small" data-cdie="${d.id}"><span class="dot" style="background:${d.color}"></span>${esc(d.name)} <span class="count">${d.faces.length} st.</span></button>`).join("")}</div></section>` : ""}
     <section><div class="eyebrow">Hod${S.rerolls ? ` · přehozeno ${S.rerolls}×` : ""}</div>
-      <div class="dice-out" aria-live="polite">${pool.map((d, i) => { if (d.type === "std") return `<button class="die ${d.lock ? "lock" : ""} ${S.justRolled && !d.lock ? "roll" : ""}" data-lock="${i}">${d.v}<small>k${d.s}</small></button>`;
+      <div class="dice-out" aria-live="polite">${pool.map((d, i) => { if (d.type === "std") return `<button class="die ${d.lock ? "lock" : ""} ${S.justRolled && !d.lock ? "roll" : ""} ${String(d.v).length > 2 ? "wide" : ""}" data-lock="${i}">${d.v}<small>${dieLabel(d.s)}</small></button>`;
         const cd = p.cdice.find(x => x.id === d.id); if (!cd) return ""; return `<button class="die cust ${d.lock ? "lock" : ""} ${S.justRolled && !d.lock ? "roll" : ""}" data-lock="${i}" style="--c:${cd.color};color:${inkFor(cd.color)}">${esc(cd.faces[d.v]) || "·"}</button>`; }).join("") || `<span class="hint">Zatím se neházelo.</span>`}</div>
-      ${std.length > 1 ? `<span class="mono">součet ${std.reduce((a, d) => a + d.v, 0)}</span>` : ""}
+      ${ps && (std.length > 1 || S.diceMod) ? `<span class="mono">${esc(ps.expr)} = <b>${ps.sum}</b></span>` : ""}
       ${Object.keys(tally).length ? `<span class="mono">${Object.entries(tally).map(([f, n]) => `${esc(f)} ×${n}`).join(" · ")}</span>` : ""}
       ${pool.length ? `<p class="hint">Klepnutím kostku zamkneš (odložíš stranou), zbytek můžeš přehodit.</p><div class="row"><button class="btn small primary" id="reroll">Přehodit nezamčené</button><button class="btn small" id="poolClear">Vyprázdnit</button></div>` : ""}
       ${S.diceLog.length ? `<div class="log">${S.diceLog.map(l => `<span>${esc(l)}</span>`).join("")}</div>` : ""}</section>`;
@@ -2775,7 +2788,7 @@ function sideCombat(p, t) {
       <div class="grid" style="grid-template-columns:1fr 1fr">
         <label class="f">Kostek útočník<input type="number" id="cAD" min="0" max="20" value="${C.aDice}"></label>
         <label class="f">Kostek obránce<input type="number" id="cDD" min="0" max="20" value="${C.dDice}"></label></div>
-      <div class="hint">Zásah útočníka na ${p.dice.aHit}+, obránce na ${p.dice.dHit}+ (změníš v Mechanikách).</div>
+      <div class="hint">Kostky k${+p.dice.sides || 6}: zásah útočníka na ${p.dice.aHit}+, obránce na ${p.dice.dHit}+ (změníš v Mechanikách).</div>
       <button class="btn primary" id="cRollD">Hodit</button>
       ${C.dres ? `<div class="eyebrow">Útočník – ${C.dres.aHits} ${plural(C.dres.aHits, "zásah", "zásahy", "zásahů")}</div><div class="dice-out">${C.dres.a.map(v => `<span class="die roll ${v >= p.dice.aHit ? "hit" : "miss"}">${v}</span>`).join("")}</div>
         <div class="eyebrow">Obránce – ${C.dres.dHits} ${plural(C.dres.dHits, "zásah", "zásahy", "zásahů")}</div><div class="dice-out">${C.dres.d.map(v => `<span class="die roll ${v >= p.dice.dHit ? "hit" : "miss"}">${v}</span>`).join("")}</div>` : ""}
@@ -2957,19 +2970,27 @@ function wireTable(main, p, t) {
   on("[data-bagadd]", el => { bs().in.push(+el.dataset.bagadd); save(); render(); toast("Žeton přidán do sáčku"); });
   // kostky
   if (q("diceN")) q("diceN").onchange = e => { S.diceN = Math.max(1, Math.min(12, parseInt(e.target.value, 10) || 1)); };
-  const logPool = () => { const std = S.pool.filter(d => d.type === "std"); const cust = S.pool.filter(d => d.type === "c").map(d => { const cd = p.cdice.find(x => x.id === d.id); return cd ? (cd.faces[d.v] || "·") : ""; });
-    S.diceLog.unshift([std.length ? std.map(d => d.v).join(", ") + (std.length > 1 ? " = " + std.reduce((a, d) => a + d.v, 0) : "") : "", cust.join(" ")].filter(Boolean).join(" · ")); S.diceLog = S.diceLog.slice(0, 10); };
-  on("[data-roll]", el => { if (!gate(p, t, "kostky")) return; const s = +el.dataset.roll, n = Math.max(1, Math.min(12, parseInt(q("diceN").value, 10) || 1)); S.diceN = n; S.pool = Array.from({ length: n }, () => ({ type: "std", s, v: rnd(s), lock: false })); S.rerolls = 0; logPool(); S.justRolled = true; render(); });
-  on("[data-cdie]", el => { const cd = p.cdice.find(x => x.id === el.dataset.cdie); S.pool.push({ type: "c", id: cd.id, v: rnd(cd.faces.length) - 1, lock: false }); logPool(); S.justRolled = true; render(); });
+  const logPool = () => { const std = S.pool.filter(d => d.type === "std"); const cust = S.pool.filter(d => d.type === "c").map(d => { const cd = p.cdice.find(x => x.id === d.id); return cd ? (cd.faces[d.v] || "·") : ""; }); const ps = poolSummary(S.pool, S.diceMod || 0);
+    S.diceLog.unshift([std.length ? `${ps.expr}: ${std.map(d => d.v).join(", ")}${std.length > 1 || S.diceMod ? " = " + ps.sum : ""}` : "", cust.join(" ")].filter(Boolean).join(" · ")); S.diceLog = S.diceLog.slice(0, 10);
+    if (std.length) logEv(t, `hod ${ps.expr} = ${ps.sum}`); };
+  const diceN = () => { const n = Math.max(1, Math.min(20, parseInt(q("diceN").value, 10) || 1)); S.diceN = n; return n; };
+  const rollStd = (list, mod) => { if (!gate(p, t, "kostky")) return; const add = S.diceAdd && mod == null; if (!add) { S.pool = []; S.diceMod = mod || 0; S.rerolls = 0; }
+    list.forEach(s => S.pool.push({ type: "std", s, v: rnd(s), lock: false })); logPool(); S.justRolled = true; render(); };
+  on("[data-roll]", el => { const s = +el.dataset.roll; rollStd(Array.from({ length: diceN() }, () => s)); });
+  if (q("diceAdd")) q("diceAdd").onchange = e => { S.diceAdd = e.target.checked; };
+  if (q("rollS")) q("rollS").onclick = () => { const s = Math.max(2, Math.min(1000, parseInt(q("diceS").value, 10) || 6)); S.diceS = s; rollStd(Array.from({ length: diceN() }, () => s)); };
+  if (q("rollExpr")) q("rollExpr").onclick = () => { S.diceExpr = q("diceExpr").value; const r = parseDice(S.diceExpr); if (!r) { toast("Nerozumím zápisu – piš třeba 2k6+k8+3 nebo k%"); return; } rollStd(r.dice, r.mod); };
+  if (q("diceExpr")) q("diceExpr").addEventListener("keydown", e => { if (e.key === "Enter") q("rollExpr").click(); });
+  on("[data-cdie]", el => { const cd = p.cdice.find(x => x.id === el.dataset.cdie); if (!S.diceAdd && S.pool.some(d => d.type === "std")) S.pool = []; const n = S.diceAdd ? diceN() : 1; for (let i = 0; i < n; i++) S.pool.push({ type: "c", id: cd.id, v: rnd(cd.faces.length) - 1, lock: false }); logPool(); S.justRolled = true; render(); });
   on("[data-lock]", el => { const d = S.pool[+el.dataset.lock]; d.lock = !d.lock; render(); });
   if (q("reroll")) q("reroll").onclick = () => { S.pool.forEach(d => { if (d.lock) return; if (d.type === "std") d.v = rnd(d.s); else { const cd = p.cdice.find(x => x.id === d.id); if (cd) d.v = rnd(cd.faces.length) - 1; } }); S.rerolls = (S.rerolls || 0) + 1; logPool(); S.justRolled = true; render(); };
-  if (q("poolClear")) q("poolClear").onclick = () => { S.pool = []; S.rerolls = 0; render(); };
+  if (q("poolClear")) q("poolClear").onclick = () => { S.pool = []; S.rerolls = 0; S.diceMod = 0; render(); };
   // boj
   on("[data-cmode]", el => { C.mode = el.dataset.cmode; render(); });
   const cin = (id, key, conv = v => +v || 0) => { const el = q(id); if (el) el.addEventListener("change", () => { C[key] = conv(el.value); C.res = null; render(); }); };
   cin("cAtt", "att"); cin("cDef", "def"); cin("cTer", "terrainId", v => v); cin("cShift", "shift"); cin("cAD", "aDice"); cin("cDD", "dDice");
   if (q("cRoll")) q("cRoll").onclick = () => { if (!gate(p, t, "boj")) return; const { defEff, col } = combatCalc(p); const roll = rnd(p.crt.rows.length); const out = p.crt.rows[roll - 1][col]; C.res = { roll, ci: col, col: p.crt.cols[col], out }; C.log.unshift(`${C.att} : ${defEff} (${ratioText(+C.att || 0, defEff)}) → ${p.crt.cols[col]}, hod ${roll} = ${out}`); C.log = C.log.slice(0, 12); logEv(t, `boj ${C.att}:${defEff} (${p.crt.cols[col]}), hod ${roll} → ${out}`); after(p, t, "boj", (cp || {}).id, out); save(); render(); };
-  if (q("cRollD")) q("cRollD").onclick = () => { if (!gate(p, t, "boj")) return; const a = Array.from({ length: Math.min(20, +C.aDice || 0) }, () => rnd(6)), d = Array.from({ length: Math.min(20, +C.dDice || 0) }, () => rnd(6)); C.dres = { a, d, aHits: a.filter(v => v >= p.dice.aHit).length, dHits: d.filter(v => v >= p.dice.dHit).length }; C.log.unshift(`Kostky ${a.length} vs ${d.length}: útočník ${C.dres.aHits} zás., obránce ${C.dres.dHits} zás.`); C.log = C.log.slice(0, 12); render(); };
+  if (q("cRollD")) q("cRollD").onclick = () => { if (!gate(p, t, "boj")) return; const ds = +p.dice.sides || 6; const a = Array.from({ length: Math.min(20, +C.aDice || 0) }, () => rnd(ds)), d = Array.from({ length: Math.min(20, +C.dDice || 0) }, () => rnd(ds)); C.dres = { a, d, aHits: a.filter(v => v >= p.dice.aHit).length, dHits: d.filter(v => v >= p.dice.dHit).length }; C.log.unshift(`Kostky ${a.length} vs ${d.length}: útočník ${C.dres.aHits} zás., obránce ${C.dres.dHits} zás.`); C.log = C.log.slice(0, 12); render(); };
   if (q("cClear")) q("cClear").onclick = () => { C.att = 0; C.def = 0; C.res = null; C.shift = 0; C.attUids = []; C.defUid = null; render(); };
   // území
   if (q("ctrlMode")) q("ctrlMode").onclick = () => { S.ctrlMode = !S.ctrlMode; S.sel = null; render(); };
@@ -4470,6 +4491,27 @@ function simAuction(p, t, d, i, hasOwn) {
   if (hasOwn) (t.pdisc[w.f.id] = t.pdisc[w.f.id] || []).push(h); else { (t.tableau[w.f.id] = t.tableau[w.f.id] || []).push(h); if (c.effect) runEffects(p, t, w.f.id, c.effect, c.title); }
   logEv(t, `${w.f.name} vydražil ${c.title} za ${price}`); refillMarket(p, t, d); after(p, t, "nakup", w.f.id, c.type);
 }
+
+// ---------- Kostky: libovolný počet stěn, procentová kostka, smíšený hod, zápis 2k6+k8+3 ----------
+const DIE_SIDES = [2, 3, 4, 6, 8, 10, 12, 20, 100];
+const dieLabel = s => +s === 100 ? "k%" : "k" + s;
+// Zápis hodu: „2k6+k8+3“, „3d10-1“, „k%“, „4kF“ není podporováno. Vrací kostky a opravu, nebo null.
+function parseDice(txt) {
+  const s = String(txt || "").replace(/\s+/g, "").toLowerCase().replace(/%/g, "100"); if (!s) return null;
+  const parts = s.match(/[+-]?[^+-]+/g); if (!parts) return null; const dice = []; let mod = 0;
+  for (const part of parts) { const sign = part[0] === "-" ? -1 : 1; const x = part.replace(/^[+-]/, ""); let m;
+    if ((m = x.match(/^(\d*)[kd](\d+)$/))) { const n = +(m[1] || 1), sides = +m[2]; if (sign < 0 || n < 1 || n > 50 || sides < 2 || sides > 1000) return null; for (let i = 0; i < n; i++) dice.push(sides); }
+    else if (/^\d+$/.test(x)) mod += sign * +x; else return null; }
+  return dice.length ? { dice, mod } : null;
+}
+// Popis smíšeného hodu: „2k6 + k8 + 3 = 14“.
+function poolSummary(pool, mod) {
+  const std = pool.filter(d => d.type === "std"); if (!std.length) return "";
+  const g = {}; std.forEach(d => g[d.s] = (g[d.s] || 0) + 1);
+  const expr = Object.entries(g).sort((a, b) => a[0] - b[0]).map(([s, n]) => `${n > 1 ? n : ""}${dieLabel(s)}`).join(" + ") + (mod ? (mod > 0 ? " + " : " − ") + Math.abs(mod) : "");
+  return { expr, sum: std.reduce((a, d) => a + d.v, 0) + (mod || 0) };
+}
+function diceDistribution(dice) { let dist = [1]; dice.forEach(s => { const nd = new Array(dist.length + s).fill(0); dist.forEach((p, i) => { if (p) for (let f = 1; f <= s; f++) nd[i + f] += p / s; }); dist = nd; }); return dist; }
 
 // ---------- Spuštění ----------
 function init() {

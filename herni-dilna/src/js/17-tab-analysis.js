@@ -6,7 +6,7 @@ function binPMF(n, p, k) { return Math.exp(lnC(n, k) + k * Math.log(p || 1e-300)
 function diceDist(N, S) { let d = [1]; for (let i = 0; i < N; i++) { const nd = new Array(d.length + S).fill(0); d.forEach((v, s) => { for (let f = 1; f <= S; f++) nd[s + f] += v / S; }); d = nd; } return d; }
 const pct = v => (v * 100).toLocaleString("cs-CZ", { maximumFractionDigits: v < .01 ? 2 : 1 }) + " %";
 function renderAnalysis(main, p) {
-  const A = S.an = S.an || { N: 40, K: 4, n: 7, k: 1, dN: 2, dS: 6, dT: 7, hN: 3, hH: 5, hK: 1 };
+  const A = S.an = S.an || { N: 40, K: 4, n: 7, k: 1, dN: 2, dS: 6, dT: 7, hN: 3, hH: 5, hK: 1, hS: 6 };
   if (!p.decks.find(d => d.id === A.deckId)) A.deckId = p.decks[0] ? p.decks[0].id : null;
   const deck = p.decks.find(d => d.id === A.deckId);
   const cards = deck ? deck.cards.flatMap(c => Array.from({ length: +c.qty || 0 }, () => c)) : [];
@@ -29,7 +29,7 @@ function renderAnalysis(main, p) {
   const dN = Math.max(1, Math.min(20, +A.dN || 1)), dS = Math.max(2, Math.min(100, +A.dS || 6)), dT = +A.dT || 0;
   const dist = diceDist(dN, dS); const pGe = dist.reduce((a, v, s) => a + (s >= dT ? v : 0), 0);
   const maxD = Math.max(...dist); const exp = dN * (dS + 1) / 2;
-  const hN = Math.max(1, Math.min(40, +A.hN || 1)), hH = Math.max(1, Math.min(6, +A.hH || 5)), hp = (7 - hH) / 6, hK = Math.max(0, +A.hK || 0);
+  const hN = Math.max(1, Math.min(40, +A.hN || 1)), hS = Math.max(2, Math.min(100, +A.hS || 6)), hH = Math.max(1, Math.min(hS, +A.hH || 5)), hp = (hS + 1 - hH) / hS, hK = Math.max(0, +A.hK || 0);
   const hits = Array.from({ length: hN + 1 }, (_, i) => binPMF(hN, hp, i));
   // CRT
   const crt = p.crt; const outs = [...new Set(crt.rows.flat().filter(Boolean))];
@@ -69,9 +69,10 @@ function renderAnalysis(main, p) {
         ${dist.length <= 121 ? `<div class="histo">${dist.map((v, s) => s < dN ? "" : `<span title="${s}: ${pct(v)}" style="height:${Math.round(v / maxD * 100)}%;${s >= dT ? "background:var(--accent)" : ""}"></span>`).join("")}</div><div class="row spread mono hint"><span>${dN}</span><span>${dN * dS}</span></div>` : ""}
       </div>
       <div class="panel"><h3>Zásahy kostkami</h3>
-        <div class="grid" style="grid-template-columns:repeat(3,1fr)">
-          <label class="f">Kostek k6<input type="number" min="1" max="40" data-an="hN" value="${hN}"></label>
-          <label class="f">Zásah na<input type="number" min="1" max="6" data-an="hH" value="${hH}"></label>
+        <div class="grid" style="grid-template-columns:repeat(4,1fr)">
+          <label class="f">Kostek<input type="number" min="1" max="40" data-an="hN" value="${hN}"></label>
+          <label class="f">Stěn<input type="number" min="2" max="100" data-an="hS" value="${hS}"></label>
+          <label class="f">Zásah na<input type="number" min="1" max="${hS}" data-an="hH" value="${hH}"></label>
           <label class="f">Chci zásahů<input type="number" min="0" data-an="hK" value="${hK}"></label></div>
         <div class="result"><span>Aspoň ${hK} ${plural(hK, "zásah", "zásahy", "zásahů")} (šance jedné kostky ${pct(hp)})</span><b>${pct(hits.slice(hK).reduce((a, v) => a + v, 0))}</b><span>průměrně ${(hN * hp).toLocaleString("cs-CZ", { maximumFractionDigits: 2 })} zásahu</span></div>
         <div class="bars">${hits.map((v, i) => bar(`${i} ${plural(i, "zásah", "zásahy", "zásahů")}`, v, Math.max(...hits), pct(v))).join("")}</div>

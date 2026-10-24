@@ -86,6 +86,12 @@ const OUT = path.join(__dirname, "out"); fs.mkdirSync(OUT, { recursive: true });
     await pg.click(`[data-abid="${ids[0]}|1"]`); await pg.click(`[data-apass="${ids[1]}"]`); await pg.click(`[data-apass="${ids[2]}"]`); await pg.click("#aPay");
     const log = await ev(() => P().table.log[0]); if (!/vydražil/.test(log)) throw new Error(log);
   });
+  await step("kostky: smíšený hod a zápis", async () => {
+    await pg.click("[data-tab=stul]"); await pg.click("[data-tool=kostky]"); await pg.fill("#diceExpr", "2k6+k%+1"); await pg.click("#rollExpr");
+    const n = await ev(() => S.pool.length); if (n !== 3) throw new Error("kostek " + n);
+    await pg.check("#diceAdd"); await pg.fill("#diceN", "1"); await pg.click("[data-roll='8']"); if ((await ev(() => S.pool.length)) !== 4) throw new Error("nepřidalo k8");
+    await pg.fill("#diceS", "7"); await pg.click("#rollS"); const s = await ev(() => S.pool[S.pool.length - 1].s); if (s !== 7) throw new Error("stěn " + s);
+  });
   await step("telefon – Přehled", async () => { await pg.setViewportSize({ width: 400, height: 820 }); await pg.click("[data-tab=prehled]"); await pg.screenshot({ path: path.join(OUT, "telefon.png") }); });
   await b.close();
   console.log(`\n${fails.length ? fails.length + " kroků selhalo:\n" + fails.join("\n") : "Všechny kroky prošly."}\n${errors.length ? "Chyby v konzoli:\n" + errors.join("\n") : "Bez chyb v konzoli."}`);
