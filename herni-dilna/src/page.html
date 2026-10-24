@@ -1,0 +1,34 @@
+<title>Herní dílna</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Atkinson+Hyperlegible:wght@400;700&family=Chivo+Mono:wght@400;600&family=Cinzel:wght@600;800&family=Patrick+Hand&display=swap">
+<!-- STYLY -->
+
+<header class="top">
+  <div class="top-row">
+    <div class="brand" aria-label="Herní dílna">
+      <svg viewBox="0 0 26 26" aria-hidden="true"><rect x="2" y="5" width="13" height="18" rx="2.5" fill="var(--accent)" transform="rotate(-8 8 14)"/><rect x="10" y="3" width="13" height="18" rx="2.5" fill="var(--mat)" stroke="var(--surface)" stroke-width="1.5"/><circle cx="16.5" cy="12" r="2.3" fill="var(--surface)"/></svg>
+      Herní dílna
+    </div>
+    <div class="proj-pick">
+      <select id="projSel" aria-label="Projekt"></select>
+      <button class="btn small" id="newProj">+ Nová hra</button>
+    </div>
+    <span class="save-state" id="saveState"></span>
+  </div>
+  <nav class="tabs" role="tablist">
+    <button class="tab" role="tab" data-tab="prehled">Přehled</button>
+    <button class="tab" role="tab" data-tab="komponenty">Komponenty</button>
+    <button class="tab" role="tab" data-tab="mapa">Mapa</button>
+    <button class="tab" role="tab" data-tab="mechaniky">Mechaniky</button>
+    <button class="tab" role="tab" data-tab="pravidla">Pravidla</button>
+    <button class="tab" role="tab" data-tab="scenare">Scénáře</button>
+    <button class="tab" role="tab" data-tab="stul">Herní stůl</button>
+    <button class="tab" role="tab" data-tab="testy">Testování</button>
+    <button class="tab" role="tab" data-tab="analyza">Analýza</button>
+  </nav>
+</header>
+<main id="main"></main>
+<div id="layer"></div>
+
+<!-- SKRIPTY -->

@@ -1,0 +1,148 @@
+// Testy herní logiky – běží bez prohlížeče: node --test tests/*.test.js
+const test = require("node:test"); const assert = require("node:assert");
+const { load } = require("./harness");
+const A = load();
+
+// Malá hra pro testy: dva nebo tři hráči, mince a body, jeden balíček.
+function game(nPlayers = 2, extra = {}) {
+  const f = (name, color) => ({ id: name.toLowerCase(), name, color });
+  const p = A.normalize({ id: "g", name: "Test", version: "1", players: "2", time: "", age: "", summary: "x", rules: "",
+    factions: [f("Anna", "#3f6fb0"), f("Bert", "#b0402c"), f("Cyril", "#2f7a45")].slice(0, nPlayers),
+    resources: [{ id: "m", name: "Mince", color: "#c98a12", start: 3, income: 1, max: 10, vp: false, global: false }, { id: "b", name: "Body", color: "#2f7a45", start: 0, income: 0, max: "", vp: true, global: false }],
+    decks: [{ id: "d", name: "Karty", color: "#333", back: "K", market: 0, starter: false, cards: [{ id: "c1", title: "Zlato", type: "Poklad", cost: "2", text: "", qty: 6, suit: "", value: "", vp: "1", icon: "", effect: "+1 Body" }] }],
+    ...extra });
+  const S = A.__S(); S.projects = [p]; S.currentId = p.id;
+  const t = A.ensureTable(p);
+  return { p, t, res: (fid, rid = "m") => (t.res[fid] || {})[rid] || 0 };
+}
+
+test("geometrie: střed pole se vrátí na stejné pole a hexy mají 6 sousedů", () => {
+  const b = { type: "hex", size: 30, cols: 8, rows: 6 }; const g = A.geo(b);
+  for (const [c, r] of [[0, 0], [3, 2], [7, 5]]) { const [x, y] = g.center(c, r); assert.deepEqual(g.pick(x, y), [c, r]); }
+  assert.equal(A.neighbors(b, 3, 2).length, 6);
+  assert.equal(A.hexDist(b, "0,0", "3,0"), 3);
+  assert.equal(A.hexDist({ ...b, type: "square" }, "0,0", "2,3"), 5);
+});
+
+test("efekty: zdroje, hranice 0 a maximum, všichni/ostatní", () => {
+  const { p, t, res } = game(3);
+  A.runEffects(p, t, "anna", "+20 Mince; -1 Body", "x", 0, { auto: true });
+  assert.equal(res("anna"), 10, "maximum 10"); assert.equal(res("anna", "b"), 0, "nikdy pod nulu");
+  A.runEffects(p, t, "anna", "všichni +1 Body; ostatní -1 Mince", "x", 0, { auto: true });
+  assert.equal(res("bert", "b"), 1); assert.equal(res("bert"), 2); assert.equal(res("anna"), 10);
+});
+
+test("efekty: podmínka a platba", () => {
+  const { p, t, res } = game();
+  A.runEffects(p, t, "anna", "pokud Mince >= 3: +2 Body", "x", 0, { auto: true });
+  assert.equal(res("anna", "b"), 2);
+  A.runEffects(p, t, "anna", "pokud Mince > 5: +2 Body", "x", 0, { auto: true });
+  assert.equal(res("anna", "b"), 2, "podmínka nesplněna");
+  A.runEffects(p, t, "anna", "zaplať 2 Mince: +1 Body, líznout 1", "x", 0, { auto: true });
+  assert.equal(res("anna"), 1); assert.equal(res("anna", "b"), 3); assert.equal(t.hands.anna.length, 1);
+  A.runEffects(p, t, "anna", "zaplať 2 Mince: +5 Body", "x", 0, { auto: true });
+  assert.equal(res("anna", "b"), 3, "bez peněz se nic nestane");
+});
+
+test("efekty: volba a soupeř – automaticky i čekání na hráče", () => {
+  const { p, t, res } = game(3);
+  A.runEffects(p, t, "anna", "vyber: +1 Body | +2 Mince", "x", 0, { auto: true, choose: () => 1 });
+  assert.equal(res("anna"), 5);
+  A.runEffects(p, t, "anna", "vyber: +1 Body | +2 Mince", "Karta");
+  assert.equal(t.pending.length, 1); assert.equal(t.pending[0].kind, "choice");
+  A.runEffects(p, t, "anna", "soupeř -2 Mince", "Karta");
+  assert.equal(t.pending.length, 2, "tři hráči – soupeř se vybírá");
+  const two = game(2); A.runEffects(two.p, two.t, "anna", "soupeř -2 Mince", "x");
+  assert.equal(two.res("bert"), 1, "při dvou hráčích je soupeř jasný");
+});
+
+test("efekty: jednou za kolo a jednou za hru", () => {
+  const { p, t, res } = game();
+  A.runEffects(p, t, "anna", "jednou za kolo: +1 Body", "Studna", 0, { auto: true });
+  A.runEffects(p, t, "anna", "jednou za kolo: +1 Body", "Studna", 0, { auto: true });
+  assert.equal(res("anna", "b"), 1, "podruhé ve stejném kole nic");
+  t.turn = 2; A.runEffects(p, t, "anna", "jednou za kolo: +1 Body", "Studna", 0, { auto: true });
+  assert.equal(res("anna", "b"), 2, "v dalším kole znovu");
+  A.runEffects(p, t, "anna", "jednou za hru: +5 Body", "Poklad", 0, { auto: true }); t.turn = 9;
+  A.runEffects(p, t, "anna", "jednou za hru: +5 Body", "Poklad", 0, { auto: true });
+  assert.equal(res("anna", "b"), 7);
+});
+
+test("kontrola zápisu efektů", () => {
+  const { p } = game();
+  assert.deepEqual(A.checkEffect(p, "jednou za kolo: vyber: +1 Body | zaplať 1 Mince: líznout 2; soupeř -1 Body; pokud kolo >= 3: zpráva Ahoj"), []);
+  const bad = A.checkEffect(p, "+2 Kamení; skok 3; pokud Zlato > 1: +1 Body; vyber: +1 Body");
+  assert.equal(bad.length, 4, bad.join(" | "));
+});
+
+test("hlídání pravidel: vynucovat blokuje, upozorňovat pustí", () => {
+  const { p, t } = game();
+  p.phases = ["Nákup", "Boj"]; p.ruleset.phaseOf = { boj: [1] }; t.phaseIdx = 0;
+  p.ruleset.strict = true; assert.equal(A.gate(p, t, "boj"), false);
+  p.ruleset.strict = false; assert.equal(A.gate(p, t, "boj"), true);
+  t.phaseIdx = 1; p.ruleset.strict = true; assert.equal(A.gate(p, t, "boj"), true);
+  p.ruleset.actionsPerTurn = 1; p.ruleset.actCats = ["nakup"]; t.acts = 1; assert.equal(A.gate(p, t, "nakup"), false);
+});
+
+test("dílky: navazující hrany a sousedství", () => {
+  const { p, t } = game(2, { tiles: [{ id: "a", name: "A", color: "#ccc", edges: "C,L,C,L", icon: "", qty: 2 }] });
+  const b = { type: "square", size: 30, cols: 5, rows: 5 };
+  t.tilesPlaced = { "2,2": { id: "a", rot: 0 } };
+  assert.deepEqual(A.tileCheck(p, t, b, "2,1", "a", 0), [], "cesta na cestu");
+  assert.equal(A.tileCheck(p, t, b, "2,1", "a", 1).length, 1, "otočený nesedí");
+  assert.equal(A.tileCheck(p, t, b, "0,0", "a", 0).length, 1, "nesousedí");
+});
+
+test("trasy a cíle se započítají do skóre", () => {
+  const board = { id: "bd", name: "M", type: "square", cols: 4, rows: 1, size: 30, terrain: {}, labels: { "0,0": "A", "3,0": "B" }, regions: {}, numbers: {} };
+  const { p, t } = game(2, { boards: [board], routes: { cost: "", price: 1, exclusive: true, tickets: [{ id: "x", a: "A", b: "B", pts: 7, fid: "" }] } });
+  t.boardId = "bd";
+  t.links = [{ a: "0,0", b: "1,0", fid: "anna" }, { a: "1,0", b: "2,0", fid: "anna" }];
+  assert.equal(A.routeConnected(p, t, "anna", "A", "B"), false);
+  t.links.push({ a: "2,0", b: "3,0", fid: "anna" });
+  assert.equal(A.routeConnected(p, t, "anna", "A", "B"), true);
+  assert.equal(A.scoreOf(p, t, "anna").tickets, 7);
+});
+
+test("bodování sad z vyložených karet", () => {
+  const { p, t } = game(2, { scoring: { field: "type", table: "1,3,6", trick: 0 } });
+  t.tableau.anna = [{ deckId: "d", cardId: "c1" }, { deckId: "d", cardId: "c1" }];
+  const s = A.scoreOf(p, t, "anna"); assert.equal(s.cardVp, 2); assert.equal(s.sets, 3); assert.equal(s.total, 5);
+});
+
+test("bojová tabulka: poměr se zaokrouhlí ve prospěch obránce", () => {
+  const cols = ["1:2", "1:1", "2:1", "3:1"];
+  assert.equal(A.crtColumn(5, 2, cols), 2); assert.equal(A.crtColumn(3, 4, cols), 0); assert.equal(A.ratioText(7, 3), "2:1");
+});
+
+test("obnova poškozených pravidel z verze 4", () => {
+  const v4 = { id: "x", name: "T", decks: [], rules: Object.assign(A.defaultRules(), "Tah: hoď kostkou.") }; v4.rules.handLimit = 5;
+  const p = A.normalize(v4); assert.equal(p.rules, "Tah: hoď kostkou."); assert.equal(p.ruleset.handLimit, 5);
+});
+
+test("všechny ukázkové hry projdou kontrolou návrhu bez chyb", () => {
+  for (const make of [A.exampleWar, A.exampleTrade, A.exampleAlchemy, A.exampleTricks, A.exampleTiles, A.exampleRace, A.exampleIsland]) {
+    const p = make(); const errs = A.lintProject(p).filter(x => x.lv === "err");
+    assert.deepEqual(errs.map(e => e.t), [], p.name);
+  }
+});
+
+test("ikony zdrojů a šablony karet", () => {
+  const { p } = game();
+  p.resources[0].icon = "🪙";
+  assert.match(A.richText("Získej 2 {Mince} a {Neznámé}"), /class="ri".*🪙.*\{Neznámé\}/);
+  for (const tpl of ["classic", "art", "full", "play", "min"]) assert.match(A.cardHTML({ title: "X", text: "y", icon: "★", value: "7", suit: "♥" }, { color: "#333", template: tpl }), new RegExp(`t-${tpl}`));
+});
+
+test("simulace odehraje ukázkové hry a vrátí statistiky", () => {
+  for (const make of [A.exampleTrade, A.exampleAlchemy, A.exampleRace, A.exampleIsland]) {
+    const p = make(); const S = A.__S(); S.projects = [p]; S.currentId = p.id;
+    const games = Array.from({ length: 25 }, () => A.simGame(p, { rounds: 15, policy: "greedy", actions: 2 }));
+    const r = A.summarizeSim(p, games);
+    assert.equal(r.n, 25, p.name); assert.ok(r.avgRounds >= 1, p.name);
+    assert.ok(Math.abs(r.seat.reduce((a, s) => a + s.wr, 0) - 1) < 1e-9, `${p.name}: součet výher = 1`);
+  }
+  const race = A.exampleRace(); const S = A.__S(); S.projects = [race]; S.currentId = race.id;
+  const g = A.simGame(race, { rounds: 40, policy: "random", actions: 1 });
+  assert.match(g.reason, /cíl|kol/);
+});
