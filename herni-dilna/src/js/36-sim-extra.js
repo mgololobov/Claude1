@@ -16,8 +16,8 @@ function simWar(p, t, f) {
   t.items.filter(i => i.kind === "unit" && unitOf(p, i) && unitOf(p, i).factionId !== f.id).forEach(en => {
     if (!t.items.includes(en)) return; const ke = cellUnder(p, en); if (!ke) return;
     const att = t.items.filter(i => i.kind === "unit" && (unitOf(p, i) || {}).factionId === f.id && cellUnder(p, i) && hexDist(b, cellUnder(p, i), ke) === 1);
-    if (!att.length) return; const a = att.reduce((s, i) => { const u = unitOf(p, i); const v = +(i.reduced ? u.rAtt : u.att) || 0; return s + (inSupply(p, t, i) ? v : Math.floor(v / 2)); }, 0);
-    const ue = unitOf(p, en); const ter = terrainOf(p, b, ke) || p.terrains[0]; const d = (+(en.reduced ? ue.rDef : ue.def) || 1) * (ter ? +ter.def || 1 : 1);
+    if (!att.length) return; const a = att.reduce((s, i) => s + unitAttack(p, t, i), 0);
+    const ue = unitOf(p, en); const ter = terrainOf(p, b, ke) || p.terrains[0]; const d = (unitStat(p, en, "def") || 1) * (ter ? +ter.def || 1 : 1);
     if (a < d) return; const col = Math.max(0, crtColumn(a, d, p.crt.cols)); const out = p.crt.rows[rnd(p.crt.rows.length) - 1][col];
     S.combat.attUids = att.map(i => i.uid); S.combat.defUid = en.uid; applyCombat(p, t, out); after(p, t, "boj", f.id, out);
   });

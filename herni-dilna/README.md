@@ -54,6 +54,7 @@ src/js/NN-*.js       moduly; sestavují se v pořadí čísel
   46-cardbattle      karetní souboje: zdroje na tah, příšery v centrální řadě, zásoba bodů, vyhoštění,
                      souboj bytostí s blokováním a klíčovými slovy, země za tah, nemoc z vyvolání, životy
   47-rail            vláčkové hry 18xx: společnosti, akcie, prezident, burza, vlaky, rezivění, dividendy, odhad tržeb
+  48-command         malé žetony vybavení upravující jednotku, velitelé s dosahem velení a aktivací jednotek
   99-main            spuštění
 tests/harness.js     načte moduly do Node bez prohlížeče
 tests/*.test.js      testy herní logiky

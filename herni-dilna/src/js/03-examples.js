@@ -72,7 +72,7 @@ function exampleWar() {
     U("1. pěší", blue, "pechota", "III", 4, 4, 3, 2, 2, 3, 3),
     U("7. tankový", blue, "tanky", "II", 6, 3, 6, 3, 2, 6, 1),
     U("12. dělostř.", blue, "delo", "III", 5, 2, 2, 2, 1, 2, 1),
-    Object.assign(U("Štáb", blue, "stab", "XX", 0, 1, 4, "", "", "", 1), { hq: true }),
+    Object.assign(U("Štáb", blue, "stab", "XX", 0, 1, 4, "", "", "", 1), { hq: true, cmd: 3, cmdAtt: 1 }),
     U("3. pěší", red, "pechota", "III", 3, 5, 3, 2, 3, 3, 3),
     U("Husaři", red, "jezdectvo", "II", 3, 2, 7, 1, 1, 7, 1),
     U("Baterie", red, "delo", "II", 4, 2, 2, 2, 1, 2, 1),
@@ -109,6 +109,9 @@ function exampleWar() {
       { id: uid(), name: "Opevnění", color: "#6b7a6a", shape: "ctverec", counter: false, text: "OPEV." },
       { id: uid(), name: "Bez zásob", color: "#c98a12", shape: "ctverec", counter: false, text: "BEZ ZÁS." },
       { id: uid(), name: "Kolo", color: "#4a4a48", shape: "kruh", counter: true, text: "" },
+      { id: uid(), name: "Kulomet", color: "#2b2b2b", shape: "ctverec", counter: false, text: "KUL", small: true, mAtt: 2 },
+      { id: uid(), name: "Minomet", color: "#5a4632", shape: "ctverec", counter: false, text: "MIN", small: true, mAtt: 1, mRange: 2 },
+      { id: uid(), name: "Zákopy", color: "#7a6a4a", shape: "ctverec", counter: false, text: "ZÁK", small: true, mDef: 2, mMov: -1 },
     ],
     table: null, sessions: [],
   });
@@ -268,6 +271,8 @@ function exampleCrypt() {
       triggers: [{ id: uid(), on: "mistnost", param: "Krypta", cond: "", effect: "zpráva Nekromant se probouzí!" }, { id: uid(), on: "hrozba", param: "", cond: "", effect: "zpráva Temnota pohltila kryptu – hrdinové prohráli" }] }),
     scenarios: [{ id: uid(), name: "Sestup do krypty", turns: 10, boardId: board.id, desc: "Hrdinové stojí u vstupu. Z chodby je slyšet chrastění kostí.", victory: "Porazte všechny příšery.", special: "", setup: { items: setup, control: {} },
       reinf: [{ id: uid(), turn: 5, qty: 1, unitId: units[2].id, cell: "0804" }] }],
+    tokens: [{ id: uid(), name: "Meč", color: "#8a8a8a", shape: "ctverec", counter: false, text: "MEČ", small: true, mAtt: 1 }, { id: uid(), name: "Štít", color: "#6b5a3a", shape: "ctverec", counter: false, text: "ŠTÍT", small: true, mDef: 1 },
+      { id: uid(), name: "Amulet", color: "#7a4fa0", shape: "kruh", counter: false, text: "AM", small: true, mHp: 2 }, { id: uid(), name: "Luk", color: "#4a6a3a", shape: "ctverec", counter: false, text: "LUK", small: true, mRange: 2 }],
     decks: [{ id: "poklady", name: "Poklady", color: "#c98a12", back: "POKLAD", market: 0, cards: [c("Lektvar", "Vyléčí 2 životy (ručně na stole).", "", 2), c("Zlaťáky", "Získáš 2 zlata.", "+2 Zlato", 3), c("Svitek", "Hrozba klesne o 1 (ručně).", "", 1)] }],
   });
 }

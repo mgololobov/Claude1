@@ -1,5 +1,5 @@
 // ---------- Wargames: provedení boje, zásobování, iniciativa, skrytý pohyb ----------
-const unitOf = (p, i) => p.units.find(u => u.id === i.unitId);
+function unitOf(p, i) { return p.units.find(u => u.id === i.unitId); }
 const cellName = k => k.split(",").map(n => pad2(+n + 1)).join("");
 // Ztráta kroku: zdravá jednotka s rubem se oslabí, jinak je zničena.
 function stepLoss(p, t, it) {

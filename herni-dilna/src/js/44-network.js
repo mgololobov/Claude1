@@ -27,10 +27,11 @@ function netMove(p, t, it, from) {
   const net = tableNet(p); const to = netNodeOf(p, t, it); const u = unitOf(p, it);
   if (!to) { toast("Polož jednotku na místo"); return false; }
   netPlace(p, t, it, to); if (!from || to === from || !u) return true;
-  const msgs = []; const mp = +(it.reduced && hasReduced(u) ? u.rMov : u.mov) || 0; const cost = netCosts(net, from)[to];
+  const msgs = []; const mp = unitStat(p, it, "mov"); const cost = netCosts(net, from)[to];
   if (cost == null) msgs.push("mezi místy nevede cesta");
   else if (p.ruleset.moveRange && cost > mp) msgs.push(`cesta stojí ${cost}, jednotka má pohyb ${mp}`);
   if (p.ruleset.moveOnce && t.moved[it.uid]) msgs.push("jednotka už v tomto tahu táhla");
+  msgs.push(...actViolation(p, it));
   if (msgs.length && !gate(p, t, "pohyb", msgs)) return false;
   t.moved[it.uid] = true; const n = netNode(net, to); logEv(t, `${u.name} jede do místa ${n.name}`); after(p, t, "pohyb", u.factionId, n.name); return true;
 }

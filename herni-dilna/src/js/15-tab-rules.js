@@ -22,6 +22,7 @@ function renderRules(main, p) {
         ${chk("moveRange", "Jednotka se smí pohnout jen v dosahu (terén, zóny kontroly)")}
         ${chk("moveOnce", "Každá jednotka se smí pohnout jen jednou za tah")}
         <div class="grid" style="grid-template-columns:1fr 1fr">${num("stackLimit", "Max. jednotek na poli")}${num("sight", "Dohled (polí)", "6")}</div>
+        ${chk("actOnly", "Táhnout a útočit smí jen aktivované jednotky (velitel aktivuje jednotky v dosahu)")}
         ${chk("fog", "Mlha války – soupeřovy jednotky jsou skryté nebo jen jako bloky bez hodnot")}
         <p class="hint">Výhled blokuje terén označený v záložce Mapa. Zóny kontroly zapneš v Mechanikách.</p>
         <h3>Konec hry</h3>

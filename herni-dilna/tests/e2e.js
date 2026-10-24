@@ -182,6 +182,18 @@ const OUT = path.join(__dirname, "out"); fs.mkdirSync(OUT, { recursive: true });
     await pg.click(`[data-rtrain="${co}"]`); await pg.click(`[data-rpay="${co}"]`);
     if (!/vyplácí/.test(await ev(() => P().table.log[0]))) throw new Error("dividenda nevyplacena"); await pg.screenshot({ path: path.join(OUT, "18xx.png") });
   });
+  await step("vybavení a velení: zbraň na vojáka, štáb velí", async () => {
+    await sel(0); await pg.click("[data-tab=scenare]"); await pg.click("[data-play]"); await pg.click("[data-tool=stul]");
+    const kul = await ev(() => P().tokens.find(x => x.name === "Kulomet").id); await pg.click(`[data-addtok="${kul}"]`);
+    const info = await ev(() => { const p = P(), t = p.table; const u = t.items.find(i => i.kind === "unit" && unitOf(p, i).name === "1. pěší"); const k = t.items.find(i => i.kind === "token"); return { u: u.uid, k: k.uid, ux: u.x + 26, uy: u.y + 26, att: unitStat(p, u, "att") }; });
+    const kb = await (await pg.$(`.titem[data-uid="${info.k}"]`)).boundingBox(); const mat = await (await pg.$("#mat")).boundingBox();
+    await pg.mouse.move(kb.x + 10, kb.y + 10); await pg.mouse.down(); await pg.mouse.move(mat.x + info.ux, mat.y + info.uy, { steps: 8 }); await pg.mouse.up();
+    const att2 = await pg.evaluate(u => { const it = P().table.items.find(i => i.uid === u); if (!it) throw new Error("jednotka zmizela: " + P().name + " " + P().table.log.slice(0, 3).join(" | ")); return unitStat(P(), it, "att"); }, info.u); if (att2 !== info.att + 2) throw new Error(`útok ${info.att} → ${att2}`);
+    if (!(await pg.$(`.titem[data-uid="${info.u}"] .eq`))) throw new Error("vybavení není vidět na žetonu");
+    const hq = await ev(() => P().table.items.find(i => i.kind === "unit" && unitOf(P(), i).name === "Štáb").uid); await pg.click(`.titem[data-uid="${hq}"]`); await pg.click("[data-command]");
+    if (!(await ev(() => P().table.items.filter(i => i.act).length >= 2))) throw new Error("velení neaktivovalo jednotky");
+    await pg.click("[data-cmdshow]"); await pg.screenshot({ path: path.join(OUT, "veleni.png") });
+  });
   await step("telefon – Přehled", async () => { await pg.setViewportSize({ width: 400, height: 820 }); await pg.click("[data-tab=prehled]"); await pg.screenshot({ path: path.join(OUT, "telefon.png") }); });
   await b.close();
   console.log(`\n${fails.length ? fails.length + " kroků selhalo:\n" + fails.join("\n") : "Všechny kroky prošly."}\n${errors.length ? "Chyby v konzoli:\n" + errors.join("\n") : "Bez chyb v konzoli."}`);

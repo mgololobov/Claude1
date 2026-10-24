@@ -51,6 +51,7 @@ function cmapMove(p, t, it, from) {
   if (from == null || to === from) { placeInCard(p, t, it, to); return true; }
   const c = cmapCard(p, t, to); const cost = Math.max(0, parseInt(c.move, 10) || 1); const msgs = [];
   if (cmapDist(p, from, to) > 1) msgs.push("lze táhnout jen na sousední kartu");
+  msgs.push(...actViolation(p, it));
   const ar = p.resources.find(r => r.id === p.cmap.apRes); const have = ar ? ((t.res[u.factionId] || {})[ar.id] || 0) : Infinity;
   if (ar && have < cost) msgs.push(`vstup stojí ${cost} × ${ar.name}, ${fname(p, u.factionId)} má ${have}`);
   if (msgs.length && !gate(p, t, "pohyb", msgs)) return false;

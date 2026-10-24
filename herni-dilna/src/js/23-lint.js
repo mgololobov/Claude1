@@ -78,5 +78,7 @@ function lintMore(p, E, W) {
   p.resources.forEach(r => { if (r.pool && !R(r.pool)) E(`Zdroj „${r.name}“ se bere ze smazané zásoby.`); });
   if (p.ruleset.win.poolEnd && !p.resources.some(r => r.pool)) W("Konec při prázdné zásobě je zapnutý, ale žádný zdroj se ze zásoby nebere.");
   p.scenarios.forEach(s => (s.reinf || []).forEach(r => { if (!p.units.find(u => u.id === r.unitId)) E(`Scénář „${s.name}“: posila odkazuje na smazanou jednotku.`); }));
+  p.tokens.filter(x => x.small && !MODS.some(([m]) => +x[m])).forEach(x => W(`Malý žeton „${x.name}“ nic neupravuje – nastav mu úpravy hodnot.`));
+  if (p.ruleset.actOnly && p.units.length && !p.units.some(u => +u.cmd)) W("Táhnout smí jen aktivované jednotky, ale žádná jednotka nemá dosah velení – aktivovat půjdou jen jednotlivě.");
   chitList(p).forEach(c => { if (!c.fid) W(`Žeton aktivace „${c.name}“ nemá stranu (piš „Název; Strana“).`); });
 }

@@ -339,3 +339,7 @@ details.cfx { border: 1px solid var(--line); border-radius: 10px; padding: 6px 1
 .startguide .steps li.ok button { opacity: .6; } .startguide .steps li.ok button::before { content: "✓"; background: var(--good); color: #fff; }
 .startguide .steps span { font-size: .85rem; color: var(--muted); }
 .secnav { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent); padding-right: 24px; }
+.titem .equip { position: absolute; right: -8px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 2px; pointer-events: none; }
+.titem .eq { min-width: 18px; height: 16px; padding: 0 3px; border-radius: 4px; font: 800 9px/16px var(--f-mono); text-align: center; border: 1px solid rgba(0,0,0,.45); box-shadow: 0 1px 2px rgba(0,0,0,.35); }
+.titem.act::after { content: ""; position: absolute; inset: -5px; border: 3px solid #4fbf6b; border-radius: 10px; pointer-events: none; }
+.titem.small .token { transform: scale(.62); transform-origin: top left; }

@@ -93,6 +93,8 @@ function renderComponents(main, p) {
         <label class="f">Tvar<select data-tshape="${t.id}">${Object.entries(SHAPES).map(([k, v]) => `<option value="${k}" ${k === t.shape ? "selected" : ""}>${v}</option>`).join("")}</select></label>
         ${swatchRow(t.color, `data-tc="${t.id}" data-tcolor`)}
         <label class="chk"><input type="checkbox" data-tcount="${t.id}" ${t.counter ? "checked" : ""}> Počítadlo</label>
+        <label class="chk" title="Malý žeton se přetažením připne na jednotku a upraví její hodnoty"><input type="checkbox" data-tsmall="${t.id}" ${t.small ? "checked" : ""}> Malý žeton – vybavení jednotky</label>
+        ${t.small ? `<div class="row" style="width:100%">${MODS.map(([m, , l]) => `<label class="f" style="width:84px">${l}<input type="number" data-tmod="${m}|${t.id}" value="${esc(t[m] || "")}" placeholder="±0"></label>`).join("")}</div>` : ""}
         <button class="btn small danger" data-tdel="${t.id}" aria-label="Smazat žeton">✕</button></div>`).join("")}</div>`
         : `<div class="empty">Zatím žádné žetony.</div>`}
     </div></div>`;
@@ -163,6 +165,8 @@ function renderComponents(main, p) {
   $$("[data-tcolor]", main).forEach(b => b.onclick = () => { tok(b.dataset.tc).color = b.dataset.tcolor; touch(p); render(); });
   $$("[data-tcount]", main).forEach(i => i.onchange = () => { tok(i.dataset.tcount).counter = i.checked; touch(p); render(); });
   $$("[data-tdel]", main).forEach(b => b.onclick = () => { p.tokens = p.tokens.filter(t => t.id !== b.dataset.tdel); touch(p); render(); });
+  $$("[data-tsmall]", main).forEach(i => i.onchange = () => { tok(i.dataset.tsmall).small = i.checked; touch(p); render(); });
+  $$("[data-tmod]", main).forEach(i => i.addEventListener("change", () => { const [m, id] = i.dataset.tmod.split("|"); tok(id)[m] = i.value === "" ? "" : +i.value; touch(p); render(); }));
 }
 function editUnit(p, unit) {
   const isNew = !unit;
@@ -189,6 +193,9 @@ function editUnit(p, unit) {
         <label class="f" style="width:110px">Životy<input type="number" id="u-hp" min="0" max="99" value="${esc(u.hp || "")}" placeholder="–"></label>
         <label class="f" style="width:130px">XP za zabití<input type="number" id="u-xp" min="0" max="99" value="${esc(u.xp || "")}" placeholder="–"></label>
         <label class="f" style="width:110px">Náklad<input type="number" id="u-cap" min="0" max="12" value="${esc(u.cap || "")}" placeholder="–"></label>
+        <label class="f" style="width:130px" title="Velitel aktivuje spřátelené jednotky do této vzdálenosti">Dosah velení<input type="number" id="u-cmd" min="0" max="20" value="${esc(u.cmd || "")}" placeholder="–"></label>
+        <label class="f" style="width:150px" title="Jednotky v dosahu velení dostanou k útoku">Velení: + útok<input type="number" id="u-cmdAtt" min="0" max="9" value="${esc(u.cmdAtt || "")}" placeholder="–"></label>
+        <label class="f" style="width:150px" title="Jednotky v dosahu velení dostanou k obraně">Velení: + obrana<input type="number" id="u-cmdDef" min="0" max="9" value="${esc(u.cmdDef || "")}" placeholder="–"></label>
         <label class="f" style="width:140px">Dostřel (polí)<input type="number" id="u-range" min="0" max="30" value="${esc(u.range || "")}" placeholder="–"></label>
         <label class="chk"><input type="checkbox" id="u-big" ${u.big ? "checked" : ""}> Velký žeton (zabírá víc místa)</label>
       </div>
@@ -202,7 +209,8 @@ function editUnit(p, unit) {
   const read = () => { u.name = $("#u-name", d).value; u.factionId = $("#u-f", d).value; u.symbol = $("#u-sym", d).value; u.size = $("#u-size", d).value; u.symText = $("#u-symtext", d).value; u.note = $("#u-note", d).value;
     u.att = num($("#u-a", d).value); u.def = num($("#u-d", d).value); u.mov = num($("#u-m", d).value); u.rAtt = num($("#u-ra", d).value); u.rDef = num($("#u-rd", d).value); u.rMov = num($("#u-rm", d).value);
     u.qty = Math.max(0, Math.min(99, parseInt($("#u-q", d).value, 10) || 0)); u.hq = $("#u-hq", d).checked; u.big = $("#u-big", d).checked; u.range = $("#u-range", d).value === "" ? "" : +$("#u-range", d).value;
-    u.kind = $("#u-kind", d).value; u.cap = $("#u-cap", d).value === "" ? "" : +$("#u-cap", d).value; u.hp = $("#u-hp", d).value === "" ? "" : +$("#u-hp", d).value; u.xp = $("#u-xp", d).value === "" ? "" : +$("#u-xp", d).value; };
+    u.kind = $("#u-kind", d).value; u.cap = $("#u-cap", d).value === "" ? "" : +$("#u-cap", d).value;
+    ["cmd", "cmdAtt", "cmdDef"].forEach(k => { const v = $("#u-" + k, d).value; u[k] = v === "" ? "" : +v; }); u.hp = $("#u-hp", d).value === "" ? "" : +$("#u-hp", d).value; u.xp = $("#u-xp", d).value === "" ? "" : +$("#u-xp", d).value; };
   const prev = () => { read(); $("#u-prev", d).innerHTML = unitHTML(p, u) + (hasReduced(u) ? unitHTML(p, u, true) : "") + `<span class="hint" style="font-size:.8rem">líc${hasReduced(u) ? " / rub" : ""}</span>`; };
   d.addEventListener("input", prev); d.addEventListener("change", prev); prev();
   $("#u-save", d).onclick = () => { read(); if (isNew) p.units.push(u); else Object.assign(unit, u); touch(p); closeDialog(); render(); toast(isNew ? "Jednotka přidána" : "Jednotka uložena"); };

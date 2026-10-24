@@ -403,3 +403,28 @@ test("18xx: založení, akcie, prezident, vlaky, rezivění, dividendy a hodnota
   assert.equal(A.sellShare(p, t, y, co), ""); assert.equal(A.coPrice(p, t, co), 90, "prodej sníží kurz");
   assert.equal(A.railWorth(p, t, x), t.res[x].kc + 3 * 90); assert.ok(A.revenueEstimate(p, t, co) >= 40 + 30, "vlak 4 z Prahy projede 4 nejlepší města");
 });
+
+test("vybavení: malý žeton se připne a upraví hodnoty jednotky", () => {
+  const { p, t, put } = war(); p.tokens = [{ id: "kul", name: "Kulomet", small: true, mAtt: 2, mMov: -1 }, { id: "big", name: "Opevnění" }];
+  const a = put("a", 1); const k = { uid: "k1", kind: "token", tokenId: "kul", x: a.x + 10, y: a.y + 10 }; t.items.push(k);
+  assert.equal(A.attachToken(p, t, k), true); assert.equal(k.attachTo, a.uid);
+  assert.equal(A.unitStat(p, a, "att"), 8); assert.equal(A.unitStat(p, a, "mov"), 1); assert.equal(A.unitAttack(p, t, a), 8);
+  assert.equal(A.effUnit(p, a, p.units[0]).att, 8);
+  const o = { uid: "o1", kind: "token", tokenId: "big", x: a.x, y: a.y }; t.items.push(o); assert.equal(A.attachToken(p, t, o), false, "velký žeton se nepřipíná");
+  A.detachToken(p, t, "k1"); assert.equal(A.unitStat(p, a, "att"), 6);
+});
+test("velení: aktivace jednotek v dosahu, bonus a pravidlo jen aktivovaných", () => {
+  const { p, t, put } = war(); p.units.push({ id: "hq", name: "Štáb", factionId: "anna", att: 0, def: 1, mov: 2, cmd: 2, cmdAtt: 1 });
+  const hq = put("hq", 0), a1 = put("a", 1), a2 = put("a", 2), a3 = put("a", 4), en = put("d", 3);
+  assert.equal(A.unitStat(p, a1, "att"), 7, "bonus velitele v dosahu"); assert.equal(A.unitStat(p, a3, "att"), 6, "mimo dosah bez bonusu");
+  assert.equal(A.activateCommand(p, t, hq), 3, "štáb + 2 jednotky v dosahu"); assert.ok(a1.act && a2.act && !a3.act && !en.act);
+  p.ruleset.actOnly = true; assert.equal(A.actViolation(p, a3).length, 1); assert.equal(A.actViolation(p, a1).length, 0);
+  A.newRound(p, t); assert.ok(!a1.act, "aktivace se na začátku kola zruší");
+});
+test("vybavení přidá životy a dostřel v dungeon crawleru", () => {
+  const p = A.exampleCrypt(); const S = A.__S(); S.projects = [p]; S.currentId = p.id; A.startScenario ? 0 : 0; p.table = null; const t = A.ensureTable(p);
+  const sc = p.scenarios[0]; t.boardId = sc.boardId; t.items = JSON.parse(JSON.stringify(sc.setup.items)); const hero = t.items.find(i => A.isHero(p, i));
+  const am = p.tokens.find(x => x.name === "Amulet"), luk = p.tokens.find(x => x.name === "Luk");
+  const before = A.unitMaxHp(p, hero); t.items.push({ uid: "e1", kind: "token", tokenId: am.id, attachTo: hero.uid, x: 0, y: 0 }, { uid: "e2", kind: "token", tokenId: luk.id, attachTo: hero.uid, x: 0, y: 0 });
+  assert.equal(A.unitMaxHp(p, hero), before + 2); assert.equal(A.unitStat(p, hero, "range"), (+A.unitOf(p, hero).range || 0) + 2);
+});
