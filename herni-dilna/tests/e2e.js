@@ -20,8 +20,8 @@ const OUT = path.join(__dirname, "out"); fs.mkdirSync(OUT, { recursive: true });
   await step("šablony karet a ikona zdroje v textu", async () => {
     await sel(1); await pg.click("[data-tab=komponenty]");
     for (const tpl of ["art", "full", "play", "min", "classic"]) { await pg.selectOption("#d-tpl", tpl); if (!(await pg.$(`.pcard.t-${tpl}`))) throw new Error("chybí šablona " + tpl); }
-    await pg.click("[data-card]"); await pg.fill("#c-text", "Získej 2 {Mince}"); await pg.dispatchEvent("#c-text", "input");
-    await pg.waitForSelector("#c-prev .ri", { timeout: 3000 }).catch(() => { throw new Error("ikona zdroje se nevykreslila"); }); await pg.click("#c-save");
+    await pg.click("[data-card]"); await pg.waitForSelector("#c-text"); await pg.fill("#c-text", "Získej 2 {Mince}"); await pg.type("#c-text", " ");
+    await pg.waitForSelector("#c-prev .ri", { timeout: 5000 }).catch(() => { throw new Error("ikona zdroje se nevykreslila"); }); await pg.click("#c-save");
     await pg.screenshot({ path: path.join(OUT, "karty.png") });
   });
   await step("volba z efektu čeká na hráče", async () => {

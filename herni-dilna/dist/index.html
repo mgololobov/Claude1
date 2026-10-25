@@ -1214,7 +1214,9 @@ function render() {
   $$(".tab").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === S.tab));
   const main = $("#main");
   main.style.overflow = S.tab === "stul" ? "hidden" : "auto";
-  ({ prehled: renderOverview, komponenty: renderComponents, mapa: renderMap, mechaniky: renderMechanics, pravidla: renderRules, scenare: renderScenarios, stul: renderTable, testy: renderTests, analyza: renderAnalysis })[S.tab](main, P());
+  const R = { prehled: renderOverview, komponenty: renderComponents, mapa: renderMap, mechaniky: renderMechanics, pravidla: renderRules, scenare: renderScenarios, stul: renderTable, testy: renderTests, analyza: renderAnalysis };
+  if (!R[S.tab]) S.tab = "prehled"; // neznámá záložka (např. ze starší verze) – zpět na Přehled
+  R[S.tab](main, P());
   processPending(P()); uiAfterRender(main);
   const cp = P(); if (cp && !DU.last[cp.id]) DU.last[cp.id] = designKey(cp); updateUndoBtn();
 }
