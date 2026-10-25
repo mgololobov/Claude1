@@ -370,3 +370,10 @@ table.plan td { text-align: left; font-family: var(--f-body); } table.plan td.mo
 .rondel .rsp { position: absolute; transform: translate(-50%, -50%); width: 84px; min-height: 52px; border-radius: 10px; border: 1.5px solid #1b2421; background: #fbfaf6; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: .78rem; padding: 3px; line-height: 1.15; }
 .rondel .rsp.on { background: #e0aa2e; } .rondel .rsp:disabled { opacity: .55; }
 .rondel .rsp span { font-size: .7rem; color: #555; } .rondel .pawns i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin: 1px; border: 1px solid #1b2421; }
+/* skupiny v panelu vybrané jednotky */
+.selbar details.sg { border-top: 1px solid rgba(0,0,0,.1); padding-top: 4px; }
+.selbar details.sg > summary { cursor: pointer; list-style: none; font: 700 .72rem/1.6 var(--f-mono); text-transform: uppercase; letter-spacing: .06em; color: #6a6a62; display: flex; align-items: center; gap: 6px; min-height: 40px; }
+.selbar details.sg > summary::-webkit-details-marker { display: none; }
+.selbar details.sg > summary::before { content: "▸"; transition: transform .15s; }
+.selbar details.sg[open] > summary::before { transform: rotate(90deg); }
+.selbar .sgb { display: flex; flex-direction: column; gap: 6px; padding-bottom: 4px; }

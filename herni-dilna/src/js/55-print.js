@@ -31,7 +31,7 @@ function markerNeeds(p) {
   const dur = [...p.tokens.filter(x => x.small), ...p.decks.flatMap(d => d.cards.filter(c => c.unitItem))].reduce((a, x) => a + (+x.dur || 0), 0); add("Výdrž −1", Math.ceil(dur / 2), "−1 VÝD", "#ece6d6");
   if ([...p.tokens, ...p.decks.flatMap(d => d.cards)].some(x => isOnce(x) && modText(x))) add("Dočasný účinek", 4, "✦ ÚČIN", "#e6dcef");
   if (envOn(p)) { add("Denní doba", 1, "☀ DOBA", "#fbe7a8"); add("Počasí", 1, "☂ POČ", "#d6e6f2"); if (p.env.conds.some(c => c.wind)) add("Směr větru", 1, "▲ VÍTR", "#fbfaf6"); p.env.grounds.forEach(g => add(g.name, 1, g.name.slice(0, 5).toUpperCase(), g.color)); }
-  if (p.scenarios.some(s => +s.turns)) add("Kolo", 1, "KOLO", "#1b2421");
+  if (p.scenarios.some(s => +s.turns) && !p.tokens.some(x => same(x.name, "Kolo"))) add("Kolo", 1, "KOLO", "#1b2421");
   return out;
 }
 // Mapa v měřítku pro žetony 16 mm, rozdělená na listy A4 (s překryvem 6 mm na lepení).
@@ -67,7 +67,8 @@ function printNeeds(p) {
   if (p.nets && p.nets.length) R("Mapa", "Mapa míst a cest", p.nets.length, p.nets.length, "vytiskni ze záložky Mapa jako obrázek");
   if (p.tiles.length) { const n = p.tiles.reduce((a, t) => a + (+t.qty || 0), 0); R("Dílky", "Dílky", n, Math.ceil(n / 20), "asi 45 mm, 20 na arch"); }
   p.bags.forEach(b => R("Obstarat", `Sáček „${b.name}“ a žetony v něm`, b.contents.reduce((a, c) => a + (+c.count || 0), 0), null, b.contents.map(c => `${c.count}× ${c.label}`).join(", ")));
-  p.resources.filter(r => !r.global).forEach(r => R("Obstarat", `Žetony zdroje „${r.name}“`, Math.max(1, p.factions.length) * Math.max(10, +r.max || 0, (+r.start || 0) * 3), null, "kostičky, mince nebo vytištěné žetony"));
+  p.resources.filter(r => !r.global && r.vp).forEach(r => R("Obstarat", `Počítadlo – ${r.name}`, Math.max(1, p.factions.length), null, "ukazatel na stupnici nebo zápis na papír"));
+  p.resources.filter(r => !r.global && !r.vp).forEach(r => R("Obstarat", `Žetony zdroje „${r.name}“`, Math.max(1, p.factions.length) * Math.max(10, +r.max || 0, (+r.start || 0) * 3), null, "kostičky, mince nebo vytištěné žetony"));
   diceNeeds(p).forEach(d => R("Kostky", d.custom ? `Vlastní kostka „${d.custom.name}“` : `k${d.sides}`, d.n, null, d.why.join(", ")));
   if (p.rondel.on) { R("Mapa", "Deska rondelu", 1, 1, `${p.rondel.spaces.length} polí v kruhu`); R("Obstarat", "Figurky na rondel", p.factions.length, null, "1 na hráče"); }
   if (p.actions.length) R("Obstarat", `Figurky dělníků (${p.factions.length} barev)`, p.factions.length * 4, null, "3–5 na hráče");
@@ -108,7 +109,7 @@ function analogTablesHTML(p) {
       <table><tr><th>Doba</th><th>Vliv</th></tr>${p.env.conds.filter(c => c.kind === "time").map(c => `<tr><td>${esc(c.name)}</td><td>${esc(envText(c))}</td></tr>`).join("")}</table>`);
     if (p.env.grounds.length) out.push(`<h3>Terén po počasí</h3><table><tr><th>Stav</th><th>Vznikne při</th><th>Vydrží po něm</th><th>Úpravy</th></tr>${p.env.grounds.map(g => `<tr><td>${esc(g.name)}</td><td>${esc(g.from)}</td><td>${g.lasts} ${plural(+g.lasts, "kolo", "kola", "kol")}</td><td>${esc(g.fx)}</td></tr>`).join("")}</table>`);
     const F = p.env.fire; const dirs = S6 ? DIR_NAMES_SQ : DIR_NAMES_HEX;
-    out.push(`<h3>Vítr, kouř a oheň</h3><p>Směr větru (při větrném počasí, když se mění – hod k6 ${pctToRoll(34)}): hoď k${dirs.length}: ${dirs.map((d, i) => `${i + 1} ${d}`).join(", ")}.</p>
+    out.push(`<h3>Vítr, kouř a oheň</h3><p>Při větrném počasí se na začátku kola směr větru změní, když padne ${pctToRoll(34)}. Nový směr: hoď k${dirs.length} – ${dirs.map((d, i) => `${i + 1} ${d}`).join(", ")}.</p>
       <p>Kouř: marker vydrží ${F.smoke} ${plural(+F.smoke, "kolo", "kola", "kol")} (otoč/ubírej). Ve větru se každé kolo posune o pole po větru a ubere 1 navíc; za mokra také 1 navíc. Zakrývá výhled.</p>
       <p>Oheň: na začátku kola hodí ${F.hits} ${plural(+F.hits, "kostku", "kostky", "kostek")} na každou jednotku na svém poli (zásah ${p.dice.aHit}+), na pole položí kouř a šíří se na sousední hořlavé pole: po větru <b>${pctToRoll(F.spread)}</b>, bez větru na každé sousední <b>${pctToRoll(F.still)}</b>. Hoří ${F.life} ${plural(+F.life, "kolo", "kola", "kol")}, pak pole dohoří (les → spáleniště, město → trosky; polož marker terénu). Mokré počasí oheň uhasí.</p>`);
   }

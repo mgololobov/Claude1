@@ -59,14 +59,17 @@ function clearActivation(p, t, fid) { (t.items || []).forEach(o => { if (o.kind 
 function actViolation(p, it) { return p.ruleset.actOnly && it && it.kind === "unit" && !it.act ? ["jednotka není aktivovaná (aktivuj ji nebo jejího velitele)"] : []; }
 function commandCells(p, t, it) { const b = tableBoard(p); const u = unitOf(p, it); const k0 = cellUnder(p, it); if (!b || !k0 || !+u.cmd) return null; const out = {};
   for (let c = 0; c < b.cols; c++) for (let r = 0; r < b.rows; r++) { const k = c + "," + r; const d = hexDist(b, k0, k); if (d <= +u.cmd && k !== k0) out[k] = d; } return out; }
-function commandSelHTML(p, t, i) {
+// part: "equip" (vybavení), "cmd" (aktivace a velení); bez part vše.
+function commandSelHTML(p, t, i, part) {
   const u = unitOf(p, i); const at = attachedTo(p, t, i); const cmd = +u.cmd; const under = commandersOver(p, t, i);
   const inRange = cmd ? t.items.filter(o => o !== i && o.kind === "unit" && (unitOf(p, o) || {}).factionId === u.factionId && unitDist(p, t, i, o) <= cmd).length : 0;
   const eqs = p.tokens.filter(x => x.small);
-  return `${eqs.length ? `<div class="row"><span class="hint">Vybavit:</span>${eqs.map(x => `<button class="btn small" data-equip="${x.id}" title="${esc(modText(x))}"><span class="eq" style="background:${x.color};color:${inkFor(x.color)}">${esc((x.text || x.name).slice(0, 3))}</span>${esc(x.name)}</button>`).join("")}</div>` : ""}
-    ${itemsSelHTML(p, t, i)}
-    ${under.length && (under.some(o => +unitOf(p, o).cmdAtt || +unitOf(p, o).cmdDef)) ? `<span class="hint">Pod velením: ${under.map(o => esc(unitOf(p, o).name)).join(", ")}</span>` : ""}
+  const equip = `${eqs.length ? `<div class="row"><span class="hint">Vybavit:</span>${eqs.map(x => `<button class="btn small" data-equip="${x.id}" title="${esc(modText(x))}"><span class="eq" style="background:${x.color};color:${inkFor(x.color)}">${esc((x.text || x.name).slice(0, 3))}</span>${esc(x.name)}</button>`).join("")}</div>` : ""}
+    ${itemsSelHTML(p, t, i)}`;
+  if (part === "equip") return equip;
+  const cmdHtml = `${under.length && (under.some(o => +unitOf(p, o).cmdAtt || +unitOf(p, o).cmdDef)) ? `<span class="hint">Pod velením: ${under.map(o => esc(unitOf(p, o).name)).join(", ")}</span>` : ""}
     <div class="row">${i.act ? `<span class="pl-chip">✓ aktivovaná</span>` : `<button class="btn small" data-activate="1">Aktivovat</button>`}${cmd ? `<button class="btn small primary" data-command="1">Velet (dosah ${cmd}, ${inRange} ${plural(inRange, "jednotka", "jednotky", "jednotek")})</button><button class="btn small ${S.cmdUid === i.uid ? "on" : ""}" data-cmdshow="1">Dosah velení</button>` : ""}</div>`;
+  return part === "cmd" ? cmdHtml : equip + cmdHtml;
 }
 function wireCommand(main, p, t, save) {
   const sel = t.items.find(i => i.uid === S.sel); const on = (s, fn) => $$(s, main).forEach(el => el.addEventListener("click", () => fn(el)));

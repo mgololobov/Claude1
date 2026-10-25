@@ -42,7 +42,7 @@ function zoneHit(p, t, it, z, n, by) {
   if (!+z.hp) return damage(p, t, it, n, by) || `${u.name} zasažen do zóny ${z.name}`;
   it.zdmg = it.zdmg || {}; it.zdmg[z.name] = (it.zdmg[z.name] || 0) + n; const left = zoneLeft(it, z);
   if (left > 0) return `${u.name}: ${z.name} −${n} (zbývá ${left})`;
-  if (z.crit) { t.items = t.items.filter(x => x !== it); if (S.sel === it.uid) S.sel = null; if (by && isHero(p, by) && +u.xp) by.xp = (by.xp || 0) + +u.xp; checkWin(p, t); return `${u.name}: ${z.name} zničen – jednotka vyřazena`; }
+  if (z.crit) { removeUnit(p, t, it); if (by && isHero(p, by) && +u.xp) by.xp = (by.xp || 0) + +u.xp; checkWin(p, t); return `${u.name}: ${z.name} zničen – jednotka vyřazena`; }
   return `${u.name}: ${z.name} vyřazen`;
 }
 function zoneBadge(p, it) { const zs = unitZones(unitOf(p, it)); if (!zs.length) return ""; const broken = zs.filter(z => zoneLeft(it, z) === 0).length;
@@ -63,13 +63,22 @@ function embark(p, t, it, tr) {
   if (msgs.length && !gate(p, t, "pohyb", msgs)) return false;
   it.inside = tr.uid; it.x = tr.x; it.y = tr.y; logEv(t, `${u.name} nastupuje do ${ut.name}`); return true;
 }
+// Odstranění jednotky ze stolu: upustí kořist, cestující vystoupí z vraku.
+function removeUnit(p, t, it) {
+  if (typeof dropLoot === "function") dropLoot(p, t, it);
+  const pas = passengers(t, it); pas.forEach((o, n) => { delete o.inside; o.x = it.x + 30 + n * 8; o.y = it.y + 30; });
+  if (pas.length) logEv(t, `z vraku ${(unitOf(p, it) || {}).name} vystupují: ${pas.map(o => (unitOf(p, o) || {}).name).join(", ")}`);
+  t.items = t.items.filter(x => x !== it); if (S.sel === it.uid) S.sel = null; if (S.rangeUid === it.uid) S.rangeUid = null; if (S.losUid === it.uid) S.losUid = null;
+}
 function disembark(p, t, it) { const tr = t.items.find(o => o.uid === it.inside); delete it.inside; if (tr) { const n = passengers(t, tr).length; it.x = tr.x + 30 + n * 6; it.y = tr.y + 30; } logEv(t, `${unitOf(p, it).name} vystupuje`); }
 function loadBadge(p, t, it) { const u = unitOf(p, it); if (!+u.transport) return ""; const n = loadUsed(p, t, it); return `<span class="lb" title="Přepravuje ${n} z ${u.transport}">⛟${n}/${u.transport}</span>`; }
 // ----- Detail vybrané jednotky -----
-function unitsPlusSelHTML(p, t, i) {
-  const u = unitOf(p, i); const out = []; const zs = unitZones(u);
-  if (zs.length) out.push(`<div class="zones"><span class="hint">Zóny:</span>${zs.map(z => { const left = zoneLeft(i, z); return `<button class="btn small ${left === 0 ? "muted" : ""}" data-zdef="${esc(z.name)}" title="Brání touto zónou">${esc(z.name)} <b>${zoneDef(p, i, z)}</b>${+z.hp ? ` <span class="hint">${left}/${z.hp}</span>` : ""}${z.crit ? " ★" : ""}</button>`; }).join("")}<button class="btn small" data-zdef="?">Náhodná zóna</button></div>`);
-  if (u.carry !== "" && u.carry != null) out.push(`<span class="hint">Nese ${carryUsed(p, t, i)} z ${u.carry}</span>`);
+// part: "zones" (boj), "carry" (vybavení), "rest" (stavba a přeprava); bez part vše.
+function unitsPlusSelHTML(p, t, i, part) {
+  const u = unitOf(p, i); const out = []; const zs = unitZones(u); const want = x => !part || part === x;
+  if (zs.length && want("zones")) out.push(`<div class="zones"><span class="hint">Zóny:</span>${zs.map(z => { const left = zoneLeft(i, z); return `<button class="btn small ${left === 0 ? "muted" : ""}" data-zdef="${esc(z.name)}" title="Brání touto zónou">${esc(z.name)} <b>${zoneDef(p, i, z)}</b>${+z.hp ? ` <span class="hint">${left}/${z.hp}</span>` : ""}${z.crit ? " ★" : ""}</button>`; }).join("")}<button class="btn small" data-zdef="?">Náhodná zóna</button></div>`);
+  if (u.carry !== "" && u.carry != null && want("carry")) out.push(`<span class="hint">Nese ${carryUsed(p, t, i)} z ${u.carry}</span>`);
+  if (!want("rest")) return out.join("");
   const builds = p.tokens.filter(x => x.fixed && x.buildable); if (builds.length && locKey(p, t, i)) out.push(`<div class="row"><span class="hint">Postavit:</span>${builds.map(x => `<button class="btn small" data-build="${x.id}" title="${esc(modText(x))}"><span class="eq" style="background:${x.color};color:${inkFor(x.color)}">${esc((x.text || x.name).slice(0, 3))}</span>${esc(x.name)}</button>`).join("")}</div>`);
   const pas = passengers(t, i); if (+u.transport) out.push(`<div class="row"><span class="hint">Přepravuje ${loadUsed(p, t, i)}/${u.transport}${pas.length ? ":" : ""}</span>${pas.map(o => `<span class="pl-chip">${esc(unitOf(p, o).name)} <button class="btn small" data-disembark="${o.uid}" aria-label="Vystoupit ${esc(unitOf(p, o).name)}">Vystoupit</button></span>`).join("")}</div>`);
   if (i.inside) out.push(`<div class="row"><span class="hint">Je ve vozidle ${esc((unitOf(p, t.items.find(o => o.uid === i.inside) || {}) || {}).name || "")}</span><button class="btn small" data-disembark="${i.uid}">Vystoupit</button></div>`);

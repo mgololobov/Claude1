@@ -89,7 +89,7 @@ function opsRulebook(p) {
   const out = []; const R = p.supplyRules; const ind = p.units.filter(u => u.indirect), eng = p.units.filter(u => u.engineer), fu = p.units.filter(u => u.fuel !== "" && u.fuel != null), br = p.terrains.filter(x => x.breaksTo);
   if (ind.length) out.push(["Nepřímá palba", `<p>${ind.map(u => esc(u.name)).join(", ")} smí střílet na cíl v dostřelu, který samy nevidí, když ho vidí jiná jednotka stejné strany (pozorovatel).</p>`]);
   if (eng.length) out.push(["Ženisté", `<p>${eng.map(u => esc(u.name)).join(", ")}: odstraní minu nebo ostnatý drát na svém či sousedním poli (akce) a skryté miny na sousedních polích odhalí.</p>`]);
-  if (br.length) out.push(["Mosty", `<p>${br.map(x => `${esc(x.name)} → ${esc((p.terrains.find(y => y.id === x.breaksTo) || {}).name || "")}`).join(", ")}: jednotka s výbušninou na mostě nebo vedle něj ho může zničit; jednotky na mostě dostanou zásah výbušninou.</p>`]);
+  if (br.length && p.boards.length && p.units.length) out.push(["Mosty", `<p>${br.map(x => `${esc(x.name)} → ${esc((p.terrains.find(y => y.id === x.breaksTo) || {}).name || "")}`).join(", ")}: jednotka s výbušninou na mostě nebo vedle něj ho může zničit; jednotky na mostě dostanou zásah výbušninou.</p>`]);
   if (fu.length) out.push(["Palivo", `<p>${fu.map(u => `${esc(u.name)} ${u.fuel}`).join(", ")}. Každý pohyb spotřebuje 1; bez paliva se jednotka nepohne. Natankuje v zásobování.</p>`]);
   if (+R.recover || +R.attrition) out.push(["Zásobování v čase", `<p>${+R.recover ? `Na začátku kola hodí každá oslabená jednotka v zásobování k6; při ${R.recover}+ se obnoví. ` : ""}${+R.attrition ? `Jednotka, která je ${R.attrition} ${plural(+R.attrition, "kolo", "kola", "kol")} v řadě mimo zásobování, ztratí krok.` : ""}</p>`]);
   return out;

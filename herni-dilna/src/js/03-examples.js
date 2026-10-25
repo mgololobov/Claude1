@@ -421,7 +421,7 @@ function exampleCrafts() {
   return normalize({
     id: uid(), isExample: true, updatedAt: Date.now(), name: "Kruh řemesel", version: "0.1", players: "2–4", time: "45 min", age: "10+",
     summary: "Euro s rondelem. Figurka obchází kruh akcí – blízké akce jsou zdarma, vzdálené stojí mince. Na začátku kola musíš nakrmit lidi a budovy, každé kolo přinese událost a budovy se navzájem zlevňují a podporují.",
-    rules: "TAH\nPosuň figurku na rondelu o 1–3 pole zdarma (dál za 1 minci za pole) a proveď akci pole. Na trhu můžeš koupit budovu – rovnou ji vylož.\n\nZAČÁTEK KOLA\nOtoč událost. Zaplať 2 obilí a 1 za každou budovu; za každé chybějící obilí ztrácíš 2 body.\n\nKONEC\nPo 8 kolech vyhrává nejvíc bodů.",
+    rules: "TAH\nPosuň figurku na rondelu o 1–3 pole zdarma (dál za 1 minci za pole) a proveď akci pole. Na trhu můžeš koupit budovu – rovnou ji vylož.\n\nZAČÁTEK KOLA\nVyložené budovy dají příjem. Otoč událost. Zaplať 2 obilí a 1 za každou budovu; za každé chybějící obilí ztrácíš 2 body.\n\nKONEC\nPo 8 kolech vyhrává nejvíc bodů.",
     factions: [{ id: uid(), name: "Kovářská gilda", color: "#7a4a2a" }, { id: uid(), name: "Tkalcovská gilda", color: "#3f6fb0" }, { id: uid(), name: "Pekařská gilda", color: "#c98a12" }],
     phases: ["Událost a krmení", "Rondel", "Stavba"],
     resources: [R("obili", "Obilí", "#d9b54a", 4, "🌾"), R("drevo", "Dřevo", "#8a5a2b", 2, "🪵"), R("mince", "Mince", "#c98a12", 3, "🪙"), R("body", "Body", "#2f7a45", 0, "★", true)],
@@ -429,15 +429,15 @@ function exampleCrafts() {
     ruleset: Object.assign(defaultRules(), { roundOnWrap: true, win: { vp: "", turns: 8, elimination: false } }),
     rondel: { on: true, free: 3, res: "mince", cost: 1, spaces: [
       { id: uid(), name: "Pole", effect: "+3 Obilí" }, { id: uid(), name: "Les", effect: "+2 Dřevo" }, { id: uid(), name: "Trh", effect: "vyber: zaplať 2 Obilí: +3 Mince | zaplať 2 Dřevo: +3 Mince" },
-      { id: uid(), name: "Dílna", effect: "zaplať 2 Dřevo: +3 Body" }, { id: uid(), name: "Daně", effect: "+2 Mince" }, { id: uid(), name: "Slavnost", effect: "zaplať 3 Obilí: +4 Body" }] },
+      { id: uid(), name: "Dílna", effect: "zaplať 2 Dřevo: +3 Body" }, { id: uid(), name: "Daně", effect: "+3 Mince" }, { id: uid(), name: "Slavnost", effect: "zaplať 3 Obilí: +4 Body" }] },
     upkeep: { on: true, res: "obili", base: 2, perTab: 1, type: "Budova", penalty: "-2 Body" },
     roundEvent: ev,
     decks: [
       { id: bd, name: "Budovy", color: "#6b5a3a", back: "BUDOVA", market: 4, cards: [
-        c("Mlýn", "Budova", "4", "Vyložení: +2 {Obilí}. Budovy o 1 levnější.", 2, 1, "⚙", { effect: "+2 Obilí", disc: 1, discType: "Budova" }),
-        c("Pila", "Budova", "4", "Vyložení: +2 {Dřevo}. Spojenec (Budova): +1 {Mince}.", 2, 1, "🪚", { effect: "+2 Dřevo", allyFx: "+1 Mince" }),
-        c("Pekárna", "Budova", "5", "Vyložení: +2 {Body}. Spojenec (Budova): +1 {Body}.", 2, 2, "🥖", { effect: "+2 Body", allyFx: "+1 Body" }),
-        c("Cech", "Budova", "6", "Všechny karty o 1 levnější.", 2, 2, "🏛", { disc: 1 }),
+        c("Mlýn", "Budova", "4", "Každé kolo +1 {Obilí}. Budovy o 1 levnější.", 2, 1, "⚙", { income: "+1 Obilí", disc: 1, discType: "Budova" }),
+        c("Pila", "Budova", "4", "Každé kolo +1 {Dřevo}. Spojenec (Budova): +1 {Mince}.", 2, 1, "🪚", { income: "+1 Dřevo", allyFx: "+1 Mince" }),
+        c("Pekárna", "Budova", "5", "Každé kolo: zaplať 1 {Obilí} a získej 2 {Body}. Spojenec (Budova): +1 {Body}.", 2, 2, "🥖", { income: "zaplať 1 Obilí: +2 Body", allyFx: "+1 Body" }),
+        c("Cech", "Budova", "6", "Každé kolo +1 {Mince}. Všechny karty o 1 levnější.", 2, 2, "🏛", { income: "+1 Mince", disc: 1 }),
         c("Katedrála", "Budova", "9", "Mnoho bodů.", 1, 6, "⛪")] },
       { id: ev, name: "Události", color: "#4a4a48", back: "UDÁLOST", market: 0, cards: [
         c("Dobrá úroda", "Událost", "", "Všichni +2 {Obilí}.", 2, "", "🌾", { effect: "všichni +2 Obilí" }), c("Neúroda", "Událost", "", "Všichni −1 {Obilí}.", 2, "", "🥀", { effect: "všichni -1 Obilí" }),

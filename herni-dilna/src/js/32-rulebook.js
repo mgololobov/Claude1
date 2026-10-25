@@ -33,13 +33,13 @@ function buildRulebook(p) {
   if (p.resources.length) setup.push(`Každý hráč začíná se zdroji: ${p.resources.filter(r => !r.global).map(r => `${r.start} × ${r.name}`).join(", ")}.`);
   p.factions.filter(f => f.setup || f.ability).forEach(f => setup.push(`<b>${esc(f.name)}</b>: ${f.setup ? esc(describeEffect(f.setup)) + " " : ""}${f.ability ? "Schopnost: " + esc(f.ability) : ""}`));
   p.decks.filter(d => d.starter).forEach(d => setup.push(`Každý hráč dostane vlastní balíček ${esc(d.name)}.`));
-  p.decks.filter(d => +d.market).forEach(d => setup.push(`Vyložte ${d.market} karet z balíčku ${esc(d.name)} jako trh.`));
+  p.decks.filter(d => +d.market).forEach(d => setup.push(`Vyložte ${d.market} ${plural(+d.market, "kartu", "karty", "karet")} z balíčku ${esc(d.name)} jako trh.`));
   H("Příprava", setup.length ? `<ul>${setup.map(x => `<li>${x}</li>`).join("")}</ul>` : "");
   H("Průběh kola", p.phases.length ? `<ol>${p.phases.map(x => `<li>${esc(x)}</li>`).join("")}</ol>` : "");
   H("Akce", p.actions.length ? `<ul>${p.actions.map(a => `<li><b>${esc(a.name)}</b>${p.actionMode === "slots" ? ` (${a.slots} ${plural(+a.slots, "místo", "místa", "míst")})` : ""}: ${esc(a.text || "")}${a.effect ? " " + esc(describeEffect(a.effect)) : ""}</li>`).join("")}</ul>${p.actionMode === "rondel" ? `<p>Akce leží na kruhu. ${p.rondel.free} kroky jsou zdarma, každý další stojí 1.</p>` : p.actionMode === "roles" ? "<p>Každou roli si v kole vezme jen jeden hráč.</p>" : ""}` : "");
   const R = p.ruleset; const lim = [];
   if (+R.handLimit) lim.push(`Na konci tahu smíš mít v ruce nejvýš ${R.handLimit} karet.`); if (+R.drawUpTo) lim.push(`Na konci tahu si dober do ${R.drawUpTo} karet.`); if (+R.actionsPerTurn) lim.push(`V tahu smíš provést ${R.actionsPerTurn} akce.`);
-  if (R.moveOnce) lim.push("Každá jednotka se smí v tahu pohnout jen jednou."); if (+R.stackLimit) lim.push(`Na jednom poli smí stát nejvýš ${R.stackLimit} jednotky.`);
+  if (R.moveOnce && p.units.length) lim.push("Každá jednotka se smí v tahu pohnout jen jednou."); if (+R.stackLimit && p.units.length) lim.push(`Na jednom poli smí stát nejvýš ${R.stackLimit} ${plural(+R.stackLimit, "jednotka", "jednotky", "jednotek")}.`);
   Object.entries(R.phaseOf || {}).forEach(([k, ph]) => { if (ph && ph.length) lim.push(`${CATS[k]} jen ve fázi ${ph.map(i => p.phases[i]).join(" / ")}.`); });
   R.triggers.forEach(t => lim.push(`${TRIGGERS[t.on]}${t.param ? ` (${esc(t.param)})` : ""}${t.cond ? `, pokud ${esc(t.cond)}` : ""}: ${esc(describeEffect(t.effect))}`));
   H("Důležitá pravidla", lim.length ? `<ul>${lim.map(x => `<li>${x}</li>`).join("")}</ul>` : "");

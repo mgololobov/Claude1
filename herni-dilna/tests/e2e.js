@@ -318,7 +318,18 @@ const OUT = path.join(__dirname, "out"); fs.mkdirSync(OUT, { recursive: true });
     if (!(await pg.$("[data-rbuy]"))) throw new Error("rezervovanou kartu nejde koupit");
     await pg.screenshot({ path: path.join(OUT, "rezervace.png") });
   });
+  await step("nová hra ze šablony", async () => {
+    await pg.click("#newProj"); await pg.waitForSelector('[data-tpl="exampleCrafts"]'); await pg.screenshot({ path: path.join(OUT, "sablony.png") });
+    await pg.click('[data-tpl="exampleCrafts"]'); const r = await pg.evaluate(() => ({ n: P().name, ex: !!P().isExample, r: P().rondel.on }));
+    if (!/moje verze/.test(r.n) || r.ex || !r.r) throw new Error("šablona se nepoužila: " + JSON.stringify(r));
+  });
   await step("telefon – Přehled", async () => { await pg.setViewportSize({ width: 400, height: 820 }); await pg.click("[data-tab=prehled]"); await pg.screenshot({ path: path.join(OUT, "telefon.png") }); });
+  await step("telefon – stůl s vybranou jednotkou", async () => {
+    const idx = await pg.$$eval("#projSel option", o => o.findIndex(x => /Obrana Brodu/.test(x.textContent))); await pg.selectOption("#projSel", (await pg.$$eval("#projSel option", o => o.map(x => x.value)))[idx]);
+    await pg.click("[data-tab=stul]"); await pg.evaluate(() => { const t = P().table; const u = t.items.find(i => i.kind === "unit"); S.sel = u.uid; render(); });
+    const over = await pg.evaluate(() => document.documentElement.scrollWidth - window.innerWidth); if (over > 2) throw new Error("vodorovné přetečení o " + over + " px");
+    await pg.screenshot({ path: path.join(OUT, "telefon-stul.png"), fullPage: false });
+  });
   await b.close();
   console.log(`\n${fails.length ? fails.length + " kroků selhalo:\n" + fails.join("\n") : "Všechny kroky prošly."}\n${errors.length ? "Chyby v konzoli:\n" + errors.join("\n") : "Bez chyb v konzoli."}`);
   process.exit(fails.length || errors.length ? 1 : 0);

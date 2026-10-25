@@ -132,15 +132,30 @@ function cardEngineHTML(c) {
     <label class="chk"><input type="checkbox" id="c-reaction" ${c.reaction ? "checked" : ""}> Reakce – jde zahrát i mimo svůj tah</label></details>`;
 }
 function readCardEngine(c, d) { ["disc", "discType", "allyType", "allyFx"].forEach(k => { c[k] = $("#c-" + k, d).value.trim(); }); c.disc = c.disc === "" ? "" : +c.disc || 0; c.reaction = $("#c-reaction", d).checked; }
+const lcFirst = s => String(s || "").charAt(0).toLowerCase() + String(s || "").slice(1);
 function euroRulebook(p) {
   const out = []; const R = p.rondel, U = p.upkeep;
   if (R.on) out.push(["Rondel", `<p>Hráč ve svém tahu posune figurku po kruhu o 1–${R.free} pole zdarma${R.res ? `, každé další pole stojí ${R.cost} ${esc((p.resources.find(r => r.id === R.res) || {}).name || "")}` : ""}, a provede akci pole. Na místě zůstat nesmí.</p><ol>${R.spaces.map(s => `<li><b>${esc(s.name)}</b>${s.effect ? ": " + esc(describeEffect(s.effect)) : ""}</li>`).join("")}</ol>`]);
-  if (U.on) { const r = p.resources.find(x => x.id === U.res); if (r) out.push(["Údržba", `<p>Na začátku kola každý hráč zaplatí ${U.base} ${esc(r.name)}${+U.perTab ? ` a ${U.perTab} za každou vyloženou kartu${U.type ? ` typu ${esc(U.type)}` : ""}` : ""}. Za každý chybějící kus: ${esc(describeEffect(U.penalty || ""))}.</p>`]); }
+  if (U.on) { const r = p.resources.find(x => x.id === U.res); if (r) out.push(["Údržba", `<p>Na začátku kola každý hráč zaplatí ${U.base} ${esc(r.name)}${+U.perTab ? ` a ${U.perTab} za každou vyloženou kartu${U.type ? ` typu ${esc(U.type)}` : ""}` : ""}. Za každý chybějící kus: ${esc(lcFirst(describeEffect(U.penalty || "")).replace(/\.$/, ""))}.</p>`]); }
   const disc = p.decks.flatMap(d => d.cards.filter(c => +c.disc)), ally = p.decks.flatMap(d => d.cards.filter(c => c.allyFx)), react = p.decks.flatMap(d => d.cards.filter(c => c.reaction));
   if (disc.length) out.push(["Slevy", `<ul>${disc.map(c => `<li><b>${esc(c.title)}</b>: −${c.disc} z ceny ${c.discType ? `karet typu ${esc(c.discType)}` : "každé karty"}, dokud je vyložená</li>`).join("")}</ul>`]);
-  if (ally.length) out.push(["Spojenecké schopnosti", `<ul>${ally.map(c => `<li><b>${esc(c.title)}</b>: máš-li vyloženou kartu typu ${esc(c.allyType || c.type)}, navíc ${esc(describeEffect(c.allyFx))}</li>`).join("")}</ul>`]);
+  if (ally.length) out.push(["Spojenecké schopnosti", `<ul>${ally.map(c => `<li><b>${esc(c.title)}</b>: máš-li vyloženou kartu typu ${esc(c.allyType || c.type)}, navíc ${esc(lcFirst(describeEffect(c.allyFx)).replace(/\.$/, ""))}</li>`).join("")}</ul>`]);
   if (react.length) out.push(["Reakce", `<p>Tyto karty smíš zahrát i mimo svůj tah: ${react.map(c => esc(c.title)).join(", ")}.</p>`]);
   if (p.reserve.on) out.push(["Rezervace", `<p>Místo nákupu si můžeš kartu z trhu odložit stranou (nejvýš ${p.reserve.max})${p.reserve.res && +p.reserve.bonus ? ` a vzít si ${p.reserve.bonus} ${esc((p.resources.find(r => r.id === p.reserve.res) || {}).name || "")}` : ""}. Později ji koupíš za její cenu.</p>`]);
   const ev = p.decks.find(d => d.id === p.roundEvent); if (ev) out.push(["Událost kola", `<p>Na začátku každého kola otoč vrchní kartu balíčku ${esc(ev.name)} a proveď ji.</p>`]);
   return out;
+}
+// Simulace: tahy na rondelu (hodnota efektu pole, poplatek za vzdálená pole se odečte).
+function simRondelMoves(p, t, f) {
+  const R = p.rondel; if (!R.on || !R.spaces.length) return []; const n = R.spaces.length; const from = (t.rondel || {})[f.id]; const r = p.resources.find(x => x.id === R.res);
+  return R.spaces.map((s, i) => { const steps = from == null ? 0 : ((i - from) % n + n) % n; if (from != null && !steps) return null; const extra = Math.max(0, steps - (+R.free || 0)) * (+R.cost || 0);
+    if (extra && (!r || ((t.res[f.id] || {})[r.id] || 0) < extra)) return null;
+    const val = affordableValue(p, t, f.id, s.effect || "", extra); if (val == null) return null;
+    return { v: val - extra * .4 + .3, card: "Rondel: " + s.name, run() { rondelMove(p, t, f.id, i); after(p, t, "akce", f.id, s.name); } }; }).filter(Boolean);
+}
+// Hodnota efektu, který si hráč může dovolit (u „vyber:“ nejlepší dostupná možnost); null = nic z toho nezaplatí.
+function affordableValue(p, t, fid, text, spent = 0) {
+  const body = String(text || "").trim(); const alts = /^vyber\s*:/i.test(body) ? body.replace(/^vyber\s*:/i, "").split("|").map(s => s.trim()) : [body];
+  const ok = a => { const m = a.match(/zaplať\s+(.+?)\s*:/i); if (!m) return true; return costItems(p, m[1]).every(c => c.r && (((t.res[fid] || {})[c.r.id] || 0) - (c.r.id === p.rondel.res ? spent : 0)) >= c.n); };
+  const vals = alts.filter(ok).map(a => effectValue(p, a)); return vals.length ? Math.max(...vals) : null;
 }

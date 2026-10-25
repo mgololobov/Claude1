@@ -79,7 +79,7 @@ function wireEnvMech(main, p) {
 }
 function envRulebook(p) {
   if (!envOn(p)) return []; const C = p.env.conds;
-  return [["Denní doba a počasí", `<p>Denní doba se střídá po kolech: ${esc(envCycle(p).join(" → "))}.${p.env.auto ? " Počasí se na začátku kola losuje." : ""}</p><table><tr><th>Podmínka</th><th>Vliv</th></tr>${C.map(c => `<tr><td>${esc(c.icon || "")} ${esc(c.name)}${c.kind === "weather" && p.env.auto ? ` (váha ${c.w || 0})` : ""}</td><td>${esc(envText(c))}</td></tr>`).join("")}</table><p>Jednotka se světlem vidí do jeho vzdálenosti i v noci a mlze.</p>`]];
+  return [["Denní doba a počasí", `<p>Denní doba se střídá po kolech: ${esc(envCycle(p).join(" → "))}.${p.env.auto ? " Počasí se na začátku kola losuje." : ""}</p><table><tr><th>Podmínka</th><th>Vliv</th></tr>${C.map(c => `<tr><td>${esc(c.icon || "")} ${esc(c.name)}${c.kind === "weather" && p.env.auto ? (+c.w ? ` (váha ${c.w})` : " (jen ručně)") : ""}</td><td>${esc(envText(c))}</td></tr>`).join("")}</table><p>Jednotka se světlem vidí do jeho vzdálenosti i v noci a mlze.</p>`]];
 }
 // Zabarvení mapy podle doby a počasí (noc tmavne, mlha bělá, déšť šedne).
 const ENV_TINT = { soumrak: "rgba(90,50,100,.16)", noc: "rgba(15,25,70,.42)", mlha: "rgba(245,245,245,.45)", dest: "rgba(80,100,130,.22)", vitr: "rgba(200,190,150,.10)" };

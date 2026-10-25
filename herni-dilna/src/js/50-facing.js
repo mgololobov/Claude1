@@ -153,7 +153,7 @@ function facingRulebook(p) {
   const out = []; const F = p.facing;
   if (facingOn(p)) out.push(["Natočení jednotek", `<p>Každá jednotka stojí čelem do jednoho směru. Přední výseč je ±${F.front}°, zadní ±${F.rear}° od zádi, zbytek je bok. Útok z boku má posun ${F.flank}, zezadu ${F.rearB}${F.auto ? "; po pohybu se jednotka natočí ve směru pohybu" : ""}.</p>${F.vision ? `<p>Jednotka vidí jen do zorného pole ±${F.view}°${F.adjSee ? " a na sousední pole" : ""}.${F.stealth ? ` Útok mimo zorné pole obránce je nepozorovaný, posun ${F.stealthB}.` : ""}</p>` : ""}`]);
   const dirT = p.tokens.filter(x => x.frontOnly); if (dirT.length) out.push(["Kryt jen zepředu", `<p>${dirT.map(x => esc(x.name)).join(", ")} chrání jen proti útoku z přední výseče žetonu.</p>`]);
-  const hs = p.terrains.filter(x => +x.h); if (hs.length) out.push(["Výška terénu", `<p>Výšky: ${hs.map(x => `${esc(x.name)} ${x.h}`).join(", ")}. Výhled zastaví pole, které je (s překážkou o 1 výš) vyšší než čára výhledu.${+F.elevShift ? ` Útok na výše stojící jednotku má posun −${F.elevShift}, z výšky +${F.elevShift}.` : ""}</p>`]);
+  const hs = p.terrains.filter(x => +x.h); if (hs.length && p.boards.length && p.units.length) out.push(["Výška terénu", `<p>Výšky: ${hs.map(x => `${esc(x.name)} ${x.h}`).join(", ")}. Výhled zastaví pole, které je (s překážkou o 1 výš) vyšší než čára výhledu.${+F.elevShift ? ` Útok na výše stojící jednotku má posun −${F.elevShift}, z výšky +${F.elevShift}.` : ""}</p>`]);
   const am = p.units.filter(u => u.ammo !== "" && u.ammo != null); if (am.length) out.push(["Munice", `<p>${am.map(u => `${esc(u.name)} ${u.ammo}`).join(", ")}. Každý útok spotřebuje 1; doplnit lze v zásobování.</p>`]);
   return out;
 }

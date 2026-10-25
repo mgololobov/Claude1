@@ -6,7 +6,7 @@ function stepLoss(p, t, it) {
   const u = unitOf(p, it); if (!u) return "";
   const ab = absorbHits(p, t, it, 1); if (!ab.n) return `${u.name}: ${ab.msg}`;
   if (!it.reduced && hasReduced(u)) { it.reduced = true; return `${u.name} ztrácí krok`; }
-  dropLoot(p, t, it); t.items = t.items.filter(x => x !== it); if (S.sel === it.uid) S.sel = null; return `${u.name} zničena`;
+  removeUnit(p, t, it); return `${u.name} zničena`;
 }
 function placeOn(p, t, it, k) {
   const b = tableBoard(p); const [w, h] = itemSize(it); const [c, r] = k.split(",").map(Number); const [cx, cy] = geo(b).center(c, r);

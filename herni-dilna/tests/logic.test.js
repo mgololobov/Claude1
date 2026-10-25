@@ -595,7 +595,7 @@ test("nepřímá palba s pozorovatelem, ženista, most, palivo, zásobování v 
 test("euro: rondel zdarma a za poplatek, údržba s postihem, událost kola", () => {
   const p = A.exampleCrafts(); const S = A.__S(); S.projects = [p]; S.currentId = p.id; const t = A.ensureTable(p); const f = p.factions[0].id; t.res[f] = { obili: 4, drevo: 2, mince: 3, body: 0 };
   assert.equal(A.rondelMove(p, t, f, 0), ""); assert.equal(t.res[f].obili, 7, "Pole +3 obilí"); assert.match(A.rondelMove(p, t, f, 0), /stejném/);
-  assert.equal(A.rondelMove(p, t, f, 4), "", "o 4 pole: 1 za poplatek"); assert.equal(t.res[f].mince, 3 - 1 + 2, "zaplatí 1, daně +2");
+  assert.equal(A.rondelMove(p, t, f, 4), "", "o 4 pole: 1 za poplatek"); assert.equal(t.res[f].mince, 3 - 1 + 3, "zaplatí 1, daně +3");
   t.res[f].mince = 0; assert.match(A.rondelMove(p, t, f, 3), /chybí/, "o 5 polí bez mincí nejde");
   t.res[f].obili = 1; t.res[f].body = 5; t.tableau[f] = [{ deckId: p.decks[0].id, cardId: p.decks[0].cards[0].id }]; A.upkeepRound(p, t);
   assert.equal(t.res[f].obili, 0); assert.equal(t.res[f].body, 1, "chybí 2 obilí → −4 body");
@@ -615,4 +615,16 @@ test("kořist: padlá jednotka upustí předměty, jiná je sebere", () => {
   const { p, t, put } = war(); p.units[1].hp = 1; p.tokens = [{ id: "mec", name: "Meč", small: true, mAtt: 1 }]; const a = put("a", 1), d = put("d", 2);
   t.items.push({ uid: "m1", kind: "token", tokenId: "mec", attachTo: d.uid, x: 0, y: 0 }); A.damage(p, t, d, 1); assert.ok(!t.items.includes(d));
   const m = t.items.find(i => i.uid === "m1"); assert.ok(!m.attachTo, "meč leží na zemi"); assert.ok(A.lootNear(p, t, a).includes(m), "útočník vedle ho může sebrat");
+});
+test("kontrola návrhu: novější mechaniky", () => {
+  const p = A.exampleCrafts(); p.rondel.spaces[0].effect = "+2 Zlatíčka"; p.env.on = true; p.env.cycle = "Den, Polední klid"; p.env.grounds[0].fx = "Pláň +1";
+  p.decks[0].cards[0].discType = "Loď"; p.upkeep.res = ""; p.units = [{ id: "x", name: "Houfnice", indirect: true, range: 1, fuel: 0 }];
+  const t = A.lintProject(p).map(x => x.t).join("\n");
+  for (const re of [/Rondel „Pole“: neznámý zdroj/, /Polední klid/, /terén „pláň“/, /typ „Loď“/, /Údržba je zapnutá, ale nemá vybraný zdroj/, /Houfnice“ má nepřímou palbu/, /palivo 0/]) assert.match(t, re);
+  assert.equal(A.allExamples().reduce((a, x) => a + A.lintProject(x).filter(m => m.lv === "err").length, 0), 0, "ukázky bez chyb");
+});
+test("šablona podle žánru: prázdná hra převezme obsah ukázky, ponechá id a není ukázkou", () => {
+  const p = A.blankProject(); const id = p.id; assert.ok(A.isBlank(p)); A.applyTemplate(p, "exampleCrafts");
+  assert.equal(p.id, id); assert.ok(!p.isExample); assert.match(p.name, /Kruh řemesel – moje verze/); assert.ok(p.rondel.on && p.decks.length === 2); assert.ok(!A.isBlank(p));
+  assert.equal(A.lintProject(p).filter(m => m.lv === "err").length, 0);
 });

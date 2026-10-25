@@ -58,9 +58,21 @@ function startGuideHTML(p) {
   if (p.isExample || p.hideStart) return ""; const st = startSteps(p); const done = st.filter(x => x[3]).length; if (done === st.length) return "";
   return `<div class="panel startguide"><div class="row spread"><h2>Jak začít</h2><span class="row"><span class="count">${done} z ${st.length}</span><button class="btn small" id="sgHide">Skrýt</button></span></div>
     <ol class="steps">${st.map(([t, d, tab, ok]) => `<li class="${ok ? "ok" : ""}"><button type="button" data-sgo="${tab}"><b>${ok ? "✓ " : ""}${t}</b><span>${d}</span></button></li>`).join("")}</ol>
+    ${isBlank(p) ? `<div class="eyebrow">Nebo začni ze šablony podle žánru</div><div class="row">${GENRE_TEMPLATES.map(([k, n, d]) => `<button class="btn small" data-tpl="${k}" title="${esc(d)}">${esc(n)}</button>`).join("")}</div>` : ""}
     <p class="hint">Inspiraci najdeš v ukázkových hrách (výběr hry nahoře) – změnou se uloží jako tvoje.</p></div>`;
+}
+// Šablony: ukázková hra jako základ vlastní hry (zachová id a název rozpracované hry).
+const GENRE_TEMPLATES = [["exampleWar", "Wargame", "hexová mapa, jednotky, bojová tabulka, natočení, morálka, počasí"], ["exampleCrypt", "Dungeon crawler", "hrdinové, příšery, místnosti, předměty"], ["exampleAlchemy", "Deckbuilding", "startovní balíček, trh, slevy, sáček"],
+  ["exampleCrafts", "Euro s rondelem", "rondel, údržba, budovy, události"], ["exampleTrade", "Obchodní euro", "zdroje, trh se zbožím, akce"], ["exampleTricks", "Štychová hra", "barvy, hodnoty, štychy"], ["exampleTiles", "Pokládání dílků", "dílky a hrany"],
+  ["exampleRace", "Závod", "dráha a kostky"], ["exampleMages", "Souboj karet", "bytosti, země, životy"], ["exampleRail", "Železnice 18xx", "společnosti, akcie, vlaky"]];
+function isBlank(p) { return !p.isExample && !p.decks.some(d => d.cards.length) && !p.units.length && !p.boards.length && !p.tokens.length && !String(p.rules || "").trim(); }
+function applyTemplate(p, key) {
+  const fn = { exampleWar, exampleCrypt, exampleAlchemy, exampleCrafts, exampleTrade, exampleTricks, exampleTiles, exampleRace, exampleMages, exampleRail }[key]; if (!fn) return null;
+  const e = fn(); const keep = { id: p.id, name: p.name && p.name !== "Nová hra" ? p.name : e.name + " – moje verze", isExample: false, updatedAt: Date.now(), versions: p.versions || [] };
+  Object.keys(p).forEach(k => delete p[k]); Object.assign(p, e, keep); delete p.isExample; return p;
 }
 function wireStartGuide(main, p) {
   $$("[data-sgo]", main).forEach(b => b.onclick = () => { if (b.dataset.sgo === "prehled") { const ta = main.querySelector(".panel:not(.startguide) textarea"); if (ta) { ta.scrollIntoView({ behavior: "smooth", block: "center" }); ta.focus({ preventScroll: true }); } return; } S.tab = b.dataset.sgo; render(); });
   const h = document.getElementById("sgHide"); if (h) h.onclick = () => { p.hideStart = true; touch(p); render(); };
+  $$("[data-tpl]", main).forEach(b => b.onclick = () => { if (!applyTemplate(p, b.dataset.tpl)) return; touch(p); render(); toast(`Hra založena ze šablony ${b.textContent} – upravuj podle sebe`); });
 }
