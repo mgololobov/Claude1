@@ -64,7 +64,7 @@ function commandSelHTML(p, t, i, part) {
   const u = unitOf(p, i); const at = attachedTo(p, t, i); const cmd = +u.cmd; const under = commandersOver(p, t, i);
   const inRange = cmd ? t.items.filter(o => o !== i && o.kind === "unit" && (unitOf(p, o) || {}).factionId === u.factionId && unitDist(p, t, i, o) <= cmd).length : 0;
   const eqs = p.tokens.filter(x => x.small);
-  const equip = `${eqs.length ? `<div class="row"><span class="hint">Vybavit:</span>${eqs.map(x => `<button class="btn small" data-equip="${x.id}" title="${esc(modText(x))}"><span class="eq" style="background:${x.color};color:${inkFor(x.color)}">${esc((x.text || x.name).slice(0, 3))}</span>${esc(x.name)}</button>`).join("")}</div>` : ""}
+  const equip = `${eqs.length > 7 ? `<div class="row"><span class="hint">Vybavit:</span><select data-equipsel aria-label="Předmět k vybavení" style="flex:1;min-width:140px">${eqs.map(x => `<option value="${x.id}">${esc(x.name)}${itemText(x) ? " – " + esc(itemText(x)) : ""}</option>`).join("")}</select><button class="btn small" data-equipgo="1">Vybavit</button></div>` : eqs.length ? `<div class="row"><span class="hint">Vybavit:</span>${eqs.map(x => `<button class="btn small" data-equip="${x.id}" title="${esc(modText(x))}"><span class="eq" style="background:${x.color};color:${inkFor(x.color)}">${esc((x.text || x.name).slice(0, 3))}</span>${esc(x.name)}</button>`).join("")}</div>` : ""}
     ${itemsSelHTML(p, t, i)}`;
   if (part === "equip") return equip;
   const cmdHtml = `${under.length && (under.some(o => +unitOf(p, o).cmdAtt || +unitOf(p, o).cmdDef)) ? `<span class="hint">Pod velením: ${under.map(o => esc(unitOf(p, o).name)).join(", ")}</span>` : ""}
@@ -73,7 +73,9 @@ function commandSelHTML(p, t, i, part) {
 }
 function wireCommand(main, p, t, save) {
   const sel = t.items.find(i => i.uid === S.sel); const on = (s, fn) => $$(s, main).forEach(el => el.addEventListener("click", () => fn(el)));
-  on("[data-equip]", el => { const tk = p.tokens.find(x => x.id === el.dataset.equip); if (carryCheck(p, t, sel, tk).length && !gate(p, t, "vybaveni", carryCheck(p, t, sel, tk))) return; t.items.push({ uid: uid(), kind: "token", tokenId: tk.id, x: sel.x, y: sel.y, value: 0, rot: 0, attachTo: sel.uid }); logEv(t, `${unitOf(p, sel).name} dostává ${tk.name}${modText(tk) ? " (" + modText(tk) + ")" : ""}`); save(); render(); });
+  const equipToken = id => { const tk = p.tokens.find(x => x.id === id); if (!tk) return; if (carryCheck(p, t, sel, tk).length && !gate(p, t, "vybaveni", carryCheck(p, t, sel, tk))) return; t.items.push({ uid: uid(), kind: "token", tokenId: tk.id, x: sel.x, y: sel.y, value: 0, rot: 0, attachTo: sel.uid }); logEv(t, `${unitOf(p, sel).name} dostává ${tk.name}${modText(tk) ? " (" + modText(tk) + ")" : ""}`); save(); render(); };
+  on("[data-equip]", el => equipToken(el.dataset.equip));
+  on("[data-equipgo]", () => { const v = ($("[data-equipsel]", main) || {}).value; if (v) equipToken(v); });
   on("[data-detach]", el => { detachToken(p, t, el.dataset.detach); save(); render(); });
   on("[data-activate]", () => { if (!gate(p, t, "aktivace")) return; activateUnit(p, t, sel); logEv(t, `${unitOf(p, sel).name} aktivována`); after(p, t, "aktivace", (unitOf(p, sel) || {}).factionId); save(); render(); });
   on("[data-command]", () => { if (!gate(p, t, "aktivace")) return; const n = activateCommand(p, t, sel); after(p, t, "aktivace", (unitOf(p, sel) || {}).factionId); save(); render(); toast(`Aktivováno ${n} ${plural(n, "jednotka", "jednotky", "jednotek")}`); });
