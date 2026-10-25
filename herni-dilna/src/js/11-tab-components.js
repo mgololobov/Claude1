@@ -99,6 +99,7 @@ function renderComponents(main, p) {
         ${t.fixed ? `<label class="chk"><input type="checkbox" data-tbuild="${t.id}" ${t.buildable ? "checked" : ""}> Jednotky ho mohou postavit</label><label class="chk" title="Bonus platí jen proti útoku z přední výseče žetonu; žeton natočíš na stole"><input type="checkbox" data-tfront="${t.id}" ${t.frontOnly ? "checked" : ""}> Chrání jen zepředu</label>` : ""}
         ${t.small || t.fixed ? `<div class="row" style="width:100%"><span class="hint">${t.fixed ? "Bonus jednotkám na poli:" : "Úpravy jednotky:"}</span>${MODS.filter(([m]) => !t.fixed || m !== "mHp").map(([m, , l]) => `<label class="f" style="width:84px">${l}<input type="number" data-tmod="${m}|${t.id}" value="${esc(t[m] || "")}" placeholder="±0"></label>`).join("")}
           ${t.small ? `<label class="f" style="width:84px" title="Kolik zabere z nosnosti jednotky">Váha<input type="number" data-tw="${t.id}" min="0" value="${esc(t.weight ?? "")}" placeholder="1"></label><label class="f" style="width:110px" title="Obrana navíc jen pro tuto zónu jednotky">Zóna<input type="text" data-tzone="${t.id}" value="${esc(t.zone || "")}" placeholder="např. Hlava"></label><label class="f" style="width:96px">Obrana zóny<input type="number" data-tmod="mZone|${t.id}" value="${esc(t.mZone || "")}" placeholder="±0"></label>` : ""}</div>` : ""}
+        ${t.small ? `<div data-tifbox="${t.id}" style="width:100%">${itemFxHTML(t, "data-if", false)}</div>` : ""}
         <button class="btn small danger" data-tdel="${t.id}" aria-label="Smazat žeton">✕</button></div>`).join("")}</div>`
         : `<div class="empty">Zatím žádné žetony.</div>`}
     </div></div>`;
@@ -174,6 +175,7 @@ function renderComponents(main, p) {
   $$("[data-tfixed]", main).forEach(i => i.onchange = () => { tok(i.dataset.tfixed).fixed = i.checked; if (i.checked) tok(i.dataset.tfixed).small = false; touch(p); render(); });
   $$("[data-tbuild]", main).forEach(i => i.onchange = () => { tok(i.dataset.tbuild).buildable = i.checked; touch(p); });
   wireFxEditor(main, p);
+  $$("[data-tifbox]", main).forEach(box => { const tk = tok(box.dataset.tifbox); $$("[data-if]", box).forEach(el => el.addEventListener("change", () => { readItemFx(tk, el, "data-if"); touch(p); if (el.getAttribute("data-if") === "use") render(); })); });
   $$("[data-tfront]", main).forEach(i => i.onchange = () => { tok(i.dataset.tfront).frontOnly = i.checked; touch(p); });
   $$("[data-tw]", main).forEach(i => i.addEventListener("change", () => { tok(i.dataset.tw).weight = i.value === "" ? "" : +i.value; touch(p); }));
   $$("[data-tzone]", main).forEach(i => i.addEventListener("change", () => { tok(i.dataset.tzone).zone = i.value.trim(); touch(p); }));
@@ -268,8 +270,9 @@ function editCard(p, deck, card) {
           <label class="f" title="letec, dosah, bdělost, první úder, pošlapání, spěch">Klíčová slova<input type="text" id="c-kw" value="${esc(c.kw || "")}" placeholder="letec, spěch"></label>
           <label class="f" title="Příšera v centrální řadě: kolik síly ji porazí; efekt karty je odměna">Porazit za<input type="number" id="c-fight" min="0" max="20" value="${esc(c.fight || "")}" placeholder="–"></label>
         </div></details>
-        <div class="grid" style="display:none">
-        </div>
+        <details class="cfx" ${c.unitItem ? "open" : ""}><summary>Předmět pro jednotku (lektvar, zbraň, brnění…)</summary>
+          <label class="chk"><input type="checkbox" id="c-unitItem" ${c.unitItem ? "checked" : ""}> Karta je předmět – z ruky se vybaví na jednotku nebo použije</label>
+          <div id="c-ifx">${itemFxHTML(c, "data-if", true)}</div></details>
         <label class="f" style="width:170px">Vzácnost<select id="c-rarity">${Object.entries(RARITIES).map(([k, v]) => `<option value="${k}" ${k === (c.rarity || "") ? "selected" : ""}>${v}</option>`).join("")}</select></label>
         <label class="f">Text karty<textarea id="c-text">${esc(c.text)}</textarea></label>
         ${p.resources.length ? `<div class="row"><span class="hint">Vložit ikonu:</span>${p.resources.map(r => `<button type="button" class="btn small" data-ins="${esc(r.name)}"><span class="dot" style="background:${r.color}"></span>${esc(r.icon || "")} ${esc(r.name)}</button>`).join("")}</div>` : ""}
@@ -286,6 +289,8 @@ function editCard(p, deck, card) {
       <div class="row"><button class="btn" data-close>Zrušit</button><button class="btn primary" id="c-save">Uložit kartu</button></div>
     </div>`, true);
   const read = () => { ["title", "type", "cost", "text", "suit", "value", "vp", "icon", "effect", "rarity", "ops", "move", "cover", "spawn", "income", "act", "pow", "tough", "kw", "fight"].forEach(k => c[k] = $("#c-" + k, d).value); c.locked = $("#c-locked", d).checked; c.qty = Math.max(0, Math.min(99, parseInt($("#c-qty", d).value, 10) || 0)); };
+  const readItem = () => { c.unitItem = $("#c-unitItem", d).checked; $$("[data-if]", d).forEach(el => readItemFx(c, el, "data-if")); };
+  $("#c-ifx", d).addEventListener("change", e => { readItem(); if (e.target.getAttribute("data-if") === "use") $("#c-ifx", d).innerHTML = itemFxHTML(c, "data-if", true); });
   const prev = () => { read(); $("#c-prev", d).innerHTML = cardHTML(c, deck); };
   d.addEventListener("input", prev); d.addEventListener("change", prev); prev();
   setTimeout(() => $("#c-title", d).focus(), 30);
@@ -293,10 +298,10 @@ function editCard(p, deck, card) {
   $$("[data-ins]", d).forEach(b => b.onclick = () => { const ta = $("#c-text", d); const pos = ta.selectionStart ?? ta.value.length; const ins = `{${b.dataset.ins}}`; ta.value = ta.value.slice(0, pos) + ins + ta.value.slice(ta.selectionEnd ?? pos); ta.focus(); ta.setSelectionRange(pos + ins.length, pos + ins.length); prev(); });
   $("#c-imgf", d).onchange = async e => { const f = e.target.files[0]; if (!f) return; $("#c-imgst", d).textContent = "Nahrávám…"; try { const r = await storeImage(f, { max: 1000, dataMax: 420, limit: 40000 }); c.img = r.url || r.data; $("#c-imgst", d).textContent = r.url ? "Uloženo" : "Uloženo zmenšené do projektu"; prev(); } catch { $("#c-imgst", d).textContent = "Obrázek se nepodařilo načíst"; } };
   if ($("#c-imgdel", d)) $("#c-imgdel", d).onclick = () => { c.img = ""; prev(); $("#c-imgst", d).textContent = "Obrázek odebrán"; };
-  $("#c-save", d).onclick = () => { read(); if (isNew) deck.cards.push(c); else Object.assign(card, c); touch(p); closeDialog(); render(); toast(isNew ? "Karta přidána" : "Karta uložena"); };
+  $("#c-save", d).onclick = () => { read(); readItem(); if (isNew) deck.cards.push(c); else Object.assign(card, c); touch(p); closeDialog(); render(); toast(isNew ? "Karta přidána" : "Karta uložena"); };
   if (!isNew) {
     $("#c-del", d).onclick = () => { deck.cards = deck.cards.filter(x => x.id !== card.id); touch(p); closeDialog(); render(); };
-    $("#c-dup", d).onclick = () => { read(); deck.cards.splice(deck.cards.indexOf(card) + 1, 0, { ...c, id: uid(), title: c.title + " (kopie)" }); touch(p); closeDialog(); render(); toast("Karta zduplikována"); };
+    $("#c-dup", d).onclick = () => { read(); readItem(); deck.cards.splice(deck.cards.indexOf(card) + 1, 0, { ...c, id: uid(), title: c.title + " (kopie)" }); touch(p); closeDialog(); render(); toast("Karta zduplikována"); };
   }
 }
 const CARD_COLS = ["title", "type", "cost", "text", "qty", "suit", "value", "vp", "icon", "effect"];

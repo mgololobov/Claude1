@@ -354,3 +354,6 @@ details.cfx { border: 1px solid var(--line); border-radius: 10px; padding: 6px 1
 .titem .ammo { position: absolute; left: -6px; bottom: -8px; background: #fbfaf6; color: #1b2421; border: 1px solid #1b2421; border-radius: 4px; font: 800 10px/14px var(--f-mono); padding: 0 3px; pointer-events: none; }
 .titem .ammo.out { background: #c8463c; color: #fff; }
 .facedir { display: inline-block; font-size: 16px; color: #b07d10; width: 22px; text-align: center; }
+.titem .eq.card { background: #f6eedb; color: #1b2421; border: 1px solid #1b2421; }
+.titem .eq.buff { background: #7a4fa0; color: #fff; }
+.ifx { align-items: flex-end; }

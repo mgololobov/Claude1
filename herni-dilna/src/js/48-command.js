@@ -1,12 +1,12 @@
 // ---------- Vybavení jednotek (malé žetony) a velení ----------
 // Malý žeton se přetažením připne na jednotku, jezdí s ní a upravuje její hodnoty (útok, obrana, pohyb, dostřel, životy).
 // Velitel má dosah velení: jeho aktivace aktivuje i spřátelené jednotky v dosahu a může jim dávat bonus.
-const MODS = [["mAtt", "att", "Útok"], ["mDef", "def", "Obrana"], ["mMov", "mov", "Pohyb"], ["mRange", "range", "Dostřel"], ["mHp", "hp", "Životy"]];
+const MODS = [["mAtt", "att", "Útok"], ["mDef", "def", "Obrana"], ["mMov", "mov", "Pohyb"], ["mRange", "range", "Dostřel"], ["mHp", "hp", "Max. životy"]];
 const tokDef = (p, it) => it && it.kind === "token" ? p.tokens.find(x => x.id === it.tokenId) : null;
 function attachedTo(p, t, it) { return (t.items || []).filter(o => o.kind === "token" && o.attachTo === it.uid && tokDef(p, o)); }
 function equipMods(p, it, key) {
   const t = p.table || {}; const m = (MODS.find(x => x[1] === key) || [])[0]; if (!m) return 0;
-  return attachedTo(p, t, it).reduce((a, o) => a + (+tokDef(p, o)[m] || 0), 0);
+  return itemMods(p, t, it, m); // nesené předměty (žetony i karty) a dočasné účinky
 }
 // Vzdálenost dvou jednotek: pole mapy, cesty sítě nebo karty lokací.
 function unitDist(p, t, a, b) {
@@ -36,8 +36,8 @@ function effUnit(p, it, u) {
   return { ...u, att: v(u.att, "att"), def: v(u.def, "def"), mov: v(u.mov, "mov"), rAtt: hasReduced(u) ? v(u.rAtt, "att") : u.rAtt, rDef: hasReduced(u) ? v(u.rDef, "def") : u.rDef, rMov: hasReduced(u) ? v(u.rMov, "mov") : u.rMov };
 }
 const modText = tk => MODS.filter(([m]) => +tk[m]).map(([m, , l]) => `${l} ${+tk[m] > 0 ? "+" : ""}${tk[m]}`).join(", ");
-function equipBadges(p, t, it) { const at = attachedTo(p, t, it); if (!at.length) return "";
-  return `<span class="equip">${at.map(o => { const tk = tokDef(p, o); return `<span class="eq" style="background:${tk.color};color:${inkFor(tk.color)}" title="${esc(tk.name)}: ${esc(modText(tk))}">${esc((tk.text || tk.name).slice(0, 3))}</span>`; }).join("")}</span>`; }
+function equipBadges(p, t, it) { const at = attachedTo(p, t, it); const gear = (it.gear || []).map(g => cardItem(p, g)).filter(Boolean); const bf = (it.buffs || []).length; if (!at.length && !gear.length && !bf) return "";
+  return `<span class="equip">${at.map(o => { const tk = tokDef(p, o); return `<span class="eq" style="background:${tk.color};color:${inkFor(tk.color)}" title="${esc(tk.name)}: ${esc(itemText(tk))}">${esc((tk.text || tk.name).slice(0, 3))}</span>`; }).join("")}${gear.map(c => `<span class="eq card" title="${esc(c.title)}: ${esc(itemText(c))}">${esc(c.title.slice(0, 3))}</span>`).join("")}${bf ? `<span class="eq buff" title="Dočasný účinek">✦</span>` : ""}</span>`; }
 // Připnutí: malý žeton puštěný na jednotku se k ní připne.
 function attachToken(p, t, it) {
   const tk = tokDef(p, it); if (!tk || !tk.small) { if (it.attachTo) delete it.attachTo; return false; }
@@ -63,7 +63,7 @@ function commandSelHTML(p, t, i) {
   const inRange = cmd ? t.items.filter(o => o !== i && o.kind === "unit" && (unitOf(p, o) || {}).factionId === u.factionId && unitDist(p, t, i, o) <= cmd).length : 0;
   const eqs = p.tokens.filter(x => x.small);
   return `${eqs.length ? `<div class="row"><span class="hint">Vybavit:</span>${eqs.map(x => `<button class="btn small" data-equip="${x.id}" title="${esc(modText(x))}"><span class="eq" style="background:${x.color};color:${inkFor(x.color)}">${esc((x.text || x.name).slice(0, 3))}</span>${esc(x.name)}</button>`).join("")}</div>` : ""}
-    ${at.length ? `<div class="row"><span class="hint">Vybavení:</span>${at.map(o => { const tk = tokDef(p, o); return `<span class="pl-chip">${esc(tk.name)}${modText(tk) ? ` <span class="hint">${esc(modText(tk))}</span>` : ""} <button class="btn small" data-detach="${o.uid}" aria-label="Sundat ${esc(tk.name)}">✕</button></span>`; }).join("")}</div>` : ""}
+    ${itemsSelHTML(p, t, i)}
     ${under.length && (under.some(o => +unitOf(p, o).cmdAtt || +unitOf(p, o).cmdDef)) ? `<span class="hint">Pod velením: ${under.map(o => esc(unitOf(p, o).name)).join(", ")}</span>` : ""}
     <div class="row">${i.act ? `<span class="pl-chip">✓ aktivovaná</span>` : `<button class="btn small" data-activate="1">Aktivovat</button>`}${cmd ? `<button class="btn small primary" data-command="1">Velet (dosah ${cmd}, ${inRange} ${plural(inRange, "jednotka", "jednotky", "jednotek")})</button><button class="btn small ${S.cmdUid === i.uid ? "on" : ""}" data-cmdshow="1">Dosah velení</button>` : ""}</div>`;
 }

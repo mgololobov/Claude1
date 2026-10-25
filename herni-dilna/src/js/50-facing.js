@@ -75,9 +75,11 @@ function updatePosCombat(p, t) {
 const ammoMax = (p, it) => { const u = unitOf(p, it); return u && u.ammo !== "" && u.ammo != null ? +u.ammo : null; };
 function ammoLeft(p, it) { const m = ammoMax(p, it); return m == null ? null : Math.max(0, m - (it.ammoUsed || 0)); }
 function useAmmo(p, t, it) {
-  const left = ammoLeft(p, it); if (left == null) return true;
-  if (left <= 0) { toast(`${unitOf(p, it).name}: došla munice`); return false; }
-  it.ammoUsed = (it.ammoUsed || 0) + 1; return true;
+  const left = ammoLeft(p, it);
+  if (left != null && left <= 0) { toast(`${unitOf(p, it).name}: došla munice`); return false; }
+  if (left != null) it.ammoUsed = (it.ammoUsed || 0) + 1;
+  wearItems(p, t, it).forEach(m => logEv(t, m)); // útok opotřebí zbraně
+  return true;
 }
 const ammoBadge = (p, it) => { const l = ammoLeft(p, it); return l == null ? "" : `<span class="ammo ${l ? "" : "out"}" title="Munice">▮${l}</span>`; };
 // Hlídka: po pohybu nepřítele zkontroluje jednotky na hlídce. Vrátí hlídkující jednotku, která může vystřelit.

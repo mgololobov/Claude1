@@ -80,12 +80,7 @@ function blast(p, t, it, charge, target) {
     if (hits && t.items.includes(target)) { const mm = moraleAfterLoss(p, t, [target]); if (mm.length) msg += ". " + mm.join(". "); } }
   t.items = t.items.filter(o => o !== charge); logEv(t, msg); return msg;
 }
-function eat(p, t, it, food) {
-  const tk = tokDef(p, food); const u = unitOf(p, it); const parts = [];
-  if (+tk.fxN && unitHp(p, it) != null) { it.dmg = Math.max(0, (it.dmg || 0) - +tk.fxN); parts.push(`+${tk.fxN} ${plural(+tk.fxN, "život", "životy", "životů")}`); }
-  if (it.st && (it.st.tired || it.st.tiredC)) { it.st.tired = false; it.st.tiredC = false; parts.push("už není unavená"); }
-  t.items = t.items.filter(o => o !== food); const msg = `${u.name} spotřebuje ${tk.name}${parts.length ? ": " + parts.join(", ") : ""}`; logEv(t, msg); return msg;
-}
+function eat(p, t, it, food) { return useItem(p, t, it, { kind: "tok", src: food, def: tokDef(p, food) }); }
 const hiddenMine = (p, it) => fxOf(p, it) === "mina" && (tokDef(p, it) || {}).hidden && !it.revealed && !!S.view;
 const cellLabel = k => k ? k.split(",").map(n => pad2(+n + 1)).join("") : "";
 function moraleSelHTML(p, t, i) {
@@ -96,7 +91,6 @@ function moraleSelHTML(p, t, i) {
   const items = attachedTo(p, t, i);
   const charges = items.filter(o => fxOf(p, o) === "vybusnina"); const bt = charges.length ? blastTargets(p, t, i).slice(0, 4) : [];
   if (charges.length) out.push(`<div class="row"><span class="hint">Odpálit ${esc(tokDef(p, charges[0]).name)}:</span>${bt.length ? bt.map(o => `<button class="btn small" data-blast="${charges[0].uid}|${o.uid}">${esc(o.kind === "unit" ? unitOf(p, o).name : tokDef(p, o).name)} ${cellLabel(cellUnder(p, o))}</button>`).join("") : `<span class="hint">nic v dosahu</span>`}</div>`);
-  const food = items.filter(o => fxOf(p, o) === "jidlo"); if (food.length) out.push(`<div class="row">${food.slice(0, 3).map(o => `<button class="btn small" data-eat="${o.uid}">Spotřebovat ${esc(tokDef(p, o).name)}</button>`).join("")}</div>`);
   return out.join("");
 }
 function wireMorale(main, p, t, save) {
@@ -109,14 +103,14 @@ function wireMorale(main, p, t, save) {
 }
 // Editor žetonu: zvláštní účinek
 function fxEditorHTML(t) {
-  const n = t.fx === "drat" ? ["Pohyb navíc", 2] : t.fx === "mina" ? ["Kostek zásahu", 1] : t.fx === "vybusnina" ? ["Kostek zásahu", 2] : t.fx === "jidlo" ? ["Životy +", 0] : null;
+  const n = t.fx === "drat" ? ["Pohyb navíc", 2] : t.fx === "mina" ? ["Kostek zásahu", 1] : t.fx === "vybusnina" ? ["Kostek zásahu", 2] : null;
   return `<label class="f" style="width:230px">Zvláštní účinek<select data-tfx="${t.id}">${Object.entries(FX_NAMES).map(([k, v]) => `<option value="${k}" ${(t.fx || "") === k ? "selected" : ""}>${v}</option>`).join("")}</select></label>
     ${n ? `<label class="f" style="width:110px">${n[0]}<input type="number" min="0" max="20" data-tfxn="${t.id}" value="${esc(t.fxN ?? n[1])}"></label>` : ""}
     ${t.fx === "mina" ? `<label class="chk" title="Hráči ji nevidí, dokud do ní někdo nevstoupí (rozhodčí ji vidí)"><input type="checkbox" data-tfxh="${t.id}" ${t.hidden ? "checked" : ""}> Skrytá</label><label class="chk"><input type="checkbox" data-tfxo="${t.id}" ${t.once !== false ? "checked" : ""}> Po výbuchu zmizí</label>` : ""}`;
 }
 function wireFxEditor(main, p) {
   const tok = id => p.tokens.find(x => x.id === id);
-  $$("[data-tfx]", main).forEach(i => i.onchange = () => { const t = tok(i.dataset.tfx); t.fx = i.value; if (["mina", "drat"].includes(t.fx)) { t.fixed = true; t.small = false; } if (["vybusnina", "jidlo"].includes(t.fx)) { t.small = true; t.fixed = false; } touch(p); render(); });
+  $$("[data-tfx]", main).forEach(i => i.onchange = () => { const t = tok(i.dataset.tfx); t.fx = i.value; if (["mina", "drat"].includes(t.fx)) { t.fixed = true; t.small = false; } if (["vybusnina", "jidlo"].includes(t.fx)) { t.small = true; t.fixed = false; } if (t.fx === "jidlo") { t.use = "once"; t.heal = t.heal || 2; t.cure = true; } touch(p); render(); });
   $$("[data-tfxn]", main).forEach(i => i.addEventListener("change", () => { tok(i.dataset.tfxn).fxN = +i.value || 0; touch(p); }));
   $$("[data-tfxh]", main).forEach(i => i.onchange = () => { tok(i.dataset.tfxh).hidden = i.checked; touch(p); });
   $$("[data-tfxo]", main).forEach(i => i.onchange = () => { tok(i.dataset.tfxo).once = i.checked; touch(p); });
@@ -126,7 +120,7 @@ function FX_PRESET() {
   { id: uid(), name: "Mina", color: "#7a2e24", shape: "kruh", counter: false, text: "MINA", fixed: true, fx: "mina", fxN: 2, hidden: true, once: true },
   { id: uid(), name: "Ostnatý drát", color: "#55524c", shape: "ctverec", counter: false, text: "DRÁT", fixed: true, fx: "drat", fxN: 2 },
   { id: uid(), name: "Výbušnina", color: "#c8463c", shape: "ctverec", counter: false, text: "TNT", small: true, fx: "vybusnina", fxN: 3, weight: 1 },
-  { id: uid(), name: "Potraviny", color: "#8a9a3a", shape: "ctverec", counter: false, text: "JÍD", small: true, fx: "jidlo", fxN: 2, weight: 1 }];
+  { id: uid(), name: "Potraviny", color: "#8a9a3a", shape: "ctverec", counter: false, text: "JÍD", small: true, fx: "jidlo", use: "once", heal: 2, cure: true, weight: 1 }];
 }
 function moraleMechHTML(p) {
   const M = p.morale; const n = (id, l, v, t2 = "") => `<label class="f" ${t2 ? `title="${t2}"` : ""}>${l}<input type="number" id="${id}" value="${esc(v)}"></label>`;
@@ -160,6 +154,6 @@ function moraleRulebook(p) {
   const out = []; const M = p.morale;
   if (M.on) { const mu = p.units.filter(u => u.mor !== "" && u.mor != null); out.push(["Morálka", `<p>Test morálky: hoď ${M.dice}k${M.sides}; součet nejvýš rovný morálce znamená úspěch. Výchozí morálka ${M.base}${mu.length ? ` (${mu.map(u => `${esc(u.name)} ${u.mor}`).join(", ")})` : ""}. Velitel v dosahu +${M.cmdBonus}; oslabená, potlačená a mimo zásobování −1.</p><p>Neúspěch: jednotka je rozvrácená (útočí polovinou). Rozvrácená jednotka při dalším neúspěchu ustoupí o pole. ${M.auto ? "Test se dělá po každé ztrátě v boji. " : ""}Vzpamatování: úspěšný test zruší rozvrácení i potlačení.</p>`]); }
   if (p.units.some(u => +u.att)) out.push(["Potlačující palba", `<p>Místo útoku může jednotka potlačovat: hází tolik kostek, kolik má útok; každý hod ${M.supHit}+ je zásah. Zásah cíl potlačí – nesmí se pohnout a útočí polovinou${M.supClear ? " do začátku dalšího kola" : ""}. Dva zásahy${M.on ? " navíc vyvolají test morálky" : ""}.</p>`]);
-  const fx = p.tokens.filter(x => x.fx); if (fx.length) out.push(["Zvláštní žetony", `<ul>${fx.map(x => `<li><b>${esc(x.name)}</b>: ${x.fx === "mina" ? `kdo vstoupí na pole, dostane ${x.fxN || 1} ${plural(+x.fxN || 1, "kostku", "kostky", "kostek")} zásahu (${p.dice.aHit}+)${x.hidden ? "; leží skrytě" : ""}${x.once !== false ? "; po výbuchu zmizí" : ""}` : x.fx === "drat" ? `vstup stojí ${x.fxN ?? 2} body pohybu navíc a jednotka musí zastavit` : x.fx === "vybusnina" ? `jednotka ji odpálí na svém nebo sousedním poli: zničí překážku, nebo hodí ${x.fxN || 2} kostky na nepřítele` : `spotřebuje se: ${+x.fxN ? `+${x.fxN} životy, ` : ""}zažene únavu`}</li>`).join("")}</ul>${M.hunger ? "<p>Hlad: na začátku kola každá jednotka sní 1 potravinu, jinak je unavená.</p>" : ""}`]);
+  const fx = p.tokens.filter(x => x.fx); if (fx.length) out.push(["Zvláštní žetony", `<ul>${fx.map(x => `<li><b>${esc(x.name)}</b>: ${x.fx === "mina" ? `kdo vstoupí na pole, dostane ${x.fxN || 1} ${plural(+x.fxN || 1, "kostku", "kostky", "kostek")} zásahu (${p.dice.aHit}+)${x.hidden ? "; leží skrytě" : ""}${x.once !== false ? "; po výbuchu zmizí" : ""}` : x.fx === "drat" ? `vstup stojí ${x.fxN ?? 2} body pohybu navíc a jednotka musí zastavit` : x.fx === "vybusnina" ? `jednotka ji odpálí na svém nebo sousedním poli: zničí překážku, nebo hodí ${x.fxN || 2} kostky na nepřítele` : `spotřebuje se: ${esc(itemText(x))}`}</li>`).join("")}</ul>${M.hunger ? "<p>Hlad: na začátku kola každá jednotka sní 1 potravinu, jinak je unavená.</p>" : ""}`]);
   return out;
 }

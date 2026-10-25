@@ -512,3 +512,21 @@ test("miny, ostnatý drát, výbušnina a potraviny", () => {
   b.st = { tired: true }; const f = { uid: "f", kind: "token", tokenId: jidlo.id, attachTo: b.uid, x: 0, y: 0 }; t.items.push(f); A.eat(p, t, b, f); assert.ok(!b.st.tired && !t.items.includes(f));
   p.morale.hunger = true; A.moraleRound(p, t); assert.ok(b.st.tired, "bez jídla hladoví");
 });
+test("předměty: jednorázový lektvar, dočasný svitek, brnění pohltí zásahy, zbraň se opotřebí", () => {
+  const { p, t, put } = war(); p.units[0].hp = 6; p.units[1].hp = 6; const a = put("a", 1); t.turn = 1;
+  p.tokens = [{ id: "lek", name: "Lektvar", small: true, use: "once", heal: 2, mAtt: 3, turns: 2 }, { id: "zb", name: "Zbroj", small: true, mDef: 1, dur: 2, absorb: true }, { id: "mec", name: "Meč", small: true, mAtt: 1, dur: 2, wear: true }];
+  const att = (id) => { const o = { uid: id + "1", kind: "token", tokenId: id, attachTo: a.uid, x: 0, y: 0 }; t.items.push(o); return o; };
+  att("lek"); assert.equal(A.unitStat(p, a, "att"), 6, "nepoužitý lektvar nic nedá"); a.dmg = 3;
+  A.useItem(p, t, a, A.carried(p, t, a)[0]); assert.equal(a.dmg, 1); assert.equal(A.unitStat(p, a, "att"), 9, "útok +3"); assert.equal(A.carried(p, t, a).length, 0, "lektvar zmizel");
+  t.turn = 2; A.itemsRound(p, t); assert.equal(A.unitStat(p, a, "att"), 9, "platí 2 kola"); t.turn = 3; A.itemsRound(p, t); assert.equal(A.unitStat(p, a, "att"), 6, "účinek skončil");
+  att("zb"); assert.equal(A.unitStat(p, a, "def"), 5); assert.match(A.damage(p, t, a, 3), /pohltí 2.*zničen.*ztrácí 1/); assert.equal(a.dmg, 2); assert.equal(A.carried(p, t, a).length, 0, "zbroj zničena");
+  att("mec"); A.useAmmo(p, t, a); assert.equal(A.itemLeft(A.carried(p, t, a)[0]), 1); A.useAmmo(p, t, a); assert.equal(A.carried(p, t, a).length, 0, "meč se opotřebil");
+});
+test("předměty z karet: vybavit z ruky, použít z ruky, zničená karta jde do odhozených", () => {
+  const { p, t, put } = war(); p.units[0].hp = 5; const a = put("a", 1);
+  p.decks[0].cards.push({ id: "br", title: "Brnění", qty: 1, unitItem: true, mDef: 2, dur: 1, absorb: true }, { id: "lk", title: "Lektvar", qty: 1, unitItem: true, use: "once", heal: 3 });
+  t.hands.anna = [{ deckId: "d", cardId: "br" }, { deckId: "d", cardId: "lk" }]; t.discard.d = [];
+  assert.equal(A.handItems(p, t, a).length, 2); A.equipCard(p, t, a, t.hands.anna[0]); assert.equal(A.unitStat(p, a, "def"), 6, "brnění z karty +2"); assert.equal(t.hands.anna.length, 1);
+  a.dmg = 4; const h = t.hands.anna[0]; A.useItem(p, t, a, { kind: "hand", src: h, def: A.cardOf(p, h).c }); assert.equal(a.dmg, 1); assert.deepEqual(t.discard.d, ["lk"]);
+  A.damage(p, t, a, 1); assert.equal(a.dmg, 1, "brnění pohltilo"); assert.ok(!(a.gear || []).length); assert.deepEqual(t.discard.d, ["lk", "br"]);
+});

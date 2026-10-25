@@ -4,6 +4,7 @@ const cellName = k => k.split(",").map(n => pad2(+n + 1)).join("");
 // Ztráta kroku: zdravá jednotka s rubem se oslabí, jinak je zničena.
 function stepLoss(p, t, it) {
   const u = unitOf(p, it); if (!u) return "";
+  const ab = absorbHits(p, t, it, 1); if (!ab.n) return `${u.name}: ${ab.msg}`;
   if (!it.reduced && hasReduced(u)) { it.reduced = true; return `${u.name} ztrácí krok`; }
   t.items = t.items.filter(x => x !== it); if (S.sel === it.uid) S.sel = null; return `${u.name} zničena`;
 }

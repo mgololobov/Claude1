@@ -271,7 +271,7 @@ function exampleCrypt() {
     U("Kostlivec", dark, "pechota", 2, 1, 3, { kind: "monster", hp: 3, xp: 1, qty: 3 }), U("Nekromant", dark, "stab", 3, 2, 2, { kind: "monster", hp: 6, xp: 4, range: 3 })];
   const g = geo(board); const at = (u, c, r) => { const [cx, cy] = g.center(c, r); return { uid: uid(), kind: "unit", unitId: u.id, x: Math.round(BX + cx - 26), y: Math.round(BY + cy - 26), reduced: false, rot: u.kind === "hero" ? 60 : 240 }; };
   const setup = [at(units[0], 1, 3), at(units[1], 0, 2), at(units[2], 4, 2), at(units[2], 5, 4), at(units[2], 7, 2), at(units[3], 8, 3)];
-  const past = { id: uid(), name: "Past", color: "#7a2e24", shape: "kruh", counter: false, text: "PAST", fixed: true, fx: "mina", fxN: 2, hidden: true, once: true }, jidlo = { id: uid(), name: "Chléb", color: "#b08a3a", shape: "ctverec", counter: false, text: "JÍD", small: true, fx: "jidlo", fxN: 2, weight: 1 };
+  const past = { id: uid(), name: "Past", color: "#7a2e24", shape: "kruh", counter: false, text: "PAST", fixed: true, fx: "mina", fxN: 2, hidden: true, once: true }, jidlo = { id: uid(), name: "Chléb", color: "#b08a3a", shape: "ctverec", counter: false, text: "JÍD", small: true, fx: "jidlo", use: "once", heal: 2, cure: true, weight: 1 };
   { const [cx, cy] = g.center(3, 3); setup.push({ uid: uid(), kind: "token", tokenId: past.id, x: Math.round(BX + cx - 23), y: Math.round(BY + cy - 23), value: 0, rot: 0 }); }
   const c = (title, text, effect, qty) => ({ id: uid(), title, type: "Poklad", cost: "", text, qty, suit: "", value: "", vp: "", icon: "", effect });
   return normalize({
@@ -288,10 +288,11 @@ function exampleCrypt() {
       triggers: [{ id: uid(), on: "mistnost", param: "Krypta", cond: "", effect: "zpráva Nekromant se probouzí!" }, { id: uid(), on: "hrozba", param: "", cond: "", effect: "zpráva Temnota pohltila kryptu – hrdinové prohráli" }] }),
     scenarios: [{ id: uid(), name: "Sestup do krypty", turns: 10, boardId: board.id, desc: "Hrdinové stojí u vstupu. Z chodby je slyšet chrastění kostí.", victory: "Porazte všechny příšery.", special: "", setup: { items: setup, control: {} },
       reinf: [{ id: uid(), turn: 5, qty: 1, unitId: units[2].id, cell: "0804" }] }],
-    tokens: [{ id: uid(), name: "Meč", color: "#8a8a8a", shape: "ctverec", counter: false, text: "MEČ", small: true, mAtt: 1, weight: 1 }, { id: uid(), name: "Štít", color: "#6b5a3a", shape: "ctverec", counter: false, text: "ŠTÍT", small: true, mDef: 1, weight: 2 },
+    tokens: [{ id: uid(), name: "Meč", color: "#8a8a8a", shape: "ctverec", counter: false, text: "MEČ", small: true, mAtt: 1, weight: 1, dur: 6, wear: true }, { id: uid(), name: "Štít", color: "#6b5a3a", shape: "ctverec", counter: false, text: "ŠTÍT", small: true, mDef: 1, weight: 2, dur: 3, absorb: true },
       { id: uid(), name: "Amulet", color: "#7a4fa0", shape: "kruh", counter: false, text: "AM", small: true, mHp: 2, weight: 0 }, { id: uid(), name: "Luk", color: "#4a6a3a", shape: "ctverec", counter: false, text: "LUK", small: true, mRange: 2, weight: 1 },
       { id: uid(), name: "Helma", color: "#5a6762", shape: "ctverec", counter: false, text: "HEL", small: true, zone: "Hlava", mZone: 2, weight: 1 }, { id: uid(), name: "Barikáda", color: "#6b5a3a", shape: "ctverec", counter: false, text: "BAR", fixed: true, buildable: true, mDef: 1 }, past, jidlo],
-    decks: [{ id: "poklady", name: "Poklady", color: "#c98a12", back: "POKLAD", market: 0, cards: [c("Lektvar", "Vyléčí 2 životy (ručně na stole).", "", 2), c("Zlaťáky", "Získáš 2 zlata.", "+2 Zlato", 3), c("Svitek", "Hrozba klesne o 1 (ručně).", "", 1)] }],
+    decks: [{ id: "poklady", name: "Poklady", color: "#c98a12", back: "POKLAD", market: 0, cards: [Object.assign(c("Lektvar", "Vyléčí 2 životy a zažene otravu. Na stole: vyber hrdinu → Použít.", "", 2), { unitItem: true, use: "once", heal: 2, cure: true }), c("Zlaťáky", "Získáš 2 zlata.", "+2 Zlato", 3),
+      Object.assign(c("Svitek síly", "Útok +2 do konce kola.", "", 1), { unitItem: true, use: "once", mAtt: 2, turns: 1 }), Object.assign(c("Kroužková zbroj", "Obrana +1. Pohltí 3 zásahy, pak se rozpadne.", "", 1), { unitItem: true, mDef: 1, dur: 3, absorb: true })] }],
   });
 }
 function examplePatrol() {
