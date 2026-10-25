@@ -22,17 +22,18 @@ function damage(p, t, it, n, by) {
 // Útok: útočník hází tolik kostek, kolik má útok, obránce tolik, kolik má obranu; zranění = zásahy − bloky.
 function crawlAttack(p, t, a, d) {
   const ua = unitOf(p, a), ud = unitOf(p, d); const s = +p.dice.sides || 6;
-  const ad = Array.from({ length: Math.max(0, unitAttack(p, t, a)) }, () => rnd(s)), dd = Array.from({ length: Math.max(0, unitStat(p, d, "def") + coverOf(p, t, d)) }, () => rnd(s));
+  const z = unitZones(ud).length ? pickZone(p, d) : null; // zásah do náhodné zóny podle vah
+  const ad = Array.from({ length: Math.max(0, unitAttack(p, t, a)) }, () => rnd(s)), dd = Array.from({ length: Math.max(0, (z ? zoneDef(p, d, z) : unitStat(p, d, "def")) + coverOf(p, t, d)) }, () => rnd(s));
   const hits = ad.filter(v => v >= p.dice.aHit).length, blocks = dd.filter(v => v >= p.dice.dHit).length; const dmg = Math.max(0, hits - blocks);
-  const res = `${ua.name} útočí na ${ud.name}: ${ad.join(",") || "–"} proti ${dd.join(",") || "–"} → ${dmg} ${plural(dmg, "zranění", "zranění", "zranění")}`;
-  const after2 = dmg ? damage(p, t, d, dmg, a) : ""; logEv(t, res + (after2 ? "; " + after2 : "")); return res + (after2 ? ". " + after2 : "");
+  const res = `${ua.name} útočí na ${ud.name}${z ? ` (${z.name})` : ""}: ${ad.join(",") || "–"} proti ${dd.join(",") || "–"} → ${dmg} ${plural(dmg, "zranění", "zranění", "zranění")}`;
+  const after2 = dmg ? (z ? zoneHit(p, t, d, z, dmg, a) : damage(p, t, d, dmg, a)) : ""; logEv(t, res + (after2 ? "; " + after2 : "")); return res + (after2 ? ". " + after2 : "");
 }
 function targetsOf(p, t, it) {
   if (cmapOn(p, t)) { const i0 = cmapIndexOf(p, t, it); const u0 = unitOf(p, it); if (i0 == null || !u0) return []; const reach = unitStat(p, it, "range");
-    return t.items.filter(o => o.kind === "unit" && o !== it && (unitOf(p, o) || {}).factionId !== u0.factionId && cmapDist(p, i0, cmapIndexOf(p, t, o)) <= reach).sort((x, y) => (unitHp(p, x) ?? 99) - (unitHp(p, y) ?? 99)); }
+    return t.items.filter(o => o.kind === "unit" && o !== it && !o.inside && (unitOf(p, o) || {}).factionId !== u0.factionId && cmapDist(p, i0, cmapIndexOf(p, t, o)) <= reach).sort((x, y) => (unitHp(p, x) ?? 99) - (unitHp(p, y) ?? 99)); }
   const b = tableBoard(p); const k = cellUnder(p, it); const u = unitOf(p, it); if (!b || !k || !u) return [];
   const reach = Math.max(1, unitStat(p, it, "range") || 1);
-  return t.items.filter(o => o.kind === "unit" && o !== it && (unitOf(p, o) || {}).factionId !== u.factionId && cellUnder(p, o) && hexDist(b, k, cellUnder(p, o)) <= reach && (reach === 1 || hasLOS(p, b, k, cellUnder(p, o))))
+  return t.items.filter(o => o.kind === "unit" && o !== it && !o.inside && (unitOf(p, o) || {}).factionId !== u.factionId && cellUnder(p, o) && hexDist(b, k, cellUnder(p, o)) <= reach && (reach === 1 || hasLOS(p, b, k, cellUnder(p, o))))
     .sort((x, y) => (unitHp(p, x) ?? 99) - (unitHp(p, y) ?? 99));
 }
 // Automat příšer: každá příšera jde k nejbližšímu hrdinovi a zaútočí, když dosáhne.

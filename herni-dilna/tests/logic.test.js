@@ -428,3 +428,32 @@ test("vybavení přidá životy a dostřel v dungeon crawleru", () => {
   const before = A.unitMaxHp(p, hero); t.items.push({ uid: "e1", kind: "token", tokenId: am.id, attachTo: hero.uid, x: 0, y: 0 }, { uid: "e2", kind: "token", tokenId: luk.id, attachTo: hero.uid, x: 0, y: 0 });
   assert.equal(A.unitMaxHp(p, hero), before + 2); assert.equal(A.unitStat(p, hero, "range"), (+A.unitOf(p, hero).range || 0) + 2);
 });
+
+test("pevný žeton: jednotka postaví okop, ten dá bonus jednotkám na poli", () => {
+  const { p, t, put } = war(); p.tokens = [{ id: "okop", name: "Okop", fixed: true, buildable: true, mDef: 2 }]; const a = put("a", 1), a2 = put("a", 3);
+  assert.equal(A.buildToken(p, t, a, "okop"), ""); assert.equal(A.unitStat(p, a, "def"), 6, "obrana 4 + okop 2"); assert.equal(A.unitStat(p, a2, "def"), 4, "jinde bez bonusu");
+  assert.match(A.buildToken(p, t, a, "okop"), /už je/); const tok = t.items.find(i => i.kind === "token"); assert.equal(A.locKey(p, t, tok), "1,0");
+});
+test("zóny: obrana zóny s vybavením, váhy zásahu a kritická zóna", () => {
+  const { p, t, put } = war(); p.units[1].zones = [{ name: "Podvozek", def: 4, w: 1, hp: 2 }, { name: "Vrch", def: 1, w: 0, crit: true }];
+  p.tokens = [{ id: "pan", name: "Pancíř", small: true, zone: "Vrch", mZone: 3 }, { id: "st", name: "Štít", small: true, mDef: 1 }];
+  const d = put("d", 2); t.items.push({ uid: "e1", kind: "token", tokenId: "pan", attachTo: d.uid, x: 0, y: 0 }, { uid: "e2", kind: "token", tokenId: "st", attachTo: d.uid, x: 0, y: 0 });
+  const [pod, vrch] = p.units[1].zones; assert.equal(A.zoneDef(p, d, pod), 5, "4 + štít"); assert.equal(A.zoneDef(p, d, vrch), 5, "1 + štít + pancíř jen pro vrch");
+  for (let i = 0; i < 20; i++) assert.equal(A.pickZone(p, d).name, "Podvozek", "zóna s vahou 0 se netrefí");
+  assert.match(A.zoneHit(p, t, d, pod, 1), /zbývá 1/); assert.match(A.zoneHit(p, t, d, pod, 1), /vyřazen/); assert.ok(t.items.includes(d));
+  assert.match(A.zoneHit(p, t, d, { name: "Vrch", crit: true, hp: 1 }, 1), /vyřazena/); assert.ok(!t.items.includes(d), "kritická zóna vyřadí jednotku");
+});
+test("nosnost: předměty podle váhy, přeprava jednotek ve vozidle", () => {
+  const { p, t, put } = war(); p.units.push({ id: "tr", name: "Transportér", factionId: "anna", att: 1, def: 3, mov: 5, transport: 2 }); p.units[0].carry = 2; p.units[0].tsize = 1;
+  p.tokens = [{ id: "m", name: "Meč", small: true, mAtt: 1, weight: 1 }, { id: "s", name: "Štít", small: true, mDef: 1, weight: 2 }];
+  const a = put("a", 1), b2 = put("a", 1), c = put("a", 1), tr = put("tr", 1);
+  assert.deepEqual(A.carryCheck(p, t, a, p.tokens[1]), []); t.items.push({ uid: "w1", kind: "token", tokenId: "s", attachTo: a.uid, x: 0, y: 0 });
+  assert.equal(A.carryCheck(p, t, a, p.tokens[0]).length, 1, "štít váží 2 – meč se už nevejde");
+  p.ruleset.strict = true; assert.ok(A.embark(p, t, a, tr)); assert.ok(A.embark(p, t, b2, tr)); assert.equal(A.embark(p, t, c, tr), false, "kapacita 2");
+  assert.equal(A.loadUsed(p, t, tr), 2); tr.x += 200; A.syncPassengers(t); assert.equal(a.x, tr.x, "cestující jedou s vozidlem");
+  A.disembark(p, t, a); assert.ok(!a.inside); assert.equal(A.loadUsed(p, t, tr), 1);
+});
+test("ukázka Obrana Brodu: rozestavení scénáře odpovídá jednotkám stran", () => {
+  const p = A.exampleWar(); const names = p.scenarios[0].setup.items.map(i => p.units.find(u => u.id === i.unitId).name);
+  assert.ok(!names.includes("Transportér")); assert.equal(names.filter(n => n === "3. pěší").length, 3);
+});

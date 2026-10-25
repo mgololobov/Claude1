@@ -349,6 +349,10 @@ details.cfx { border: 1px solid var(--line); border-radius: 10px; padding: 6px 1
 .titem.act::after { content: ""; position: absolute; inset: -5px; border: 3px solid #4fbf6b; border-radius: 10px; pointer-events: none; }
 .titem.small .token { transform: scale(.62); transform-origin: top left; }
 .btn .eq { display: inline-block; min-width: 22px; padding: 0 3px; border-radius: 4px; font: 800 10px/18px var(--f-mono); text-align: center; border: 1px solid rgba(0,0,0,.4); }
+.titem.fixed { cursor: default; } .titem.fixed::before { content: "📌"; position: absolute; left: -6px; top: -8px; font-size: 12px; z-index: 2; pointer-events: none; }
+.titem .zb { position: absolute; left: -6px; top: -8px; background: #fbfaf6; color: #1b2421; border: 1px solid #1b2421; border-radius: 4px; font: 800 10px/14px var(--f-mono); padding: 0 3px; pointer-events: none; }
+.titem .lb { position: absolute; left: 50%; top: -10px; transform: translateX(-50%); background: #1b2421; color: #fff; border-radius: 4px; font: 800 9px/14px var(--f-mono); padding: 0 4px; white-space: nowrap; pointer-events: none; }
+.zones { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; } .zrow { align-items: end; }
 </style>
 <style id="card-css">
 /* Vzhled karet. Všechny rozměry jsou v em, velikost karty určuje jen font-size (16px = šířka 150 px). */
@@ -598,6 +602,8 @@ function exampleWar() {
     U("3. pěší", red, "pechota", "III", 3, 5, 3, 2, 3, 3, 3),
     U("Husaři", red, "jezdectvo", "II", 3, 2, 7, 1, 1, 7, 1),
     U("Baterie", red, "delo", "II", 4, 2, 2, 2, 1, 2, 1),
+    // nové jednotky jen na konec – rozestavení scénáře odkazuje na pořadí
+    Object.assign(U("Transportér", blue, "mech", "I", 2, 3, 5, "", "", "", 1), { transport: 2, zones: [{ name: "Podvozek", def: 4, w: 1 }, { name: "Vrch", def: 2, w: 1 }] }),
   ];
   const g = geo(board);
   const at = (unitId, c, r) => { const [cx, cy] = g.center(c, r); return { uid: uid(), kind: "unit", unitId, x: Math.round(BX + cx - 26), y: Math.round(BY + cy - 26), reduced: false, rot: 0 }; };
@@ -634,6 +640,7 @@ function exampleWar() {
       { id: uid(), name: "Kulomet", color: "#2b2b2b", shape: "ctverec", counter: false, text: "KUL", small: true, mAtt: 2 },
       { id: uid(), name: "Minomet", color: "#5a4632", shape: "ctverec", counter: false, text: "MIN", small: true, mAtt: 1, mRange: 2 },
       { id: uid(), name: "Zákopy", color: "#7a6a4a", shape: "ctverec", counter: false, text: "ZÁK", small: true, mDef: 2, mMov: -1 },
+      { id: uid(), name: "Okop", color: "#8a7a52", shape: "kruh", counter: false, text: "OKOP", fixed: true, buildable: true, mDef: 1 },
     ],
     table: null, sessions: [],
   });
@@ -775,7 +782,8 @@ function exampleCrypt() {
   labels["8,3"] = "Oltář";
   const board = { id: uid(), name: "Krypta", type: "square", cols, rows, size: 34, terrain, labels, regions, bg: null, coords: false };
   const U = (name, f, symbol, a, d, m, extra) => ({ id: uid(), name, factionId: f.id, symbol, symText: "", size: "", att: a, def: d, mov: m, rAtt: "", rDef: "", rMov: "", qty: 1, note: "", ...extra });
-  const units = [U("Bojovnice", heroes, "pechota", 3, 2, 4, { kind: "hero", hp: 8 }), U("Lučištník", heroes, "jezdectvo", 2, 1, 4, { kind: "hero", hp: 6, range: 4 }),
+  const body = [{ name: "Hlava", def: 1, w: 1 }, { name: "Trup", def: 2, w: 3 }, { name: "Ruce", def: 2, w: 2 }, { name: "Nohy", def: 2, w: 2 }];
+  const units = [U("Bojovnice", heroes, "pechota", 3, 2, 4, { kind: "hero", hp: 8, carry: 3, zones: clone(body) }), U("Lučištník", heroes, "jezdectvo", 2, 1, 4, { kind: "hero", hp: 6, range: 4, carry: 2, zones: clone(body) }),
     U("Kostlivec", dark, "pechota", 2, 1, 3, { kind: "monster", hp: 3, xp: 1, qty: 3 }), U("Nekromant", dark, "stab", 3, 2, 2, { kind: "monster", hp: 6, xp: 4, range: 3 })];
   const g = geo(board); const at = (u, c, r) => { const [cx, cy] = g.center(c, r); return { uid: uid(), kind: "unit", unitId: u.id, x: Math.round(BX + cx - 26), y: Math.round(BY + cy - 26), reduced: false, rot: 0 }; };
   const setup = [at(units[0], 1, 3), at(units[1], 0, 2), at(units[2], 4, 2), at(units[2], 5, 4), at(units[2], 7, 2), at(units[3], 8, 3)];
@@ -793,8 +801,9 @@ function exampleCrypt() {
       triggers: [{ id: uid(), on: "mistnost", param: "Krypta", cond: "", effect: "zpráva Nekromant se probouzí!" }, { id: uid(), on: "hrozba", param: "", cond: "", effect: "zpráva Temnota pohltila kryptu – hrdinové prohráli" }] }),
     scenarios: [{ id: uid(), name: "Sestup do krypty", turns: 10, boardId: board.id, desc: "Hrdinové stojí u vstupu. Z chodby je slyšet chrastění kostí.", victory: "Porazte všechny příšery.", special: "", setup: { items: setup, control: {} },
       reinf: [{ id: uid(), turn: 5, qty: 1, unitId: units[2].id, cell: "0804" }] }],
-    tokens: [{ id: uid(), name: "Meč", color: "#8a8a8a", shape: "ctverec", counter: false, text: "MEČ", small: true, mAtt: 1 }, { id: uid(), name: "Štít", color: "#6b5a3a", shape: "ctverec", counter: false, text: "ŠTÍT", small: true, mDef: 1 },
-      { id: uid(), name: "Amulet", color: "#7a4fa0", shape: "kruh", counter: false, text: "AM", small: true, mHp: 2 }, { id: uid(), name: "Luk", color: "#4a6a3a", shape: "ctverec", counter: false, text: "LUK", small: true, mRange: 2 }],
+    tokens: [{ id: uid(), name: "Meč", color: "#8a8a8a", shape: "ctverec", counter: false, text: "MEČ", small: true, mAtt: 1, weight: 1 }, { id: uid(), name: "Štít", color: "#6b5a3a", shape: "ctverec", counter: false, text: "ŠTÍT", small: true, mDef: 1, weight: 2 },
+      { id: uid(), name: "Amulet", color: "#7a4fa0", shape: "kruh", counter: false, text: "AM", small: true, mHp: 2, weight: 0 }, { id: uid(), name: "Luk", color: "#4a6a3a", shape: "ctverec", counter: false, text: "LUK", small: true, mRange: 2, weight: 1 },
+      { id: uid(), name: "Helma", color: "#5a6762", shape: "ctverec", counter: false, text: "HEL", small: true, zone: "Hlava", mZone: 2, weight: 1 }, { id: uid(), name: "Barikáda", color: "#6b5a3a", shape: "ctverec", counter: false, text: "BAR", fixed: true, buildable: true, mDef: 1 }],
     decks: [{ id: "poklady", name: "Poklady", color: "#c98a12", back: "POKLAD", market: 0, cards: [c("Lektvar", "Vyléčí 2 životy (ručně na stole).", "", 2), c("Zlaťáky", "Získáš 2 zlata.", "+2 Zlato", 3), c("Svitek", "Hrozba klesne o 1 (ručně).", "", 1)] }],
   });
 }
@@ -1402,7 +1411,10 @@ function renderComponents(main, p) {
         ${swatchRow(t.color, `data-tc="${t.id}" data-tcolor`)}
         <label class="chk"><input type="checkbox" data-tcount="${t.id}" ${t.counter ? "checked" : ""}> Počítadlo</label>
         <label class="chk" title="Malý žeton se přetažením připne na jednotku a upraví její hodnoty"><input type="checkbox" data-tsmall="${t.id}" ${t.small ? "checked" : ""}> Malý žeton – vybavení jednotky</label>
-        ${t.small ? `<div class="row" style="width:100%">${MODS.map(([m, , l]) => `<label class="f" style="width:84px">${l}<input type="number" data-tmod="${m}|${t.id}" value="${esc(t[m] || "")}" placeholder="±0"></label>`).join("")}</div>` : ""}
+        <label class="chk" title="Po položení zůstává na místě (okop, minové pole); úpravy platí pro jednotky na stejném poli"><input type="checkbox" data-tfixed="${t.id}" ${t.fixed ? "checked" : ""}> Pevný – zůstává na místě</label>
+        ${t.fixed ? `<label class="chk"><input type="checkbox" data-tbuild="${t.id}" ${t.buildable ? "checked" : ""}> Jednotky ho mohou postavit</label>` : ""}
+        ${t.small || t.fixed ? `<div class="row" style="width:100%"><span class="hint">${t.fixed ? "Bonus jednotkám na poli:" : "Úpravy jednotky:"}</span>${MODS.filter(([m]) => !t.fixed || m !== "mHp").map(([m, , l]) => `<label class="f" style="width:84px">${l}<input type="number" data-tmod="${m}|${t.id}" value="${esc(t[m] || "")}" placeholder="±0"></label>`).join("")}
+          ${t.small ? `<label class="f" style="width:84px" title="Kolik zabere z nosnosti jednotky">Váha<input type="number" data-tw="${t.id}" min="0" value="${esc(t.weight ?? "")}" placeholder="1"></label><label class="f" style="width:110px" title="Obrana navíc jen pro tuto zónu jednotky">Zóna<input type="text" data-tzone="${t.id}" value="${esc(t.zone || "")}" placeholder="např. Hlava"></label><label class="f" style="width:96px">Obrana zóny<input type="number" data-tmod="mZone|${t.id}" value="${esc(t.mZone || "")}" placeholder="±0"></label>` : ""}</div>` : ""}
         <button class="btn small danger" data-tdel="${t.id}" aria-label="Smazat žeton">✕</button></div>`).join("")}</div>`
         : `<div class="empty">Zatím žádné žetony.</div>`}
     </div></div>`;
@@ -1474,7 +1486,11 @@ function renderComponents(main, p) {
   $$("[data-tcolor]", main).forEach(b => b.onclick = () => { tok(b.dataset.tc).color = b.dataset.tcolor; touch(p); render(); });
   $$("[data-tcount]", main).forEach(i => i.onchange = () => { tok(i.dataset.tcount).counter = i.checked; touch(p); render(); });
   $$("[data-tdel]", main).forEach(b => b.onclick = () => { p.tokens = p.tokens.filter(t => t.id !== b.dataset.tdel); touch(p); render(); });
-  $$("[data-tsmall]", main).forEach(i => i.onchange = () => { tok(i.dataset.tsmall).small = i.checked; touch(p); render(); });
+  $$("[data-tsmall]", main).forEach(i => i.onchange = () => { tok(i.dataset.tsmall).small = i.checked; if (i.checked) tok(i.dataset.tsmall).fixed = false; touch(p); render(); });
+  $$("[data-tfixed]", main).forEach(i => i.onchange = () => { tok(i.dataset.tfixed).fixed = i.checked; if (i.checked) tok(i.dataset.tfixed).small = false; touch(p); render(); });
+  $$("[data-tbuild]", main).forEach(i => i.onchange = () => { tok(i.dataset.tbuild).buildable = i.checked; touch(p); });
+  $$("[data-tw]", main).forEach(i => i.addEventListener("change", () => { tok(i.dataset.tw).weight = i.value === "" ? "" : +i.value; touch(p); }));
+  $$("[data-tzone]", main).forEach(i => i.addEventListener("change", () => { tok(i.dataset.tzone).zone = i.value.trim(); touch(p); }));
   $$("[data-tmod]", main).forEach(i => i.addEventListener("change", () => { const [m, id] = i.dataset.tmod.split("|"); tok(id)[m] = i.value === "" ? "" : +i.value; touch(p); render(); }));
 }
 function editUnit(p, unit) {
@@ -1505,11 +1521,15 @@ function editUnit(p, unit) {
         <label class="f" style="width:130px" title="Velitel aktivuje spřátelené jednotky do této vzdálenosti">Dosah velení<input type="number" id="u-cmd" min="0" max="20" value="${esc(u.cmd || "")}" placeholder="–"></label>
         <label class="f" style="width:150px" title="Jednotky v dosahu velení dostanou k útoku">Velení: + útok<input type="number" id="u-cmdAtt" min="0" max="9" value="${esc(u.cmdAtt || "")}" placeholder="–"></label>
         <label class="f" style="width:150px" title="Jednotky v dosahu velení dostanou k obraně">Velení: + obrana<input type="number" id="u-cmdDef" min="0" max="9" value="${esc(u.cmdDef || "")}" placeholder="–"></label>
+        <label class="f" style="width:150px" title="Kolik jednotek (podle velikosti) vozidlo převeze">Převáží jednotek<input type="number" id="u-transport" min="0" max="30" value="${esc(u.transport || "")}" placeholder="–"></label>
+        <label class="f" style="width:150px" title="Kolik místa zabere ve vozidle (výchozí 1)">Velikost při přepravě<input type="number" id="u-tsize" min="0" max="10" value="${esc(u.tsize ?? "")}" placeholder="1"></label>
+        <label class="f" style="width:150px" title="Kolik předmětů (podle váhy) unese">Nosnost předmětů<input type="number" id="u-carry" min="0" max="30" value="${esc(u.carry ?? "")}" placeholder="bez limitu"></label>
         <label class="f" style="width:140px">Dostřel (polí)<input type="number" id="u-range" min="0" max="30" value="${esc(u.range || "")}" placeholder="–"></label>
         <label class="chk"><input type="checkbox" id="u-big" ${u.big ? "checked" : ""}> Velký žeton (zabírá víc místa)</label>
       </div>
       <div id="u-prev" style="display:flex;flex-direction:column;align-items:center;gap:10px;font-size:20px"></div>
     </div>
+    <div id="u-zones"></div>
     <div class="row spread">
       <div class="row">${isNew ? "" : `<button class="btn danger" id="u-del">Smazat</button><button class="btn" id="u-dup">Duplikovat</button>`}</div>
       <div class="row"><button class="btn" data-close>Zrušit</button><button class="btn primary" id="u-save">Uložit jednotku</button></div>
@@ -1519,9 +1539,9 @@ function editUnit(p, unit) {
     u.att = num($("#u-a", d).value); u.def = num($("#u-d", d).value); u.mov = num($("#u-m", d).value); u.rAtt = num($("#u-ra", d).value); u.rDef = num($("#u-rd", d).value); u.rMov = num($("#u-rm", d).value);
     u.qty = Math.max(0, Math.min(99, parseInt($("#u-q", d).value, 10) || 0)); u.hq = $("#u-hq", d).checked; u.big = $("#u-big", d).checked; u.range = $("#u-range", d).value === "" ? "" : +$("#u-range", d).value;
     u.kind = $("#u-kind", d).value; u.cap = $("#u-cap", d).value === "" ? "" : +$("#u-cap", d).value;
-    ["cmd", "cmdAtt", "cmdDef"].forEach(k => { const v = $("#u-" + k, d).value; u[k] = v === "" ? "" : +v; }); u.hp = $("#u-hp", d).value === "" ? "" : +$("#u-hp", d).value; u.xp = $("#u-xp", d).value === "" ? "" : +$("#u-xp", d).value; };
+    ["cmd", "cmdAtt", "cmdDef", "transport", "tsize", "carry"].forEach(k => { const v = $("#u-" + k, d).value; u[k] = v === "" ? "" : +v; }); u.hp = $("#u-hp", d).value === "" ? "" : +$("#u-hp", d).value; u.xp = $("#u-xp", d).value === "" ? "" : +$("#u-xp", d).value; };
   const prev = () => { read(); $("#u-prev", d).innerHTML = unitHTML(p, u) + (hasReduced(u) ? unitHTML(p, u, true) : "") + `<span class="hint" style="font-size:.8rem">líc${hasReduced(u) ? " / rub" : ""}</span>`; };
-  d.addEventListener("input", prev); d.addEventListener("change", prev); prev();
+  d.addEventListener("input", prev); d.addEventListener("change", prev); prev(); u.zones = clone(u.zones || []); wireZonesEditor(d, u);
   $("#u-save", d).onclick = () => { read(); if (isNew) p.units.push(u); else Object.assign(unit, u); touch(p); closeDialog(); render(); toast(isNew ? "Jednotka přidána" : "Jednotka uložena"); };
   if (!isNew) {
     $("#u-del", d).onclick = () => { p.units = p.units.filter(x => x.id !== unit.id); touch(p); closeDialog(); render(); };
@@ -2319,7 +2339,7 @@ function renderAnalysis(main, p) {
 }
 
 // ---------- Hlídání pravidel ----------
-const CATS = { lizat: "Líznutí karty", nakup: "Nákup z trhu", vylozit: "Vyložení karty", zahrat: "Zahrání karty na stůl", akce: "Položení na akci / rondel", pohyb: "Pohyb jednotky", boj: "Boj", sacek: "Tahání ze sáčku", kostky: "Hod kostkami", dilek: "Položení dílku", trasa: "Stavba trasy", obchod: "Obchod a burza", draha: "Tah po dráze", aktivace: "Aktivace jednotky / velení" };
+const CATS = { lizat: "Líznutí karty", nakup: "Nákup z trhu", vylozit: "Vyložení karty", zahrat: "Zahrání karty na stůl", akce: "Položení na akci / rondel", pohyb: "Pohyb jednotky", boj: "Boj", sacek: "Tahání ze sáčku", kostky: "Hod kostkami", dilek: "Položení dílku", trasa: "Stavba trasy", obchod: "Obchod a burza", draha: "Tah po dráze", aktivace: "Aktivace jednotky / velení", stavba: "Stavba (okop, opevnění)", vybaveni: "Vybavení a nakládání" };
 const TRIGGERS = { kolo: "Začátek kola", faze: "Začátek fáze", tah: "Začátek tahu hráče", nakup: "Hráč koupí kartu", vylozit: "Hráč vyloží kartu", sacek: "Hráč vytáhne žeton", pohyb: "Jednotka vstoupí na terén", dilek: "Hráč položí dílek", kontrola: "Pole získá vlastníka", boj: "Výsledek boje", hod: "Hod na produkci (součet)", kostka: "Hráč vezme kostku (hodnota)", technologie: "Hráč získá technologii", mistnost: "Odhalena místnost (název)", hrozba: "Hrozba dosáhla maxima", kod: "Kód prolomen (počet pokusů)", lokace: "Odhalena lokace (název karty)", ohnisko: "Ohnisko v místě (název)", doruceni: "Doručena zakázka (místo)", porazeni: "Hráč porazí příšeru (název)", aktivace: "Velitel aktivuje jednotky (jméno velitele)" };
 function defaultRules() {
   return { strict: false, handLimit: "", actionsPerTurn: "", actCats: ["nakup", "vylozit", "akce"], phaseOf: {}, stackLimit: "", moveRange: true, moveOnce: true, ownUnits: false, playCost: "",
@@ -2717,7 +2737,7 @@ function renderTable(main, p) {
   const rangeItem = S.rangeUid && t.items.find(i => i.uid === S.rangeUid);
   const range = rangeItem ? computeRange(p, t, rangeItem) : null;
   const losItem = S.losUid && t.items.find(i => i.uid === S.losUid); const losK = losItem && cellUnder(p, losItem); const cmdItem = S.cmdUid && t.items.find(i => i.uid === S.cmdUid); const los = cmdItem ? commandCells(p, t, cmdItem) : losK && b ? visibleFrom(p, b, losK, S.losR || +p.ruleset.sight || 6) : null;
-  S.fog = fogHidden(p, t); S.supCache = {};
+  syncPassengers(t); S.fog = fogHidden(p, t); S.supCache = {};
   const cp = curPlayer(p, t);
   if (!TOOLS.find(x => x[0] === S.tool)) S.tool = "stul";
   main.innerHTML = `<div class="table-wrap">
@@ -2743,13 +2763,13 @@ function renderTable(main, p) {
 function itemHTML(p, i) {
   let inner = "";
   if (i.kind === "card") { const d = p.decks.find(x => x.id === i.deckId); const c = d && d.cards.find(x => x.id === i.cardId); if (!c) return ""; inner = cardHTML(c, d, i.faceUp); }
-  else if (i.kind === "unit") { const u = p.units.find(x => x.id === i.unitId); if (!u) return ""; const fg = S.fog;
+  else if (i.kind === "unit") { const u = p.units.find(x => x.id === i.unitId); if (!u) return ""; const fg = S.fog; if (i.inside && p.table.items.some(o => o.uid === i.inside)) return "";
     if (fg && fg.has(i.uid + ":gone")) return "";
     if (isMonster(p, i) && p.crawl.rooms && crawlDarkSet(p, p.table).has(cellUnder(p, i))) return "";
     if (fg && fg.has(i.uid + ":block")) { const f = p.factions.find(x => x.id === u.factionId); inner = `<div class="unit" style="background:${f ? f.color : "#888"}" title="Nepřátelská jednotka"></div>`; }
-    else inner = unitHTML(p, effUnit(p, i, u), i.reduced) + equipBadges(p, p.table, i) + (inSupply(p, p.table, i) ? "" : `<span class="oos" title="Mimo zásobování">⚠</span>`) + (i.st ? `<span class="usts">${stBadges(i)}</span>` : "") + hpBadge(p, i); }
+    else inner = unitHTML(p, effUnit(p, i, u), i.reduced) + equipBadges(p, p.table, i) + zoneBadge(p, i) + loadBadge(p, p.table, i) + (inSupply(p, p.table, i) ? "" : `<span class="oos" title="Mimo zásobování">⚠</span>`) + (i.st ? `<span class="usts">${stBadges(i)}</span>` : "") + hpBadge(p, i); }
   else { const tk = p.tokens.find(x => x.id === i.tokenId); if (!tk) return ""; if (i.attachTo && p.table.items.some(o => o.uid === i.attachTo)) return ""; inner = tokenHTML(tk, i.value) + (tk.text ? "" : `<span class="token-label">${esc(tk.name)}</span>`); }
-  return `<div class="titem ${i.uid === S.sel ? "sel" : ""}${i.act ? " act" : ""}${(p.tokens.find(x => x.id === i.tokenId) || {}).small ? " small" : ""}" data-uid="${i.uid}" style="left:${i.x}px;top:${i.y}px;transform:rotate(${i.rot || 0}deg)">${inner}</div>`;
+  return `<div class="titem ${i.uid === S.sel ? "sel" : ""}${i.act ? " act" : ""}${(p.tokens.find(x => x.id === i.tokenId) || {}).small ? " small" : ""}${i.kind === "token" && isFixed(p, i) ? " fixed" : ""}" data-uid="${i.uid}" style="left:${i.x}px;top:${i.y}px;transform:rotate(${i.rot || 0}deg)">${inner}</div>`;
 }
 const fchipsHTML = (p, t, attr = "data-curf") => `<div class="fchips">${players(p, t).map((x, i) => `<button class="fchip" ${attr}="${i}" aria-pressed="${i === t.curF}"><span class="dot" style="background:${x.color};border-radius:50%"></span>${esc(x.name)}</button>`).join("")}</div>`;
 function selBarHTML(p, i) {
@@ -2769,11 +2789,11 @@ function selBarHTML(p, i) {
       <div class="row">${k ? `<button class="btn small ${S.rangeUid === i.uid ? "on" : ""}" data-sa="range">Dosah pohybu</button><button class="btn small ${S.losUid === i.uid && !S.losR ? "on" : ""}" data-sa="los">Výhled</button>${unitStat(p, i, "range") ? `<button class="btn small ${S.losUid === i.uid && S.losR ? "on" : ""}" data-sa="fire">Dostřel ${unitStat(p, i, "range")}</button>` : ""}` : ""}${hasReduced(u) ? `<button class="btn small" data-sa="flip">${i.reduced ? "Obnovit" : "Oslabit"}</button>` : ""}<button class="btn small" data-sa="rot">Natočit</button></div>
       ${u.att !== "" && u.att != null || u.def !== "" && u.def != null ? `<div class="row">${Object.entries(UNIT_ST).filter(([, v]) => !!v[3] === !!+u.hp).map(([k, v]) => `<button class="btn small ${i.st && i.st[k] ? "on" : ""}" data-ust="${k}" title="${v[2]}">${v[1]} ${v[0]}</button>`).join("")}</div>
       <div class="row"><button class="btn small" data-sa="asAtt">Útočí</button><button class="btn small" data-sa="addAtt">+ k útoku</button><button class="btn small" data-sa="asDef">Brání</button></div>` : ""}
-      ${commandSelHTML(p, p.table, i)}${crawlSelHTML(p, i)}${deliverSelHTML(p, i)}${tableNet(p) && netNodeOf(p, p.table, i) ? `<div class="row"><button class="btn small ${S.netReach && S.netReachUid === i.uid ? "on" : ""}" data-sa="netreach">Kam dojede</button></div>` : ""}
+      ${commandSelHTML(p, p.table, i)}${unitsPlusSelHTML(p, p.table, i)}${crawlSelHTML(p, i)}${deliverSelHTML(p, i)}${tableNet(p) && netNodeOf(p, p.table, i) ? `<div class="row"><button class="btn small ${S.netReach && S.netReachUid === i.uid ? "on" : ""}" data-sa="netreach">Kam dojede</button></div>` : ""}
       <div class="row"><button class="btn small" data-sa="dup">Duplikovat</button><button class="btn small danger" data-sa="remove">Zničit</button></div></div>`;
   }
   const tk = p.tokens.find(x => x.id === i.tokenId);
-  return `<div class="selbar"><b>${esc(tk.name)}</b>${tk.small ? `<span class="hint">Vybavení${modText(tk) ? " (" + esc(modText(tk)) + ")" : ""} – přetáhni žeton na jednotku a připne se k ní.</span>` : ""}
+  return `<div class="selbar"><b>${esc(tk.name)}</b>${tk.fixed ? `<span class="hint">Pevný žeton${modText(tk) ? ` – jednotkám na tomto poli: ${esc(modText(tk))}` : ""}.</span><div class="row"><button class="btn small" data-unfix="1">${i.free ? "Znovu ukotvit" : "Odemknout pro přesun"}</button></div>` : ""}${tk.small ? `<span class="hint">Vybavení${modText(tk) ? " (" + esc(modText(tk)) + ")" : ""} – přetáhni žeton na jednotku a připne se k ní.</span>` : ""}
     ${tk.counter ? `<div class="row"><button class="btn small" data-sa="minus" aria-label="Ubrat">−</button><span class="mono" style="font-size:1.2rem;min-width:40px;text-align:center">${i.value || 0}</span><button class="btn small" data-sa="plus" aria-label="Přidat">+</button><button class="btn small" data-sa="plus5">+5</button></div>` : ""}
     <div class="row"><button class="btn small" data-sa="dup">Duplikovat</button><button class="btn small danger" data-sa="remove">Odebrat ze stolu</button></div></div>`;
 }
@@ -3267,7 +3287,7 @@ function wireTable(main, p, t) {
   if (q("ctrlAuto")) q("ctrlAuto").onclick = () => { let n = 0; t.items.filter(i => i.kind === "unit").forEach(i => { const k = cellUnder(p, i); const u = p.units.find(x => x.id === i.unitId); if (k && u && u.factionId) { t.control[k] = u.factionId; n++; } }); save(); render(); toast(`Přiděleno ${n} ${plural(n, "pole", "pole", "polí")}`); };
   // vybraná položka
   const selItem = t.items.find(i => i.uid === S.sel);
-  wireExtra(main, p, t, save); wireR4(main, p, t, save); wireWar(main, p, t, save); wireIpad(main, p, t, save); wireOnline(main, p, t, save); wireMore(main, p, t, save); wireCrawl(main, p, t, save); wireLogic(main, p, t, save); wireCmap(main, p, t, save); wireExtra2(main, p, t, save); wireNet(main, p, t, save); wireDeliver(main, p, t, save); wireCB(main, p, t, save); wireRail(main, p, t, save); wireCommand(main, p, t, save);
+  wireExtra(main, p, t, save); wireR4(main, p, t, save); wireWar(main, p, t, save); wireIpad(main, p, t, save); wireOnline(main, p, t, save); wireMore(main, p, t, save); wireCrawl(main, p, t, save); wireLogic(main, p, t, save); wireCmap(main, p, t, save); wireExtra2(main, p, t, save); wireNet(main, p, t, save); wireDeliver(main, p, t, save); wireCB(main, p, t, save); wireRail(main, p, t, save); wireCommand(main, p, t, save); wireUnitsPlus(main, p, t, save);
   const cardTo = (el, where) => { if (where === "tab" && !gate(p, t, "vylozit")) return; const i = selItem; t.items = t.items.filter(x => x !== i); const fid = el.dataset[where === "hand" ? "tohand" : "totab"]; const h = { deckId: i.deckId, cardId: i.cardId }; (where === "hand" ? (t.hands[fid] = t.hands[fid] || []) : (t.tableau[fid] = t.tableau[fid] || [])).push(h); if (where === "tab") { const c = cardOf(p, h).c; logEv(t, `${p.factions.find(f => f.id === fid).name} vykládá ${c.title}`); if (c.effect) runEffects(p, t, fid, c.effect, c.title); after(p, t, "vylozit", fid, c.type); } S.sel = null; save(); render(); };
   on("[data-tohand]", el => cardTo(el, "hand")); on("[data-totab]", el => cardTo(el, "tab"));
   on("[data-sa]", el => {
@@ -3322,6 +3342,7 @@ function wireTable(main, p, t) {
     const el = e.target.closest(".titem"); if (!el) return;
     e.preventDefault();
     const it = t.items.find(i => i.uid === el.dataset.uid); if (!it) return;
+    if (it.kind === "token" && isFixed(p, it)) { S.sel = it.uid; render(); return; } // pevný žeton se nepřesouvá
     el.setPointerCapture(e.pointerId);
     const sx = e.clientX, sy = e.clientY, ox = it.x, oy = it.y; let moved = false;
     const cmFrom = it.kind === "unit" ? cmapIndexOf(p, t, it) : null; const netFrom = it.kind !== "card" ? netNodeOf(p, t, it) : null;
@@ -3446,7 +3467,7 @@ function moveViolations(p, t, it, origin, range, k) {
   if (R.moveOnce && t.moved[it.uid]) msgs.push("jednotka se v tomto tahu už pohnula");
   msgs.push(...actViolation(p, it));
   if (R.ownTurn && cp && u && u.factionId !== cp.id) msgs.push(`táhne strana, která není na tahu (${cp.name})`);
-  if (+R.stackLimit) { const n = t.items.filter(o => o !== it && o.kind === "unit" && cellUnder(p, o) === k).length; if (n >= +R.stackLimit) msgs.push(`na poli může stát nejvýš ${R.stackLimit} ${plural(+R.stackLimit, "jednotka", "jednotky", "jednotek")}`); }
+  if (+R.stackLimit) { const n = t.items.filter(o => o !== it && o.kind === "unit" && !o.inside && cellUnder(p, o) === k).length; if (n >= +R.stackLimit) msgs.push(`na poli může stát nejvýš ${R.stackLimit} ${plural(+R.stackLimit, "jednotka", "jednotky", "jednotek")}`); }
   return msgs;
 }
 function majHTML(p, t) {
@@ -5184,6 +5205,10 @@ function moreRulebook(p) {
   if (eq.length || cmdU.length || p.ruleset.actOnly) out.push(["Vybavení a velení", `${eq.length ? `<p>Malé žetony se pokládají na jednotku a upravují její hodnoty:</p><ul>${eq.map(x => `<li><b>${esc(x.name)}</b>: ${esc(modText(x) || "bez úprav")}</li>`).join("")}</ul>` : ""}
     ${cmdU.length ? `<p>Velitelé aktivují spřátelené jednotky ve svém dosahu jednou akcí:</p><ul>${cmdU.map(u => `<li><b>${esc(u.name)}</b>: dosah ${u.cmd}${+u.cmdAtt ? `, jednotky v dosahu +${u.cmdAtt} k útoku` : ""}${+u.cmdDef ? `, +${u.cmdDef} k obraně` : ""}</li>`).join("")}</ul>` : ""}
     ${p.ruleset.actOnly ? "<p>Táhnout a útočit smí jen aktivovaná jednotka. Aktivace platí do konce tahu.</p>" : ""}`]);
+  const fx = p.tokens.filter(x => x.fixed), zu = p.units.filter(u => unitZones(u).length), tr = p.units.filter(u => +u.transport), ca = p.units.filter(u => u.carry !== "" && u.carry != null);
+  if (fx.length) out.push(["Pevné žetony", `<p>Pevné žetony po položení zůstávají na místě. Bonus platí pro jednotky na stejném poli.</p><ul>${fx.map(x => `<li><b>${esc(x.name)}</b>${x.buildable ? " (jednotka ho může postavit na svém poli)" : ""}: ${esc(modText(x) || "bez bonusu")}</li>`).join("")}</ul>`]);
+  if (zu.length) out.push(["Zóny jednotek", `<p>Útok zasáhne zónu podle váhy (vyšší váha = častěji) a brání se její obranou. Zóna s výdrží ji ztrácí; zničená kritická zóna vyřadí jednotku.</p><table><tr><th>Jednotka</th><th>Zóny (obrana, výdrž, váha)</th></tr>${zu.map(u => `<tr><td>${esc(u.name)}</td><td>${unitZones(u).map(z => `${esc(z.name)} ${z.def || 0}${+z.hp ? `/${z.hp}` : ""} ×${z.w || 1}${z.crit ? " ★" : ""}`).join(", ")}</td></tr>`).join("")}</table>`]);
+  if (tr.length || ca.length) out.push(["Nosnost", `${tr.length ? `<p>Přeprava: ${tr.map(u => `${esc(u.name)} převeze ${u.transport}`).join(", ")}. Jednotka nastoupí na stejném poli a jede s vozidlem.</p>` : ""}${ca.length ? `<p>Nosnost předmětů: ${ca.map(u => `${esc(u.name)} ${u.carry}`).join(", ")}. Váha předmětů: ${p.tokens.filter(x => x.small).map(x => `${esc(x.name)} ${tokWeight(x)}`).join(", ")}.</p>` : ""}`]);
   if (p.mancala.on) out.push(["Rozsévání", `<p>Každý hráč má ${p.mancala.pits} jamek po ${p.mancala.seeds} semínkách a sklad. Ve svém tahu vezmi všechna semínka z jedné své jamky a rozděl je po jednom do dalších jamek proti směru hodin (soupeřův sklad přeskoč).${p.mancala.extra ? " Skončíš-li ve svém skladu, hraješ znovu." : ""}${p.mancala.capture ? " Skončíš-li ve své prázdné jamce, bereš i semínka z protější jamky." : ""} Hra končí, když jedna strana nemá semínka; vyhrává plnější sklad.</p>`]);
   const inc = p.decks.flatMap(d => d.cards.filter(c => c.income || c.act)); if (inc.length) out.push(["Schopnosti karet", `<ul>${inc.map(c => `<li><b>${esc(c.title)}</b>: ${c.income ? "každé kolo " + esc(describeEffect(c.income)) : ""}${c.income && c.act ? "; " : ""}${c.act ? "vyčerpáním " + esc(describeEffect(c.act)) : ""}</li>`).join("")}</ul>${p.refreshExhaust ? "<p>Vyčerpané karty se na začátku kola obnoví.</p>" : ""}`]);
   if (p.trickBid.on) out.push(["Sázky", `<p>Před kolem každý řekne, kolik štychů vezme. Přesná sázka: ${p.trickBid.hit} bodů + ${p.trickBid.per} za každý štych; jinak −${p.trickBid.miss} za každý štych rozdílu.</p>`]);
@@ -5281,17 +5306,18 @@ function damage(p, t, it, n, by) {
 // Útok: útočník hází tolik kostek, kolik má útok, obránce tolik, kolik má obranu; zranění = zásahy − bloky.
 function crawlAttack(p, t, a, d) {
   const ua = unitOf(p, a), ud = unitOf(p, d); const s = +p.dice.sides || 6;
-  const ad = Array.from({ length: Math.max(0, unitAttack(p, t, a)) }, () => rnd(s)), dd = Array.from({ length: Math.max(0, unitStat(p, d, "def") + coverOf(p, t, d)) }, () => rnd(s));
+  const z = unitZones(ud).length ? pickZone(p, d) : null; // zásah do náhodné zóny podle vah
+  const ad = Array.from({ length: Math.max(0, unitAttack(p, t, a)) }, () => rnd(s)), dd = Array.from({ length: Math.max(0, (z ? zoneDef(p, d, z) : unitStat(p, d, "def")) + coverOf(p, t, d)) }, () => rnd(s));
   const hits = ad.filter(v => v >= p.dice.aHit).length, blocks = dd.filter(v => v >= p.dice.dHit).length; const dmg = Math.max(0, hits - blocks);
-  const res = `${ua.name} útočí na ${ud.name}: ${ad.join(",") || "–"} proti ${dd.join(",") || "–"} → ${dmg} ${plural(dmg, "zranění", "zranění", "zranění")}`;
-  const after2 = dmg ? damage(p, t, d, dmg, a) : ""; logEv(t, res + (after2 ? "; " + after2 : "")); return res + (after2 ? ". " + after2 : "");
+  const res = `${ua.name} útočí na ${ud.name}${z ? ` (${z.name})` : ""}: ${ad.join(",") || "–"} proti ${dd.join(",") || "–"} → ${dmg} ${plural(dmg, "zranění", "zranění", "zranění")}`;
+  const after2 = dmg ? (z ? zoneHit(p, t, d, z, dmg, a) : damage(p, t, d, dmg, a)) : ""; logEv(t, res + (after2 ? "; " + after2 : "")); return res + (after2 ? ". " + after2 : "");
 }
 function targetsOf(p, t, it) {
   if (cmapOn(p, t)) { const i0 = cmapIndexOf(p, t, it); const u0 = unitOf(p, it); if (i0 == null || !u0) return []; const reach = unitStat(p, it, "range");
-    return t.items.filter(o => o.kind === "unit" && o !== it && (unitOf(p, o) || {}).factionId !== u0.factionId && cmapDist(p, i0, cmapIndexOf(p, t, o)) <= reach).sort((x, y) => (unitHp(p, x) ?? 99) - (unitHp(p, y) ?? 99)); }
+    return t.items.filter(o => o.kind === "unit" && o !== it && !o.inside && (unitOf(p, o) || {}).factionId !== u0.factionId && cmapDist(p, i0, cmapIndexOf(p, t, o)) <= reach).sort((x, y) => (unitHp(p, x) ?? 99) - (unitHp(p, y) ?? 99)); }
   const b = tableBoard(p); const k = cellUnder(p, it); const u = unitOf(p, it); if (!b || !k || !u) return [];
   const reach = Math.max(1, unitStat(p, it, "range") || 1);
-  return t.items.filter(o => o.kind === "unit" && o !== it && (unitOf(p, o) || {}).factionId !== u.factionId && cellUnder(p, o) && hexDist(b, k, cellUnder(p, o)) <= reach && (reach === 1 || hasLOS(p, b, k, cellUnder(p, o))))
+  return t.items.filter(o => o.kind === "unit" && o !== it && !o.inside && (unitOf(p, o) || {}).factionId !== u.factionId && cellUnder(p, o) && hexDist(b, k, cellUnder(p, o)) <= reach && (reach === 1 || hasLOS(p, b, k, cellUnder(p, o))))
     .sort((x, y) => (unitHp(p, x) ?? 99) - (unitHp(p, y) ?? 99));
 }
 // Automat příšer: každá příšera jde k nejbližšímu hrdinovi a zaútočí, když dosáhne.
@@ -6170,11 +6196,11 @@ function cmdBonus(p, it, key) {
 function unitStat(p, it, key) {
   const u = unitOf(p, it); if (!u) return 0; const red = it.reduced && hasReduced(u);
   const base = key === "att" ? (red ? u.rAtt : u.att) : key === "def" ? (red ? u.rDef : u.def) : key === "mov" ? (red ? u.rMov : u.mov) : key === "range" ? u.range : key === "hp" ? u.hp : 0;
-  return Math.max(0, (+base || 0) + equipMods(p, it, key) + cmdBonus(p, it, key));
+  return Math.max(0, (+base || 0) + equipMods(p, it, key) + cmdBonus(p, it, key) + fieldMods(p, it, key));
 }
 // Kopie jednotky s upravenými hodnotami pro zobrazení na žetonu.
 function effUnit(p, it, u) {
-  const d = k => equipMods(p, it, k) + cmdBonus(p, it, k); if (!d("att") && !d("def") && !d("mov")) return u;
+  const d = k => equipMods(p, it, k) + cmdBonus(p, it, k) + fieldMods(p, it, k); if (!d("att") && !d("def") && !d("mov")) return u;
   const v = (base, k) => (base === "" || base == null) && !d(k) ? base : Math.max(0, (+base || 0) + d(k));
   return { ...u, att: v(u.att, "att"), def: v(u.def, "def"), mov: v(u.mov, "mov"), rAtt: hasReduced(u) ? v(u.rAtt, "att") : u.rAtt, rDef: hasReduced(u) ? v(u.rDef, "def") : u.rDef, rMov: hasReduced(u) ? v(u.rMov, "mov") : u.rMov };
 }
@@ -6184,6 +6210,8 @@ function equipBadges(p, t, it) { const at = attachedTo(p, t, it); if (!at.length
 // Připnutí: malý žeton puštěný na jednotku se k ní připne.
 function attachToken(p, t, it) {
   const tk = tokDef(p, it); if (!tk || !tk.small) { if (it.attachTo) delete it.attachTo; return false; }
+  const cx0 = it.x + 23, cy0 = it.y + 23; const u0 = [...t.items].reverse().find(o => o.kind === "unit" && !o.inside && (() => { const [w, h] = itemSize(o); return cx0 >= o.x - 6 && cx0 <= o.x + w + 6 && cy0 >= o.y - 6 && cy0 <= o.y + h + 6; })());
+  if (u0 && carryCheck(p, t, u0, tk).length && !gate(p, t, "vybaveni", carryCheck(p, t, u0, tk))) { delete it.attachTo; return false; }
   const cx = it.x + 23, cy = it.y + 23; const u = [...t.items].reverse().find(o => o.kind === "unit" && (() => { const [w, h] = itemSize(o); return cx >= o.x - 6 && cx <= o.x + w + 6 && cy >= o.y - 6 && cy <= o.y + h + 6; })());
   if (!u) { delete it.attachTo; return false; } it.attachTo = u.uid; it.x = u.x; it.y = u.y; logEv(t, `${unitOf(p, u).name} dostává ${tk.name}${modText(tk) ? " (" + modText(tk) + ")" : ""}`); return true;
 }
@@ -6210,11 +6238,120 @@ function commandSelHTML(p, t, i) {
 }
 function wireCommand(main, p, t, save) {
   const sel = t.items.find(i => i.uid === S.sel); const on = (s, fn) => $$(s, main).forEach(el => el.addEventListener("click", () => fn(el)));
-  on("[data-equip]", el => { const tk = p.tokens.find(x => x.id === el.dataset.equip); t.items.push({ uid: uid(), kind: "token", tokenId: tk.id, x: sel.x, y: sel.y, value: 0, rot: 0, attachTo: sel.uid }); logEv(t, `${unitOf(p, sel).name} dostává ${tk.name}${modText(tk) ? " (" + modText(tk) + ")" : ""}`); save(); render(); });
+  on("[data-equip]", el => { const tk = p.tokens.find(x => x.id === el.dataset.equip); if (carryCheck(p, t, sel, tk).length && !gate(p, t, "vybaveni", carryCheck(p, t, sel, tk))) return; t.items.push({ uid: uid(), kind: "token", tokenId: tk.id, x: sel.x, y: sel.y, value: 0, rot: 0, attachTo: sel.uid }); logEv(t, `${unitOf(p, sel).name} dostává ${tk.name}${modText(tk) ? " (" + modText(tk) + ")" : ""}`); save(); render(); });
   on("[data-detach]", el => { detachToken(p, t, el.dataset.detach); save(); render(); });
   on("[data-activate]", () => { if (!gate(p, t, "aktivace")) return; activateUnit(p, t, sel); logEv(t, `${unitOf(p, sel).name} aktivována`); after(p, t, "aktivace", (unitOf(p, sel) || {}).factionId); save(); render(); });
   on("[data-command]", () => { if (!gate(p, t, "aktivace")) return; const n = activateCommand(p, t, sel); after(p, t, "aktivace", (unitOf(p, sel) || {}).factionId); save(); render(); toast(`Aktivováno ${n} ${plural(n, "jednotka", "jednotky", "jednotek")}`); });
   on("[data-cmdshow]", () => { S.cmdUid = S.cmdUid === sel.uid ? null : sel.uid; S.losUid = null; render(); });
+}
+
+// ---------- Pevné žetony, zóny jednotek a nosnost ----------
+// Pevný žeton (okop, minové pole) po položení zůstává na místě; může dávat bonus jednotkám na stejném poli a jednotky ho mohou postavit.
+// Zóny: jednotka má části s vlastní obranou (podvozek / vrch, hlava / trup / ruce / nohy), volitelně s výdrží a pravděpodobností zásahu.
+// Nosnost: vozidlo převeze jednotky do své kapacity, jednotlivec unese předměty do své nosnosti (předmět má váhu).
+function locKey(p, t, it) {
+  if (tableBoard(p)) return cellUnder(p, it); if (tableNet(p)) return netNodeOf(p, t, it);
+  if (cmapOn(p, t)) { const i = cmapIndexOf(p, t, it); return i == null ? null : "c" + i; } return null;
+}
+function fieldMods(p, it, key) {
+  const t = p.table || {}; const m = (MODS.find(x => x[1] === key) || [])[0]; if (!m || key === "hp") return 0; const k = locKey(p, t, it); if (!k) return 0;
+  return (t.items || []).filter(o => o.kind === "token" && (tokDef(p, o) || {}).fixed && locKey(p, t, o) === k).reduce((a, o) => a + (+tokDef(p, o)[m] || 0), 0);
+}
+const isFixed = (p, it) => !!(tokDef(p, it) || {}).fixed && !it.free;
+// Postavení pevného žetonu na místě jednotky.
+function buildToken(p, t, unitIt, tokenId) {
+  const tk = p.tokens.find(x => x.id === tokenId); const k = locKey(p, t, unitIt); if (!tk || !k) return "Jednotka nestojí na mapě";
+  if (t.items.some(o => o.kind === "token" && o.tokenId === tk.id && locKey(p, t, o) === k)) return `${tk.name} tu už je`;
+  const it = { uid: uid(), kind: "token", tokenId: tk.id, x: unitIt.x, y: unitIt.y, value: 0, rot: 0 };
+  const b = tableBoard(p); if (b) { const [c, r] = k.split(",").map(Number); const [cx, cy] = geo(b).center(c, r); it.x = Math.round(BX + cx - 23 - 14); it.y = Math.round(BY + cy - 23 + 12); }
+  else if (tableNet(p)) { const n = netNode(tableNet(p), k); it.x = Math.round(BX + n.x - 40); it.y = Math.round(BY + n.y + 4); }
+  else if (cmapOn(p, t)) { const bx = cmapBox(p, +k.slice(1)); it.x = bx.x + CM.W - 52; it.y = bx.y + 60; }
+  t.items.unshift(it); logEv(t, `${unitOf(p, unitIt).name} staví ${tk.name}`); after(p, t, "stavba", (unitOf(p, unitIt) || {}).factionId, tk.name); return "";
+}
+// ----- Zóny -----
+const unitZones = u => (u && u.zones || []).filter(z => String(z.name || "").trim());
+const zoneLeft = (it, z) => +z.hp ? Math.max(0, +z.hp - ((it.zdmg || {})[z.name] || 0)) : null;
+function zoneDef(p, it, z) {
+  const u = unitOf(p, it); const red = it.reduced && hasReduced(u); const baseDef = +(red ? u.rDef : u.def) || 0;
+  const general = unitStat(p, it, "def") - baseDef; const own = attachedTo(p, p.table || {}, it).filter(o => same(tokDef(p, o).zone, z.name)).reduce((a, o) => a + (+tokDef(p, o).mZone || 0), 0);
+  return Math.max(0, (+z.def || 0) + general + own);
+}
+function pickZone(p, it) {
+  const zs = unitZones(unitOf(p, it)).filter(z => zoneLeft(it, z) !== 0); if (!zs.length) return null;
+  const w = z => z.w === "" || z.w == null ? 1 : Math.max(0, +z.w || 0); const tot = zs.reduce((a, z) => a + w(z), 0);
+  if (!tot) return zs[Math.floor(Math.random() * zs.length)]; let r = Math.random() * tot;
+  for (const z of zs) { r -= w(z); if (r < 0) return z; } return zs.filter(z => w(z) > 0).pop();
+}
+// Zásah zóny: zóna s výdrží ztrácí výdrž; zničená kritická zóna vyřadí celou jednotku.
+function zoneHit(p, t, it, z, n, by) {
+  const u = unitOf(p, it);
+  if (!+z.hp) return damage(p, t, it, n, by) || `${u.name} zasažen do zóny ${z.name}`;
+  it.zdmg = it.zdmg || {}; it.zdmg[z.name] = (it.zdmg[z.name] || 0) + n; const left = zoneLeft(it, z);
+  if (left > 0) return `${u.name}: ${z.name} −${n} (zbývá ${left})`;
+  if (z.crit) { t.items = t.items.filter(x => x !== it); if (S.sel === it.uid) S.sel = null; if (by && isHero(p, by) && +u.xp) by.xp = (by.xp || 0) + +u.xp; checkWin(p, t); return `${u.name}: ${z.name} zničen – jednotka vyřazena`; }
+  return `${u.name}: ${z.name} vyřazen`;
+}
+function zoneBadge(p, it) { const zs = unitZones(unitOf(p, it)); if (!zs.length) return ""; const broken = zs.filter(z => zoneLeft(it, z) === 0).length;
+  return `<span class="zb" title="${esc(zs.map(z => `${z.name} ${zoneDef(p, it, z)}${+z.hp ? ` (${zoneLeft(it, z)}/${z.hp})` : ""}`).join(", "))}">◈${broken ? "!" : ""}</span>`; }
+// ----- Nosnost -----
+const tokWeight = tk => tk && tk.weight !== "" && tk.weight != null ? +tk.weight || 0 : 1;
+function carryUsed(p, t, it) { return attachedTo(p, t, it).reduce((a, o) => a + tokWeight(tokDef(p, o)), 0); }
+function carryCheck(p, t, it, tk) { const u = unitOf(p, it); if (!u || u.carry === "" || u.carry == null) return []; const used = carryUsed(p, t, it), w = tokWeight(tk);
+  return used + w > +u.carry ? [`${u.name} unese nejvýš ${u.carry} (nese ${used}, ${tk.name} váží ${w})`] : []; }
+function passengers(t, it) { return (t.items || []).filter(o => o.kind === "unit" && o.inside === it.uid); }
+const tsizeOf = (p, it) => { const u = unitOf(p, it); return u && u.tsize !== "" && u.tsize != null ? +u.tsize || 0 : 1; };
+function loadUsed(p, t, it) { return passengers(t, it).reduce((a, o) => a + tsizeOf(p, o), 0); }
+function syncPassengers(t) { (t.items || []).forEach(i => { if (!i.inside) return; const tr = t.items.find(o => o.uid === i.inside); if (tr) { i.x = tr.x; i.y = tr.y; } else delete i.inside; }); }
+function embark(p, t, it, tr) {
+  const u = unitOf(p, it), ut = unitOf(p, tr); const msgs = [];
+  if (loadUsed(p, t, tr) + tsizeOf(p, it) > +ut.transport) msgs.push(`${ut.name} pojme ${ut.transport}, obsazeno ${loadUsed(p, t, tr)}`);
+  if (unitDist(p, t, it, tr) > 0) msgs.push("jednotka musí stát na stejném místě jako vozidlo");
+  if (msgs.length && !gate(p, t, "pohyb", msgs)) return false;
+  it.inside = tr.uid; it.x = tr.x; it.y = tr.y; logEv(t, `${u.name} nastupuje do ${ut.name}`); return true;
+}
+function disembark(p, t, it) { const tr = t.items.find(o => o.uid === it.inside); delete it.inside; if (tr) { const n = passengers(t, tr).length; it.x = tr.x + 30 + n * 6; it.y = tr.y + 30; } logEv(t, `${unitOf(p, it).name} vystupuje`); }
+function loadBadge(p, t, it) { const u = unitOf(p, it); if (!+u.transport) return ""; const n = loadUsed(p, t, it); return `<span class="lb" title="Přepravuje ${n} z ${u.transport}">⛟${n}/${u.transport}</span>`; }
+// ----- Detail vybrané jednotky -----
+function unitsPlusSelHTML(p, t, i) {
+  const u = unitOf(p, i); const out = []; const zs = unitZones(u);
+  if (zs.length) out.push(`<div class="zones"><span class="hint">Zóny:</span>${zs.map(z => { const left = zoneLeft(i, z); return `<button class="btn small ${left === 0 ? "muted" : ""}" data-zdef="${esc(z.name)}" title="Brání touto zónou">${esc(z.name)} <b>${zoneDef(p, i, z)}</b>${+z.hp ? ` <span class="hint">${left}/${z.hp}</span>` : ""}${z.crit ? " ★" : ""}</button>`; }).join("")}<button class="btn small" data-zdef="?">Náhodná zóna</button></div>`);
+  if (u.carry !== "" && u.carry != null) out.push(`<span class="hint">Nese ${carryUsed(p, t, i)} z ${u.carry}</span>`);
+  const builds = p.tokens.filter(x => x.fixed && x.buildable); if (builds.length && locKey(p, t, i)) out.push(`<div class="row"><span class="hint">Postavit:</span>${builds.map(x => `<button class="btn small" data-build="${x.id}" title="${esc(modText(x))}"><span class="eq" style="background:${x.color};color:${inkFor(x.color)}">${esc((x.text || x.name).slice(0, 3))}</span>${esc(x.name)}</button>`).join("")}</div>`);
+  const pas = passengers(t, i); if (+u.transport) out.push(`<div class="row"><span class="hint">Přepravuje ${loadUsed(p, t, i)}/${u.transport}${pas.length ? ":" : ""}</span>${pas.map(o => `<span class="pl-chip">${esc(unitOf(p, o).name)} <button class="btn small" data-disembark="${o.uid}" aria-label="Vystoupit ${esc(unitOf(p, o).name)}">Vystoupit</button></span>`).join("")}</div>`);
+  if (i.inside) out.push(`<div class="row"><span class="hint">Je ve vozidle ${esc((unitOf(p, t.items.find(o => o.uid === i.inside) || {}) || {}).name || "")}</span><button class="btn small" data-disembark="${i.uid}">Vystoupit</button></div>`);
+  else { const trs = t.items.filter(o => o !== i && o.kind === "unit" && !o.inside && +(unitOf(p, o) || {}).transport && (unitOf(p, o) || {}).factionId === u.factionId && unitDist(p, t, i, o) === 0);
+    if (trs.length) out.push(`<div class="row">${trs.map(o => `<button class="btn small" data-embark="${o.uid}">Nastoupit do ${esc(unitOf(p, o).name)} (${loadUsed(p, t, o)}/${unitOf(p, o).transport})</button>`).join("")}</div>`); }
+  return out.join("");
+}
+function wireUnitsPlus(main, p, t, save) {
+  const sel = t.items.find(i => i.uid === S.sel); const on = (s, fn) => $$(s, main).forEach(el => el.addEventListener("click", () => fn(el))); const C = S.combat;
+  on("[data-zdef]", el => { const z = el.dataset.zdef === "?" ? pickZone(p, sel) : unitZones(unitOf(p, sel)).find(x => x.name === el.dataset.zdef); if (!z) { toast("Žádná zóna"); return; }
+    S.tool = "boj"; C.mode = "crt"; C.res = null; C.def = zoneDef(p, sel, z); C.defUid = sel.uid; C.zone = z.name; C.shift = defShift(p, t, sel); const ter = tableBoard(p) && cellUnder(p, sel) ? terrainOf(p, tableBoard(p), cellUnder(p, sel)) : null; C.terrainId = ter ? ter.id : (p.terrains[0] || {}).id;
+    render(); toast(`Brání ${z.name}: obrana ${C.def}`); });
+  on("[data-build]", el => { if (!gate(p, t, "stavba")) return; const r = buildToken(p, t, sel, el.dataset.build); if (r) { toast(r); return; } save(); render(); });
+  on("[data-embark]", el => { const tr = t.items.find(o => o.uid === el.dataset.embark); if (embark(p, t, sel, tr)) { S.sel = tr.uid; save(); render(); } });
+  on("[data-disembark]", el => { const o = t.items.find(x => x.uid === el.dataset.disembark); disembark(p, t, o); save(); render(); });
+  on("[data-unfix]", () => { sel.free = !sel.free; save(); render(); });
+}
+// Editor zón v dialogu jednotky.
+const ZONE_PRESETS = { vozidlo: [{ name: "Podvozek", def: 4, w: 1 }, { name: "Vrch", def: 2, w: 1 }], postava: [{ name: "Hlava", def: 1, w: 1, crit: true }, { name: "Trup", def: 3, w: 3, crit: true }, { name: "Ruce", def: 2, w: 2 }, { name: "Nohy", def: 2, w: 2 }] };
+function zonesEditorHTML(u) {
+  const zs = u.zones || [];
+  return `<div class="eyebrow">Zóny jednotky (části s vlastní obranou)</div>
+    ${zs.map((z, i) => `<div class="row zrow"><input type="text" data-zn="${i}" value="${esc(z.name)}" placeholder="Název" style="width:110px" aria-label="Název zóny"><label class="f" style="width:74px">Obrana<input type="number" data-zd="${i}" value="${esc(z.def ?? "")}"></label><label class="f" style="width:74px" title="Kolik zásahů zóna vydrží (prázdné = zásah jde do životů)">Výdrž<input type="number" data-zh="${i}" value="${esc(z.hp ?? "")}" placeholder="–"></label><label class="f" style="width:66px" title="Jak často se zóna trefí (poměr)">Váha<input type="number" data-zw="${i}" value="${esc(z.w ?? 1)}" min="0"></label><label class="chk" title="Zničení zóny vyřadí jednotku"><input type="checkbox" data-zc="${i}" ${z.crit ? "checked" : ""}> kritická</label><button type="button" class="btn small danger" data-zdel="${i}" aria-label="Smazat zónu">✕</button></div>`).join("")}
+    <div class="row"><button type="button" class="btn small" id="zAdd">+ Zóna</button><button type="button" class="btn small" data-zpre="vozidlo">Předvolba: vozidlo</button><button type="button" class="btn small" data-zpre="postava">Předvolba: postava</button></div>`;
+}
+function wireZonesEditor(d, u) {
+  const box = $("#u-zones", d); const draw = () => { box.innerHTML = zonesEditorHTML(u); wire(); };
+  const wire = () => {
+    const set = (attr, k, conv) => $$(`[${attr}]`, box).forEach(i => i.addEventListener("input", () => { u.zones[+i.getAttribute(attr)][k] = conv(i); }));
+    set("data-zn", "name", i => i.value); set("data-zd", "def", i => i.value === "" ? "" : +i.value); set("data-zh", "hp", i => i.value === "" ? "" : +i.value); set("data-zw", "w", i => i.value === "" ? 1 : +i.value);
+    $$("[data-zc]", box).forEach(i => i.addEventListener("change", () => { u.zones[+i.dataset.zc].crit = i.checked; }));
+    $$("[data-zdel]", box).forEach(b => b.onclick = () => { u.zones.splice(+b.dataset.zdel, 1); draw(); });
+    $("#zAdd", box).onclick = () => { (u.zones = u.zones || []).push({ name: "", def: "", w: 1 }); draw(); };
+    $$("[data-zpre]", box).forEach(b => b.onclick = () => { u.zones = clone(ZONE_PRESETS[b.dataset.zpre]); draw(); });
+  };
+  draw();
 }
 
 // ---------- Spuštění ----------

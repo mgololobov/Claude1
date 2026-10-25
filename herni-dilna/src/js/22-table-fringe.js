@@ -36,7 +36,7 @@ function moveViolations(p, t, it, origin, range, k) {
   if (R.moveOnce && t.moved[it.uid]) msgs.push("jednotka se v tomto tahu už pohnula");
   msgs.push(...actViolation(p, it));
   if (R.ownTurn && cp && u && u.factionId !== cp.id) msgs.push(`táhne strana, která není na tahu (${cp.name})`);
-  if (+R.stackLimit) { const n = t.items.filter(o => o !== it && o.kind === "unit" && cellUnder(p, o) === k).length; if (n >= +R.stackLimit) msgs.push(`na poli může stát nejvýš ${R.stackLimit} ${plural(+R.stackLimit, "jednotka", "jednotky", "jednotek")}`); }
+  if (+R.stackLimit) { const n = t.items.filter(o => o !== it && o.kind === "unit" && !o.inside && cellUnder(p, o) === k).length; if (n >= +R.stackLimit) msgs.push(`na poli může stát nejvýš ${R.stackLimit} ${plural(+R.stackLimit, "jednotka", "jednotky", "jednotek")}`); }
   return msgs;
 }
 function majHTML(p, t) {

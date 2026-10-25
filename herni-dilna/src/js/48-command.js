@@ -27,11 +27,11 @@ function cmdBonus(p, it, key) {
 function unitStat(p, it, key) {
   const u = unitOf(p, it); if (!u) return 0; const red = it.reduced && hasReduced(u);
   const base = key === "att" ? (red ? u.rAtt : u.att) : key === "def" ? (red ? u.rDef : u.def) : key === "mov" ? (red ? u.rMov : u.mov) : key === "range" ? u.range : key === "hp" ? u.hp : 0;
-  return Math.max(0, (+base || 0) + equipMods(p, it, key) + cmdBonus(p, it, key));
+  return Math.max(0, (+base || 0) + equipMods(p, it, key) + cmdBonus(p, it, key) + fieldMods(p, it, key));
 }
 // Kopie jednotky s upravenými hodnotami pro zobrazení na žetonu.
 function effUnit(p, it, u) {
-  const d = k => equipMods(p, it, k) + cmdBonus(p, it, k); if (!d("att") && !d("def") && !d("mov")) return u;
+  const d = k => equipMods(p, it, k) + cmdBonus(p, it, k) + fieldMods(p, it, k); if (!d("att") && !d("def") && !d("mov")) return u;
   const v = (base, k) => (base === "" || base == null) && !d(k) ? base : Math.max(0, (+base || 0) + d(k));
   return { ...u, att: v(u.att, "att"), def: v(u.def, "def"), mov: v(u.mov, "mov"), rAtt: hasReduced(u) ? v(u.rAtt, "att") : u.rAtt, rDef: hasReduced(u) ? v(u.rDef, "def") : u.rDef, rMov: hasReduced(u) ? v(u.rMov, "mov") : u.rMov };
 }
@@ -41,6 +41,8 @@ function equipBadges(p, t, it) { const at = attachedTo(p, t, it); if (!at.length
 // Připnutí: malý žeton puštěný na jednotku se k ní připne.
 function attachToken(p, t, it) {
   const tk = tokDef(p, it); if (!tk || !tk.small) { if (it.attachTo) delete it.attachTo; return false; }
+  const cx0 = it.x + 23, cy0 = it.y + 23; const u0 = [...t.items].reverse().find(o => o.kind === "unit" && !o.inside && (() => { const [w, h] = itemSize(o); return cx0 >= o.x - 6 && cx0 <= o.x + w + 6 && cy0 >= o.y - 6 && cy0 <= o.y + h + 6; })());
+  if (u0 && carryCheck(p, t, u0, tk).length && !gate(p, t, "vybaveni", carryCheck(p, t, u0, tk))) { delete it.attachTo; return false; }
   const cx = it.x + 23, cy = it.y + 23; const u = [...t.items].reverse().find(o => o.kind === "unit" && (() => { const [w, h] = itemSize(o); return cx >= o.x - 6 && cx <= o.x + w + 6 && cy >= o.y - 6 && cy <= o.y + h + 6; })());
   if (!u) { delete it.attachTo; return false; } it.attachTo = u.uid; it.x = u.x; it.y = u.y; logEv(t, `${unitOf(p, u).name} dostává ${tk.name}${modText(tk) ? " (" + modText(tk) + ")" : ""}`); return true;
 }
@@ -67,7 +69,7 @@ function commandSelHTML(p, t, i) {
 }
 function wireCommand(main, p, t, save) {
   const sel = t.items.find(i => i.uid === S.sel); const on = (s, fn) => $$(s, main).forEach(el => el.addEventListener("click", () => fn(el)));
-  on("[data-equip]", el => { const tk = p.tokens.find(x => x.id === el.dataset.equip); t.items.push({ uid: uid(), kind: "token", tokenId: tk.id, x: sel.x, y: sel.y, value: 0, rot: 0, attachTo: sel.uid }); logEv(t, `${unitOf(p, sel).name} dostává ${tk.name}${modText(tk) ? " (" + modText(tk) + ")" : ""}`); save(); render(); });
+  on("[data-equip]", el => { const tk = p.tokens.find(x => x.id === el.dataset.equip); if (carryCheck(p, t, sel, tk).length && !gate(p, t, "vybaveni", carryCheck(p, t, sel, tk))) return; t.items.push({ uid: uid(), kind: "token", tokenId: tk.id, x: sel.x, y: sel.y, value: 0, rot: 0, attachTo: sel.uid }); logEv(t, `${unitOf(p, sel).name} dostává ${tk.name}${modText(tk) ? " (" + modText(tk) + ")" : ""}`); save(); render(); });
   on("[data-detach]", el => { detachToken(p, t, el.dataset.detach); save(); render(); });
   on("[data-activate]", () => { if (!gate(p, t, "aktivace")) return; activateUnit(p, t, sel); logEv(t, `${unitOf(p, sel).name} aktivována`); after(p, t, "aktivace", (unitOf(p, sel) || {}).factionId); save(); render(); });
   on("[data-command]", () => { if (!gate(p, t, "aktivace")) return; const n = activateCommand(p, t, sel); after(p, t, "aktivace", (unitOf(p, sel) || {}).factionId); save(); render(); toast(`Aktivováno ${n} ${plural(n, "jednotka", "jednotky", "jednotek")}`); });

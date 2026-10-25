@@ -20,8 +20,8 @@ const OUT = path.join(__dirname, "out"); fs.mkdirSync(OUT, { recursive: true });
   await step("šablony karet a ikona zdroje v textu", async () => {
     await sel(1); await pg.click("[data-tab=komponenty]");
     for (const tpl of ["art", "full", "play", "min", "classic"]) { await pg.selectOption("#d-tpl", tpl); if (!(await pg.$(`.pcard.t-${tpl}`))) throw new Error("chybí šablona " + tpl); }
-    await pg.click("[data-card]"); await pg.fill("#c-text", "Získej 2 {Mince}"); await pg.waitForTimeout(100);
-    if (!(await pg.$("#c-prev .ri"))) throw new Error("ikona zdroje se nevykreslila"); await pg.click("#c-save");
+    await pg.click("[data-card]"); await pg.fill("#c-text", "Získej 2 {Mince}"); await pg.dispatchEvent("#c-text", "input");
+    await pg.waitForSelector("#c-prev .ri", { timeout: 3000 }).catch(() => { throw new Error("ikona zdroje se nevykreslila"); }); await pg.click("#c-save");
     await pg.screenshot({ path: path.join(OUT, "karty.png") });
   });
   await step("volba z efektu čeká na hráče", async () => {
@@ -194,6 +194,22 @@ const OUT = path.join(__dirname, "out"); fs.mkdirSync(OUT, { recursive: true });
     const hq = await ev(() => P().table.items.find(i => i.kind === "unit" && unitOf(P(), i).name === "Štáb").uid); await pg.click(`.titem[data-uid="${hq}"]`); await pg.click("[data-command]");
     if (!(await ev(() => P().table.items.filter(i => i.act).length >= 2))) throw new Error("velení neaktivovalo jednotky");
     await pg.click("[data-cmdshow]"); await pg.screenshot({ path: path.join(OUT, "veleni.png") });
+  });
+  await step("okop, transportér se zónami a nástup", async () => {
+    await sel(0); await pg.click("[data-tab=scenare]"); await pg.click("[data-play]"); await pg.click("[data-tool=stul]");
+    const u = await pg.evaluate(() => P().table.items.find(i => i.kind === "unit" && unitOf(P(), i).name === "1. pěší").uid);
+    await pg.click(`.titem[data-uid="${u}"]`); await pg.click("[data-build]");
+    const ok = await pg.evaluate(id => { const p = P(), t = p.table, it = t.items.find(i => i.uid === id); const tok = t.items.find(i => i.kind === "token" && tokDef(p, i).fixed); return { tok: tok && tok.uid, def: unitStat(p, it, "def"), x: tok && tok.x }; }, u);
+    if (!ok.tok || ok.def !== 5) throw new Error("okop nepostaven nebo bez bonusu: " + JSON.stringify(ok));
+    const tb = await (await pg.$(`.titem[data-uid="${ok.tok}"]`)).boundingBox(); await pg.mouse.move(tb.x + 8, tb.y + 8); await pg.mouse.down(); await pg.mouse.move(tb.x + 150, tb.y + 90, { steps: 6 }); await pg.mouse.up();
+    if ((await pg.evaluate(id => P().table.items.find(i => i.uid === id).x, ok.tok)) !== ok.x) throw new Error("pevný žeton se posunul");
+    const trId = await pg.evaluate(() => P().units.find(x => x.name === "Transportér").id); await pg.click(`[data-addunit="${trId}"]`);
+    const tr = await pg.evaluate(id => { const p = P(), t = p.table; const tr = t.items[t.items.length - 1], it = t.items.find(i => i.uid === id); tr.x = it.x + 4; tr.y = it.y - 4; touch(p); render(); return tr.uid; }, u);
+    await pg.evaluate(id => { S.sel = id; render(); }, u); await pg.click("[data-embark]");
+    if (!(await pg.evaluate(id => !!P().table.items.find(i => i.uid === id).inside, u))) throw new Error("pěchota nenastoupila");
+    if (!(await pg.$(`.titem[data-uid="${tr}"] .lb`))) throw new Error("vozidlo neukazuje náklad");
+    await pg.click('[data-zdef="Podvozek"]'); if ((await pg.evaluate(() => S.combat.def)) < 4) throw new Error("obrana zónou se nenastavila");
+    await pg.screenshot({ path: path.join(OUT, "zony.png") });
   });
   await step("telefon – Přehled", async () => { await pg.setViewportSize({ width: 400, height: 820 }); await pg.click("[data-tab=prehled]"); await pg.screenshot({ path: path.join(OUT, "telefon.png") }); });
   await b.close();

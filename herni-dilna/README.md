@@ -55,6 +55,7 @@ src/js/NN-*.js       moduly; sestavují se v pořadí čísel
                      souboj bytostí s blokováním a klíčovými slovy, země za tah, nemoc z vyvolání, životy
   47-rail            vláčkové hry 18xx: společnosti, akcie, prezident, burza, vlaky, rezivění, dividendy, odhad tržeb
   48-command         malé žetony vybavení upravující jednotku, velitelé s dosahem velení a aktivací jednotek
+  49-units-plus      pevné žetony (okop, barikáda), zóny jednotek s vlastní obranou, nosnost a přeprava
   99-main            spuštění
 tests/harness.js     načte moduly do Node bez prohlížeče
 tests/*.test.js      testy herní logiky
