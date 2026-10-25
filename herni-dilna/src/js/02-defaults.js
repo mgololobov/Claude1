@@ -8,6 +8,7 @@ function defaultTerrains() {
     { id: "water", name: "Voda", color: "#86b7d8", glyph: "≈", move: "–", def: 1, vp: 0 },
     { id: "town", name: "Město", color: "#d8c8ad", glyph: "■", move: "1", def: 2, vp: 3, blocks: true, burns: true, burnsTo: "ruins" },
     { id: "marsh", name: "Bažina", color: "#98ae8c", glyph: "~", move: "3", def: 1, vp: 0 },
+    { id: "bridge", name: "Most", color: "#b59b72", glyph: "═", move: "1", def: 1, vp: 0, breaksTo: "water" },
     ...burntTerrains(),
   ];
 }
@@ -54,7 +55,7 @@ function normalize(p) {
   p.versions = p.versions || []; p.campaign = p.campaign || { log: [] }; p.boards.forEach(b => { b.regions = b.regions || {}; b.numbers = b.numbers || {}; });
   p.production = p.production || { mode: "both" }; if (p.roleRes == null) p.roleRes = ""; if (p.bluffPenalty == null) p.bluffPenalty = "";
   p.factions.forEach(f => { if (f.setup == null) f.setup = ""; if (f.bot == null) f.bot = ""; });
-  normalizeMore(p); normalizeFacing(p); normalizeMorale(p); normalizeEnv(p); normalizeGround(p); normalizeCrawl(p); normalizeLogic(p); normalizeCmap(p); normalizeExtra(p); normalizeNet(p); normalizeDeliver(p); normalizeCB(p); normalizeRail(p);
+  normalizeMore(p); normalizeFacing(p); normalizeMorale(p); normalizeEnv(p); normalizeGround(p); normalizeOps(p); normalizeCrawl(p); normalizeLogic(p); normalizeCmap(p); normalizeExtra(p); normalizeNet(p); normalizeDeliver(p); normalizeCB(p); normalizeRail(p);
   return p;
 }
 // Terény, které vzniknou ohněm.

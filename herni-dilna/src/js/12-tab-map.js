@@ -46,6 +46,7 @@ function renderMap(main, p) {
         <label class="f" style="width:64px">Barva<input type="color" data-trx="${t.id}" value="${t.color}" style="width:52px;height:40px;border:0;background:none;padding:0"></label>
         <label class="f" style="width:80px" title="Výška pro výhled a boj (0 = rovina)">Výška<input type="number" min="0" max="9" data-trh="${t.id}" value="${esc(t.h || 0)}"></label>
         <label class="chk"><input type="checkbox" data-trb="${t.id}" ${t.blocks ? "checked" : ""}> Blokuje výhled</label>
+        <label class="f" style="width:140px" title="Na jaký terén se pole změní, když ho jednotka odpálí výbušninou (most → voda)">Po zničení<select data-trbk="${t.id}"><option value="">nejde zničit</option>${p.terrains.filter(x => x.id !== t.id).map(x => `<option value="${x.id}" ${x.id === t.breaksTo ? "selected" : ""}>${esc(x.name)}</option>`).join("")}</select></label>
         <label class="chk" title="Oheň se do něj může šířit"><input type="checkbox" data-trf="${t.id}" ${t.burns ? "checked" : ""}> Hořlavý</label>
         ${t.burns ? `<label class="f" style="width:140px" title="Na jaký terén se pole změní, když oheň dohoří">Po spálení<select data-trbt="${t.id}"><option value="">zůstane</option>${p.terrains.filter(x => x.id !== t.id).map(x => `<option value="${x.id}" ${x.id === t.burnsTo ? "selected" : ""}>${esc(x.name)}</option>`).join("")}</select></label>` : ""}
         <label class="f" style="width:130px">Produkuje<select data-trp="${t.id}"><option value="">nic</option>${p.resources.filter(r => !r.global).map(r => `<option value="${r.id}" ${r.id === t.produces ? "selected" : ""}>${esc(r.name)}</option>`).join("")}</select></label>
@@ -91,6 +92,7 @@ function renderMap(main, p) {
   $$("[data-trx]", main).forEach(x => x.addEventListener("change", () => { tr(x.dataset.trx).color = x.value; touch(p); render(); }));
   $$("[data-trb]", main).forEach(x => x.onchange = () => { tr(x.dataset.trb).blocks = x.checked; touch(p); });
   $$("[data-trf]", main).forEach(x => x.onchange = () => { tr(x.dataset.trf).burns = x.checked; touch(p); render(); });
+  $$("[data-trbk]", main).forEach(x => x.onchange = () => { tr(x.dataset.trbk).breaksTo = x.value; touch(p); });
   $$("[data-trbt]", main).forEach(x => x.onchange = () => { tr(x.dataset.trbt).burnsTo = x.value; touch(p); });
   $$("[data-trh]", main).forEach(x => x.onchange = () => { tr(x.dataset.trh).h = +x.value || 0; touch(p); });
   $$("[data-trp]", main).forEach(x => x.onchange = () => { tr(x.dataset.trp).produces = x.value; touch(p); });

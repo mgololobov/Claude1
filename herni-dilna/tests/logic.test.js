@@ -581,3 +581,14 @@ test("hra bez aplikace: váhy počasí na kostku, procenta na hod, co vytisknout
   assert.equal(by("Jednotky – Červení").qty, 5, "3× pěší + husaři + baterie podle scénáře"); assert.ok(by("Mina").qty >= 6); assert.ok(rows.some(r => r.group === "Mapa" && r.sheets >= 2));
   assert.ok(rows.some(r => r.group === "Kostky" && r.name === "k6")); assert.ok(rows.some(r => r.name === "Rozvrácená")); assert.ok(A.analogTablesHTML(p).includes("Na začátku kola hoď"));
 });
+test("nepřímá palba s pozorovatelem, ženista, most, palivo, zásobování v čase", () => {
+  const { p, t, put } = war(); const b = p.boards[0]; b.terrain = { "2,0": "mount" }; p.units[0].range = 4; const a = put("a", 0), d = put("d", 4);
+  assert.ok(!A.targetsOf(p, t, a).includes(d), "hora zakrývá"); p.units[0].indirect = true; assert.ok(!A.targetsOf(p, t, a).includes(d), "bez pozorovatele ne");
+  const obs = put("a", 3); assert.ok(A.targetsOf(p, t, a).includes(d), "pozorovatel vidí cíl"); assert.equal(A.spotter(p, t, a, d), obs);
+  p.tokens = A.FX_PRESET(); const mina = t.items.push({ uid: "m1", kind: "token", tokenId: p.tokens[0].id, x: 0, y: 0 }) && t.items[t.items.length - 1]; A.placeOn(p, t, mina, "5,0");
+  p.units[0].engineer = true; A.placeOn(p, t, obs, "4,0"); assert.equal(A.engineerReveal(p, t, obs), 1, "ženista odhalil minu vedle"); assert.ok(A.engineerTargets(p, t, obs).includes(mina)); A.clearObstacle(p, t, obs, mina); assert.ok(!t.items.includes(mina));
+  b.terrain = { "1,0": "bridge" }; const ch = { uid: "c", kind: "token", tokenId: p.tokens[2].id, attachTo: a.uid, x: 0, y: 0 }; t.items.push(ch);
+  assert.deepEqual(A.bridgeCells(p, t, a), ["1,0"]); A.blowBridge(p, t, a, ch, "1,0"); assert.equal(A.terrainOf(p, b, "1,0").name, "Voda");
+  p.units[0].fuel = 1; A.useFuel(p, t, a); assert.equal(A.fuelLeft(p, a), 0); assert.ok(A.moveViolations(p, t, a, "0,0", null, "1,0").includes("došlo palivo"));
+  p.supplyRules.attrition = 1; t.items.filter(i => i.kind === "unit").forEach(i => { i.reduced = false; }); const before = d.reduced; A.opsRound(p, t); assert.ok(d.reduced !== before || !t.items.includes(d) || A.inSupply(p, t, d), "odříznutá jednotka ztratila krok");
+});

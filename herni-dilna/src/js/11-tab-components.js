@@ -218,7 +218,10 @@ function editUnit(p, unit) {
         <label class="f" style="width:120px" title="Test morálky projde, když součet hodu ≤ morálka (prázdné = výchozí z Mechanik)">Morálka<input type="number" id="u-mor" min="0" max="20" value="${esc(u.mor ?? "")}" placeholder="výchozí"></label>
         <label class="f" style="width:130px" title="Kolikrát může zaútočit, než musí doplnit">Munice<input type="number" id="u-ammo" min="0" max="99" value="${esc(u.ammo ?? "")}" placeholder="bez limitu"></label>
         <label class="f" style="width:140px">Dostřel (polí)<input type="number" id="u-range" min="0" max="30" value="${esc(u.range || "")}" placeholder="–"></label>
+        <label class="f" style="width:120px" title="Kolik pohybů vydrží, než musí natankovat">Palivo<input type="number" id="u-fuel" min="0" max="99" value="${esc(u.fuel ?? "")}" placeholder="bez limitu"></label>
         <label class="chk"><input type="checkbox" id="u-big" ${u.big ? "checked" : ""}> Velký žeton (zabírá víc místa)</label>
+        <label class="chk" title="Střílí i na cíl, který sama nevidí, když ho vidí jiná její jednotka"><input type="checkbox" id="u-indirect" ${u.indirect ? "checked" : ""}> Nepřímá palba</label>
+        <label class="chk" title="Odstraní minu nebo drát, odhalí skryté miny vedle sebe"><input type="checkbox" id="u-engineer" ${u.engineer ? "checked" : ""}> Ženista</label>
       </div>
       <div id="u-prev" style="display:flex;flex-direction:column;align-items:center;gap:10px;font-size:20px"></div>
     </div>
@@ -230,9 +233,9 @@ function editUnit(p, unit) {
   const num = v => v === "" ? "" : +v;
   const read = () => { u.name = $("#u-name", d).value; u.factionId = $("#u-f", d).value; u.symbol = $("#u-sym", d).value; u.size = $("#u-size", d).value; u.symText = $("#u-symtext", d).value; u.note = $("#u-note", d).value;
     u.att = num($("#u-a", d).value); u.def = num($("#u-d", d).value); u.mov = num($("#u-m", d).value); u.rAtt = num($("#u-ra", d).value); u.rDef = num($("#u-rd", d).value); u.rMov = num($("#u-rm", d).value);
-    u.qty = Math.max(0, Math.min(99, parseInt($("#u-q", d).value, 10) || 0)); u.hq = $("#u-hq", d).checked; u.big = $("#u-big", d).checked; u.range = $("#u-range", d).value === "" ? "" : +$("#u-range", d).value;
+    u.qty = Math.max(0, Math.min(99, parseInt($("#u-q", d).value, 10) || 0)); u.hq = $("#u-hq", d).checked; u.big = $("#u-big", d).checked; u.indirect = $("#u-indirect", d).checked; u.engineer = $("#u-engineer", d).checked; u.range = $("#u-range", d).value === "" ? "" : +$("#u-range", d).value;
     u.kind = $("#u-kind", d).value; u.cap = $("#u-cap", d).value === "" ? "" : +$("#u-cap", d).value;
-    ["cmd", "cmdAtt", "cmdDef", "transport", "tsize", "carry", "ammo", "mor"].forEach(k => { const v = $("#u-" + k, d).value; u[k] = v === "" ? "" : +v; }); u.hp = $("#u-hp", d).value === "" ? "" : +$("#u-hp", d).value; u.xp = $("#u-xp", d).value === "" ? "" : +$("#u-xp", d).value; };
+    ["cmd", "cmdAtt", "cmdDef", "transport", "tsize", "carry", "ammo", "mor", "fuel"].forEach(k => { const v = $("#u-" + k, d).value; u[k] = v === "" ? "" : +v; }); u.hp = $("#u-hp", d).value === "" ? "" : +$("#u-hp", d).value; u.xp = $("#u-xp", d).value === "" ? "" : +$("#u-xp", d).value; };
   const prev = () => { read(); $("#u-prev", d).innerHTML = unitHTML(p, u) + (hasReduced(u) ? unitHTML(p, u, true) : "") + `<span class="hint" style="font-size:.8rem">líc${hasReduced(u) ? " / rub" : ""}</span>`; };
   d.addEventListener("input", prev); d.addEventListener("change", prev); prev(); u.zones = clone(u.zones || []); wireZonesEditor(d, u);
   $("#u-save", d).onclick = () => { read(); if (isNew) p.units.push(u); else Object.assign(unit, u); touch(p); closeDialog(); render(); toast(isNew ? "Jednotka přidána" : "Jednotka uložena"); };

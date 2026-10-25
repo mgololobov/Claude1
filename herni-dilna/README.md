@@ -62,6 +62,7 @@ src/js/NN-*.js       moduly; sestavují se v pořadí čísel
   53-env             denní doba a počasí (výhled, pohyb, útok, obrana, dostřel), světlo předmětů
   54-ground          terén po počasí (bláto, zamrzlo, závěje), vítr se směrem, kouř a oheň
   55-print           co vytisknout (počty a archy), mapa ve skutečné velikosti po A4, markery, ukazatel kol, tabulky pro hru bez aplikace
+  56-ops             nepřímá palba s pozorovatelem, ženisté, zničitelné mosty, palivo, obnova a ztráty podle zásobování
   99-main            spuštění
 tests/harness.js     načte moduly do Node bez prohlížeče
 tests/*.test.js      testy herní logiky

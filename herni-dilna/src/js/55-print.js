@@ -27,6 +27,7 @@ function markerNeeds(p) {
     const hp = p.units.filter(u => +u.hp).reduce((a, u) => a + +u.hp * unitPrintQty(p, u), 0); add("Zranění 1", Math.ceil(hp / 3), "−1 ♥", "#f3d3cc"); if (hp >= 10) add("Zranění 5", Math.ceil(hp / 10), "−5 ♥", "#e9b5aa"); }
   if (p.ruleset.actOnly) add("Aktivovaná", Math.ceil(ctr / 2), "✓ AKT", "#d9e4c7");
   const am = p.units.filter(u => u.ammo !== "" && u.ammo != null).reduce((a, u) => a + +u.ammo * unitPrintQty(p, u), 0); add("Munice −1", Math.ceil(am / 2), "▮ −1", "#ece6d6");
+  const fu = p.units.filter(u => u.fuel !== "" && u.fuel != null).reduce((a, u) => a + +u.fuel * unitPrintQty(p, u), 0); add("Palivo −1", Math.ceil(fu / 2), "⛽ −1", "#ece6d6");
   const dur = [...p.tokens.filter(x => x.small), ...p.decks.flatMap(d => d.cards.filter(c => c.unitItem))].reduce((a, x) => a + (+x.dur || 0), 0); add("Výdrž −1", Math.ceil(dur / 2), "−1 VÝD", "#ece6d6");
   if ([...p.tokens, ...p.decks.flatMap(d => d.cards)].some(x => isOnce(x) && modText(x))) add("Dočasný účinek", 4, "✦ ÚČIN", "#e6dcef");
   if (envOn(p)) { add("Denní doba", 1, "☀ DOBA", "#fbe7a8"); add("Počasí", 1, "☂ POČ", "#d6e6f2"); if (p.env.conds.some(c => c.wind)) add("Směr větru", 1, "▲ VÍTR", "#fbfaf6"); p.env.grounds.forEach(g => add(g.name, 1, g.name.slice(0, 5).toUpperCase(), g.color)); }

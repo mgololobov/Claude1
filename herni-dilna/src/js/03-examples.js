@@ -67,21 +67,22 @@ function exampleWar() {
   }
   terrain["2,3"] = "town"; labels["2,3"] = "Lhota";
   terrain["11,5"] = "town"; labels["11,5"] = "Brod";
-  labels["7,4"] = "Most";
+  labels["7,4"] = "Most"; terrain["7,4"] = "bridge";
   const board = { id: uid(), name: "Údolí u Brodu", type: "hex", cols, rows, size: 34, terrain, labels, regions, bg: null };
   const U = (name, f, symbol, size, a, d, m, ra, rd, rm, qty) => ({ id: uid(), name, factionId: f.id, symbol, symText: "", size, att: a, def: d, mov: m, rAtt: ra, rDef: rd, rMov: rm, qty, note: "" });
   const units = [
     U("1. pěší", blue, "pechota", "III", 4, 4, 3, 2, 2, 3, 3),
-    U("7. tankový", blue, "tanky", "II", 6, 3, 6, 3, 2, 6, 1),
-    Object.assign(U("12. dělostř.", blue, "delo", "III", 5, 2, 2, 2, 1, 2, 1), { ammo: 4 }),
+    Object.assign(U("7. tankový", blue, "tanky", "II", 6, 3, 6, 3, 2, 6, 1), { fuel: 8 }),
+    Object.assign(U("12. dělostř.", blue, "delo", "III", 5, 2, 2, 2, 1, 2, 1), { ammo: 4, range: 4, indirect: true }),
     Object.assign(U("Štáb", blue, "stab", "XX", 0, 1, 4, "", "", "", 1), { hq: true, cmd: 3, cmdAtt: 1 }),
     U("3. pěší", red, "pechota", "III", 3, 5, 3, 2, 3, 3, 3),
     U("Husaři", red, "jezdectvo", "II", 3, 2, 7, 1, 1, 7, 1),
-    Object.assign(U("Baterie", red, "delo", "II", 4, 2, 2, 2, 1, 2, 1), { ammo: 3 }),
+    Object.assign(U("Baterie", red, "delo", "II", 4, 2, 2, 2, 1, 2, 1), { ammo: 3, range: 3, indirect: true }),
     // nové jednotky jen na konec – rozestavení scénáře odkazuje na pořadí
-    Object.assign(U("Transportér", blue, "mech", "I", 2, 3, 5, "", "", "", 1), { transport: 2, zones: [{ name: "Podvozek", def: 4, w: 1 }, { name: "Vrch", def: 2, w: 1 }] }),
+    Object.assign(U("Transportér", blue, "mech", "I", 2, 3, 5, "", "", "", 1), { transport: 2, fuel: 6, zones: [{ name: "Podvozek", def: 4, w: 1 }, { name: "Vrch", def: 2, w: 1 }] }),
+    Object.assign(U("Ženisté", blue, "pechota", "I", 1, 2, 3, "", "", "", 1), { engineer: true }),
   ];
-  [7, 8, 6, 8, 7, 6, 6, 7].forEach((m, i) => { units[i].mor = m; });
+  [7, 8, 6, 8, 7, 6, 6, 7, 7].forEach((m, i) => { units[i].mor = m; });
   const g = geo(board);
   // Modří hledí na východ k řece, Červení na západ.
   const at = (unitId, c, r) => { const [cx, cy] = g.center(c, r); const f = units.find(u => u.id === unitId).factionId; return { uid: uid(), kind: "unit", unitId, x: Math.round(BX + cx - 26), y: Math.round(BY + cy - 26), reduced: false, rot: f === blue.id ? 60 : 240 }; };
@@ -104,6 +105,7 @@ function exampleWar() {
     majority: { points: "3,1" },
     facing: { on: true, vision: true },
     morale: { on: true },
+    supplyRules: { recover: 4, attrition: 2 },
     env: { on: true, cycle: "Den, Den, Den, Soumrak, Noc, Noc", auto: true },
     boards: [board], units,
     scenarios: [{ id: uid(), name: "Most přes Brodec", turns: 6, boardId: board.id,

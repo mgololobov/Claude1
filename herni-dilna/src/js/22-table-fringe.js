@@ -35,6 +35,7 @@ function moveViolations(p, t, it, origin, range, k) {
   if (R.moveRange && range && origin && !(k in range)) msgs.push("cíl je mimo dosah pohybu");
   if (R.moveOnce && t.moved[it.uid]) msgs.push("jednotka se v tomto tahu už pohnula");
   if (it.st && it.st.sup) msgs.push("jednotka je potlačená palbou");
+  if (fuelLeft(p, it) === 0) msgs.push("došlo palivo");
   msgs.push(...actViolation(p, it));
   if (R.ownTurn && cp && u && u.factionId !== cp.id) msgs.push(`táhne strana, která není na tahu (${cp.name})`);
   if (+R.stackLimit) { const n = t.items.filter(o => o !== it && o.kind === "unit" && !o.inside && cellUnder(p, o) === k).length; if (n >= +R.stackLimit) msgs.push(`na poli může stát nejvýš ${R.stackLimit} ${plural(+R.stackLimit, "jednotka", "jednotky", "jednotek")}`); }
