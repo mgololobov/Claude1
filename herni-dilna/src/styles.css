@@ -357,3 +357,6 @@ details.cfx { border: 1px solid var(--line); border-radius: 10px; padding: 6px 1
 .titem .eq.card { background: #f6eedb; color: #1b2421; border: 1px solid #1b2421; }
 .titem .eq.buff { background: #7a4fa0; color: #fff; }
 .ifx { align-items: flex-end; }
+.envchip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 999px; background: #1b2421; color: #fff; font-weight: 700; font-size: .85rem; }
+.row.pick { background: #fdf3d8; border-radius: 8px; padding: 4px; }
+.envtint { position: absolute; left: 0; top: 0; pointer-events: none; border-radius: 6px; }

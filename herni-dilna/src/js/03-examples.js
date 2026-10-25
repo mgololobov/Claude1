@@ -104,6 +104,7 @@ function exampleWar() {
     majority: { points: "3,1" },
     facing: { on: true, vision: true },
     morale: { on: true },
+    env: { on: true, cycle: "Den, Den, Den, Soumrak, Noc, Noc", auto: true },
     boards: [board], units,
     scenarios: [{ id: uid(), name: "Most přes Brodec", turns: 6, boardId: board.id,
       desc: "Ráno 3. dne. Modrá divize musí dobýt přechod přes řeku dřív, než dorazí nepřátelské posily.",
@@ -125,6 +126,8 @@ function exampleWar() {
       { id: uid(), name: "Zákopy", color: "#7a6a4a", shape: "ctverec", counter: false, text: "ZÁK", small: true, mDef: 2, mMov: -1 },
       { id: uid(), name: "Okop", color: "#8a7a52", shape: "kruh", counter: false, text: "OKOP", fixed: true, buildable: true, frontOnly: true, mDef: 1 },
       ...fxT,
+      { id: uid(), name: "Granát", color: "#4a5a2a", shape: "kruh", counter: false, text: "GRA", small: true, use: "once", target: "area", reach: 2, radius: 1, hits: 2, weight: 1 },
+      { id: uid(), name: "Polní lékárna", color: "#e8e2d0", shape: "ctverec", counter: false, text: "+", small: true, use: "once", target: "unit", foes: "ally", reach: 1, heal: 1, cure: true, weight: 1 },
     ],
     table: null, sessions: [],
   });
@@ -288,11 +291,14 @@ function exampleCrypt() {
       triggers: [{ id: uid(), on: "mistnost", param: "Krypta", cond: "", effect: "zpráva Nekromant se probouzí!" }, { id: uid(), on: "hrozba", param: "", cond: "", effect: "zpráva Temnota pohltila kryptu – hrdinové prohráli" }] }),
     scenarios: [{ id: uid(), name: "Sestup do krypty", turns: 10, boardId: board.id, desc: "Hrdinové stojí u vstupu. Z chodby je slyšet chrastění kostí.", victory: "Porazte všechny příšery.", special: "", setup: { items: setup, control: {} },
       reinf: [{ id: uid(), turn: 5, qty: 1, unitId: units[2].id, cell: "0804" }] }],
-    tokens: [{ id: uid(), name: "Meč", color: "#8a8a8a", shape: "ctverec", counter: false, text: "MEČ", small: true, mAtt: 1, weight: 1, dur: 6, wear: true }, { id: uid(), name: "Štít", color: "#6b5a3a", shape: "ctverec", counter: false, text: "ŠTÍT", small: true, mDef: 1, weight: 2, dur: 3, absorb: true },
+    tokens: [{ id: uid(), name: "Meč", color: "#8a8a8a", shape: "ctverec", counter: false, text: "MEČ", small: true, mAtt: 1, weight: 1, dur: 6, wear: true }, { id: uid(), name: "Lucerna", color: "#e0aa2e", shape: "kruh", counter: false, text: "LUC", small: true, light: 2, weight: 1 }, { id: uid(), name: "Štít", color: "#6b5a3a", shape: "ctverec", counter: false, text: "ŠTÍT", small: true, mDef: 1, weight: 2, dur: 3, absorb: true },
       { id: uid(), name: "Amulet", color: "#7a4fa0", shape: "kruh", counter: false, text: "AM", small: true, mHp: 2, weight: 0 }, { id: uid(), name: "Luk", color: "#4a6a3a", shape: "ctverec", counter: false, text: "LUK", small: true, mRange: 2, weight: 1 },
       { id: uid(), name: "Helma", color: "#5a6762", shape: "ctverec", counter: false, text: "HEL", small: true, zone: "Hlava", mZone: 2, weight: 1 }, { id: uid(), name: "Barikáda", color: "#6b5a3a", shape: "ctverec", counter: false, text: "BAR", fixed: true, buildable: true, mDef: 1 }, past, jidlo],
     decks: [{ id: "poklady", name: "Poklady", color: "#c98a12", back: "POKLAD", market: 0, cards: [Object.assign(c("Lektvar", "Vyléčí 2 životy a zažene otravu. Na stole: vyber hrdinu → Použít.", "", 2), { unitItem: true, use: "once", heal: 2, cure: true }), c("Zlaťáky", "Získáš 2 zlata.", "+2 Zlato", 3),
-      Object.assign(c("Svitek síly", "Útok +2 do konce kola.", "", 1), { unitItem: true, use: "once", mAtt: 2, turns: 1 }), Object.assign(c("Kroužková zbroj", "Obrana +1. Pohltí 3 zásahy, pak se rozpadne.", "", 1), { unitItem: true, mDef: 1, dur: 3, absorb: true })] }],
+      Object.assign(c("Svitek síly", "Útok +2 do konce kola.", "", 1), { unitItem: true, use: "once", mAtt: 2, turns: 1 }), Object.assign(c("Kroužková zbroj", "Obrana +1. Pohltí 3 zásahy, pak se rozpadne.", "", 1), { unitItem: true, mDef: 1, dur: 3, absorb: true }),
+      Object.assign(c("Ohnivý svitek", "Ohnivá koule: 2 kostky zásahu všem nepřátelům v okruhu 1, dosah 3.", "", 1), { unitItem: true, use: "once", target: "area", reach: 3, radius: 1, hits: 2 }),
+      Object.assign(c("Svitek blesku", "Blesk do jednoho nepřítele v dosahu 4: 3 kostky zásahu.", "", 1), { unitItem: true, use: "once", target: "unit", reach: 4, hits: 3 }),
+      Object.assign(c("Léčivé světlo", "Všichni hrdinové v okruhu 1 se vyléčí o 2.", "", 1), { unitItem: true, use: "once", target: "area", foes: "ally", reach: 0, radius: 1, heal: 2 })] }],
   });
 }
 function examplePatrol() {

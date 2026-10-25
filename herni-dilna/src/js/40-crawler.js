@@ -38,7 +38,7 @@ function targetsOf(p, t, it) {
     return t.items.filter(o => o.kind === "unit" && o !== it && !o.inside && (unitOf(p, o) || {}).factionId !== u0.factionId && cmapDist(p, i0, cmapIndexOf(p, t, o)) <= reach).sort((x, y) => (unitHp(p, x) ?? 99) - (unitHp(p, y) ?? 99)); }
   const b = tableBoard(p); const k = cellUnder(p, it); const u = unitOf(p, it); if (!b || !k || !u) return [];
   const reach = Math.max(1, unitStat(p, it, "range") || 1);
-  return t.items.filter(o => o.kind === "unit" && o !== it && !o.inside && (unitOf(p, o) || {}).factionId !== u.factionId && cellUnder(p, o) && hexDist(b, k, cellUnder(p, o)) <= reach && (reach === 1 || hasLOS(p, b, k, cellUnder(p, o))))
+  return t.items.filter(o => o.kind === "unit" && o !== it && !o.inside && (unitOf(p, o) || {}).factionId !== u.factionId && cellUnder(p, o) && hexDist(b, k, cellUnder(p, o)) <= reach && (reach === 1 || hasLOS(p, b, k, cellUnder(p, o)) && hexDist(b, k, cellUnder(p, o)) <= Math.max(1, sightOf(p, t, it))))
     .sort((x, y) => (unitHp(p, x) ?? 99) - (unitHp(p, y) ?? 99));
 }
 // Automat příšer: každá příšera jde k nejbližšímu hrdinovi a zaútočí, když dosáhne.
@@ -60,7 +60,9 @@ function crawlDarkSet(p, t) {
   const b = tableBoard(p); const out = new Set(); if (!p.crawl.rooms || !b) return out;
   // Místnost, ve které stojí hrdina, je vždy vidět (třeba startovní místnost).
   const rev = [...(t.revealed || []), ...t.items.filter(i => isHero(p, i)).map(i => (b.regions || {})[cellUnder(p, i)]).filter(Boolean)];
-  Object.entries(b.regions || {}).forEach(([k, n]) => { if (!rev.includes(n)) out.add(k); }); return out;
+  Object.entries(b.regions || {}).forEach(([k, n]) => { if (!rev.includes(n)) out.add(k); });
+  if (out.size) t.items.filter(i => isHero(p, i) && itemLight(p, t, i)).forEach(h => { const kh = cellUnder(p, h); const L = itemLight(p, t, h); if (kh) [...out].forEach(k => { if (hexDist(b, kh, k) <= L) out.delete(k); }); }); // světlo osvětlí okolí
+  return out;
 }
 function revealRoom(p, t, name, fid) { t.revealed = t.revealed || []; if (t.revealed.includes(name)) return false; t.revealed.push(name); logEv(t, `odhalena místnost ${name}`); fireTriggers(p, t, "mistnost", fid, name); return true; }
 function crawlOnMove(p, t, it, k) {

@@ -530,3 +530,22 @@ test("předměty z karet: vybavit z ruky, použít z ruky, zničená karta jde d
   a.dmg = 4; const h = t.hands.anna[0]; A.useItem(p, t, a, { kind: "hand", src: h, def: A.cardOf(p, h).c }); assert.equal(a.dmg, 1); assert.deepEqual(t.discard.d, ["lk"]);
   A.damage(p, t, a, 1); assert.equal(a.dmg, 1, "brnění pohltilo"); assert.ok(!(a.gear || []).length); assert.deepEqual(t.discard.d, ["lk", "br"]);
 });
+test("předměty plošně a cíleně: granát v okruhu, svitek do jednoho, léčení spojenců", () => {
+  const { p, t, put } = war(); p.units.forEach(u => { u.hp = 6; }); p.dice.aHit = 1; const a = put("a", 0), a2 = put("a", 1), d1 = put("d", 2), d2 = put("d", 3), d3 = put("d", 5);
+  const gr = { name: "Granát", use: "once", target: "area", reach: 3, radius: 1, hits: 2 };
+  assert.ok(A.itemTargets(p, t, a, gr).includes(d1)); assert.ok(!A.itemTargets(p, t, a, gr).includes(d3), "mimo dosah");
+  assert.deepEqual(A.itemAffected(p, t, a, gr, d1).map(x => x.uid), [d1.uid, d2.uid], "okruh 1 kolem d1, jen nepřátelé");
+  A.useItem(p, t, a, { kind: "tok", src: { uid: "z" }, def: gr }, d1); assert.equal(d1.dmg, 2); assert.equal(d2.dmg, 2); assert.ok(!a2.dmg, "spojenec nezasažen");
+  const bl = { name: "Blesk", use: "once", target: "unit", reach: 5, hits: 3 }; A.useItem(p, t, a, { kind: "tok", src: { uid: "z" }, def: bl }, d3); assert.equal(d3.dmg, 3); assert.equal(d2.dmg, 2);
+  a.dmg = 4; a2.dmg = 4; const li = { name: "Světlo", use: "once", target: "area", foes: "ally", reach: 0, radius: 1, heal: 2 }; A.useItem(p, t, a, { kind: "tok", src: { uid: "z" }, def: li }, a);
+  assert.equal(a.dmg, 2); assert.equal(a2.dmg, 2); assert.equal(d1.dmg, 2, "nepřítel se neléčí");
+});
+test("denní doba a počasí: výhled, úpravy hodnot, světlo, střídání po kolech", () => {
+  const { p, t, put } = war(); p.env.on = true; p.ruleset.sight = 6; p.units[0].range = 4; const a = put("a", 0);
+  t.turn = 1; t.envWeather = "Jasno"; assert.equal(A.sightOf(p, t, a), 6); assert.equal(A.envNow(p, t)[0].name, "Den");
+  t.envTime = "Noc"; assert.equal(A.sightOf(p, t, a), 1, "v noci 1"); assert.equal(A.unitStat(p, a, "range"), 3, "noc: dostřel −1");
+  p.tokens = [{ id: "luc", name: "Lucerna", small: true, light: 3 }]; t.items.push({ uid: "l1", kind: "token", tokenId: "luc", attachTo: a.uid, x: 0, y: 0 }); assert.equal(A.sightOf(p, t, a), 3, "se světlem 3");
+  t.envTime = "Den"; t.envWeather = "Déšť"; assert.equal(A.unitStat(p, a, "mov"), 1, "déšť −1, ale nejméně 1"); assert.equal(A.sightOf(p, t, a), 3);
+  p.env.auto = false; t.envTime = ""; t.turn = 4; A.envRound(p, t); assert.equal(t.envTime, "Noc", "4. kolo cyklu Den, Den, Soumrak, Noc");
+  p.env.on = false; assert.equal(A.sightOf(p, t, a), 6); assert.equal(A.unitStat(p, a, "mov"), 2);
+});

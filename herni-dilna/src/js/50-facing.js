@@ -87,7 +87,7 @@ function overwatchCheck(p, t, mover) {
   const b = tableBoard(p); const km = b && cellUnder(p, mover); const um = unitOf(p, mover); if (!km || !um) return null;
   return t.items.find(w => { if (w.kind !== "unit" || !w.st || !w.st.watch || w.inside) return false; const uw = unitOf(p, w); const kw = cellUnder(p, w);
     if (!uw || !kw || uw.factionId === um.factionId) return false;
-    const reach = Math.max(1, unitStat(p, w, "range") || 1); return hexDist(b, kw, km) <= reach && (reach === 1 || hasLOS(p, b, kw, km)) && sees(p, w, mover) && ammoLeft(p, w) !== 0; }) || null;
+    const reach = Math.max(1, unitStat(p, w, "range") || 1); return hexDist(b, kw, km) <= reach && (reach === 1 || hasLOS(p, b, kw, km) && hexDist(b, kw, km) <= Math.max(1, sightOf(p, t, w))) && sees(p, w, mover) && ammoLeft(p, w) !== 0; }) || null;
 }
 function triggerOverwatch(p, t, mover) {
   const w = overwatchCheck(p, t, mover); if (!w) return false; const C = S.combat;

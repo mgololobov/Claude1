@@ -175,7 +175,7 @@ function renderComponents(main, p) {
   $$("[data-tfixed]", main).forEach(i => i.onchange = () => { tok(i.dataset.tfixed).fixed = i.checked; if (i.checked) tok(i.dataset.tfixed).small = false; touch(p); render(); });
   $$("[data-tbuild]", main).forEach(i => i.onchange = () => { tok(i.dataset.tbuild).buildable = i.checked; touch(p); });
   wireFxEditor(main, p);
-  $$("[data-tifbox]", main).forEach(box => { const tk = tok(box.dataset.tifbox); $$("[data-if]", box).forEach(el => el.addEventListener("change", () => { readItemFx(tk, el, "data-if"); touch(p); if (el.getAttribute("data-if") === "use") render(); })); });
+  $$("[data-tifbox]", main).forEach(box => { const tk = tok(box.dataset.tifbox); $$("[data-if]", box).forEach(el => el.addEventListener("change", () => { readItemFx(tk, el, "data-if"); touch(p); if (["use", "target"].includes(el.getAttribute("data-if"))) render(); })); });
   $$("[data-tfront]", main).forEach(i => i.onchange = () => { tok(i.dataset.tfront).frontOnly = i.checked; touch(p); });
   $$("[data-tw]", main).forEach(i => i.addEventListener("change", () => { tok(i.dataset.tw).weight = i.value === "" ? "" : +i.value; touch(p); }));
   $$("[data-tzone]", main).forEach(i => i.addEventListener("change", () => { tok(i.dataset.tzone).zone = i.value.trim(); touch(p); }));
@@ -290,7 +290,7 @@ function editCard(p, deck, card) {
     </div>`, true);
   const read = () => { ["title", "type", "cost", "text", "suit", "value", "vp", "icon", "effect", "rarity", "ops", "move", "cover", "spawn", "income", "act", "pow", "tough", "kw", "fight"].forEach(k => c[k] = $("#c-" + k, d).value); c.locked = $("#c-locked", d).checked; c.qty = Math.max(0, Math.min(99, parseInt($("#c-qty", d).value, 10) || 0)); };
   const readItem = () => { c.unitItem = $("#c-unitItem", d).checked; $$("[data-if]", d).forEach(el => readItemFx(c, el, "data-if")); };
-  $("#c-ifx", d).addEventListener("change", e => { readItem(); if (e.target.getAttribute("data-if") === "use") $("#c-ifx", d).innerHTML = itemFxHTML(c, "data-if", true); });
+  $("#c-ifx", d).addEventListener("change", e => { readItem(); if (["use", "target"].includes(e.target.getAttribute("data-if"))) $("#c-ifx", d).innerHTML = itemFxHTML(c, "data-if", true); });
   const prev = () => { read(); $("#c-prev", d).innerHTML = cardHTML(c, deck); };
   d.addEventListener("input", prev); d.addEventListener("change", prev); prev();
   setTimeout(() => $("#c-title", d).focus(), 30);

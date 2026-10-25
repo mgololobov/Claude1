@@ -137,7 +137,7 @@ function renderTable(main, p) {
   const selItem = t.items.find(i => i.uid === S.sel);
   const rangeItem = S.rangeUid && t.items.find(i => i.uid === S.rangeUid);
   const range = rangeItem ? computeRange(p, t, rangeItem) : null;
-  const losItem = S.losUid && t.items.find(i => i.uid === S.losUid); const losK = losItem && cellUnder(p, losItem); const cmdItem = S.cmdUid && t.items.find(i => i.uid === S.cmdUid); let los = cmdItem ? commandCells(p, t, cmdItem) : losK && b ? visibleFrom(p, b, losK, S.losR || +p.ruleset.sight || 6) : null;
+  const losItem = S.losUid && t.items.find(i => i.uid === S.losUid); const losK = losItem && cellUnder(p, losItem); const cmdItem = S.cmdUid && t.items.find(i => i.uid === S.cmdUid); let los = cmdItem ? commandCells(p, t, cmdItem) : losK && b ? visibleFrom(p, b, losK, S.losR || sightOf(p, t, losItem)) : null;
   if (los && losItem && !cmdItem && facingOn(p) && p.facing.vision) los = Object.fromEntries(Object.entries(los).filter(([k]) => { const [c, r] = k.split(",").map(Number); const [cx, cy] = g.center(c, r); return sees(p, losItem, { kind: "token", x: BX + cx - 23, y: BY + cy - 23 }); }));
   const arcItem = S.arcUid && t.items.find(i => i.uid === S.arcUid); const arcs = arcItem && b ? arcCells(p, arcItem, 3) : null;
   syncPassengers(t); S.fog = fogHidden(p, t); S.supCache = {};
@@ -146,7 +146,7 @@ function renderTable(main, p) {
   main.innerHTML = `<div class="table-wrap">
     <div class="mat-area">${zoomBarHTML(t)}<div class="mat-scroll"><div class="mat-sizer" style="width:${S.matW * zoomOf()}px;height:${S.matH * zoomOf()}px"><div class="mat ${S.ctrlMode && b ? "ctrlmode" : ""} ${S.inkMode ? "inkmode" : ""}" id="mat" style="width:${S.matW}px;height:${S.matH}px;transform:scale(${zoomOf()})">
       <div class="mat-ruler">${Array.from({ length: Math.ceil(S.matW / 100) }, (_, i) => `<span style="left:${i * 100}px">${i * 10}</span>`).join("")}</div>
-      ${b ? `<div class="boardlayer" style="left:${BX}px;top:${BY}px">${boardSVG(p, b, t.control, { range, los, tiles: t.tilesPlaced, links: t.links, routeSel: S.routeSel, dark: crawlDarkSet(p, t), stones: t.stones, arcs })}</div>` : ""}
+      ${b ? `<div class="boardlayer" style="left:${BX}px;top:${BY}px">${boardSVG(p, b, t.control, { range, los, tiles: t.tilesPlaced, links: t.links, routeSel: S.routeSel, dark: crawlDarkSet(p, t), stones: t.stones, arcs })}${envTintHTML(p, t, g)}</div>` : ""}
       ${nt ? `<div class="boardlayer netlayer" style="left:${BX}px;top:${BY}px">${netSVG(p, nt, { t, sel: S.netSel, reach: S.netReach, goods: p.deliver.on ? t.goods : null })}</div>` : ""}${cmapHTML(p, t)}${t.items.map(i => itemHTML(p, i)).join("")}${ghostsHTML(p, t)}${inkSVG(t, S.matW, S.matH)}
     </div></div></div></div>
     <aside class="side">
@@ -229,6 +229,7 @@ function sideTurn(p, t) {
         <span class="row"><button class="btn small" id="turnPrev" aria-label="Předchozí kolo">−</button><button class="btn small" id="turnNext" aria-label="Další kolo">+</button></span></div>
       ${sc && t.turn > sc.turns ? `<div class="result"><span>Scénář skončil</span><span style="font-size:.9rem">Vyhodnoť podmínky vítězství.</span></div>` : ""}
     </section>
+    ${envSideHTML(p, t)}
     <section><div class="eyebrow">Fáze</div><div class="phases">${p.phases.map((ph, i) => `<div class="phase ${i === t.phaseIdx ? "on" : ""}"><span class="mono">${i + 1}</span>${esc(ph)}</div>`).join("")}</div>
       ${p.phases.length ? `<button class="btn primary" id="phaseNext">Další fáze</button>` : `<span class="hint">Fáze nastavíš v Mechanikách.</span>`}</section>
     ${onlineHTML(p, t)}
@@ -690,7 +691,7 @@ function wireTable(main, p, t) {
   if (q("ctrlAuto")) q("ctrlAuto").onclick = () => { let n = 0; t.items.filter(i => i.kind === "unit").forEach(i => { const k = cellUnder(p, i); const u = p.units.find(x => x.id === i.unitId); if (k && u && u.factionId) { t.control[k] = u.factionId; n++; } }); save(); render(); toast(`Přiděleno ${n} ${plural(n, "pole", "pole", "polí")}`); };
   // vybraná položka
   const selItem = t.items.find(i => i.uid === S.sel);
-  wireExtra(main, p, t, save); wireR4(main, p, t, save); wireWar(main, p, t, save); wireIpad(main, p, t, save); wireOnline(main, p, t, save); wireMore(main, p, t, save); wireCrawl(main, p, t, save); wireLogic(main, p, t, save); wireCmap(main, p, t, save); wireExtra2(main, p, t, save); wireNet(main, p, t, save); wireDeliver(main, p, t, save); wireCB(main, p, t, save); wireRail(main, p, t, save); wireCommand(main, p, t, save); wireUnitsPlus(main, p, t, save); wireFacing(main, p, t, save); wireMorale(main, p, t, save); wireItems(main, p, t, save);
+  wireExtra(main, p, t, save); wireR4(main, p, t, save); wireWar(main, p, t, save); wireIpad(main, p, t, save); wireOnline(main, p, t, save); wireMore(main, p, t, save); wireCrawl(main, p, t, save); wireLogic(main, p, t, save); wireCmap(main, p, t, save); wireExtra2(main, p, t, save); wireNet(main, p, t, save); wireDeliver(main, p, t, save); wireCB(main, p, t, save); wireRail(main, p, t, save); wireCommand(main, p, t, save); wireUnitsPlus(main, p, t, save); wireFacing(main, p, t, save); wireMorale(main, p, t, save); wireItems(main, p, t, save); wireEnvSide(main, p, t, save);
   const cardTo = (el, where) => { if (where === "tab" && !gate(p, t, "vylozit")) return; const i = selItem; t.items = t.items.filter(x => x !== i); const fid = el.dataset[where === "hand" ? "tohand" : "totab"]; const h = { deckId: i.deckId, cardId: i.cardId }; (where === "hand" ? (t.hands[fid] = t.hands[fid] || []) : (t.tableau[fid] = t.tableau[fid] || [])).push(h); if (where === "tab") { const c = cardOf(p, h).c; logEv(t, `${p.factions.find(f => f.id === fid).name} vykládá ${c.title}`); if (c.effect) runEffects(p, t, fid, c.effect, c.title); after(p, t, "vylozit", fid, c.type); } S.sel = null; save(); render(); };
   on("[data-tohand]", el => cardTo(el, "hand")); on("[data-totab]", el => cardTo(el, "tab"));
   on("[data-sa]", el => {

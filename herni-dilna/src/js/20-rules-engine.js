@@ -161,7 +161,7 @@ function newRound(p, t) {
   if (t.firstNext) { const ids = players(p, t).map(f => f.id); const i = ids.indexOf(t.firstNext); if (i > 0) t.order = [...ids.slice(i), ...ids.slice(0, i)]; t.curF = 0; t.firstNext = null; }
   t.turn++; t.phaseIdx = 0; t.acts = 0; t.moved = {};
   if (p.ruleset.autoIncome) p.resources.forEach(r => { if (!+r.income) return; (r.global ? ["_g"] : p.factions.map(f => f.id)).forEach(o => { t.res[o] = t.res[o] || {}; t.res[o][r.id] = Math.max(0, Math.min(resMax(r), (t.res[o][r.id] || 0) + +r.income)); }); });
-  logEv(t, `začíná ${t.turn}. kolo`); clearActivation(p, t); t.chitsOut = []; t.chitNow = null; t.ddraft = null; arriveReinf(p, t); crawlRound(p, t); extraRound(p, t); moraleRound(p, t); itemsRound(p, t);
+  logEv(t, `začíná ${t.turn}. kolo`); clearActivation(p, t); t.chitsOut = []; t.chitNow = null; t.ddraft = null; arriveReinf(p, t); crawlRound(p, t); extraRound(p, t); moraleRound(p, t); itemsRound(p, t); envRound(p, t);
   endGameByTurns(p, t);
   fireTriggers(p, t, "kolo", null, null); fireTriggers(p, t, "faze", null, 0);
   checkWin(p, t);
@@ -210,7 +210,7 @@ function fogHidden(p, t) {
   if (!p.ruleset.fog) return hidden.size ? hidden : null;
   const own = t.items.filter(i => i.kind === "unit" && !i.inside && (p.units.find(u => u.id === i.unitId) || {}).factionId === fid && cellUnder(p, i));
   t.items.forEach(i => { if (i.kind !== "unit") return; const u = p.units.find(x => x.id === i.unitId); if (!u || u.factionId === fid) return;
-    const k = cellUnder(p, i); const seen = b && k && own.some(o => { const ko = cellUnder(p, o); return hexDist(b, ko, k) <= +p.ruleset.sight && hasLOS(p, b, ko, k) && sees(p, o, i); }); hidden.add(i.uid + (seen ? ":block" : ":gone")); });
+    const k = cellUnder(p, i); const seen = b && k && own.some(o => { const ko = cellUnder(p, o); return hexDist(b, ko, k) <= sightOf(p, t, o) && hasLOS(p, b, ko, k) && sees(p, o, i); }); hidden.add(i.uid + (seen ? ":block" : ":gone")); });
   return hidden;
 }
 // Poslední známé pozice skrytých jednotek (pro ostatní hráče).

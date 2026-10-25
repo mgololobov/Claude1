@@ -27,11 +27,12 @@ function cmdBonus(p, it, key) {
 function unitStat(p, it, key) {
   const u = unitOf(p, it); if (!u) return 0; const red = it.reduced && hasReduced(u);
   const base = key === "att" ? (red ? u.rAtt : u.att) : key === "def" ? (red ? u.rDef : u.def) : key === "mov" ? (red ? u.rMov : u.mov) : key === "range" ? u.range : key === "hp" ? u.hp : 0;
-  return Math.max(0, (+base || 0) + equipMods(p, it, key) + cmdBonus(p, it, key) + fieldMods(p, it, key));
+  const v = Math.max(0, (+base || 0) + equipMods(p, it, key) + cmdBonus(p, it, key) + fieldMods(p, it, key) + envMods(p, key));
+  return key === "mov" && +base > 0 ? Math.max(1, v) : v; // počasí nezastaví jednotku úplně
 }
 // Kopie jednotky s upravenými hodnotami pro zobrazení na žetonu.
 function effUnit(p, it, u) {
-  const d = k => equipMods(p, it, k) + cmdBonus(p, it, k) + fieldMods(p, it, k); if (!d("att") && !d("def") && !d("mov")) return u;
+  const d = k => equipMods(p, it, k) + cmdBonus(p, it, k) + fieldMods(p, it, k) + envMods(p, k); if (!d("att") && !d("def") && !d("mov")) return u;
   const v = (base, k) => (base === "" || base == null) && !d(k) ? base : Math.max(0, (+base || 0) + d(k));
   return { ...u, att: v(u.att, "att"), def: v(u.def, "def"), mov: v(u.mov, "mov"), rAtt: hasReduced(u) ? v(u.rAtt, "att") : u.rAtt, rDef: hasReduced(u) ? v(u.rDef, "def") : u.rDef, rMov: hasReduced(u) ? v(u.rMov, "mov") : u.rMov };
 }
