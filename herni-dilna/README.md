@@ -57,6 +57,7 @@ src/js/NN-*.js       moduly; sestavují se v pořadí čísel
   48-command         malé žetony vybavení upravující jednotku, velitelé s dosahem velení a aktivací jednotek
   49-units-plus      pevné žetony (okop, barikáda), zóny jednotek s vlastní obranou, nosnost a přeprava
   50-facing          natočení jednotek (čelo/bok/záď, zorné pole, nepozorovaný útok), výška terénu, hlídka, munice
+  51-morale          morálka a test morálky, potlačující palba, miny, ostnatý drát, výbušniny, potraviny a hlad
   99-main            spuštění
 tests/harness.js     načte moduly do Node bez prohlížeče
 tests/*.test.js      testy herní logiky

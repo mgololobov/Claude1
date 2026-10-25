@@ -185,7 +185,7 @@ const OUT = path.join(__dirname, "out"); fs.mkdirSync(OUT, { recursive: true });
   await step("vybavení a velení: zbraň na vojáka, štáb velí", async () => {
     await sel(0); await pg.click("[data-tab=scenare]"); await pg.click("[data-play]"); await pg.click("[data-tool=stul]");
     const kul = await ev(() => P().tokens.find(x => x.name === "Kulomet").id); await pg.click(`[data-addtok="${kul}"]`);
-    const info = await ev(() => { const p = P(), t = p.table; const u = t.items.find(i => i.kind === "unit" && unitOf(p, i).name === "1. pěší"); const k = t.items.find(i => i.kind === "token"); return { u: u.uid, k: k.uid, ux: u.x + 26, uy: u.y + 26, att: unitStat(p, u, "att") }; });
+    const info = await pg.evaluate(kid => { const p = P(), t = p.table; const u = t.items.find(i => i.kind === "unit" && unitOf(p, i).name === "1. pěší"); const k = t.items.find(i => i.kind === "token" && i.tokenId === kid); return { u: u.uid, k: k.uid, ux: u.x + 26, uy: u.y + 26, att: unitStat(p, u, "att") }; }, kul);
     const kb = await (await pg.$(`.titem[data-uid="${info.k}"]`)).boundingBox(); const mat = await (await pg.$("#mat")).boundingBox();
     await pg.mouse.move(kb.x + 10, kb.y + 10); await pg.mouse.down(); await pg.mouse.move(mat.x + info.ux, mat.y + info.uy, { steps: 8 }); await pg.mouse.up();
     const att2 = await pg.evaluate(u => { const it = P().table.items.find(i => i.uid === u); if (!it) throw new Error("jednotka zmizela: " + P().name + " " + P().table.log.slice(0, 3).join(" | ")); return unitStat(P(), it, "att"); }, info.u); if (att2 !== info.att + 2) throw new Error(`útok ${info.att} → ${att2}`);
@@ -224,6 +224,19 @@ const OUT = path.join(__dirname, "out"); fs.mkdirSync(OUT, { recursive: true });
     await pg.click("[data-arcs]"); if (!(await pg.$$(".boardlayer polygon.rng")).length) throw new Error("výseče se nezobrazily");
     await pg.screenshot({ path: path.join(OUT, "natoceni.png") });
     await pg.click("[data-tab=mechaniky]"); await (await pg.$("#fOn")).scrollIntoViewIfNeeded(); await pg.screenshot({ path: path.join(OUT, "natoceni-mech.png") });
+  });
+  await step("morálka, potlačení, drát a skrytá mina", async () => {
+    await sel(0); await pg.click("[data-tab=scenare]"); await pg.click("[data-play]"); await pg.click("[data-tool=stul]");
+    const ids = await pg.evaluate(() => { const p = P(), t = p.table; const tk = t.items.find(i => unitOf(p, i) && unitOf(p, i).name === "7. tankový"); const r = t.items.find(i => unitOf(p, i) && unitOf(p, i).name === "3. pěší");
+      placeOn(p, t, tk, "7,3"); touch(p); render(); return { tk: tk.uid, r: r.uid, mine: t.items.find(i => i.kind === "token" && tokDef(p, i).fx === "mina").uid }; });
+    await pg.evaluate(id => { S.sel = id; render(); }, ids.tk); await pg.click("[data-supp]");
+    if (!(await pg.evaluate(() => P().table.log.some(l => /potlačuje/.test(l))))) throw new Error("potlačující palba se nezapsala");
+    await pg.evaluate(id => { S.sel = id; render(); }, ids.r); await pg.click('[data-mor="test"]');
+    if (!(await pg.evaluate(() => P().table.log.some(l => /^.*Morálka 3\. pěší/.test(l))))) throw new Error("test morálky se nezapsal");
+    await pg.screenshot({ path: path.join(OUT, "moralka.png") });
+    if (!(await pg.$(`.titem[data-uid="${ids.mine}"]`))) throw new Error("rozhodčí minu nevidí");
+    await pg.evaluate(() => { S.view = P().factions[0].id; render(); }); const vis = await pg.$(`.titem[data-uid="${ids.mine}"]`); await pg.evaluate(() => { S.view = null; render(); });
+    if (vis) throw new Error("skrytá mina je vidět hráči");
   });
   await step("telefon – Přehled", async () => { await pg.setViewportSize({ width: 400, height: 820 }); await pg.click("[data-tab=prehled]"); await pg.screenshot({ path: path.join(OUT, "telefon.png") }); });
   await b.close();

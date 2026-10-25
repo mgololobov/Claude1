@@ -29,7 +29,8 @@ function crawlAttack(p, t, a, d) {
   const ad = Array.from({ length: Math.max(0, unitAttack(p, t, a) + pos.shift) }, () => rnd(s)), dd = Array.from({ length: Math.max(0, withAttacker(a, () => z ? zoneDef(p, d, z) : unitStat(p, d, "def")) + coverOf(p, t, d)) }, () => rnd(s));
   const hits = ad.filter(v => v >= p.dice.aHit).length, blocks = dd.filter(v => v >= p.dice.dHit).length; const dmg = Math.max(0, hits - blocks);
   const res = `${ua.name} útočí na ${ud.name}${z ? ` (${z.name})` : ""}${pos.parts.length ? ` [${pos.parts.join(", ")}]` : ""}: ${ad.join(",") || "–"} proti ${dd.join(",") || "–"} → ${dmg} ${plural(dmg, "zranění", "zranění", "zranění")}`;
-  const after2 = dmg ? (z ? zoneHit(p, t, d, z, dmg, a) : damage(p, t, d, dmg, a)) : ""; logEv(t, res + (after2 ? "; " + after2 : "")); return res + (after2 ? ". " + after2 : "");
+  let after2 = dmg ? (z ? zoneHit(p, t, d, z, dmg, a) : damage(p, t, d, dmg, a)) : "";
+  if (dmg && t.items.includes(d)) after2 = [after2, ...moraleAfterLoss(p, t, [d])].filter(Boolean).join("; "); logEv(t, res + (after2 ? "; " + after2 : "")); return res + (after2 ? ". " + after2 : "");
 }
 function targetsOf(p, t, it) {
   if (cmapOn(p, t)) { const i0 = cmapIndexOf(p, t, it); const u0 = unitOf(p, it); if (i0 == null || !u0) return []; const reach = unitStat(p, it, "range");

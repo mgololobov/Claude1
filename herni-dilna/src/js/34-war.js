@@ -27,7 +27,7 @@ function retreat(p, t, it, n = 1) {
 // Provede výsledek z bojové tabulky na jednotky zapojené do boje.
 function applyCombat(p, t, out) {
   const C = S.combat; const att = (C.attUids || []).map(id => t.items.find(i => i.uid === id)).filter(Boolean); const def = t.items.find(i => i.uid === C.defUid);
-  const code = String(out || "").toUpperCase().trim(); const msgs = [];
+  const code = String(out || "").toUpperCase().trim(); const msgs = []; const before = new Map([...att, def].filter(Boolean).map(i => [i, !!i.reduced]));
   const m = code.match(/^([AD])(R|S)?(\d)?$/);
   if (code === "AE") att.forEach(i => msgs.push(stepLoss(p, t, Object.assign(i, { reduced: true }))));
   else if (code === "DE") { if (def) msgs.push(stepLoss(p, t, Object.assign(def, { reduced: true }))); }
@@ -37,6 +37,7 @@ function applyCombat(p, t, out) {
   else if (m) { const tgt = m[1] === "A" ? att : (def ? [def] : []); const n = +(m[3] || 1);
     tgt.forEach(i => { for (let s = 0; s < n && t.items.includes(i); s++) msgs.push(m[2] === "R" ? retreat(p, t, i, 1) : stepLoss(p, t, i)); }); }
   else return "Výsledek nemá automatické provedení – posuň jednotky ručně";
+  msgs.push(...moraleAfterLoss(p, t, [...before].filter(([i, r]) => !!i.reduced !== r).map(([i]) => i)));
   checkWin(p, t);
   return msgs.filter(Boolean).join(", ") || "Žádná změna";
 }

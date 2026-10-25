@@ -454,7 +454,7 @@ test("nosnost: předměty podle váhy, přeprava jednotek ve vozidle", () => {
   A.disembark(p, t, a); assert.ok(!a.inside); assert.equal(A.loadUsed(p, t, tr), 1);
 });
 test("ukázka Obrana Brodu: rozestavení scénáře odpovídá jednotkám stran", () => {
-  const p = A.exampleWar(); const names = p.scenarios[0].setup.items.map(i => p.units.find(u => u.id === i.unitId).name);
+  const p = A.exampleWar(); const names = p.scenarios[0].setup.items.filter(i => i.kind === "unit").map(i => p.units.find(u => u.id === i.unitId).name);
   assert.ok(!names.includes("Transportér")); assert.equal(names.filter(n => n === "3. pěší").length, 3);
 });
 test("natočení: čelo, bok, záď a posun v boji", () => {
@@ -488,4 +488,27 @@ test("munice a hlídka", () => {
   assert.ok(A.useAmmo(p, t, a)); assert.ok(A.useAmmo(p, t, a)); assert.equal(A.ammoLeft(p, a), 0); assert.ok(!A.useAmmo(p, t, a), "bez munice neútočí");
   d.st = { watch: true }; assert.equal(A.overwatchCheck(p, t, a), null, "mimo dostřel"); A.placeOn(p, t, a, "2,0"); assert.equal(A.overwatchCheck(p, t, a), d, "nepřítel vstoupil do dostřelu");
   p.facing.on = true; p.facing.vision = true; p.facing.adjSee = false; p.facing.view = 60; d.rot = 90; assert.equal(A.overwatchCheck(p, t, a), null, "hlídka hledí jinam");
+});
+test("morálka: test, rozvrácení, ústup a vzpamatování", () => {
+  const { p, t, put } = war(); p.morale.on = true; const a = put("a", 1); put("d", 2); p.units[0].mor = 20; let r = A.moraleTest(p, t, a); assert.ok(r.ok, "morálka 20 vždy drží");
+  p.units[0].mor = 1; r = A.moraleTest(p, t, a); assert.ok(!r.ok); assert.ok(a.st.dis, "neúspěch = rozvrácená");
+  A.moraleTest(p, t, a); assert.equal(A.cellUnder(p, a), "0,0", "rozvrácená při dalším neúspěchu ustoupí");
+  p.units[0].mor = 20; a.st.sup = true; assert.equal(A.moraleTarget(p, t, a), 19, "potlačená −1"); assert.ok(A.rally(p, t, a).ok); assert.ok(!a.st.dis && !a.st.sup);
+});
+test("morálka po ztrátě v boji a potlačující palba", () => {
+  const { p, t, put } = war(); p.morale.on = true; p.units[1].mor = 1; const a = put("a", 1), d = put("d", 2); const S = A.__S();
+  S.combat = { attUids: [a.uid], defUid: d.uid, log: [] }; const msg = A.applyCombat(p, t, "D1"); assert.match(msg, /Morálka Obrana/); assert.ok(d.st.dis);
+  p.morale.supHit = 1; const m2 = A.suppressFire(p, t, a, d); assert.match(m2, /potlačena/); assert.ok(d.st.sup);
+  assert.equal(A.unitAttack(p, t, d), 0, "rozvrácená i potlačená: 1 → 0"); assert.ok(A.moveViolations(p, t, d, "2,0", null, "3,0").some(x => /potlačená/.test(x)));
+  A.moraleRound(p, t); assert.ok(!d.st.sup, "potlačení skončí s kolem");
+});
+test("miny, ostnatý drát, výbušnina a potraviny", () => {
+  const { p, t, put } = war(); p.tokens = A.FX_PRESET(); const [mina, drat, tnt, jidlo] = p.tokens; mina.fxN = 6; p.dice.aHit = 1;
+  const tok = (tk, c) => { const it = { uid: tk.name + c, kind: "token", tokenId: tk.id, x: 0, y: 0 }; t.items.push(it); A.placeOn(p, t, it, c + ",0"); return it; };
+  const a = put("a", 1); tok(mina, 2); A.placeOn(p, t, a, "2,0"); assert.match(A.minesOnEnter(p, t, a, "2,0"), /Mina/); assert.ok(!t.items.includes(a), "6 zásahů zničí jednotku"); assert.ok(!t.items.some(i => i.tokenId === mina.id), "mina zmizí");
+  const b = put("a", 0); tok(drat, 2); p.units[0].mov = 5; const rng = A.computeRange(p, t, b); assert.equal(rng["2,0"], 4, "drát: 1 + 1 + 2"); assert.ok(!("3,0" in rng), "drát zastaví");
+  const ch = { uid: "tnt", kind: "token", tokenId: tnt.id, attachTo: b.uid, x: 0, y: 0 }; t.items.push(ch); A.placeOn(p, t, b, "1,0");
+  const tg = A.blastTargets(p, t, b); assert.ok(tg.some(o => o.tokenId === drat.id)); A.blast(p, t, b, ch, tg.find(o => o.tokenId === drat.id)); assert.ok(!t.items.some(i => i.tokenId === drat.id || i.uid === "tnt"), "drát i nálož zmizely");
+  b.st = { tired: true }; const f = { uid: "f", kind: "token", tokenId: jidlo.id, attachTo: b.uid, x: 0, y: 0 }; t.items.push(f); A.eat(p, t, b, f); assert.ok(!b.st.tired && !t.items.includes(f));
+  p.morale.hunger = true; A.moraleRound(p, t); assert.ok(b.st.tired, "bez jídla hladoví");
 });

@@ -524,7 +524,7 @@ function normalize(p) {
   p.versions = p.versions || []; p.campaign = p.campaign || { log: [] }; p.boards.forEach(b => { b.regions = b.regions || {}; b.numbers = b.numbers || {}; });
   p.production = p.production || { mode: "both" }; if (p.roleRes == null) p.roleRes = ""; if (p.bluffPenalty == null) p.bluffPenalty = "";
   p.factions.forEach(f => { if (f.setup == null) f.setup = ""; if (f.bot == null) f.bot = ""; });
-  normalizeMore(p); normalizeFacing(p); normalizeCrawl(p); normalizeLogic(p); normalizeCmap(p); normalizeExtra(p); normalizeNet(p); normalizeDeliver(p); normalizeCB(p); normalizeRail(p);
+  normalizeMore(p); normalizeFacing(p); normalizeMorale(p); normalizeCrawl(p); normalizeLogic(p); normalizeCmap(p); normalizeExtra(p); normalizeNet(p); normalizeDeliver(p); normalizeCB(p); normalizeRail(p);
   return p;
 }
 
@@ -611,6 +611,7 @@ function exampleWar() {
     // nové jednotky jen na konec – rozestavení scénáře odkazuje na pořadí
     Object.assign(U("Transportér", blue, "mech", "I", 2, 3, 5, "", "", "", 1), { transport: 2, zones: [{ name: "Podvozek", def: 4, w: 1 }, { name: "Vrch", def: 2, w: 1 }] }),
   ];
+  [7, 8, 6, 8, 7, 6, 6, 7].forEach((m, i) => { units[i].mor = m; });
   const g = geo(board);
   // Modří hledí na východ k řece, Červení na západ.
   const at = (unitId, c, r) => { const [cx, cy] = g.center(c, r); const f = units.find(u => u.id === unitId).factionId; return { uid: uid(), kind: "unit", unitId, x: Math.round(BX + cx - 26), y: Math.round(BY + cy - 26), reduced: false, rot: f === blue.id ? 60 : 240 }; };
@@ -618,6 +619,9 @@ function exampleWar() {
     at(units[0].id, 1, 2), at(units[0].id, 1, 4), at(units[0].id, 2, 5), at(units[1].id, 0, 3), at(units[2].id, 0, 5), at(units[3].id, 0, 4),
     at(units[4].id, 8, 3), at(units[4].id, 8, 5), at(units[4].id, 11, 5), at(units[5].id, 9, 2), at(units[6].id, 10, 4),
   ];
+  // Červení zatarasili předmostí drátem a skrytě zaminovali brod u bažiny.
+  const fxT = FX_PRESET(); const tokAt = (tk, c, r) => { const [cx, cy] = g.center(c, r); return { uid: uid(), kind: "token", tokenId: tk.id, x: Math.round(BX + cx - 23), y: Math.round(BY + cy - 23), value: 0, rot: 0 }; };
+  setup.push(tokAt(fxT[1], 8, 4), tokAt(fxT[0], 6, 6));
   return normalize({
     id: uid(), isExample: true, updatedAt: Date.now(),
     name: "Obrana Brodu", version: "0.1", players: "2", time: "60 min", age: "12+",
@@ -629,6 +633,7 @@ function exampleWar() {
     ruleset: Object.assign(defaultRules(), { strict: true, actCats: [], phaseOf: { pohyb: [1], boj: [2] }, stackLimit: 2, moveRange: true, moveOnce: true, ownTurn: true, fog: true, sight: 5, win: { vp: "", turns: "", elimination: true } }),
     majority: { points: "3,1" },
     facing: { on: true, vision: true },
+    morale: { on: true },
     boards: [board], units,
     scenarios: [{ id: uid(), name: "Most přes Brodec", turns: 6, boardId: board.id,
       desc: "Ráno 3. dne. Modrá divize musí dobýt přechod přes řeku dřív, než dorazí nepřátelské posily.",
@@ -649,6 +654,7 @@ function exampleWar() {
       { id: uid(), name: "Minomet", color: "#5a4632", shape: "ctverec", counter: false, text: "MIN", small: true, mAtt: 1, mRange: 2 },
       { id: uid(), name: "Zákopy", color: "#7a6a4a", shape: "ctverec", counter: false, text: "ZÁK", small: true, mDef: 2, mMov: -1 },
       { id: uid(), name: "Okop", color: "#8a7a52", shape: "kruh", counter: false, text: "OKOP", fixed: true, buildable: true, frontOnly: true, mDef: 1 },
+      ...fxT,
     ],
     table: null, sessions: [],
   });
@@ -795,6 +801,8 @@ function exampleCrypt() {
     U("Kostlivec", dark, "pechota", 2, 1, 3, { kind: "monster", hp: 3, xp: 1, qty: 3 }), U("Nekromant", dark, "stab", 3, 2, 2, { kind: "monster", hp: 6, xp: 4, range: 3 })];
   const g = geo(board); const at = (u, c, r) => { const [cx, cy] = g.center(c, r); return { uid: uid(), kind: "unit", unitId: u.id, x: Math.round(BX + cx - 26), y: Math.round(BY + cy - 26), reduced: false, rot: u.kind === "hero" ? 60 : 240 }; };
   const setup = [at(units[0], 1, 3), at(units[1], 0, 2), at(units[2], 4, 2), at(units[2], 5, 4), at(units[2], 7, 2), at(units[3], 8, 3)];
+  const past = { id: uid(), name: "Past", color: "#7a2e24", shape: "kruh", counter: false, text: "PAST", fixed: true, fx: "mina", fxN: 2, hidden: true, once: true }, jidlo = { id: uid(), name: "Chléb", color: "#b08a3a", shape: "ctverec", counter: false, text: "JÍD", small: true, fx: "jidlo", fxN: 2, weight: 1 };
+  { const [cx, cy] = g.center(3, 3); setup.push({ uid: uid(), kind: "token", tokenId: past.id, x: Math.round(BX + cx - 23), y: Math.round(BY + cy - 23), value: 0, rot: 0 }); }
   const c = (title, text, effect, qty) => ({ id: uid(), title, type: "Poklad", cost: "", text, qty, suit: "", value: "", vp: "", icon: "", effect });
   return normalize({
     id: uid(), isExample: true, updatedAt: Date.now(), name: "Krypta nekromanta", version: "0.1", players: "1–2", time: "30 min", age: "10+",
@@ -812,7 +820,7 @@ function exampleCrypt() {
       reinf: [{ id: uid(), turn: 5, qty: 1, unitId: units[2].id, cell: "0804" }] }],
     tokens: [{ id: uid(), name: "Meč", color: "#8a8a8a", shape: "ctverec", counter: false, text: "MEČ", small: true, mAtt: 1, weight: 1 }, { id: uid(), name: "Štít", color: "#6b5a3a", shape: "ctverec", counter: false, text: "ŠTÍT", small: true, mDef: 1, weight: 2 },
       { id: uid(), name: "Amulet", color: "#7a4fa0", shape: "kruh", counter: false, text: "AM", small: true, mHp: 2, weight: 0 }, { id: uid(), name: "Luk", color: "#4a6a3a", shape: "ctverec", counter: false, text: "LUK", small: true, mRange: 2, weight: 1 },
-      { id: uid(), name: "Helma", color: "#5a6762", shape: "ctverec", counter: false, text: "HEL", small: true, zone: "Hlava", mZone: 2, weight: 1 }, { id: uid(), name: "Barikáda", color: "#6b5a3a", shape: "ctverec", counter: false, text: "BAR", fixed: true, buildable: true, mDef: 1 }],
+      { id: uid(), name: "Helma", color: "#5a6762", shape: "ctverec", counter: false, text: "HEL", small: true, zone: "Hlava", mZone: 2, weight: 1 }, { id: uid(), name: "Barikáda", color: "#6b5a3a", shape: "ctverec", counter: false, text: "BAR", fixed: true, buildable: true, mDef: 1 }, past, jidlo],
     decks: [{ id: "poklady", name: "Poklady", color: "#c98a12", back: "POKLAD", market: 0, cards: [c("Lektvar", "Vyléčí 2 životy (ručně na stole).", "", 2), c("Zlaťáky", "Získáš 2 zlata.", "+2 Zlato", 3), c("Svitek", "Hrozba klesne o 1 (ručně).", "", 1)] }],
   });
 }
@@ -1421,6 +1429,7 @@ function renderComponents(main, p) {
         ${swatchRow(t.color, `data-tc="${t.id}" data-tcolor`)}
         <label class="chk"><input type="checkbox" data-tcount="${t.id}" ${t.counter ? "checked" : ""}> Počítadlo</label>
         <label class="chk" title="Malý žeton se přetažením připne na jednotku a upraví její hodnoty"><input type="checkbox" data-tsmall="${t.id}" ${t.small ? "checked" : ""}> Malý žeton – vybavení jednotky</label>
+        ${fxEditorHTML(t)}
         <label class="chk" title="Po položení zůstává na místě (okop, minové pole); úpravy platí pro jednotky na stejném poli"><input type="checkbox" data-tfixed="${t.id}" ${t.fixed ? "checked" : ""}> Pevný – zůstává na místě</label>
         ${t.fixed ? `<label class="chk"><input type="checkbox" data-tbuild="${t.id}" ${t.buildable ? "checked" : ""}> Jednotky ho mohou postavit</label><label class="chk" title="Bonus platí jen proti útoku z přední výseče žetonu; žeton natočíš na stole"><input type="checkbox" data-tfront="${t.id}" ${t.frontOnly ? "checked" : ""}> Chrání jen zepředu</label>` : ""}
         ${t.small || t.fixed ? `<div class="row" style="width:100%"><span class="hint">${t.fixed ? "Bonus jednotkám na poli:" : "Úpravy jednotky:"}</span>${MODS.filter(([m]) => !t.fixed || m !== "mHp").map(([m, , l]) => `<label class="f" style="width:84px">${l}<input type="number" data-tmod="${m}|${t.id}" value="${esc(t[m] || "")}" placeholder="±0"></label>`).join("")}
@@ -1499,6 +1508,7 @@ function renderComponents(main, p) {
   $$("[data-tsmall]", main).forEach(i => i.onchange = () => { tok(i.dataset.tsmall).small = i.checked; if (i.checked) tok(i.dataset.tsmall).fixed = false; touch(p); render(); });
   $$("[data-tfixed]", main).forEach(i => i.onchange = () => { tok(i.dataset.tfixed).fixed = i.checked; if (i.checked) tok(i.dataset.tfixed).small = false; touch(p); render(); });
   $$("[data-tbuild]", main).forEach(i => i.onchange = () => { tok(i.dataset.tbuild).buildable = i.checked; touch(p); });
+  wireFxEditor(main, p);
   $$("[data-tfront]", main).forEach(i => i.onchange = () => { tok(i.dataset.tfront).frontOnly = i.checked; touch(p); });
   $$("[data-tw]", main).forEach(i => i.addEventListener("change", () => { tok(i.dataset.tw).weight = i.value === "" ? "" : +i.value; touch(p); }));
   $$("[data-tzone]", main).forEach(i => i.addEventListener("change", () => { tok(i.dataset.tzone).zone = i.value.trim(); touch(p); }));
@@ -1535,6 +1545,7 @@ function editUnit(p, unit) {
         <label class="f" style="width:150px" title="Kolik jednotek (podle velikosti) vozidlo převeze">Převáží jednotek<input type="number" id="u-transport" min="0" max="30" value="${esc(u.transport || "")}" placeholder="–"></label>
         <label class="f" style="width:150px" title="Kolik místa zabere ve vozidle (výchozí 1)">Velikost při přepravě<input type="number" id="u-tsize" min="0" max="10" value="${esc(u.tsize ?? "")}" placeholder="1"></label>
         <label class="f" style="width:150px" title="Kolik předmětů (podle váhy) unese">Nosnost předmětů<input type="number" id="u-carry" min="0" max="30" value="${esc(u.carry ?? "")}" placeholder="bez limitu"></label>
+        <label class="f" style="width:120px" title="Test morálky projde, když součet hodu ≤ morálka (prázdné = výchozí z Mechanik)">Morálka<input type="number" id="u-mor" min="0" max="20" value="${esc(u.mor ?? "")}" placeholder="výchozí"></label>
         <label class="f" style="width:130px" title="Kolikrát může zaútočit, než musí doplnit">Munice<input type="number" id="u-ammo" min="0" max="99" value="${esc(u.ammo ?? "")}" placeholder="bez limitu"></label>
         <label class="f" style="width:140px">Dostřel (polí)<input type="number" id="u-range" min="0" max="30" value="${esc(u.range || "")}" placeholder="–"></label>
         <label class="chk"><input type="checkbox" id="u-big" ${u.big ? "checked" : ""}> Velký žeton (zabírá víc místa)</label>
@@ -1551,7 +1562,7 @@ function editUnit(p, unit) {
     u.att = num($("#u-a", d).value); u.def = num($("#u-d", d).value); u.mov = num($("#u-m", d).value); u.rAtt = num($("#u-ra", d).value); u.rDef = num($("#u-rd", d).value); u.rMov = num($("#u-rm", d).value);
     u.qty = Math.max(0, Math.min(99, parseInt($("#u-q", d).value, 10) || 0)); u.hq = $("#u-hq", d).checked; u.big = $("#u-big", d).checked; u.range = $("#u-range", d).value === "" ? "" : +$("#u-range", d).value;
     u.kind = $("#u-kind", d).value; u.cap = $("#u-cap", d).value === "" ? "" : +$("#u-cap", d).value;
-    ["cmd", "cmdAtt", "cmdDef", "transport", "tsize", "carry", "ammo"].forEach(k => { const v = $("#u-" + k, d).value; u[k] = v === "" ? "" : +v; }); u.hp = $("#u-hp", d).value === "" ? "" : +$("#u-hp", d).value; u.xp = $("#u-xp", d).value === "" ? "" : +$("#u-xp", d).value; };
+    ["cmd", "cmdAtt", "cmdDef", "transport", "tsize", "carry", "ammo", "mor"].forEach(k => { const v = $("#u-" + k, d).value; u[k] = v === "" ? "" : +v; }); u.hp = $("#u-hp", d).value === "" ? "" : +$("#u-hp", d).value; u.xp = $("#u-xp", d).value === "" ? "" : +$("#u-xp", d).value; };
   const prev = () => { read(); $("#u-prev", d).innerHTML = unitHTML(p, u) + (hasReduced(u) ? unitHTML(p, u, true) : "") + `<span class="hint" style="font-size:.8rem">líc${hasReduced(u) ? " / rub" : ""}</span>`; };
   d.addEventListener("input", prev); d.addEventListener("change", prev); prev(); u.zones = clone(u.zones || []); wireZonesEditor(d, u);
   $("#u-save", d).onclick = () => { read(); if (isNew) p.units.push(u); else Object.assign(unit, u); touch(p); closeDialog(); render(); toast(isNew ? "Jednotka přidána" : "Jednotka uložena"); };
@@ -1936,7 +1947,7 @@ function renderMechanics(main, p) {
           <p class="hint">Dosah pohybu na stole počítá s cenou terénu (Mapa) a pohybem jednotky. Terén s pohybem „–“ je neprůchodný.</p>
         </div>
       </div>
-    </div>${moreMechHTML(p)}<div class="two">${facingMechHTML(p)}${elevMechHTML(p)}</div><div class="two">${crawlMechHTML(p)}${logicMechHTML(p)}</div><div class="two">${cmapMechHTML(p)}${extraMechHTML(p)}</div><div class="two">${deliverMechHTML(p)}${netCubesMechHTML(p)}</div><div class="two">${cbMechHTML(p)}${railMechHTML(p)}</div></div>`;
+    </div>${moreMechHTML(p)}<div class="two">${facingMechHTML(p)}${elevMechHTML(p)}</div><div class="two">${moraleMechHTML(p)}${fxMechHTML(p)}</div><div class="two">${crawlMechHTML(p)}${logicMechHTML(p)}</div><div class="two">${cmapMechHTML(p)}${extraMechHTML(p)}</div><div class="two">${deliverMechHTML(p)}${netCubesMechHTML(p)}</div><div class="two">${cbMechHTML(p)}${railMechHTML(p)}</div></div>`;
   wireBanner(main);
   const F = id => p.factions.find(f => f.id === id);
   $("#addF").onclick = () => { p.factions.push({ id: uid(), name: "Strana " + (p.factions.length + 1), color: COLORS[p.factions.length % COLORS.length], ability: "" }); touch(p); render(); };
@@ -2008,7 +2019,7 @@ function renderMechanics(main, p) {
   $("#prodMode").onchange = e => { p.production.mode = e.target.value; touch(p); };
   $$("[data-rpt]", main).forEach(i => i.onchange = () => { p.resources.find(r => r.id === i.dataset.rpt).perTurn = i.checked; touch(p); });
   $$("[data-rpool]", main).forEach(i => i.onchange = () => { p.resources.find(r => r.id === i.dataset.rpool).pool = i.value; touch(p); });
-  wireMoreMech(main, p); wireFacingMech(main, p); wireCrawlMech(main, p); wireLogicMech(main, p); wireCmapMech(main, p); wireExtraMech(main, p); wireDeliverMech(main, p); wireNetCubesMech(main, p); wireCBMech(main, p); wireRailMech(main, p);
+  wireMoreMech(main, p); wireFacingMech(main, p); wireMoraleMech(main, p); wireCrawlMech(main, p); wireLogicMech(main, p); wireCmapMech(main, p); wireExtraMech(main, p); wireDeliverMech(main, p); wireNetCubesMech(main, p); wireCBMech(main, p); wireRailMech(main, p);
 }
 
 // ---------- Scénáře ----------
@@ -2515,7 +2526,7 @@ function newRound(p, t) {
   if (t.firstNext) { const ids = players(p, t).map(f => f.id); const i = ids.indexOf(t.firstNext); if (i > 0) t.order = [...ids.slice(i), ...ids.slice(0, i)]; t.curF = 0; t.firstNext = null; }
   t.turn++; t.phaseIdx = 0; t.acts = 0; t.moved = {};
   if (p.ruleset.autoIncome) p.resources.forEach(r => { if (!+r.income) return; (r.global ? ["_g"] : p.factions.map(f => f.id)).forEach(o => { t.res[o] = t.res[o] || {}; t.res[o][r.id] = Math.max(0, Math.min(resMax(r), (t.res[o][r.id] || 0) + +r.income)); }); });
-  logEv(t, `začíná ${t.turn}. kolo`); clearActivation(p, t); t.chitsOut = []; t.chitNow = null; t.ddraft = null; arriveReinf(p, t); crawlRound(p, t); extraRound(p, t);
+  logEv(t, `začíná ${t.turn}. kolo`); clearActivation(p, t); t.chitsOut = []; t.chitNow = null; t.ddraft = null; arriveReinf(p, t); crawlRound(p, t); extraRound(p, t); moraleRound(p, t);
   endGameByTurns(p, t);
   fireTriggers(p, t, "kolo", null, null); fireTriggers(p, t, "faze", null, 0);
   checkWin(p, t);
@@ -2704,11 +2715,12 @@ function computeRange(p, t, it) {
   const u = p.units.find(x => x.id === it.unitId); if (!u) return null; let mp = unitStat(p, it, "mov"); if (it.st && (it.st.tired || it.st.tiredC)) mp = Math.floor(mp / 2);
   const enemy = new Set(enemyCells(p, t, it)), zoc = new Set();
   if (p.zoc) enemy.forEach(k => { const [c, r] = k.split(",").map(Number); neighbors(b, c, r).forEach(([x, y]) => zoc.add(x + "," + y)); });
-  const cost = k => { const ter = terrainOf(p, b, k) || p.terrains[0]; const v = parseFloat(ter ? ter.move : 1); return isFinite(v) && v > 0 ? v : Infinity; };
+  const wire = wireCost(p, t); // ostnatý drát: pohyb navíc a zastaví
+  const cost = k => { const ter = terrainOf(p, b, k) || p.terrains[0]; const v = parseFloat(ter ? ter.move : 1); return (isFinite(v) && v > 0 ? v : Infinity) + (wire[k] || 0); };
   const best = { [k0]: 0 }; const queue = [k0];
   while (queue.length) {
     queue.sort((a, c) => best[a] - best[c]); const k = queue.shift();
-    if (k !== k0 && zoc.has(k)) continue;
+    if (k !== k0 && (zoc.has(k) || k in wire)) continue;
     const [c, r] = k.split(",").map(Number);
     for (const [x, y] of neighbors(b, c, r)) { const nk = x + "," + y; if (enemy.has(nk)) continue; const nc = best[k] + cost(nk); if (nc <= mp && (best[nk] == null || nc < best[nk])) { best[nk] = nc; queue.push(nk); } }
   }
@@ -2790,7 +2802,7 @@ function itemHTML(p, i) {
     if (isMonster(p, i) && p.crawl.rooms && crawlDarkSet(p, p.table).has(cellUnder(p, i))) return "";
     if (fg && fg.has(i.uid + ":block")) { const f = p.factions.find(x => x.id === u.factionId); inner = `<div class="unit" style="background:${f ? f.color : "#888"}" title="Nepřátelská jednotka"></div>`; }
     else inner = unitHTML(p, effUnit(p, i, u), i.reduced) + equipBadges(p, p.table, i) + zoneBadge(p, i) + loadBadge(p, p.table, i) + ammoBadge(p, i) + (inSupply(p, p.table, i) ? "" : `<span class="oos" title="Mimo zásobování">⚠</span>`) + (i.st ? `<span class="usts">${stBadges(i)}</span>` : "") + hpBadge(p, i); }
-  else { const tk = p.tokens.find(x => x.id === i.tokenId); if (!tk) return ""; if (i.attachTo && p.table.items.some(o => o.uid === i.attachTo)) return ""; inner = tokenHTML(tk, i.value) + (tk.text ? "" : `<span class="token-label">${esc(tk.name)}</span>`); }
+  else { const tk = p.tokens.find(x => x.id === i.tokenId); if (!tk || hiddenMine(p, i)) return ""; if (i.attachTo && p.table.items.some(o => o.uid === i.attachTo)) return ""; inner = tokenHTML(tk, i.value) + (tk.text ? "" : `<span class="token-label">${esc(tk.name)}</span>`); }
   return `<div class="titem ${i.uid === S.sel ? "sel" : ""}${i.act ? " act" : ""}${(p.tokens.find(x => x.id === i.tokenId) || {}).small ? " small" : ""}${i.kind === "token" && isFixed(p, i) ? " fixed" : ""}" data-uid="${i.uid}" style="left:${i.x}px;top:${i.y}px;transform:rotate(${faced(p, i) ? 0 : i.rot || 0}deg)">${inner}${faced(p, i) ? `<span class="facearr" style="transform:rotate(${i.rot || 0}deg)" aria-hidden="true"></span>` : ""}</div>`;
 }
 const fchipsHTML = (p, t, attr = "data-curf") => `<div class="fchips">${players(p, t).map((x, i) => `<button class="fchip" ${attr}="${i}" aria-pressed="${i === t.curF}"><span class="dot" style="background:${x.color};border-radius:50%"></span>${esc(x.name)}</button>`).join("")}</div>`;
@@ -2811,7 +2823,7 @@ function selBarHTML(p, i) {
       <div class="row">${k ? `<button class="btn small ${S.rangeUid === i.uid ? "on" : ""}" data-sa="range">Dosah pohybu</button><button class="btn small ${S.losUid === i.uid && !S.losR ? "on" : ""}" data-sa="los">Výhled</button>${unitStat(p, i, "range") ? `<button class="btn small ${S.losUid === i.uid && S.losR ? "on" : ""}" data-sa="fire">Dostřel ${unitStat(p, i, "range")}</button>` : ""}` : ""}${hasReduced(u) ? `<button class="btn small" data-sa="flip">${i.reduced ? "Obnovit" : "Oslabit"}</button>` : ""}${facingOn(p) ? "" : `<button class="btn small" data-sa="rot">Natočit</button>`}</div>
       ${u.att !== "" && u.att != null || u.def !== "" && u.def != null ? `<div class="row">${Object.entries(UNIT_ST).filter(([, v]) => v[3] === 2 || !!v[3] === !!+u.hp).map(([k, v]) => `<button class="btn small ${i.st && i.st[k] ? "on" : ""}" data-ust="${k}" title="${v[2]}">${v[1]} ${v[0]}</button>`).join("")}</div>
       <div class="row"><button class="btn small" data-sa="asAtt">Útočí</button><button class="btn small" data-sa="addAtt">+ k útoku</button><button class="btn small" data-sa="asDef">Brání</button></div>` : ""}
-      ${facingSelHTML(p, p.table, i)}${commandSelHTML(p, p.table, i)}${unitsPlusSelHTML(p, p.table, i)}${crawlSelHTML(p, i)}${deliverSelHTML(p, i)}${tableNet(p) && netNodeOf(p, p.table, i) ? `<div class="row"><button class="btn small ${S.netReach && S.netReachUid === i.uid ? "on" : ""}" data-sa="netreach">Kam dojede</button></div>` : ""}
+      ${facingSelHTML(p, p.table, i)}${moraleSelHTML(p, p.table, i)}${commandSelHTML(p, p.table, i)}${unitsPlusSelHTML(p, p.table, i)}${crawlSelHTML(p, i)}${deliverSelHTML(p, i)}${tableNet(p) && netNodeOf(p, p.table, i) ? `<div class="row"><button class="btn small ${S.netReach && S.netReachUid === i.uid ? "on" : ""}" data-sa="netreach">Kam dojede</button></div>` : ""}
       <div class="row"><button class="btn small" data-sa="dup">Duplikovat</button><button class="btn small danger" data-sa="remove">Zničit</button></div></div>`;
   }
   const tk = p.tokens.find(x => x.id === i.tokenId);
@@ -3309,7 +3321,7 @@ function wireTable(main, p, t) {
   if (q("ctrlAuto")) q("ctrlAuto").onclick = () => { let n = 0; t.items.filter(i => i.kind === "unit").forEach(i => { const k = cellUnder(p, i); const u = p.units.find(x => x.id === i.unitId); if (k && u && u.factionId) { t.control[k] = u.factionId; n++; } }); save(); render(); toast(`Přiděleno ${n} ${plural(n, "pole", "pole", "polí")}`); };
   // vybraná položka
   const selItem = t.items.find(i => i.uid === S.sel);
-  wireExtra(main, p, t, save); wireR4(main, p, t, save); wireWar(main, p, t, save); wireIpad(main, p, t, save); wireOnline(main, p, t, save); wireMore(main, p, t, save); wireCrawl(main, p, t, save); wireLogic(main, p, t, save); wireCmap(main, p, t, save); wireExtra2(main, p, t, save); wireNet(main, p, t, save); wireDeliver(main, p, t, save); wireCB(main, p, t, save); wireRail(main, p, t, save); wireCommand(main, p, t, save); wireUnitsPlus(main, p, t, save); wireFacing(main, p, t, save);
+  wireExtra(main, p, t, save); wireR4(main, p, t, save); wireWar(main, p, t, save); wireIpad(main, p, t, save); wireOnline(main, p, t, save); wireMore(main, p, t, save); wireCrawl(main, p, t, save); wireLogic(main, p, t, save); wireCmap(main, p, t, save); wireExtra2(main, p, t, save); wireNet(main, p, t, save); wireDeliver(main, p, t, save); wireCB(main, p, t, save); wireRail(main, p, t, save); wireCommand(main, p, t, save); wireUnitsPlus(main, p, t, save); wireFacing(main, p, t, save); wireMorale(main, p, t, save);
   const cardTo = (el, where) => { if (where === "tab" && !gate(p, t, "vylozit")) return; const i = selItem; t.items = t.items.filter(x => x !== i); const fid = el.dataset[where === "hand" ? "tohand" : "totab"]; const h = { deckId: i.deckId, cardId: i.cardId }; (where === "hand" ? (t.hands[fid] = t.hands[fid] || []) : (t.tableau[fid] = t.tableau[fid] || [])).push(h); if (where === "tab") { const c = cardOf(p, h).c; logEv(t, `${p.factions.find(f => f.id === fid).name} vykládá ${c.title}`); if (c.effect) runEffects(p, t, fid, c.effect, c.title); after(p, t, "vylozit", fid, c.type); } S.sel = null; save(); render(); };
   on("[data-tohand]", el => cardTo(el, "hand")); on("[data-totab]", el => cardTo(el, "tab"));
   on("[data-sa]", el => {
@@ -3399,6 +3411,7 @@ function wireTable(main, p, t) {
             if (facingOn(p) && p.facing.auto) faceAlong(p, it, origin, k);
             t.moved[it.uid] = true; if (hiddenFaction(p, u.factionId)) hiddenMove(p, t, it, k); else logEv(t, `${u.name} táhne na ${k.split(",").map(n => pad2(+n + 1)).join("")}${b.labels[k] ? " (" + b.labels[k] + ")" : ""}`);
             after(p, t, "pohyb", u.factionId, ter ? ter.name : ""); crawlOnMove(p, t, it, k);
+            const mine = minesOnEnter(p, t, it, k); if (mine) { checkWin(p, t); toast(mine); if (!t.items.includes(it)) { S.sel = null; save(); render(); return; } }
             if (triggerOverwatch(p, t, it)) { S.sel = it.uid; save(); render(); return; }
           }
         }
@@ -3492,6 +3505,7 @@ function moveViolations(p, t, it, origin, range, k) {
   const R = p.ruleset; const msgs = []; const u = p.units.find(x => x.id === it.unitId); const cp = curPlayer(p, t);
   if (R.moveRange && range && origin && !(k in range)) msgs.push("cíl je mimo dosah pohybu");
   if (R.moveOnce && t.moved[it.uid]) msgs.push("jednotka se v tomto tahu už pohnula");
+  if (it.st && it.st.sup) msgs.push("jednotka je potlačená palbou");
   msgs.push(...actViolation(p, it));
   if (R.ownTurn && cp && u && u.factionId !== cp.id) msgs.push(`táhne strana, která není na tahu (${cp.name})`);
   if (+R.stackLimit) { const n = t.items.filter(o => o !== it && o.kind === "unit" && !o.inside && cellUnder(p, o) === k).length; if (n >= +R.stackLimit) msgs.push(`na poli může stát nejvýš ${R.stackLimit} ${plural(+R.stackLimit, "jednotka", "jednotky", "jednotek")}`); }
@@ -4588,7 +4602,7 @@ function retreat(p, t, it, n = 1) {
 // Provede výsledek z bojové tabulky na jednotky zapojené do boje.
 function applyCombat(p, t, out) {
   const C = S.combat; const att = (C.attUids || []).map(id => t.items.find(i => i.uid === id)).filter(Boolean); const def = t.items.find(i => i.uid === C.defUid);
-  const code = String(out || "").toUpperCase().trim(); const msgs = [];
+  const code = String(out || "").toUpperCase().trim(); const msgs = []; const before = new Map([...att, def].filter(Boolean).map(i => [i, !!i.reduced]));
   const m = code.match(/^([AD])(R|S)?(\d)?$/);
   if (code === "AE") att.forEach(i => msgs.push(stepLoss(p, t, Object.assign(i, { reduced: true }))));
   else if (code === "DE") { if (def) msgs.push(stepLoss(p, t, Object.assign(def, { reduced: true }))); }
@@ -4598,6 +4612,7 @@ function applyCombat(p, t, out) {
   else if (m) { const tgt = m[1] === "A" ? att : (def ? [def] : []); const n = +(m[3] || 1);
     tgt.forEach(i => { for (let s = 0; s < n && t.items.includes(i); s++) msgs.push(m[2] === "R" ? retreat(p, t, i, 1) : stepLoss(p, t, i)); }); }
   else return "Výsledek nemá automatické provedení – posuň jednotky ručně";
+  msgs.push(...moraleAfterLoss(p, t, [...before].filter(([i, r]) => !!i.reduced !== r).map(([i]) => i)));
   checkWin(p, t);
   return msgs.filter(Boolean).join(", ") || "Žádná změna";
 }
@@ -4923,9 +4938,9 @@ const fname = (p, fid) => (p.factions.find(f => f.id === fid) || {}).name || "";
 // ----- Wargame -----
 // Čtvrtá položka označuje stavy pro jednotky s životy (dungeon crawler).
 const UNIT_ST = { dis: ["Rozvrácená", "✖", "útočí polovinou síly"], dug: ["Zakopaná", "⛨", "obránce má posun o 1 sloupec ve svůj prospěch"], tired: ["Unavená", "z", "pohyb poloviční"],
-  poison: ["Otrávená", "☠", "na začátku kola ztrácí 1 život", 1], stun: ["Omráčená", "✷", "příšera v příštím tahu nejedná", 1], tiredC: ["Zpomalená", "z", "pohyb poloviční", 1], watch: ["Na hlídce", "👁", "vystřelí na nepřítele, který vstoupí do jejího dostřelu a výhledu", 2] };
+  poison: ["Otrávená", "☠", "na začátku kola ztrácí 1 život", 1], stun: ["Omráčená", "✷", "příšera v příštím tahu nejedná", 1], tiredC: ["Zpomalená", "z", "pohyb poloviční", 1], sup: ["Potlačená", "⊘", "nesmí se pohnout, útočí polovinou síly", 2], watch: ["Na hlídce", "👁", "vystřelí na nepřítele, který vstoupí do jejího dostřelu a výhledu", 2] };
 const stBadges = i => i.st ? Object.keys(UNIT_ST).filter(k => i.st[k]).map(k => `<span class="ust" title="${UNIT_ST[k][0]}">${UNIT_ST[k][1]}</span>`).join("") : "";
-function unitAttack(p, t, i) { let v = unitStat(p, i, "att"); if (!inSupply(p, t, i)) v = Math.floor(v / 2); if (i.st && i.st.dis) v = Math.floor(v / 2); return v; }
+function unitAttack(p, t, i) { let v = unitStat(p, i, "att"); if (!inSupply(p, t, i)) v = Math.floor(v / 2); if (i.st && i.st.dis) v = Math.floor(v / 2); if (i.st && i.st.sup) v = Math.floor(v / 2); return v; }
 function defShift(p, t, i) { const b = tableBoard(p); const k = cellUnder(p, i); const ter = b && k ? terrainOf(p, b, k) || p.terrains[0] : null; return Math.max(-3, Math.min(3, (ter ? +ter.shift || 0 : 0) - (i.st && i.st.dug ? 1 : 0))); }
 // Pole zapsané jako „0304“ (sloupec a řádek), „3,4“ nebo popiskem pole.
 function cellFromText(b, txt) {
@@ -5239,7 +5254,7 @@ function moreRulebook(p) {
   if (fx.length) out.push(["Pevné žetony", `<p>Pevné žetony po položení zůstávají na místě. Bonus platí pro jednotky na stejném poli.</p><ul>${fx.map(x => `<li><b>${esc(x.name)}</b>${x.buildable ? " (jednotka ho může postavit na svém poli)" : ""}: ${esc(modText(x) || "bez bonusu")}</li>`).join("")}</ul>`]);
   if (zu.length) out.push(["Zóny jednotek", `<p>Útok zasáhne zónu podle váhy (vyšší váha = častěji) a brání se její obranou. Zóna s výdrží ji ztrácí; zničená kritická zóna vyřadí jednotku.</p><table><tr><th>Jednotka</th><th>Zóny (obrana, výdrž, váha)</th></tr>${zu.map(u => `<tr><td>${esc(u.name)}</td><td>${unitZones(u).map(z => `${esc(z.name)} ${z.def || 0}${+z.hp ? `/${z.hp}` : ""} ×${z.w || 1}${z.crit ? " ★" : ""}`).join(", ")}</td></tr>`).join("")}</table>`]);
   if (tr.length || ca.length) out.push(["Nosnost", `${tr.length ? `<p>Přeprava: ${tr.map(u => `${esc(u.name)} převeze ${u.transport}`).join(", ")}. Jednotka nastoupí na stejném poli a jede s vozidlem.</p>` : ""}${ca.length ? `<p>Nosnost předmětů: ${ca.map(u => `${esc(u.name)} ${u.carry}`).join(", ")}. Váha předmětů: ${p.tokens.filter(x => x.small).map(x => `${esc(x.name)} ${tokWeight(x)}`).join(", ")}.</p>` : ""}`]);
-  out.push(...facingRulebook(p));
+  out.push(...facingRulebook(p), ...moraleRulebook(p));
   if (p.mancala.on) out.push(["Rozsévání", `<p>Každý hráč má ${p.mancala.pits} jamek po ${p.mancala.seeds} semínkách a sklad. Ve svém tahu vezmi všechna semínka z jedné své jamky a rozděl je po jednom do dalších jamek proti směru hodin (soupeřův sklad přeskoč).${p.mancala.extra ? " Skončíš-li ve svém skladu, hraješ znovu." : ""}${p.mancala.capture ? " Skončíš-li ve své prázdné jamce, bereš i semínka z protější jamky." : ""} Hra končí, když jedna strana nemá semínka; vyhrává plnější sklad.</p>`]);
   const inc = p.decks.flatMap(d => d.cards.filter(c => c.income || c.act)); if (inc.length) out.push(["Schopnosti karet", `<ul>${inc.map(c => `<li><b>${esc(c.title)}</b>: ${c.income ? "každé kolo " + esc(describeEffect(c.income)) : ""}${c.income && c.act ? "; " : ""}${c.act ? "vyčerpáním " + esc(describeEffect(c.act)) : ""}</li>`).join("")}</ul>${p.refreshExhaust ? "<p>Vyčerpané karty se na začátku kola obnoví.</p>" : ""}`]);
   if (p.trickBid.on) out.push(["Sázky", `<p>Před kolem každý řekne, kolik štychů vezme. Přesná sázka: ${p.trickBid.hit} bodů + ${p.trickBid.per} za každý štych; jinak −${p.trickBid.miss} za každý štych rozdílu.</p>`]);
@@ -5344,7 +5359,8 @@ function crawlAttack(p, t, a, d) {
   const ad = Array.from({ length: Math.max(0, unitAttack(p, t, a) + pos.shift) }, () => rnd(s)), dd = Array.from({ length: Math.max(0, withAttacker(a, () => z ? zoneDef(p, d, z) : unitStat(p, d, "def")) + coverOf(p, t, d)) }, () => rnd(s));
   const hits = ad.filter(v => v >= p.dice.aHit).length, blocks = dd.filter(v => v >= p.dice.dHit).length; const dmg = Math.max(0, hits - blocks);
   const res = `${ua.name} útočí na ${ud.name}${z ? ` (${z.name})` : ""}${pos.parts.length ? ` [${pos.parts.join(", ")}]` : ""}: ${ad.join(",") || "–"} proti ${dd.join(",") || "–"} → ${dmg} ${plural(dmg, "zranění", "zranění", "zranění")}`;
-  const after2 = dmg ? (z ? zoneHit(p, t, d, z, dmg, a) : damage(p, t, d, dmg, a)) : ""; logEv(t, res + (after2 ? "; " + after2 : "")); return res + (after2 ? ". " + after2 : "");
+  let after2 = dmg ? (z ? zoneHit(p, t, d, z, dmg, a) : damage(p, t, d, dmg, a)) : "";
+  if (dmg && t.items.includes(d)) after2 = [after2, ...moraleAfterLoss(p, t, [d])].filter(Boolean).join("; "); logEv(t, res + (after2 ? "; " + after2 : "")); return res + (after2 ? ". " + after2 : "");
 }
 function targetsOf(p, t, it) {
   if (cmapOn(p, t)) { const i0 = cmapIndexOf(p, t, it); const u0 = unitOf(p, it); if (i0 == null || !u0) return []; const reach = unitStat(p, it, "range");
@@ -6546,6 +6562,172 @@ function facingRulebook(p) {
   const dirT = p.tokens.filter(x => x.frontOnly); if (dirT.length) out.push(["Kryt jen zepředu", `<p>${dirT.map(x => esc(x.name)).join(", ")} chrání jen proti útoku z přední výseče žetonu.</p>`]);
   const hs = p.terrains.filter(x => +x.h); if (hs.length) out.push(["Výška terénu", `<p>Výšky: ${hs.map(x => `${esc(x.name)} ${x.h}`).join(", ")}. Výhled zastaví pole, které je (s překážkou o 1 výš) vyšší než čára výhledu.${+F.elevShift ? ` Útok na výše stojící jednotku má posun −${F.elevShift}, z výšky +${F.elevShift}.` : ""}</p>`]);
   const am = p.units.filter(u => u.ammo !== "" && u.ammo != null); if (am.length) out.push(["Munice", `<p>${am.map(u => `${esc(u.name)} ${u.ammo}`).join(", ")}. Každý útok spotřebuje 1; doplnit lze v zásobování.</p>`]);
+  return out;
+}
+
+// ---------- Morálka, potlačení palbou a zvláštní žetony ----------
+// Morálka: test hodem kostek (součet ≤ morálka jednotky ± úpravy). Neúspěch = rozvrácená, opakovaný neúspěch = ústup.
+// Potlačení: palba bez ztrát – zásah jednotku potlačí (nehýbe se, útočí polovinou), dva zásahy navíc vyvolají test morálky.
+// Zvláštní žetony: mina (zásah při vstupu, může být skrytá), ostnatý drát (pohyb navíc a zastaví), výbušnina (odpálí překážku
+// nebo zasáhne sousední jednotky), potraviny (léčí a zahání únavu; volitelně je jednotky potřebují každé kolo).
+function normalizeMorale(p) {
+  p.morale = Object.assign({ on: false, base: 7, dice: 2, sides: 6, auto: true, cmdBonus: 1, supHit: 5, supClear: true, hunger: false }, p.morale || {});
+}
+const FX_NAMES = { "": "žádný", mina: "Mina – zasáhne při vstupu", drat: "Ostnatý drát – zdrží pohyb", vybusnina: "Výbušnina – odpálit", jidlo: "Potraviny – spotřebovat" };
+const fxOf = (p, it) => (tokDef(p, it) || {}).fx || "";
+// Zásah jednotky: s životy ubere životy, jinak kroky.
+function harm(p, t, it, n, by) {
+  if (n <= 0) return ""; if (unitHp(p, it) != null) return damage(p, t, it, n, by);
+  const out = []; for (let i = 0; i < n && t.items.includes(it); i++) out.push(stepLoss(p, t, it)); return out.join(", ");
+}
+function rollN(n, s) { return Array.from({ length: Math.max(0, n) }, () => rnd(s)); }
+// Morálka
+function moraleBase(p, it) { const u = unitOf(p, it); return u && u.mor !== "" && u.mor != null ? +u.mor : +p.morale.base || 7; }
+function moraleMods(p, t, it) {
+  const out = []; const M = p.morale;
+  if (+M.cmdBonus && commandersOver(p, t, it).length) out.push(["velitel", +M.cmdBonus]);
+  if (it.reduced) out.push(["oslabená", -1]); if (it.st && it.st.sup) out.push(["potlačená", -1]);
+  if (tableBoard(p) && !inSupply(p, t, it)) out.push(["mimo zásobování", -1]);
+  return out;
+}
+function moraleTarget(p, t, it) { return moraleBase(p, it) + moraleMods(p, t, it).reduce((a, [, v]) => a + v, 0); }
+function moraleTest(p, t, it, why = "") {
+  const M = p.morale; const u = unitOf(p, it); const roll = rollN(+M.dice || 2, +M.sides || 6); const sum = roll.reduce((a, b) => a + b, 0); const need = moraleTarget(p, t, it);
+  const ok = sum <= need; let res;
+  if (ok) res = "drží"; else { it.st = it.st || {}; if (it.st.dis && tableBoard(p) && cellUnder(p, it)) res = "ustupuje – " + retreat(p, t, it, 1); else { it.st.dis = true; res = "je rozvrácená"; } }
+  const msg = `Morálka ${u.name}${why ? " (" + why + ")" : ""}: ${roll.join("+")} = ${sum} proti ${need} → ${res}`; logEv(t, msg); return { ok, sum, need, msg };
+}
+function rally(p, t, it) {
+  const r = moraleTest(p, t, it, "vzpamatování"); if (r.ok) { it.st.dis = false; it.st.sup = false; r.msg += ", vzpamatovala se"; } return r;
+}
+// Potlačující palba: kostky podle útoku (± poloha), zásah na supHit+.
+function suppressFire(p, t, a, d) {
+  const ua = unitOf(p, a), ud = unitOf(p, d); if (!useAmmo(p, t, a)) return `${ua.name}: došla munice`;
+  if (facingOn(p) && p.facing.auto) faceToward(p, a, d);
+  const pos = positionCombat(p, t, [a], d); const roll = rollN(unitAttack(p, t, a) + pos.shift, +p.dice.sides || 6); const hits = roll.filter(v => v >= +p.morale.supHit).length;
+  let msg = `${ua.name} potlačuje ${ud.name}: ${roll.join(",") || "–"} → ${hits} ${plural(hits, "zásah", "zásahy", "zásahů")}`;
+  if (hits) { d.st = d.st || {}; d.st.sup = true; msg += ", potlačena"; }
+  logEv(t, msg); if (hits >= 2 && p.morale.on) msg += ". " + moraleTest(p, t, d, "palba").msg;
+  return msg;
+}
+// Po ztrátě v boji: test morálky (když je zapnutý automaticky).
+function moraleAfterLoss(p, t, units) {
+  if (!p.morale.on || !p.morale.auto) return []; return units.filter(i => t.items.includes(i)).map(i => moraleTest(p, t, i, "ztráty").msg);
+}
+// Začátek kola: potlačení skončí, hlad.
+function moraleRound(p, t) {
+  if (p.morale.supClear) t.items.forEach(i => { if (i.st && i.st.sup) i.st.sup = false; });
+  if (!p.morale.hunger || !p.tokens.some(x => x.fx === "jidlo")) return;
+  t.items.filter(i => i.kind === "unit" && !isMonster(p, i)).forEach(i => {
+    const food = attachedTo(p, t, i).find(o => fxOf(p, o) === "jidlo"); const u = unitOf(p, i);
+    if (food) { t.items = t.items.filter(o => o !== food); logEv(t, `${u.name} spotřebuje ${tokDef(p, food).name}`); }
+    else { i.st = i.st || {}; i.st[unitHp(p, i) != null ? "tiredC" : "tired"] = true; logEv(t, `${u.name} hladoví – je unavená`); }
+  });
+}
+// Bodlák a miny na mapě
+function fxTokensAt(p, t, k, fx) { return t.items.filter(o => o.kind === "token" && !o.attachTo && fxOf(p, o) === fx && cellUnder(p, o) === k); }
+function wireCost(p, t) {
+  const out = {}; t.items.forEach(o => { if (o.kind !== "token" || o.attachTo || fxOf(p, o) !== "drat") return; const k = cellUnder(p, o); if (k) out[k] = Math.max(out[k] || 0, +(tokDef(p, o).fxN ?? 2) || 0); }); return out;
+}
+function minesOnEnter(p, t, it, k) {
+  const out = []; fxTokensAt(p, t, k, "mina").forEach(m => { if (!t.items.includes(it)) return; const tk = tokDef(p, m); const roll = rollN(+tk.fxN || 1, +p.dice.sides || 6); const hits = roll.filter(v => v >= +p.dice.aHit).length;
+    m.revealed = true; const r = hits ? harm(p, t, it, hits) : "bez zásahu"; out.push(`${tk.name}: ${roll.join(",")} → ${r}`); if (tk.once !== false) t.items = t.items.filter(o => o !== m); });
+  out.forEach(m => logEv(t, m)); return out.join("; ");
+}
+// Výbušnina: cíle na vlastním a sousedních polích.
+function blastTargets(p, t, it) {
+  const b = tableBoard(p); const k0 = b && cellUnder(p, it); const u = unitOf(p, it); if (!k0 || !u) return [];
+  const near = o => { const k = cellUnder(p, o); return k && hexDist(b, k0, k) <= 1; };
+  return [...t.items.filter(o => o.kind === "token" && !o.attachTo && (tokDef(p, o) || {}).fixed && near(o)), ...t.items.filter(o => o.kind === "unit" && !o.inside && near(o) && (unitOf(p, o) || {}).factionId !== u.factionId)];
+}
+function blast(p, t, it, charge, target) {
+  const tk = tokDef(p, charge); let msg;
+  if (target.kind === "token") { t.items = t.items.filter(o => o !== target); msg = `${unitOf(p, it).name} odpálí ${tk.name}: ${tokDef(p, target).name} zničen`; }
+  else { const roll = rollN(+tk.fxN || 2, +p.dice.sides || 6); const hits = roll.filter(v => v >= +p.dice.aHit).length; msg = `${unitOf(p, it).name} odpálí ${tk.name} u ${unitOf(p, target).name}: ${roll.join(",")} → ${hits ? harm(p, t, target, hits, it) : "bez zásahu"}`;
+    if (hits && t.items.includes(target)) { const mm = moraleAfterLoss(p, t, [target]); if (mm.length) msg += ". " + mm.join(". "); } }
+  t.items = t.items.filter(o => o !== charge); logEv(t, msg); return msg;
+}
+function eat(p, t, it, food) {
+  const tk = tokDef(p, food); const u = unitOf(p, it); const parts = [];
+  if (+tk.fxN && unitHp(p, it) != null) { it.dmg = Math.max(0, (it.dmg || 0) - +tk.fxN); parts.push(`+${tk.fxN} ${plural(+tk.fxN, "život", "životy", "životů")}`); }
+  if (it.st && (it.st.tired || it.st.tiredC)) { it.st.tired = false; it.st.tiredC = false; parts.push("už není unavená"); }
+  t.items = t.items.filter(o => o !== food); const msg = `${u.name} spotřebuje ${tk.name}${parts.length ? ": " + parts.join(", ") : ""}`; logEv(t, msg); return msg;
+}
+const hiddenMine = (p, it) => fxOf(p, it) === "mina" && (tokDef(p, it) || {}).hidden && !it.revealed && !!S.view;
+const cellLabel = k => k ? k.split(",").map(n => pad2(+n + 1)).join("") : "";
+function moraleSelHTML(p, t, i) {
+  const u = unitOf(p, i); const out = []; const st = i.st || {};
+  if (p.morale.on) { const mods = moraleMods(p, t, i); out.push(`<div class="row"><span class="hint" title="${esc(mods.map(([n, v]) => `${n} ${v > 0 ? "+" : ""}${v}`).join(", "))}">Morálka ${moraleTarget(p, t, i)}${mods.length ? ` (základ ${moraleBase(p, i)})` : ""}</span><button class="btn small" data-mor="test">Test morálky</button>${st.dis || st.sup ? `<button class="btn small" data-mor="rally">Vzpamatovat</button>` : ""}</div>`); }
+  const tg = cellUnder(p, i) && unitAttack(p, t, i) > 0 ? targetsOf(p, t, i).slice(0, 3) : [];
+  if (tg.length) out.push(`<div class="row"><span class="hint">Potlačit:</span>${tg.map(o => `<button class="btn small" data-supp="${o.uid}">${esc(unitOf(p, o).name)}</button>`).join("")}</div>`);
+  const items = attachedTo(p, t, i);
+  const charges = items.filter(o => fxOf(p, o) === "vybusnina"); const bt = charges.length ? blastTargets(p, t, i).slice(0, 4) : [];
+  if (charges.length) out.push(`<div class="row"><span class="hint">Odpálit ${esc(tokDef(p, charges[0]).name)}:</span>${bt.length ? bt.map(o => `<button class="btn small" data-blast="${charges[0].uid}|${o.uid}">${esc(o.kind === "unit" ? unitOf(p, o).name : tokDef(p, o).name)} ${cellLabel(cellUnder(p, o))}</button>`).join("") : `<span class="hint">nic v dosahu</span>`}</div>`);
+  const food = items.filter(o => fxOf(p, o) === "jidlo"); if (food.length) out.push(`<div class="row">${food.slice(0, 3).map(o => `<button class="btn small" data-eat="${o.uid}">Spotřebovat ${esc(tokDef(p, o).name)}</button>`).join("")}</div>`);
+  return out.join("");
+}
+function wireMorale(main, p, t, save) {
+  const sel = t.items.find(i => i.uid === S.sel); if (!sel || sel.kind !== "unit") return; const on = (s, fn) => $$(s, main).forEach(el => el.addEventListener("click", () => fn(el)));
+  const done = msg => { checkWin(p, t); save(); render(); toast(msg); };
+  on("[data-mor]", el => done(el.dataset.mor === "rally" ? rally(p, t, sel).msg : moraleTest(p, t, sel).msg));
+  on("[data-supp]", el => { if (!gate(p, t, "boj", actViolation(p, sel))) return; const d = t.items.find(o => o.uid === el.dataset.supp); if (d) done(suppressFire(p, t, sel, d)); });
+  on("[data-blast]", el => { const [c, g] = el.dataset.blast.split("|"); const ch = t.items.find(o => o.uid === c), tg = t.items.find(o => o.uid === g); if (ch && tg) done(blast(p, t, sel, ch, tg)); });
+  on("[data-eat]", el => { const f = t.items.find(o => o.uid === el.dataset.eat); if (f) done(eat(p, t, sel, f)); });
+}
+// Editor žetonu: zvláštní účinek
+function fxEditorHTML(t) {
+  const n = t.fx === "drat" ? ["Pohyb navíc", 2] : t.fx === "mina" ? ["Kostek zásahu", 1] : t.fx === "vybusnina" ? ["Kostek zásahu", 2] : t.fx === "jidlo" ? ["Životy +", 0] : null;
+  return `<label class="f" style="width:230px">Zvláštní účinek<select data-tfx="${t.id}">${Object.entries(FX_NAMES).map(([k, v]) => `<option value="${k}" ${(t.fx || "") === k ? "selected" : ""}>${v}</option>`).join("")}</select></label>
+    ${n ? `<label class="f" style="width:110px">${n[0]}<input type="number" min="0" max="20" data-tfxn="${t.id}" value="${esc(t.fxN ?? n[1])}"></label>` : ""}
+    ${t.fx === "mina" ? `<label class="chk" title="Hráči ji nevidí, dokud do ní někdo nevstoupí (rozhodčí ji vidí)"><input type="checkbox" data-tfxh="${t.id}" ${t.hidden ? "checked" : ""}> Skrytá</label><label class="chk"><input type="checkbox" data-tfxo="${t.id}" ${t.once !== false ? "checked" : ""}> Po výbuchu zmizí</label>` : ""}`;
+}
+function wireFxEditor(main, p) {
+  const tok = id => p.tokens.find(x => x.id === id);
+  $$("[data-tfx]", main).forEach(i => i.onchange = () => { const t = tok(i.dataset.tfx); t.fx = i.value; if (["mina", "drat"].includes(t.fx)) { t.fixed = true; t.small = false; } if (["vybusnina", "jidlo"].includes(t.fx)) { t.small = true; t.fixed = false; } touch(p); render(); });
+  $$("[data-tfxn]", main).forEach(i => i.addEventListener("change", () => { tok(i.dataset.tfxn).fxN = +i.value || 0; touch(p); }));
+  $$("[data-tfxh]", main).forEach(i => i.onchange = () => { tok(i.dataset.tfxh).hidden = i.checked; touch(p); });
+  $$("[data-tfxo]", main).forEach(i => i.onchange = () => { tok(i.dataset.tfxo).once = i.checked; touch(p); });
+}
+function FX_PRESET() {
+  return [
+  { id: uid(), name: "Mina", color: "#7a2e24", shape: "kruh", counter: false, text: "MINA", fixed: true, fx: "mina", fxN: 2, hidden: true, once: true },
+  { id: uid(), name: "Ostnatý drát", color: "#55524c", shape: "ctverec", counter: false, text: "DRÁT", fixed: true, fx: "drat", fxN: 2 },
+  { id: uid(), name: "Výbušnina", color: "#c8463c", shape: "ctverec", counter: false, text: "TNT", small: true, fx: "vybusnina", fxN: 3, weight: 1 },
+  { id: uid(), name: "Potraviny", color: "#8a9a3a", shape: "ctverec", counter: false, text: "JÍD", small: true, fx: "jidlo", fxN: 2, weight: 1 }];
+}
+function moraleMechHTML(p) {
+  const M = p.morale; const n = (id, l, v, t2 = "") => `<label class="f" ${t2 ? `title="${t2}"` : ""}>${l}<input type="number" id="${id}" value="${esc(v)}"></label>`;
+  return `<div class="panel"><h2>Morálka a potlačení</h2>
+    <label class="chk"><input type="checkbox" id="moOn" ${M.on ? "checked" : ""}> Jednotky mají morálku (test hodem kostek)</label>
+    ${M.on ? `<div class="grid" style="grid-template-columns:1fr 1fr 1fr">${n("moBase", "Výchozí morálka", M.base, "Pro jednotky bez vlastní hodnoty")}${n("moDice", "Kostek", M.dice)}${n("moSides", "Stěn", M.sides)}</div>
+      ${n("moCmd", "Velitel v dosahu: + k morálce", M.cmdBonus)}
+      <label class="chk"><input type="checkbox" id="moAuto" ${M.auto ? "checked" : ""}> Po ztrátě v boji test proběhne sám</label>
+      <p class="hint">Test projde, když součet ≤ morálka (oslabená, potlačená a mimo zásobování −1). Neúspěch: rozvrácená (útočí polovinou); další neúspěch: ústup o pole.</p>` : ""}
+    <h3>Potlačující palba</h3>
+    ${n("moSup", "Zásah potlačení na (hod ≥)", M.supHit)}
+    <label class="chk"><input type="checkbox" id="moSupC" ${M.supClear ? "checked" : ""}> Potlačení skončí na začátku dalšího kola</label>
+    <p class="hint">Na stole u jednotky „Potlačit:“ – hází kostky podle útoku. Zásah jednotku potlačí (nehýbe se, útočí polovinou), dva zásahy vyvolají test morálky. Morálku jednotky nastavíš v Komponentách.</p></div>`;
+}
+function fxMechHTML(p) {
+  const has = fx => p.tokens.some(x => x.fx === fx);
+  return `<div class="panel"><h2>Miny, dráty, výbušniny, potraviny</h2>
+    <p class="hint"><b>Mina</b> zasáhne jednotku, která vstoupí na její pole (kostky, zásah na ${p.dice.aHit}+); může být skrytá. <b>Ostnatý drát</b> stojí body pohybu navíc a zastaví pohyb. <b>Výbušninu</b> jednotka nese a odpálí – zničí překážku nebo zasáhne sousední nepřátele. <b>Potraviny</b> se spotřebují: léčí a zaženou únavu.</p>
+    <label class="chk"><input type="checkbox" id="moHunger" ${p.morale.hunger ? "checked" : ""}> Hlad: na začátku kola každá jednotka sní 1 potravinu, jinak je unavená</label>
+    <button class="btn small" id="fxAdd" ${["mina", "drat", "vybusnina", "jidlo"].every(has) ? "disabled" : ""}>Přidat žetony: mina, drát, výbušnina, potraviny</button>
+    <p class="hint">Účinek nastavíš u každého žetonu v Komponentách („Zvláštní účinek“).</p></div>`;
+}
+function wireMoraleMech(main, p) {
+  const M = p.morale; const q = id => document.getElementById(id);
+  const ch = (id, fn, re) => { if (q(id)) q(id).addEventListener("change", e => { fn(e.target); touch(p); if (re) render(); }); };
+  ch("moOn", e => { M.on = e.checked; }, 1); ch("moAuto", e => { M.auto = e.checked; }); ch("moSupC", e => { M.supClear = e.checked; }); ch("moHunger", e => { M.hunger = e.checked; });
+  [["moBase", "base"], ["moDice", "dice"], ["moSides", "sides"], ["moCmd", "cmdBonus"], ["moSup", "supHit"]].forEach(([id, k]) => ch(id, e => { M[k] = +e.value || 0; }));
+  if (q("fxAdd")) q("fxAdd").onclick = () => { const add = FX_PRESET().filter(x => !p.tokens.some(y => y.fx === x.fx)); p.tokens.push(...add); touch(p); render(); toast(`Přidáno ${add.length} ${plural(add.length, "žeton", "žetony", "žetonů")} do Komponent`); };
+}
+function moraleRulebook(p) {
+  const out = []; const M = p.morale;
+  if (M.on) { const mu = p.units.filter(u => u.mor !== "" && u.mor != null); out.push(["Morálka", `<p>Test morálky: hoď ${M.dice}k${M.sides}; součet nejvýš rovný morálce znamená úspěch. Výchozí morálka ${M.base}${mu.length ? ` (${mu.map(u => `${esc(u.name)} ${u.mor}`).join(", ")})` : ""}. Velitel v dosahu +${M.cmdBonus}; oslabená, potlačená a mimo zásobování −1.</p><p>Neúspěch: jednotka je rozvrácená (útočí polovinou). Rozvrácená jednotka při dalším neúspěchu ustoupí o pole. ${M.auto ? "Test se dělá po každé ztrátě v boji. " : ""}Vzpamatování: úspěšný test zruší rozvrácení i potlačení.</p>`]); }
+  if (p.units.some(u => +u.att)) out.push(["Potlačující palba", `<p>Místo útoku může jednotka potlačovat: hází tolik kostek, kolik má útok; každý hod ${M.supHit}+ je zásah. Zásah cíl potlačí – nesmí se pohnout a útočí polovinou${M.supClear ? " do začátku dalšího kola" : ""}. Dva zásahy${M.on ? " navíc vyvolají test morálky" : ""}.</p>`]);
+  const fx = p.tokens.filter(x => x.fx); if (fx.length) out.push(["Zvláštní žetony", `<ul>${fx.map(x => `<li><b>${esc(x.name)}</b>: ${x.fx === "mina" ? `kdo vstoupí na pole, dostane ${x.fxN || 1} ${plural(+x.fxN || 1, "kostku", "kostky", "kostek")} zásahu (${p.dice.aHit}+)${x.hidden ? "; leží skrytě" : ""}${x.once !== false ? "; po výbuchu zmizí" : ""}` : x.fx === "drat" ? `vstup stojí ${x.fxN ?? 2} body pohybu navíc a jednotka musí zastavit` : x.fx === "vybusnina" ? `jednotka ji odpálí na svém nebo sousedním poli: zničí překážku, nebo hodí ${x.fxN || 2} kostky na nepřítele` : `spotřebuje se: ${+x.fxN ? `+${x.fxN} životy, ` : ""}zažene únavu`}</li>`).join("")}</ul>${M.hunger ? "<p>Hlad: na začátku kola každá jednotka sní 1 potravinu, jinak je unavená.</p>" : ""}`]);
   return out;
 }
 

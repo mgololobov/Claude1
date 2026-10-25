@@ -94,6 +94,7 @@ function renderComponents(main, p) {
         ${swatchRow(t.color, `data-tc="${t.id}" data-tcolor`)}
         <label class="chk"><input type="checkbox" data-tcount="${t.id}" ${t.counter ? "checked" : ""}> Počítadlo</label>
         <label class="chk" title="Malý žeton se přetažením připne na jednotku a upraví její hodnoty"><input type="checkbox" data-tsmall="${t.id}" ${t.small ? "checked" : ""}> Malý žeton – vybavení jednotky</label>
+        ${fxEditorHTML(t)}
         <label class="chk" title="Po položení zůstává na místě (okop, minové pole); úpravy platí pro jednotky na stejném poli"><input type="checkbox" data-tfixed="${t.id}" ${t.fixed ? "checked" : ""}> Pevný – zůstává na místě</label>
         ${t.fixed ? `<label class="chk"><input type="checkbox" data-tbuild="${t.id}" ${t.buildable ? "checked" : ""}> Jednotky ho mohou postavit</label><label class="chk" title="Bonus platí jen proti útoku z přední výseče žetonu; žeton natočíš na stole"><input type="checkbox" data-tfront="${t.id}" ${t.frontOnly ? "checked" : ""}> Chrání jen zepředu</label>` : ""}
         ${t.small || t.fixed ? `<div class="row" style="width:100%"><span class="hint">${t.fixed ? "Bonus jednotkám na poli:" : "Úpravy jednotky:"}</span>${MODS.filter(([m]) => !t.fixed || m !== "mHp").map(([m, , l]) => `<label class="f" style="width:84px">${l}<input type="number" data-tmod="${m}|${t.id}" value="${esc(t[m] || "")}" placeholder="±0"></label>`).join("")}
@@ -172,6 +173,7 @@ function renderComponents(main, p) {
   $$("[data-tsmall]", main).forEach(i => i.onchange = () => { tok(i.dataset.tsmall).small = i.checked; if (i.checked) tok(i.dataset.tsmall).fixed = false; touch(p); render(); });
   $$("[data-tfixed]", main).forEach(i => i.onchange = () => { tok(i.dataset.tfixed).fixed = i.checked; if (i.checked) tok(i.dataset.tfixed).small = false; touch(p); render(); });
   $$("[data-tbuild]", main).forEach(i => i.onchange = () => { tok(i.dataset.tbuild).buildable = i.checked; touch(p); });
+  wireFxEditor(main, p);
   $$("[data-tfront]", main).forEach(i => i.onchange = () => { tok(i.dataset.tfront).frontOnly = i.checked; touch(p); });
   $$("[data-tw]", main).forEach(i => i.addEventListener("change", () => { tok(i.dataset.tw).weight = i.value === "" ? "" : +i.value; touch(p); }));
   $$("[data-tzone]", main).forEach(i => i.addEventListener("change", () => { tok(i.dataset.tzone).zone = i.value.trim(); touch(p); }));
@@ -208,6 +210,7 @@ function editUnit(p, unit) {
         <label class="f" style="width:150px" title="Kolik jednotek (podle velikosti) vozidlo převeze">Převáží jednotek<input type="number" id="u-transport" min="0" max="30" value="${esc(u.transport || "")}" placeholder="–"></label>
         <label class="f" style="width:150px" title="Kolik místa zabere ve vozidle (výchozí 1)">Velikost při přepravě<input type="number" id="u-tsize" min="0" max="10" value="${esc(u.tsize ?? "")}" placeholder="1"></label>
         <label class="f" style="width:150px" title="Kolik předmětů (podle váhy) unese">Nosnost předmětů<input type="number" id="u-carry" min="0" max="30" value="${esc(u.carry ?? "")}" placeholder="bez limitu"></label>
+        <label class="f" style="width:120px" title="Test morálky projde, když součet hodu ≤ morálka (prázdné = výchozí z Mechanik)">Morálka<input type="number" id="u-mor" min="0" max="20" value="${esc(u.mor ?? "")}" placeholder="výchozí"></label>
         <label class="f" style="width:130px" title="Kolikrát může zaútočit, než musí doplnit">Munice<input type="number" id="u-ammo" min="0" max="99" value="${esc(u.ammo ?? "")}" placeholder="bez limitu"></label>
         <label class="f" style="width:140px">Dostřel (polí)<input type="number" id="u-range" min="0" max="30" value="${esc(u.range || "")}" placeholder="–"></label>
         <label class="chk"><input type="checkbox" id="u-big" ${u.big ? "checked" : ""}> Velký žeton (zabírá víc místa)</label>
@@ -224,7 +227,7 @@ function editUnit(p, unit) {
     u.att = num($("#u-a", d).value); u.def = num($("#u-d", d).value); u.mov = num($("#u-m", d).value); u.rAtt = num($("#u-ra", d).value); u.rDef = num($("#u-rd", d).value); u.rMov = num($("#u-rm", d).value);
     u.qty = Math.max(0, Math.min(99, parseInt($("#u-q", d).value, 10) || 0)); u.hq = $("#u-hq", d).checked; u.big = $("#u-big", d).checked; u.range = $("#u-range", d).value === "" ? "" : +$("#u-range", d).value;
     u.kind = $("#u-kind", d).value; u.cap = $("#u-cap", d).value === "" ? "" : +$("#u-cap", d).value;
-    ["cmd", "cmdAtt", "cmdDef", "transport", "tsize", "carry", "ammo"].forEach(k => { const v = $("#u-" + k, d).value; u[k] = v === "" ? "" : +v; }); u.hp = $("#u-hp", d).value === "" ? "" : +$("#u-hp", d).value; u.xp = $("#u-xp", d).value === "" ? "" : +$("#u-xp", d).value; };
+    ["cmd", "cmdAtt", "cmdDef", "transport", "tsize", "carry", "ammo", "mor"].forEach(k => { const v = $("#u-" + k, d).value; u[k] = v === "" ? "" : +v; }); u.hp = $("#u-hp", d).value === "" ? "" : +$("#u-hp", d).value; u.xp = $("#u-xp", d).value === "" ? "" : +$("#u-xp", d).value; };
   const prev = () => { read(); $("#u-prev", d).innerHTML = unitHTML(p, u) + (hasReduced(u) ? unitHTML(p, u, true) : "") + `<span class="hint" style="font-size:.8rem">líc${hasReduced(u) ? " / rub" : ""}</span>`; };
   d.addEventListener("input", prev); d.addEventListener("change", prev); prev(); u.zones = clone(u.zones || []); wireZonesEditor(d, u);
   $("#u-save", d).onclick = () => { read(); if (isNew) p.units.push(u); else Object.assign(unit, u); touch(p); closeDialog(); render(); toast(isNew ? "Jednotka přidána" : "Jednotka uložena"); };
