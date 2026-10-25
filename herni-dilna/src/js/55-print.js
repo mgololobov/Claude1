@@ -69,6 +69,7 @@ function printNeeds(p) {
   p.bags.forEach(b => R("Obstarat", `Sáček „${b.name}“ a žetony v něm`, b.contents.reduce((a, c) => a + (+c.count || 0), 0), null, b.contents.map(c => `${c.count}× ${c.label}`).join(", ")));
   p.resources.filter(r => !r.global).forEach(r => R("Obstarat", `Žetony zdroje „${r.name}“`, Math.max(1, p.factions.length) * Math.max(10, +r.max || 0, (+r.start || 0) * 3), null, "kostičky, mince nebo vytištěné žetony"));
   diceNeeds(p).forEach(d => R("Kostky", d.custom ? `Vlastní kostka „${d.custom.name}“` : `k${d.sides}`, d.n, null, d.why.join(", ")));
+  if (p.rondel.on) { R("Mapa", "Deska rondelu", 1, 1, `${p.rondel.spaces.length} polí v kruhu`); R("Obstarat", "Figurky na rondel", p.factions.length, null, "1 na hráče"); }
   if (p.actions.length) R("Obstarat", `Figurky dělníků (${p.factions.length} barev)`, p.factions.length * 4, null, "3–5 na hráče");
   const np = Math.max(1, p.factions.length);
   R("Tisk pro hráče", "Pravidla", 1, Math.max(2, Math.ceil(((p.rules || "").length + 6000) / 5000)), "záložka Pravidla → tisk");

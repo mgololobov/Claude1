@@ -371,6 +371,10 @@ details.cfx { border: 1px solid var(--line); border-radius: 10px; padding: 6px 1
 table.plan td { text-align: left; font-family: var(--f-body); } table.plan td.mono { text-align: right; font-family: var(--f-mono); }
 .titem .fuel { position: absolute; right: -6px; bottom: -8px; background: #fbfaf6; color: #1b2421; border: 1px solid #1b2421; border-radius: 4px; font: 800 10px/14px var(--f-mono); padding: 0 3px; pointer-events: none; }
 .titem .fuel.out { background: #c8463c; color: #fff; }
+.rondel { position: relative; width: 100%; max-width: 330px; aspect-ratio: 1; margin: 6px auto; border-radius: 50%; background: radial-gradient(circle, #f6f1e4 55%, #e9dfc8 56%); }
+.rondel .rsp { position: absolute; transform: translate(-50%, -50%); width: 84px; min-height: 52px; border-radius: 10px; border: 1.5px solid #1b2421; background: #fbfaf6; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: .78rem; padding: 3px; line-height: 1.15; }
+.rondel .rsp.on { background: #e0aa2e; } .rondel .rsp:disabled { opacity: .55; }
+.rondel .rsp span { font-size: .7rem; color: #555; } .rondel .pawns i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin: 1px; border: 1px solid #1b2421; }
 </style>
 <style id="card-css">
 /* Vzhled karet. Všechny rozměry jsou v em, velikost karty určuje jen font-size (16px = šířka 150 px). */
@@ -538,7 +542,7 @@ function normalize(p) {
   p.versions = p.versions || []; p.campaign = p.campaign || { log: [] }; p.boards.forEach(b => { b.regions = b.regions || {}; b.numbers = b.numbers || {}; });
   p.production = p.production || { mode: "both" }; if (p.roleRes == null) p.roleRes = ""; if (p.bluffPenalty == null) p.bluffPenalty = "";
   p.factions.forEach(f => { if (f.setup == null) f.setup = ""; if (f.bot == null) f.bot = ""; });
-  normalizeMore(p); normalizeFacing(p); normalizeMorale(p); normalizeEnv(p); normalizeGround(p); normalizeOps(p); normalizeCrawl(p); normalizeLogic(p); normalizeCmap(p); normalizeExtra(p); normalizeNet(p); normalizeDeliver(p); normalizeCB(p); normalizeRail(p);
+  normalizeMore(p); normalizeFacing(p); normalizeMorale(p); normalizeEnv(p); normalizeGround(p); normalizeOps(p); normalizeEuro(p); normalizeCrawl(p); normalizeLogic(p); normalizeCmap(p); normalizeExtra(p); normalizeNet(p); normalizeDeliver(p); normalizeCB(p); normalizeRail(p);
   return p;
 }
 // Terény, které vzniknou ohněm.
@@ -547,7 +551,7 @@ function burntTerrains() {
 }
 
 // Všechny ukázkové hry v aktuální podobě. Neuložené (nezměněné) ukázky se při každém spuštění vytvoří znovu.
-function allExamples() { return [exampleWar(), exampleTrade(), exampleAlchemy(), exampleTricks(), exampleTiles(), exampleRace(), exampleIsland(), exampleCrypt(), examplePatrol(), exampleHansa(), exampleTower(), exampleMages(), exampleRail()]; }
+function allExamples() { return [exampleWar(), exampleTrade(), exampleAlchemy(), exampleTricks(), exampleTiles(), exampleRace(), exampleIsland(), exampleCrypt(), examplePatrol(), exampleHansa(), exampleTower(), exampleMages(), exampleRail(), exampleCrafts()]; }
 // ---------- ukázkové projekty ----------
 function exampleTrade() {
   const d1 = uid(), d2 = uid();
@@ -697,14 +701,16 @@ function exampleAlchemy() {
     factions: [{ id: uid(), name: "Rubínová", color: "#b0402c", ability: "Jednou za hru smí vrátit jeden výbuch do kotlíku." }, { id: uid(), name: "Smaragdová", color: "#2f7a45", ability: "Každá Bylina dává +1 minci navíc." }, { id: uid(), name: "Safírová", color: "#3f6fb0", ability: "Na začátku hry líže 6 karet." }],
     phases: ["Zahrát karty", "Nákup", "Kotlík", "Úklid"],
     resources: [{ id: "mince", name: "Mince", color: "#c98a12", start: 0, income: 0, max: "", vp: false, global: false }, { id: "body", name: "Body", color: "#7a4fa0", start: 0, income: 0, max: 20, vp: true, global: false }],
-    marketCur: "mince",
+    marketCur: "mince", reserve: { on: true, max: 2, res: "mince", bonus: 1 },
     ruleset: Object.assign(defaultRules(), { win: { vp: 20, turns: "", elimination: false }, triggers: [{ id: uid(), on: "tah", param: "", cond: "", effect: "nastav Mince 0" }] }),
     decks: [
       { id: st, name: "Startovní", color: "#6b7a6a", back: "DÍLNA", starter: true, market: 0, cards: [{ ...c("Měďák", "Peníze", "", "+1 {Mince}", 7, "", "🪙"), effect: "+1 Mince" }, { ...c("Bylina", "Přísada", "", "+1 {Mince}. Táhni 1 přísadu z kotlíku.", 3, "", "🌿"), effect: "+1 Mince; táhnout 1 z Kotlík" }] },
       { id: mk, name: "Trh lektvarů", color: "#7a4fa0", back: "LEKTVAR", starter: false, market: 5, cards: [
         { ...c("Stříbrňák", "Peníze", "3", "+2 {Mince}", 8, "", "🥈"), effect: "+2 Mince" }, { ...c("Zlaťák", "Peníze", "6", "+3 {Mince}", 5, "", "🥇"), effect: "+3 Mince" },
-        { ...c("Ochranný amulet", "Akce", "4", "Jednou za kolo: +1 {Mince} a líznout 1.", 4, "", "🧿"), effect: "jednou za kolo: +1 Mince; líznout 1" }, { ...c("Mandragora", "Přísada", "5", "Táhni 2 přísady a vyber si odměnu.", 4, 1, "🌱"), effect: "táhnout 2 z Kotlík; vyber: +2 Mince | +1 Body" },
-        c("Elixír života", "Lektvar", "7", "Body na konci hry.", 4, 3, "⚗️"), c("Kámen mudrců", "Lektvar", "9", "Body na konci hry.", 2, 5, "💎")] },
+        { ...c("Ochranný amulet", "Akce", "4", "Jednou za kolo: +1 {Mince} a líznout 1.", 4, "", "🧿"), effect: "jednou za kolo: +1 Mince; líznout 1" }, { ...c("Mandragora", "Přísada", "5", "Táhni 2 přísady a vyber si odměnu. Spojenec (Přísada): +1 {Body}.", 4, 1, "🌱"), effect: "táhnout 2 z Kotlík; vyber: +2 Mince | +1 Body", allyFx: "+1 Body" },
+        c("Elixír života", "Lektvar", "7", "Body na konci hry.", 4, 3, "⚗️"), c("Kámen mudrců", "Lektvar", "9", "Body na konci hry.", 2, 5, "💎"),
+        { ...c("Destilační aparát", "Nástroj", "4", "Lektvary jsou o 1 levnější.", 3, "", "🧪"), disc: 1, discType: "Lektvar" }, { ...c("Křišťálová baňka", "Nástroj", "5", "Všechny karty o 1 levnější. Spojenec (Nástroj): +1 {Body}.", 2, "", "🔮"), disc: 1, allyFx: "+1 Body" },
+        { ...c("Protijed", "Akce", "3", "Reakce: zahraj kdykoli, i mimo svůj tah. +2 {Mince}.", 3, "", "💧"), effect: "+2 Mince", reaction: true }] },
     ],
     bags: [{ id: uid(), name: "Kotlík", bustLimit: 3, contents: [{ label: "Bílá", color: "#f2f0e6", count: 6, bust: false }, { label: "Zlatá", color: "#e0aa2e", count: 3, bust: false }, { label: "Výbuch", color: "#b0402c", count: 4, bust: true }] }],
     cdice: [{ id: uid(), name: "Kostka osudu", color: "#7a4fa0", faces: ["★", "★", "🪙", "🪙", "💥", ""] }],
@@ -957,6 +963,39 @@ function exampleRail() {
     ruleset: Object.assign(defaultRules(), { win: { vp: "", turns: "", elimination: false } }),
     scenarios: [{ id: uid(), name: "Rok 1850", turns: 10, boardId: "", netId: net.id, desc: "Začátek železniční horečky.", victory: "Nejvyšší hodnota (peníze + akcie).", special: "", setup: { items: [], control: {} } }],
     decks: [], table: null,
+  });
+}
+// Euro s rondelem: akce na kruhu, krmení na začátku kola, budovy se slevami a spojenci, událost každé kolo.
+function exampleCrafts() {
+  const bd = uid(), ev = uid();
+  const c = (title, type, cost, text, qty, vp, icon, more) => Object.assign({ id: uid(), title, type, cost, text, qty, suit: "", value: "", vp, icon }, more || {});
+  const R = (id, name, color, start, icon, vp) => ({ id, name, color, start, income: 0, max: "", vp: !!vp, global: false, icon });
+  return normalize({
+    id: uid(), isExample: true, updatedAt: Date.now(), name: "Kruh řemesel", version: "0.1", players: "2–4", time: "45 min", age: "10+",
+    summary: "Euro s rondelem. Figurka obchází kruh akcí – blízké akce jsou zdarma, vzdálené stojí mince. Na začátku kola musíš nakrmit lidi a budovy, každé kolo přinese událost a budovy se navzájem zlevňují a podporují.",
+    rules: "TAH\nPosuň figurku na rondelu o 1–3 pole zdarma (dál za 1 minci za pole) a proveď akci pole. Na trhu můžeš koupit budovu – rovnou ji vylož.\n\nZAČÁTEK KOLA\nOtoč událost. Zaplať 2 obilí a 1 za každou budovu; za každé chybějící obilí ztrácíš 2 body.\n\nKONEC\nPo 8 kolech vyhrává nejvíc bodů.",
+    factions: [{ id: uid(), name: "Kovářská gilda", color: "#7a4a2a" }, { id: uid(), name: "Tkalcovská gilda", color: "#3f6fb0" }, { id: uid(), name: "Pekařská gilda", color: "#c98a12" }],
+    phases: ["Událost a krmení", "Rondel", "Stavba"],
+    resources: [R("obili", "Obilí", "#d9b54a", 4, "🌾"), R("drevo", "Dřevo", "#8a5a2b", 2, "🪵"), R("mince", "Mince", "#c98a12", 3, "🪙"), R("body", "Body", "#2f7a45", 0, "★", true)],
+    marketCur: "mince",
+    ruleset: Object.assign(defaultRules(), { roundOnWrap: true, win: { vp: "", turns: 8, elimination: false } }),
+    rondel: { on: true, free: 3, res: "mince", cost: 1, spaces: [
+      { id: uid(), name: "Pole", effect: "+3 Obilí" }, { id: uid(), name: "Les", effect: "+2 Dřevo" }, { id: uid(), name: "Trh", effect: "vyber: zaplať 2 Obilí: +3 Mince | zaplať 2 Dřevo: +3 Mince" },
+      { id: uid(), name: "Dílna", effect: "zaplať 2 Dřevo: +3 Body" }, { id: uid(), name: "Daně", effect: "+2 Mince" }, { id: uid(), name: "Slavnost", effect: "zaplať 3 Obilí: +4 Body" }] },
+    upkeep: { on: true, res: "obili", base: 2, perTab: 1, type: "Budova", penalty: "-2 Body" },
+    roundEvent: ev,
+    decks: [
+      { id: bd, name: "Budovy", color: "#6b5a3a", back: "BUDOVA", market: 4, cards: [
+        c("Mlýn", "Budova", "4", "Vyložení: +2 {Obilí}. Budovy o 1 levnější.", 2, 1, "⚙", { effect: "+2 Obilí", disc: 1, discType: "Budova" }),
+        c("Pila", "Budova", "4", "Vyložení: +2 {Dřevo}. Spojenec (Budova): +1 {Mince}.", 2, 1, "🪚", { effect: "+2 Dřevo", allyFx: "+1 Mince" }),
+        c("Pekárna", "Budova", "5", "Vyložení: +2 {Body}. Spojenec (Budova): +1 {Body}.", 2, 2, "🥖", { effect: "+2 Body", allyFx: "+1 Body" }),
+        c("Cech", "Budova", "6", "Všechny karty o 1 levnější.", 2, 2, "🏛", { disc: 1 }),
+        c("Katedrála", "Budova", "9", "Mnoho bodů.", 1, 6, "⛪")] },
+      { id: ev, name: "Události", color: "#4a4a48", back: "UDÁLOST", market: 0, cards: [
+        c("Dobrá úroda", "Událost", "", "Všichni +2 {Obilí}.", 2, "", "🌾", { effect: "všichni +2 Obilí" }), c("Neúroda", "Událost", "", "Všichni −1 {Obilí}.", 2, "", "🥀", { effect: "všichni -1 Obilí" }),
+        c("Jarmark", "Událost", "", "Všichni +1 {Mince}.", 2, "", "🎪", { effect: "všichni +1 Mince" }), c("Bouře", "Událost", "", "Všichni −1 {Dřevo}.", 2, "", "⛈", { effect: "všichni -1 Dřevo" })] },
+    ],
+    tokens: [], table: null, sessions: [],
   });
 }
 
@@ -1645,6 +1684,7 @@ function editCard(p, deck, card) {
           <label class="f" title="letec, dosah, bdělost, první úder, pošlapání, spěch">Klíčová slova<input type="text" id="c-kw" value="${esc(c.kw || "")}" placeholder="letec, spěch"></label>
           <label class="f" title="Příšera v centrální řadě: kolik síly ji porazí; efekt karty je odměna">Porazit za<input type="number" id="c-fight" min="0" max="20" value="${esc(c.fight || "")}" placeholder="–"></label>
         </div></details>
+        ${cardEngineHTML(c)}
         <details class="cfx" ${c.unitItem ? "open" : ""}><summary>Předmět pro jednotku (lektvar, zbraň, brnění…)</summary>
           <label class="chk"><input type="checkbox" id="c-unitItem" ${c.unitItem ? "checked" : ""}> Karta je předmět – z ruky se vybaví na jednotku nebo použije</label>
           <div id="c-ifx">${itemFxHTML(c, "data-if", true)}</div></details>
@@ -1673,10 +1713,10 @@ function editCard(p, deck, card) {
   $$("[data-ins]", d).forEach(b => b.onclick = () => { const ta = $("#c-text", d); const pos = ta.selectionStart ?? ta.value.length; const ins = `{${b.dataset.ins}}`; ta.value = ta.value.slice(0, pos) + ins + ta.value.slice(ta.selectionEnd ?? pos); ta.focus(); ta.setSelectionRange(pos + ins.length, pos + ins.length); prev(); });
   $("#c-imgf", d).onchange = async e => { const f = e.target.files[0]; if (!f) return; $("#c-imgst", d).textContent = "Nahrávám…"; try { const r = await storeImage(f, { max: 1000, dataMax: 420, limit: 40000 }); c.img = r.url || r.data; $("#c-imgst", d).textContent = r.url ? "Uloženo" : "Uloženo zmenšené do projektu"; prev(); } catch { $("#c-imgst", d).textContent = "Obrázek se nepodařilo načíst"; } };
   if ($("#c-imgdel", d)) $("#c-imgdel", d).onclick = () => { c.img = ""; prev(); $("#c-imgst", d).textContent = "Obrázek odebrán"; };
-  $("#c-save", d).onclick = () => { read(); readItem(); if (isNew) deck.cards.push(c); else Object.assign(card, c); touch(p); closeDialog(); render(); toast(isNew ? "Karta přidána" : "Karta uložena"); };
+  $("#c-save", d).onclick = () => { read(); readItem(); readCardEngine(c, d); if (isNew) deck.cards.push(c); else Object.assign(card, c); touch(p); closeDialog(); render(); toast(isNew ? "Karta přidána" : "Karta uložena"); };
   if (!isNew) {
     $("#c-del", d).onclick = () => { deck.cards = deck.cards.filter(x => x.id !== card.id); touch(p); closeDialog(); render(); };
-    $("#c-dup", d).onclick = () => { read(); readItem(); deck.cards.splice(deck.cards.indexOf(card) + 1, 0, { ...c, id: uid(), title: c.title + " (kopie)" }); touch(p); closeDialog(); render(); toast("Karta zduplikována"); };
+    $("#c-dup", d).onclick = () => { read(); readItem(); readCardEngine(c, d); deck.cards.splice(deck.cards.indexOf(card) + 1, 0, { ...c, id: uid(), title: c.title + " (kopie)" }); touch(p); closeDialog(); render(); toast("Karta zduplikována"); };
   }
 }
 const CARD_COLS = ["title", "type", "cost", "text", "qty", "suit", "value", "vp", "icon", "effect"];
@@ -1998,7 +2038,7 @@ function renderMechanics(main, p) {
           <p class="hint">Dosah pohybu na stole počítá s cenou terénu (Mapa) a pohybem jednotky. Terén s pohybem „–“ je neprůchodný.</p>
         </div>
       </div>
-    </div>${moreMechHTML(p)}<div class="two">${facingMechHTML(p)}${elevMechHTML(p)}</div><div class="two">${moraleMechHTML(p)}${fxMechHTML(p)}</div><div class="two">${envMechHTML(p)}${groundMechHTML(p)}</div><div class="two">${itemsMechHTML(p)}${opsMechHTML(p)}</div><div class="two">${crawlMechHTML(p)}${logicMechHTML(p)}</div><div class="two">${cmapMechHTML(p)}${extraMechHTML(p)}</div><div class="two">${deliverMechHTML(p)}${netCubesMechHTML(p)}</div><div class="two">${cbMechHTML(p)}${railMechHTML(p)}</div></div>`;
+    </div>${moreMechHTML(p)}<div class="two">${facingMechHTML(p)}${elevMechHTML(p)}</div><div class="two">${moraleMechHTML(p)}${fxMechHTML(p)}</div><div class="two">${envMechHTML(p)}${groundMechHTML(p)}</div><div class="two">${itemsMechHTML(p)}${opsMechHTML(p)}</div><div class="two">${euroMechHTML(p)}${cardsMechHTML(p)}</div><div class="two">${crawlMechHTML(p)}${logicMechHTML(p)}</div><div class="two">${cmapMechHTML(p)}${extraMechHTML(p)}</div><div class="two">${deliverMechHTML(p)}${netCubesMechHTML(p)}</div><div class="two">${cbMechHTML(p)}${railMechHTML(p)}</div></div>`;
   wireBanner(main);
   const F = id => p.factions.find(f => f.id === id);
   $("#addF").onclick = () => { p.factions.push({ id: uid(), name: "Strana " + (p.factions.length + 1), color: COLORS[p.factions.length % COLORS.length], ability: "" }); touch(p); render(); };
@@ -2070,7 +2110,7 @@ function renderMechanics(main, p) {
   $("#prodMode").onchange = e => { p.production.mode = e.target.value; touch(p); };
   $$("[data-rpt]", main).forEach(i => i.onchange = () => { p.resources.find(r => r.id === i.dataset.rpt).perTurn = i.checked; touch(p); });
   $$("[data-rpool]", main).forEach(i => i.onchange = () => { p.resources.find(r => r.id === i.dataset.rpool).pool = i.value; touch(p); });
-  wireMoreMech(main, p); wireFacingMech(main, p); wireMoraleMech(main, p); wireEnvMech(main, p); wireGroundMech(main, p); wireOpsMech(main, p); wireCrawlMech(main, p); wireLogicMech(main, p); wireCmapMech(main, p); wireExtraMech(main, p); wireDeliverMech(main, p); wireNetCubesMech(main, p); wireCBMech(main, p); wireRailMech(main, p);
+  wireMoreMech(main, p); wireFacingMech(main, p); wireMoraleMech(main, p); wireEnvMech(main, p); wireGroundMech(main, p); wireOpsMech(main, p); wireEuroMech(main, p); wireCrawlMech(main, p); wireLogicMech(main, p); wireCmapMech(main, p); wireExtraMech(main, p); wireDeliverMech(main, p); wireNetCubesMech(main, p); wireCBMech(main, p); wireRailMech(main, p);
 }
 
 // ---------- Scénáře ----------
@@ -2577,7 +2617,7 @@ function newRound(p, t) {
   if (t.firstNext) { const ids = players(p, t).map(f => f.id); const i = ids.indexOf(t.firstNext); if (i > 0) t.order = [...ids.slice(i), ...ids.slice(0, i)]; t.curF = 0; t.firstNext = null; }
   t.turn++; t.phaseIdx = 0; t.acts = 0; t.moved = {};
   if (p.ruleset.autoIncome) p.resources.forEach(r => { if (!+r.income) return; (r.global ? ["_g"] : p.factions.map(f => f.id)).forEach(o => { t.res[o] = t.res[o] || {}; t.res[o][r.id] = Math.max(0, Math.min(resMax(r), (t.res[o][r.id] || 0) + +r.income)); }); });
-  logEv(t, `začíná ${t.turn}. kolo`); clearActivation(p, t); t.chitsOut = []; t.chitNow = null; t.ddraft = null; arriveReinf(p, t); crawlRound(p, t); extraRound(p, t); moraleRound(p, t); itemsRound(p, t); envRound(p, t); opsRound(p, t);
+  logEv(t, `začíná ${t.turn}. kolo`); clearActivation(p, t); t.chitsOut = []; t.chitNow = null; t.ddraft = null; arriveReinf(p, t); upkeepRound(p, t); eventRound(p, t); crawlRound(p, t); extraRound(p, t); moraleRound(p, t); itemsRound(p, t); envRound(p, t); opsRound(p, t);
   endGameByTurns(p, t);
   fireTriggers(p, t, "kolo", null, null); fireTriggers(p, t, "faze", null, 0);
   checkWin(p, t);
@@ -2810,7 +2850,7 @@ function clockMs(t) { const c = t.clock || {}; return (c.acc || 0) + (c.run ? Da
 function fmtClock(ms) { const s = Math.floor(ms / 1000); const h = Math.floor(s / 3600); return (h ? h + ":" : "") + pad2(Math.floor(s / 60) % 60) + ":" + pad2(s % 60); }
 onInit(() => setInterval(() => { const el = document.getElementById("clock"); const p = P(); if (el && p && p.table) el.textContent = fmtClock(clockMs(p.table)); }, 1000));
 
-const TOOLS = [["stul", "Komponenty"], ["kolo", "Kolo"], ["hraci", "Hráči"], ["trh", "Trh"], ["akce", "Akce"], ["ruce", "Ruce"], ["draft", "Draft"], ["styk", "Štych"], ["program", "Program"], ["drazba", "Dražba"], ["obchod", "Obchod"], ["sacek", "Sáček"], ["kostky", "Kostky"], ["dilky", "Dílky"], ["draha", "Dráha"], ["tajne", "Tajné"], ["boj", "Boj"], ["uzemi", "Území"], ["aktivace", "Aktivace"], ["rozvoj", "Rozvoj"], ["hromadka", "Hromádka"], ["riskuj", "Riskuj"], ["vyprava", "Výprava"], ["kameny", "Kameny"], ["kod", "Kód"], ["lokace", "Lokace"], ["rozsevani", "Rozsévání"], ["sit", "Síť"], ["zakazky", "Zakázky"], ["souboj", "Souboj"], ["spolecnosti", "Společnosti"]];
+const TOOLS = [["stul", "Komponenty"], ["kolo", "Kolo"], ["hraci", "Hráči"], ["trh", "Trh"], ["akce", "Akce"], ["ruce", "Ruce"], ["draft", "Draft"], ["styk", "Štych"], ["program", "Program"], ["drazba", "Dražba"], ["obchod", "Obchod"], ["sacek", "Sáček"], ["kostky", "Kostky"], ["dilky", "Dílky"], ["draha", "Dráha"], ["tajne", "Tajné"], ["boj", "Boj"], ["uzemi", "Území"], ["aktivace", "Aktivace"], ["rozvoj", "Rozvoj"], ["hromadka", "Hromádka"], ["riskuj", "Riskuj"], ["vyprava", "Výprava"], ["kameny", "Kameny"], ["kod", "Kód"], ["lokace", "Lokace"], ["rozsevani", "Rozsévání"], ["sit", "Síť"], ["zakazky", "Zakázky"], ["souboj", "Souboj"], ["spolecnosti", "Společnosti"], ["rondel", "Rondel"]];
 function renderTable(main, p) {
   const t = ensureTable(p);
   const b = tableBoard(p); const g = b ? geo(b) : null;
@@ -2838,7 +2878,7 @@ function renderTable(main, p) {
       ${(p.ruleset.fog || p.factions.some(f => f.hidden)) && p.units.length ? `<label class="f" style="flex-direction:row;align-items:center;gap:8px">Pohled<select id="view"><option value="">Vidím vše (rozhodčí)</option>${p.factions.map(f => `<option value="${f.id}" ${S.view === f.id ? "selected" : ""}>${esc(f.name)}</option>`).join("")}</select></label>` : ""}
       ${selItem ? selBarHTML(p, selItem) : ""}
       ${toolsHTML(p)}
-      ${({ stul: sideComponents, kolo: sideTurn, hraci: sidePlayers, trh: sideMarket, akce: sideActions, ruce: sideHands, draft: sideDraft, styk: sideTrick, program: sideProgram, drazba: sideAuction, sacek: sideBag, kostky: sideDice, boj: sideCombat, uzemi: sideTerritory, dilky: sideTiles, draha: sideTrack, obchod: sideTrade, tajne: sideSecret, aktivace: sideActivation, rozvoj: sideDevelop, hromadka: sideShed, riskuj: sidePush, vyprava: sideCrawl, kameny: sideStones, kod: sideCode, lokace: sideCmap, rozsevani: sideMancala, sit: sideNet, zakazky: sideDeliver, souboj: sideFight, spolecnosti: sideRail })[S.tool](p, t)}
+      ${({ stul: sideComponents, kolo: sideTurn, hraci: sidePlayers, trh: sideMarket, akce: sideActions, ruce: sideHands, draft: sideDraft, styk: sideTrick, program: sideProgram, drazba: sideAuction, sacek: sideBag, kostky: sideDice, boj: sideCombat, uzemi: sideTerritory, dilky: sideTiles, draha: sideTrack, obchod: sideTrade, tajne: sideSecret, aktivace: sideActivation, rozvoj: sideDevelop, hromadka: sideShed, riskuj: sidePush, vyprava: sideCrawl, kameny: sideStones, kod: sideCode, lokace: sideCmap, rozsevani: sideMancala, sit: sideNet, zakazky: sideDeliver, souboj: sideFight, spolecnosti: sideRail, rondel: sideRondel })[S.tool](p, t)}
     </aside></div>`;
   S.justRolled = false;
   S.undoBase = JSON.stringify(p.table);
@@ -2875,7 +2915,7 @@ function selBarHTML(p, i) {
       <div class="row">${k ? `<button class="btn small ${S.rangeUid === i.uid ? "on" : ""}" data-sa="range">Dosah pohybu</button><button class="btn small ${S.losUid === i.uid && !S.losR ? "on" : ""}" data-sa="los">Výhled</button>${unitStat(p, i, "range") ? `<button class="btn small ${S.losUid === i.uid && S.losR ? "on" : ""}" data-sa="fire">Dostřel ${unitStat(p, i, "range")}</button>` : ""}` : ""}${hasReduced(u) ? `<button class="btn small" data-sa="flip">${i.reduced ? "Obnovit" : "Oslabit"}</button>` : ""}${facingOn(p) ? "" : `<button class="btn small" data-sa="rot">Natočit</button>`}</div>
       ${u.att !== "" && u.att != null || u.def !== "" && u.def != null ? `<div class="row">${Object.entries(UNIT_ST).filter(([, v]) => v[3] === 2 || !!v[3] === !!+u.hp).map(([k, v]) => `<button class="btn small ${i.st && i.st[k] ? "on" : ""}" data-ust="${k}" title="${v[2]}">${v[1]} ${v[0]}</button>`).join("")}</div>
       <div class="row"><button class="btn small" data-sa="asAtt">Útočí</button><button class="btn small" data-sa="addAtt">+ k útoku</button><button class="btn small" data-sa="asDef">Brání</button></div>` : ""}
-      ${facingSelHTML(p, p.table, i)}${moraleSelHTML(p, p.table, i)}${opsSelHTML(p, p.table, i)}${commandSelHTML(p, p.table, i)}${unitsPlusSelHTML(p, p.table, i)}${crawlSelHTML(p, i)}${deliverSelHTML(p, i)}${tableNet(p) && netNodeOf(p, p.table, i) ? `<div class="row"><button class="btn small ${S.netReach && S.netReachUid === i.uid ? "on" : ""}" data-sa="netreach">Kam dojede</button></div>` : ""}
+      ${facingSelHTML(p, p.table, i)}${moraleSelHTML(p, p.table, i)}${opsSelHTML(p, p.table, i)}${lootSelHTML(p, p.table, i)}${commandSelHTML(p, p.table, i)}${unitsPlusSelHTML(p, p.table, i)}${crawlSelHTML(p, i)}${deliverSelHTML(p, i)}${tableNet(p) && netNodeOf(p, p.table, i) ? `<div class="row"><button class="btn small ${S.netReach && S.netReachUid === i.uid ? "on" : ""}" data-sa="netreach">Kam dojede</button></div>` : ""}
       <div class="row"><button class="btn small" data-sa="dup">Duplikovat</button><button class="btn small danger" data-sa="remove">Zničit</button></div></div>`;
   }
   const tk = p.tokens.find(x => x.id === i.tokenId);
@@ -2964,8 +3004,9 @@ function sideMarket(p, t) {
   const cur = p.resources.find(r => r.id === p.marketCur); const cp = curPlayer(p, t);
   return `<section><div class="eyebrow">Kupuje</div>${fchipsHTML(p, t)}${cur && cp ? `<span class="hint">${esc(cp.name)} má ${(t.res[cp.id] || {})[cur.id] ?? 0} × ${esc(cur.name)}</span>` : ""}</section>
     ${ds.map(d => `<section><div class="row spread"><div class="eyebrow">${esc(d.name)} · v balíčku ${t.piles[d.id].length}</div><button class="btn small" data-mrefresh="${d.id}">Vyměnit trh</button></div>
-      <div class="hand mini">${t.market[d.id].map((cId, i) => { const c = cId && d.cards.find(x => x.id === cId); return c ? `<div class="hc">${cardHTML(c, d)}<div class="row">${+c.fight ? `<button class="btn small primary" data-mfight="${d.id}|${i}">⚔ Porazit (${c.fight})</button>` : p.marketAuction ? `<button class="btn small primary" data-mauc="${d.id}|${i}">Dražit</button>` : `<button class="btn small primary" data-mbuy="${d.id}|${i}">Koupit</button>`}<button class="btn small" data-mhand="${d.id}|${i}" aria-label="Do ruky">Ruka</button><button class="btn small" data-mtab="${d.id}|${i}" aria-label="Vyložit">Vyložit</button></div></div>` : `<div class="hc empty" style="padding:8px;font-size:.8rem">prázdné</div>`; }).join("")}</div>
+      <div class="hand mini">${t.market[d.id].map((cId, i) => { const c = cId && d.cards.find(x => x.id === cId); return c ? `<div class="hc">${cardHTML(c, d)}<div class="row">${+c.fight ? `<button class="btn small primary" data-mfight="${d.id}|${i}">⚔ Porazit (${c.fight})</button>` : p.marketAuction ? `<button class="btn small primary" data-mauc="${d.id}|${i}">Dražit</button>` : `<button class="btn small primary" data-mbuy="${d.id}|${i}">Koupit${cp && cardDiscount(p, t, cp.id, c) && parseFloat(c.cost) ? ` za ${cardPrice(p, t, cp.id, c)}` : ""}</button>`}${p.reserve.on ? `<button class="btn small" data-mres="${d.id}|${i}">Rezervovat</button>` : ""}<button class="btn small" data-mhand="${d.id}|${i}" aria-label="Do ruky">Ruka</button><button class="btn small" data-mtab="${d.id}|${i}" aria-label="Vyložit">Vyložit</button></div></div>` : `<div class="hc empty" style="padding:8px;font-size:.8rem">prázdné</div>`; }).join("")}</div>
       <p class="hint">Koupit = do odhozu vlastního balíčku hráče (deck building).</p></section>`).join("")}
+    ${reserveHTML(p, t)}
     <section><label class="chk"><input type="checkbox" id="mAuc" ${p.marketAuction ? "checked" : ""}> Karty z trhu se draží (otevřená dražba od ceny karty)</label></section>`;
 }
 function sideActions(p, t) {
@@ -3241,14 +3282,17 @@ function wireTable(main, p, t) {
     const [dId, i] = key.split("|"); const d = p.decks.find(x => x.id === dId); const cId = t.market[dId][+i]; if (!cId || !cp) return;
     const cat = dest === "buy" ? "nakup" : dest === "hand" ? "lizat" : "vylozit"; if (!gate(p, t, cat)) return;
     const c = d.cards.find(x => x.id === cId);
-    if (dest === "buy") { const cur = p.resources.find(r => r.id === p.marketCur); const price = parseFloat(c.cost) || 0;
+    if (dest === "buy") { const cur = p.resources.find(r => r.id === p.marketCur); const price = cardPrice(p, t, cp.id, c);
       if (cur && price) { const have = (t.res[cp.id] || {})[cur.id] || 0; if (have < price) { toast(`${cp.name} nemá dost (${have} z ${price})`); return; } t.res[cp.id][cur.id] = have - price; } }
     t.market[dId][+i] = null; const h = { deckId: dId, cardId: cId, own: true };
     if (dest === "buy") (t.pdisc[cp.id] = t.pdisc[cp.id] || []).push(h); else if (dest === "hand") (t.hands[cp.id] = t.hands[cp.id] || []).push(h); else (t.tableau[cp.id] = t.tableau[cp.id] || []).push(h);
     logEv(t, `${cp.name} ${dest === "buy" ? "kupuje" : "bere"} ${c.title}`);
     if (dest === "tab" && c.effect) runEffects(p, t, cp.id, c.effect, c.title);
+    if (dest === "tab") allyCheck(p, t, cp.id, h, c);
     refillMarket(p, t, d); after(p, t, cat, cp.id, c.type); save(); render(); toast(`${c.title} → ${cp.name}`);
   };
+  on("[data-mres]", el => { if (!cp || !gate(p, t, "nakup")) return; const [dId, i] = el.dataset.mres.split("|"); const m = reserveCard(p, t, cp.id, dId, i); if (m) { toast(m); return; } save(); render(); });
+  on("[data-rbuy]", el => { if (!cp || !gate(p, t, "nakup")) return; const m = buyReserved(p, t, cp.id, +el.dataset.rbuy); if (m) { toast(m); return; } after(p, t, "nakup", cp.id); save(); render(); });
   if (q("mAuc")) q("mAuc").onchange = e => { p.marketAuction = e.target.checked; touch(p); render(); };
   on("[data-mauc]", el => { const [dId, i] = el.dataset.mauc.split("|"); const d = p.decks.find(x => x.id === dId); const c = d.cards.find(x => x.id === t.market[dId][+i]); if (!c || !gate(p, t, "nakup")) return;
     t.auction = { item: c.title, bid: parseFloat(c.cost) || 0, leader: null, passed: [], card: { dId, i: +i } }; S.tool = "drazba"; S.aucMode = "open"; save(); render(); });
@@ -3374,7 +3418,7 @@ function wireTable(main, p, t) {
   if (q("ctrlAuto")) q("ctrlAuto").onclick = () => { let n = 0; t.items.filter(i => i.kind === "unit").forEach(i => { const k = cellUnder(p, i); const u = p.units.find(x => x.id === i.unitId); if (k && u && u.factionId) { t.control[k] = u.factionId; n++; } }); save(); render(); toast(`Přiděleno ${n} ${plural(n, "pole", "pole", "polí")}`); };
   // vybraná položka
   const selItem = t.items.find(i => i.uid === S.sel);
-  wireExtra(main, p, t, save); wireR4(main, p, t, save); wireWar(main, p, t, save); wireIpad(main, p, t, save); wireOnline(main, p, t, save); wireMore(main, p, t, save); wireCrawl(main, p, t, save); wireLogic(main, p, t, save); wireCmap(main, p, t, save); wireExtra2(main, p, t, save); wireNet(main, p, t, save); wireDeliver(main, p, t, save); wireCB(main, p, t, save); wireRail(main, p, t, save); wireCommand(main, p, t, save); wireUnitsPlus(main, p, t, save); wireFacing(main, p, t, save); wireMorale(main, p, t, save); wireItems(main, p, t, save); wireEnvSide(main, p, t, save); wireOps(main, p, t, save);
+  wireExtra(main, p, t, save); wireR4(main, p, t, save); wireWar(main, p, t, save); wireIpad(main, p, t, save); wireOnline(main, p, t, save); wireMore(main, p, t, save); wireCrawl(main, p, t, save); wireLogic(main, p, t, save); wireCmap(main, p, t, save); wireExtra2(main, p, t, save); wireNet(main, p, t, save); wireDeliver(main, p, t, save); wireCB(main, p, t, save); wireRail(main, p, t, save); wireCommand(main, p, t, save); wireUnitsPlus(main, p, t, save); wireFacing(main, p, t, save); wireMorale(main, p, t, save); wireItems(main, p, t, save); wireEnvSide(main, p, t, save); wireOps(main, p, t, save); wireRondel(main, p, t, save); wireLoot(main, p, t, save);
   const cardTo = (el, where) => { if (where === "tab" && !gate(p, t, "vylozit")) return; const i = selItem; t.items = t.items.filter(x => x !== i); const fid = el.dataset[where === "hand" ? "tohand" : "totab"]; const h = { deckId: i.deckId, cardId: i.cardId }; (where === "hand" ? (t.hands[fid] = t.hands[fid] || []) : (t.tableau[fid] = t.tableau[fid] || [])).push(h); if (where === "tab") { const c = cardOf(p, h).c; logEv(t, `${p.factions.find(f => f.id === fid).name} vykládá ${c.title}`); if (c.effect) runEffects(p, t, fid, c.effect, c.title); after(p, t, "vylozit", fid, c.type); } S.sel = null; save(); render(); };
   on("[data-tohand]", el => cardTo(el, "hand")); on("[data-totab]", el => cardTo(el, "tab"));
   on("[data-sa]", el => {
@@ -3389,7 +3433,7 @@ function wireTable(main, p, t) {
     else if (a === "plus") i.value = (i.value || 0) + 1;
     else if (a === "plus5") i.value = (i.value || 0) + 5;
     else if (a === "minus") i.value = (i.value || 0) - 1;
-    else if (a === "remove") { t.items = t.items.filter(x => x !== i); S.sel = null; if (S.rangeUid === i.uid) S.rangeUid = null; if (i.kind === "unit") { logEv(t, `jednotka ${(p.units.find(u => u.id === i.unitId) || {}).name || ""} zničena`); checkWin(p, t); } }
+    else if (a === "remove") { if (i.kind === "unit") dropLoot(p, t, i); t.items = t.items.filter(x => x !== i); S.sel = null; if (S.rangeUid === i.uid) S.rangeUid = null; if (i.kind === "unit") { logEv(t, `jednotka ${(p.units.find(u => u.id === i.unitId) || {}).name || ""} zničena`); checkWin(p, t); } }
     else if (a === "dup") { const n = { ...i, uid: uid(), x: i.x + 20, y: i.y + 20 }; t.items.push(n); S.sel = n.uid; }
     else if (a === "asAtt" || a === "addAtt" || a === "asDef") {
       if (a !== "asDef" && actViolation(p, i).length && !gate(p, t, "boj", actViolation(p, i))) return;
@@ -3541,18 +3585,19 @@ function tilePreview(p, tl, rot = 0, size = 26) {
 }
 function playCheck(p, t, fid, h, cat) {
   const R = p.ruleset; const msgs = []; const cp = curPlayer(p, t); const c = h && cardOf(p, h).c; if (!c) return false;
-  if (R.ownTurn && cp && fid !== cp.id) msgs.push("hraje hráč, který není na tahu");
-  const r = p.resources.find(x => x.id === R.playCost); const price = parseFloat(c.cost) || 0;
+  if (R.ownTurn && cp && fid !== cp.id && !c.reaction) msgs.push("hraje hráč, který není na tahu"); // reakce jde zahrát kdykoli
+  const r = p.resources.find(x => x.id === R.playCost); const price = cardPrice(p, t, fid, c);
   if (r && price && cat === "vylozit" && ((t.res[fid] || {})[r.id] || 0) < price) msgs.push(`na kartu „${c.title}“ chybí ${r.name} (cena ${price})`);
   msgs.push(...cbPlayCheck(p, t, fid, c, cat));
   return gate(p, t, cat, msgs);
 }
 function playDone(p, t, fid, h, cat) {
-  const R = p.ruleset; const c = cardOf(p, h).c; const r = p.resources.find(x => x.id === R.playCost); const price = parseFloat(c.cost) || 0;
+  const R = p.ruleset; const c = cardOf(p, h).c; const r = p.resources.find(x => x.id === R.playCost); const price = cardPrice(p, t, fid, c);
   if (r && price && cat === "vylozit") { t.res[fid] = t.res[fid] || {}; t.res[fid][r.id] = Math.max(0, (t.res[fid][r.id] || 0) - price); }
   const f = p.factions.find(x => x.id === fid); logEv(t, `${f ? f.name : ""} ${cat === "vylozit" ? "vykládá" : "hraje"} ${c.title}`);
   cbPlayDone(p, t, fid, h, c, cat);
   if (c.effect) runEffects(p, t, fid, c.effect, c.title);
+  allyCheck(p, t, fid, h, c);
   after(p, t, cat, fid, c.type || c.suit || c.title);
 }
 function moveViolations(p, t, it, origin, range, k) {
@@ -3867,6 +3912,7 @@ function toolRelevant(p, k) {
     case "zakazky": return !!(p.deliver && p.deliver.on);
     case "souboj": return p.decks.some(d => d.cards.some(c => isCreature(c)));
     case "spolecnosti": return !!(p.rail && p.rail.on);
+    case "rondel": return !!(p.rondel && p.rondel.on);
     default: return true;
   }
 }
@@ -4626,7 +4672,7 @@ function stepLoss(p, t, it) {
   const u = unitOf(p, it); if (!u) return "";
   const ab = absorbHits(p, t, it, 1); if (!ab.n) return `${u.name}: ${ab.msg}`;
   if (!it.reduced && hasReduced(u)) { it.reduced = true; return `${u.name} ztrácí krok`; }
-  t.items = t.items.filter(x => x !== it); if (S.sel === it.uid) S.sel = null; return `${u.name} zničena`;
+  dropLoot(p, t, it); t.items = t.items.filter(x => x !== it); if (S.sel === it.uid) S.sel = null; return `${u.name} zničena`;
 }
 function placeOn(p, t, it, k) {
   const b = tableBoard(p); const [w, h] = itemSize(it); const [c, r] = k.split(",").map(Number); const [cx, cy] = geo(b).center(c, r);
@@ -5300,7 +5346,7 @@ function moreRulebook(p) {
   if (fx.length) out.push(["Pevné žetony", `<p>Pevné žetony po položení zůstávají na místě. Bonus platí pro jednotky na stejném poli.</p><ul>${fx.map(x => `<li><b>${esc(x.name)}</b>${x.buildable ? " (jednotka ho může postavit na svém poli)" : ""}: ${esc(modText(x) || "bez bonusu")}</li>`).join("")}</ul>`]);
   if (zu.length) out.push(["Zóny jednotek", `<p>Útok zasáhne zónu podle váhy (vyšší váha = častěji) a brání se její obranou. Zóna s výdrží ji ztrácí; zničená kritická zóna vyřadí jednotku.</p><table><tr><th>Jednotka</th><th>Zóny (obrana, výdrž, váha)</th></tr>${zu.map(u => `<tr><td>${esc(u.name)}</td><td>${unitZones(u).map(z => `${esc(z.name)} ${z.def || 0}${+z.hp ? `/${z.hp}` : ""} ×${z.w || 1}${z.crit ? " ★" : ""}`).join(", ")}</td></tr>`).join("")}</table>`]);
   if (tr.length || ca.length) out.push(["Nosnost", `${tr.length ? `<p>Přeprava: ${tr.map(u => `${esc(u.name)} převeze ${u.transport}`).join(", ")}. Jednotka nastoupí na stejném poli a jede s vozidlem.</p>` : ""}${ca.length ? `<p>Nosnost předmětů: ${ca.map(u => `${esc(u.name)} ${u.carry}`).join(", ")}. Váha předmětů: ${p.tokens.filter(x => x.small).map(x => `${esc(x.name)} ${tokWeight(x)}`).join(", ")}.</p>` : ""}`]);
-  out.push(...facingRulebook(p), ...moraleRulebook(p), ...itemsRulebook(p), ...envRulebook(p), ...groundRulebook(p), ...opsRulebook(p));
+  out.push(...facingRulebook(p), ...moraleRulebook(p), ...itemsRulebook(p), ...envRulebook(p), ...groundRulebook(p), ...opsRulebook(p), ...euroRulebook(p));
   if (envOn(p) || p.morale.on) out.push(["Tabulky pro hru bez aplikace", analogTablesHTML(p)]);
   if (p.mancala.on) out.push(["Rozsévání", `<p>Každý hráč má ${p.mancala.pits} jamek po ${p.mancala.seeds} semínkách a sklad. Ve svém tahu vezmi všechna semínka z jedné své jamky a rozděl je po jednom do dalších jamek proti směru hodin (soupeřův sklad přeskoč).${p.mancala.extra ? " Skončíš-li ve svém skladu, hraješ znovu." : ""}${p.mancala.capture ? " Skončíš-li ve své prázdné jamce, bereš i semínka z protější jamky." : ""} Hra končí, když jedna strana nemá semínka; vyhrává plnější sklad.</p>`]);
   const inc = p.decks.flatMap(d => d.cards.filter(c => c.income || c.act)); if (inc.length) out.push(["Schopnosti karet", `<ul>${inc.map(c => `<li><b>${esc(c.title)}</b>: ${c.income ? "každé kolo " + esc(describeEffect(c.income)) : ""}${c.income && c.act ? "; " : ""}${c.act ? "vyčerpáním " + esc(describeEffect(c.act)) : ""}</li>`).join("")}</ul>${p.refreshExhaust ? "<p>Vyčerpané karty se na začátku kola obnoví.</p>" : ""}`]);
@@ -5313,7 +5359,7 @@ const TOOL_GROUPS = [
   ["Hra", ["stul", "kolo", "hraci", "ruce"]],
   ["Karty", ["trh", "souboj", "draft", "styk", "program", "hromadka", "riskuj", "tajne"]],
   ["Náhoda", ["kostky", "sacek"]],
-  ["Ekonomika", ["akce", "obchod", "drazba", "rozvoj", "draha", "zakazky", "spolecnosti"]],
+  ["Ekonomika", ["akce", "obchod", "drazba", "rozvoj", "draha", "zakazky", "spolecnosti", "rondel"]],
   ["Mapa a boj", ["boj", "uzemi", "dilky", "aktivace", "vyprava", "lokace", "sit"]],
   ["Logika", ["kameny", "kod", "rozsevani"]],
 ];
@@ -5393,7 +5439,7 @@ function damage(p, t, it, n, by) {
   if (n > 0) { const r = absorbHits(p, t, it, n); if (r.msg) return r.n ? r.msg + "; " + damage(p, t, it, r.n, by) : r.msg; } // brnění pohltí zásahy
   it.dmg = Math.max(0, (it.dmg || 0) + n); const u = unitOf(p, it);
   if (unitHp(p, it) > 0) return n > 0 ? `${u.name} ztrácí ${n} ${plural(n, "život", "životy", "životů")}` : `${u.name} se léčí`;
-  t.items = t.items.filter(x => x !== it); if (S.sel === it.uid) S.sel = null;
+  dropLoot(p, t, it); t.items = t.items.filter(x => x !== it); if (S.sel === it.uid) S.sel = null;
   if (by && isHero(p, by) && +u.xp) { by.xp = (by.xp || 0) + +u.xp; }
   checkWin(p, t); return `${u.name} padl${by && +u.xp && isHero(p, by) ? ` (+${u.xp} XP pro ${unitOf(p, by).name})` : ""}`;
 }
@@ -7231,6 +7277,7 @@ function printNeeds(p) {
   p.bags.forEach(b => R("Obstarat", `Sáček „${b.name}“ a žetony v něm`, b.contents.reduce((a, c) => a + (+c.count || 0), 0), null, b.contents.map(c => `${c.count}× ${c.label}`).join(", ")));
   p.resources.filter(r => !r.global).forEach(r => R("Obstarat", `Žetony zdroje „${r.name}“`, Math.max(1, p.factions.length) * Math.max(10, +r.max || 0, (+r.start || 0) * 3), null, "kostičky, mince nebo vytištěné žetony"));
   diceNeeds(p).forEach(d => R("Kostky", d.custom ? `Vlastní kostka „${d.custom.name}“` : `k${d.sides}`, d.n, null, d.why.join(", ")));
+  if (p.rondel.on) { R("Mapa", "Deska rondelu", 1, 1, `${p.rondel.spaces.length} polí v kruhu`); R("Obstarat", "Figurky na rondel", p.factions.length, null, "1 na hráče"); }
   if (p.actions.length) R("Obstarat", `Figurky dělníků (${p.factions.length} barev)`, p.factions.length * 4, null, "3–5 na hráče");
   const np = Math.max(1, p.factions.length);
   R("Tisk pro hráče", "Pravidla", 1, Math.max(2, Math.ceil(((p.rules || "").length + 6000) / 5000)), "záložka Pravidla → tisk");
@@ -7410,6 +7457,153 @@ function opsRulebook(p) {
   if (br.length) out.push(["Mosty", `<p>${br.map(x => `${esc(x.name)} → ${esc((p.terrains.find(y => y.id === x.breaksTo) || {}).name || "")}`).join(", ")}: jednotka s výbušninou na mostě nebo vedle něj ho může zničit; jednotky na mostě dostanou zásah výbušninou.</p>`]);
   if (fu.length) out.push(["Palivo", `<p>${fu.map(u => `${esc(u.name)} ${u.fuel}`).join(", ")}. Každý pohyb spotřebuje 1; bez paliva se jednotka nepohne. Natankuje v zásobování.</p>`]);
   if (+R.recover || +R.attrition) out.push(["Zásobování v čase", `<p>${+R.recover ? `Na začátku kola hodí každá oslabená jednotka v zásobování k6; při ${R.recover}+ se obnoví. ` : ""}${+R.attrition ? `Jednotka, která je ${R.attrition} ${plural(+R.attrition, "kolo", "kola", "kol")} v řadě mimo zásobování, ztratí krok.` : ""}</p>`]);
+  return out;
+}
+
+// ---------- Euro, karetní a ameritrash mechaniky ----------
+// Rondel: figurka hráče obchází kruh akcí; o 1–N polí zdarma, dál za poplatek.
+// Údržba (krmení): na začátku kola každý hráč zaplatí zdroj za sebe a za vyložené karty, za každý chybějící kus dostane postih.
+// Slevy: vyložená karta zlevní další nákupy (všechny, nebo jen karty určitého typu) – stavba motoru.
+// Rezervace: kartu z trhu si hráč odloží stranou (s bonusem) a koupí ji později.
+// Spojenci: karta má schopnost, která se spustí, když už hráč má vyloženou kartu stejného typu (kombo).
+// Reakce: karta jde zahrát i mimo vlastní tah.
+// Událost kola: na začátku každého kola se otočí karta z balíčku událostí.
+// Kořist: padlá jednotka upustí své předměty na pole a ostatní je mohou sebrat.
+function normalizeEuro(p) {
+  p.rondel = Object.assign({ on: false, free: 3, res: "", cost: 1, spaces: [] }, p.rondel || {});
+  if (!p.rondel.spaces.length) p.rondel.spaces = ["Produkce", "Obchod", "Stavba", "Výzkum", "Nábor", "Daně"].map(n => ({ id: uid(), name: n, effect: "" }));
+  p.upkeep = Object.assign({ on: false, res: "", base: 0, perTab: 0, type: "", penalty: "-1 Body" }, p.upkeep || {});
+  p.reserve = Object.assign({ on: false, max: 3, res: "", bonus: 1 }, p.reserve || {});
+  if (p.roundEvent == null) p.roundEvent = "";
+}
+// Cena karty po slevách z vyložených karet hráče.
+function cardDiscount(p, t, fid, c) {
+  return (t.tableau[fid] || []).map(h => cardOf(p, h).c).filter(Boolean).reduce((a, x) => a + (+x.disc && (!x.discType || x.discType === c.type) ? +x.disc : 0), 0);
+}
+function cardPrice(p, t, fid, c) { const base = parseFloat(c.cost) || 0; return fid ? Math.max(0, base - cardDiscount(p, t, fid, c)) : base; }
+// Spojenecká schopnost po vyložení / zahrání.
+function allyCheck(p, t, fid, h, c) {
+  if (!c.allyFx) return ""; const ty = c.allyType || c.type; if (!ty) return "";
+  const has = (t.tableau[fid] || []).some(x => x !== h && (cardOf(p, x).c || {}).type === ty);
+  if (!has) return ""; runEffects(p, t, fid, c.allyFx, c.title + " (spojenec)"); logEv(t, `${c.title}: spojenecká schopnost (${ty})`); return c.allyFx;
+}
+// Rondel
+function rondelMove(p, t, fid, to) {
+  const R = p.rondel; const n = R.spaces.length; t.rondel = t.rondel || {}; const from = t.rondel[fid]; const steps = from == null ? 0 : ((to - from) % n + n) % n;
+  if (from != null && steps === 0) return "Na stejném poli zůstat nelze";
+  const extra = Math.max(0, steps - (+R.free || 0)) * (+R.cost || 0); const r = p.resources.find(x => x.id === R.res);
+  if (extra) { if (!r) return `Dál než ${R.free} pole jít nelze`; const have = (t.res[fid] || {})[r.id] || 0; if (have < extra) return `Na ${steps} polí chybí ${r.name} (${have} z ${extra})`; t.res[fid][r.id] = have - extra; }
+  t.rondel[fid] = to; const sp = R.spaces[to]; const f = p.factions.find(x => x.id === fid);
+  logEv(t, `${f ? f.name : ""} na rondelu: ${sp.name}${extra ? ` (zaplatí ${extra} ${r.name})` : ""}`); if (sp.effect) runEffects(p, t, fid, sp.effect, sp.name); return "";
+}
+function sideRondel(p, t) {
+  const R = p.rondel; const cp = curPlayer(p, t); const n = R.spaces.length; const pos = t.rondel || {}; const r = p.resources.find(x => x.id === R.res);
+  const cur = cp ? pos[cp.id] : null; const ang = i => (i / n) * 2 * Math.PI - Math.PI / 2;
+  return `<section><div class="eyebrow">Rondel</div>${fchipsHTML(p, t)}
+    <div class="rondel">${R.spaces.map((s, i) => { const steps = cur == null ? 0 : ((i - cur) % n + n) % n; const extra = Math.max(0, steps - (+R.free || 0)) * (+R.cost || 0); const pawns = p.factions.filter(f => pos[f.id] === i);
+      return `<button class="rsp ${cur === i ? "on" : ""}" data-rondel="${i}" style="left:${50 + 40 * Math.cos(ang(i))}%;top:${50 + 40 * Math.sin(ang(i))}%" ${cur != null && steps === 0 ? "disabled" : ""} title="${esc(s.effect ? describeEffect(s.effect) : "")}">
+        <b>${esc(s.name)}</b>${cur != null && steps ? `<span>${steps} ${extra ? `· ${extra} ${esc(r ? r.name : "")}` : "· zdarma"}</span>` : ""}<span class="pawns">${pawns.map(f => `<i style="background:${f.color}"></i>`).join("")}</span></button>`; }).join("")}</div>
+    <p class="hint">${cp ? esc(cp.name) + ": " : ""}posun o 1–${R.free} pole zdarma${r ? `, každé další za ${R.cost} ${esc(r.name)}` : ", dál nelze"}. Na prvním tahu vyber libovolné pole.</p></section>`;
+}
+function wireRondel(main, p, t, save) {
+  $$("[data-rondel]", main).forEach(el => el.onclick = () => { const cp = curPlayer(p, t); if (!cp || !gate(p, t, "akce")) return; const m = rondelMove(p, t, cp.id, +el.dataset.rondel); if (m) { toast(m); return; } after(p, t, "akce", cp.id, p.rondel.spaces[+el.dataset.rondel].name); save(); render(); });
+}
+// Údržba na začátku kola
+function upkeepRound(p, t) {
+  const U = p.upkeep; if (!U.on) return; const r = p.resources.find(x => x.id === U.res); if (!r) return;
+  p.factions.forEach(f => { const tab = (t.tableau[f.id] || []).filter(h => !U.type || (cardOf(p, h).c || {}).type === U.type).length; const need = (+U.base || 0) + (+U.perTab || 0) * tab; if (!need) return;
+    t.res[f.id] = t.res[f.id] || {}; const have = t.res[f.id][r.id] || 0; const paid = Math.min(have, need); t.res[f.id][r.id] = have - paid; const miss = need - paid;
+    logEv(t, `${f.name} platí údržbu ${paid}/${need} ${r.name}${miss ? `, chybí ${miss}` : ""}`); for (let i = 0; i < miss && U.penalty; i++) runEffects(p, t, f.id, U.penalty, "údržba"); });
+}
+// Událost kola
+function eventRound(p, t) { const d = p.decks.find(x => x.id === p.roundEvent); const cp = curPlayer(p, t); if (!d || !cp) return; runEffects(p, t, cp.id, `událost z ${d.name}`, "událost kola"); }
+// Rezervace z trhu
+function reserveCard(p, t, fid, dId, i) {
+  const R = p.reserve; t.reserved = t.reserved || {}; const mine = t.reserved[fid] = t.reserved[fid] || []; if (mine.length >= (+R.max || 3)) return `Rezervovat lze nejvýš ${R.max} karty`;
+  const cId = t.market[dId][+i]; if (!cId) return "Prázdné místo"; t.market[dId][+i] = null; mine.push({ deckId: dId, cardId: cId, own: true });
+  const r = p.resources.find(x => x.id === R.res); if (r && +R.bonus) { t.res[fid] = t.res[fid] || {}; t.res[fid][r.id] = Math.min(resMax(r), (t.res[fid][r.id] || 0) + +R.bonus); }
+  const d = p.decks.find(x => x.id === dId); refillMarket(p, t, d); logEv(t, `${p.factions.find(f => f.id === fid).name} rezervuje ${cardOf(p, mine[mine.length - 1]).c.title}${r && +R.bonus ? ` (+${R.bonus} ${r.name})` : ""}`); return "";
+}
+function buyReserved(p, t, fid, idx) {
+  t.reserved = t.reserved || {}; const h = (t.reserved[fid] || [])[idx]; if (!h) return "Karta není v rezervaci"; const c = cardOf(p, h).c; const cur = p.resources.find(r => r.id === p.marketCur); const price = cardPrice(p, t, fid, c);
+  if (cur && price) { const have = (t.res[fid] || {})[cur.id] || 0; if (have < price) return `Chybí ${cur.name} (${have} z ${price})`; t.res[fid][cur.id] = have - price; }
+  t.reserved[fid].splice(idx, 1); (t.pdisc[fid] = t.pdisc[fid] || []).push(h); logEv(t, `${p.factions.find(f => f.id === fid).name} kupuje z rezervace ${c.title}`); return "";
+}
+function reserveHTML(p, t) {
+  if (!p.reserve.on) return ""; const cp = curPlayer(p, t); if (!cp) return ""; const mine = (t.reserved || {})[cp.id] || [];
+  return `<section><div class="eyebrow">Rezervace · ${esc(cp.name)} ${mine.length}/${p.reserve.max}</div>${mine.length ? `<div class="hand mini">${mine.map((h, i) => { const { c, d } = cardOf(p, h); return `<div class="hc">${cardHTML(c, d)}<button class="btn small primary" data-rbuy="${i}">Koupit za ${cardPrice(p, t, cp.id, c)}</button></div>`; }).join("")}</div>` : `<span class="hint">Nic – u karty na trhu stiskni „Rezervovat“.</span>`}</section>`;
+}
+// Kořist
+function dropLoot(p, t, it) {
+  const loot = attachedTo(p, t, it); loot.forEach((o, n) => { delete o.attachTo; o.x = it.x + 8 + n * 10; o.y = it.y + 8 + n * 6; });
+  (it.gear || []).forEach(g => (t.discard[g.deckId] = t.discard[g.deckId] || []).push(g.cardId)); it.gear = [];
+  if (loot.length) logEv(t, `${(unitOf(p, it) || {}).name} upouští: ${loot.map(o => tokDef(p, o).name).join(", ")}`); return loot.length;
+}
+function lootNear(p, t, it) {
+  const k0 = locKey(p, t, it); if (!k0) return []; const b = tableBoard(p);
+  return t.items.filter(o => o.kind === "token" && !o.attachTo && (tokDef(p, o) || {}).small && (() => { const k = locKey(p, t, o); return k && (k === k0 || b && hexDist(b, k0, k) <= 1); })());
+}
+function lootSelHTML(p, t, i) { const l = lootNear(p, t, i); return l.length ? `<div class="row"><span class="hint">Sebrat:</span>${l.slice(0, 5).map(o => `<button class="btn small" data-loot="${o.uid}">${esc(tokDef(p, o).name)}</button>`).join("")}</div>` : ""; }
+function wireLoot(main, p, t, save) {
+  const sel = t.items.find(i => i.uid === S.sel); if (!sel || sel.kind !== "unit") return;
+  $$("[data-loot]", main).forEach(el => el.onclick = () => { const o = t.items.find(x => x.uid === el.dataset.loot); if (!o) return; const tk = tokDef(p, o); if (carryCheck(p, t, sel, tk).length && !gate(p, t, "vybaveni", carryCheck(p, t, sel, tk))) return;
+    o.attachTo = sel.uid; o.x = sel.x; o.y = sel.y; logEv(t, `${unitOf(p, sel).name} sbírá ${tk.name}`); save(); render(); });
+}
+// Nastavení v Mechanikách
+function euroMechHTML(p) {
+  const R = p.rondel, U = p.upkeep; const resOpt = (sel, none = "–") => `<option value="">${none}</option>${p.resources.map(r => `<option value="${r.id}" ${r.id === sel ? "selected" : ""}>${esc(r.name)}</option>`).join("")}`;
+  return `<div class="panel"><h2>Rondel a údržba</h2>
+    <label class="chk"><input type="checkbox" id="roOn" ${R.on ? "checked" : ""}> Akce se vybírají na rondelu (kruh akcí)</label>
+    ${R.on ? `<div class="grid" style="grid-template-columns:repeat(3,1fr)"><label class="f">Polí zdarma<input type="number" id="roFree" min="1" max="8" value="${esc(R.free)}"></label><label class="f">Poplatek za další<select id="roRes">${resOpt(R.res, "nelze dál")}</select></label><label class="f">Za pole<input type="number" id="roCost" min="0" max="9" value="${esc(R.cost)}"></label></div>
+      <div class="list">${R.spaces.map(s => `<div class="item-row"><input type="text" data-ro="name|${s.id}" value="${esc(s.name)}" style="width:120px" aria-label="Název pole"><input type="text" data-ro="effect|${s.id}" value="${esc(s.effect)}" placeholder="Efekt, např. +2 Mince" style="flex:1;min-width:120px;width:auto" aria-label="Efekt"><button class="btn small danger" data-rodel="${s.id}" aria-label="Smazat">✕</button></div>`).join("")}</div>
+      <button class="btn small" id="roAdd">+ Pole rondelu</button>` : ""}
+    <h3>Údržba (krmení)</h3>
+    <label class="chk"><input type="checkbox" id="upOn" ${U.on ? "checked" : ""}> Na začátku kola každý hráč platí údržbu</label>
+    ${U.on ? `<div class="grid" style="grid-template-columns:1fr 1fr"><label class="f">Zdroj<select id="upRes">${resOpt(U.res)}</select></label><label class="f">Za hráče<input type="number" id="upBase" min="0" max="20" value="${esc(U.base)}"></label>
+      <label class="f">Za každou vyloženou kartu<input type="number" id="upTab" min="0" max="9" value="${esc(U.perTab)}"></label><label class="f">Jen karty typu<input type="text" id="upType" value="${esc(U.type)}" placeholder="všechny"></label></div>
+      <label class="f">Postih za každý chybějící kus<input type="text" id="upPen" value="${esc(U.penalty)}" placeholder="-1 Body"></label>` : ""}</div>`;
+}
+function cardsMechHTML(p) {
+  const RS = p.reserve;
+  return `<div class="panel"><h2>Motor, kombinace a události</h2>
+    <p class="hint"><b>Slevy</b> a <b>spojenecké schopnosti</b> nastavíš u karty („Motor a kombinace“). Sleva zlevní nákup z trhu i vyložení karty; spojenecká schopnost se spustí, když už má hráč vyloženou kartu stejného typu. <b>Reakci</b> jde zahrát i mimo svůj tah.</p>
+    <label class="chk"><input type="checkbox" id="rsOn" ${RS.on ? "checked" : ""}> Karty z trhu jde rezervovat</label>
+    ${RS.on ? `<div class="grid" style="grid-template-columns:repeat(3,1fr)"><label class="f">Nejvýš karet<input type="number" id="rsMax" min="1" max="9" value="${esc(RS.max)}"></label><label class="f">Bonus<select id="rsRes"><option value="">žádný</option>${p.resources.map(r => `<option value="${r.id}" ${r.id === RS.res ? "selected" : ""}>${esc(r.name)}</option>`).join("")}</select></label><label class="f">Kolik<input type="number" id="rsBon" min="0" max="9" value="${esc(RS.bonus)}"></label></div>` : ""}
+    <label class="f">Událost na začátku každého kola z balíčku<select id="evDeck"><option value="">žádná</option>${p.decks.map(d => `<option value="${d.id}" ${d.id === p.roundEvent ? "selected" : ""}>${esc(d.name)}</option>`).join("")}</select></label>
+    <p class="hint"><b>Kořist:</b> padlá jednotka upustí předměty na své pole; jednotka na stejném nebo sousedním poli je sebere tlačítkem „Sebrat“.</p></div>`;
+}
+function wireEuroMech(main, p) {
+  const q = id => document.getElementById(id); const ch = (id, fn, re) => { if (q(id)) q(id).addEventListener("change", e => { fn(e.target); touch(p); if (re) render(); }); };
+  const R = p.rondel, U = p.upkeep, RS = p.reserve;
+  ch("roOn", e => { R.on = e.checked; }, 1); ch("roFree", e => { R.free = Math.max(1, +e.value || 1); }); ch("roRes", e => { R.res = e.value; }); ch("roCost", e => { R.cost = +e.value || 0; });
+  $$("[data-ro]", main).forEach(i => i.addEventListener("change", () => { const [k, id] = i.dataset.ro.split("|"); R.spaces.find(s => s.id === id)[k] = i.value; touch(p); }));
+  $$("[data-rodel]", main).forEach(b => b.onclick = () => { R.spaces = R.spaces.filter(s => s.id !== b.dataset.rodel); touch(p); render(); });
+  if (q("roAdd")) q("roAdd").onclick = () => { R.spaces.push({ id: uid(), name: "Pole " + (R.spaces.length + 1), effect: "" }); touch(p); render(); };
+  ch("upOn", e => { U.on = e.checked; }, 1); ch("upRes", e => { U.res = e.value; }); ch("upBase", e => { U.base = +e.value || 0; }); ch("upTab", e => { U.perTab = +e.value || 0; }); ch("upType", e => { U.type = e.value.trim(); }); ch("upPen", e => { U.penalty = e.value; });
+  ch("rsOn", e => { RS.on = e.checked; }, 1); ch("rsMax", e => { RS.max = Math.max(1, +e.value || 3); }); ch("rsRes", e => { RS.res = e.value; }); ch("rsBon", e => { RS.bonus = +e.value || 0; });
+  ch("evDeck", e => { p.roundEvent = e.value; });
+}
+// Pole karty v editoru
+function cardEngineHTML(c) {
+  return `<details class="cfx" ${c.disc || c.allyFx || c.reaction ? "open" : ""}><summary>Motor a kombinace (slevy, spojenci, reakce)</summary>
+    <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(130px,1fr))">
+      <label class="f" title="Dokud je karta vyložená, zlevní další nákupy o tolik">Sleva<input type="number" id="c-disc" min="0" max="9" value="${esc(c.disc || "")}" placeholder="0"></label>
+      <label class="f" title="Sleva platí jen na karty tohoto typu (prázdné = na všechny)">Sleva jen na typ<input type="text" id="c-discType" value="${esc(c.discType || "")}" placeholder="všechny"></label>
+      <label class="f" title="Spustí se, když hráč už má vyloženou kartu tohoto typu (prázdné = stejný typ jako tahle karta)">Spojenec – typ<input type="text" id="c-allyType" value="${esc(c.allyType || "")}" placeholder="stejný typ"></label>
+      <label class="f" title="Efekt spojenecké schopnosti">Spojenec – efekt<input type="text" id="c-allyFx" value="${esc(c.allyFx || "")}" placeholder="+2 Mince"></label></div>
+    <label class="chk"><input type="checkbox" id="c-reaction" ${c.reaction ? "checked" : ""}> Reakce – jde zahrát i mimo svůj tah</label></details>`;
+}
+function readCardEngine(c, d) { ["disc", "discType", "allyType", "allyFx"].forEach(k => { c[k] = $("#c-" + k, d).value.trim(); }); c.disc = c.disc === "" ? "" : +c.disc || 0; c.reaction = $("#c-reaction", d).checked; }
+function euroRulebook(p) {
+  const out = []; const R = p.rondel, U = p.upkeep;
+  if (R.on) out.push(["Rondel", `<p>Hráč ve svém tahu posune figurku po kruhu o 1–${R.free} pole zdarma${R.res ? `, každé další pole stojí ${R.cost} ${esc((p.resources.find(r => r.id === R.res) || {}).name || "")}` : ""}, a provede akci pole. Na místě zůstat nesmí.</p><ol>${R.spaces.map(s => `<li><b>${esc(s.name)}</b>${s.effect ? ": " + esc(describeEffect(s.effect)) : ""}</li>`).join("")}</ol>`]);
+  if (U.on) { const r = p.resources.find(x => x.id === U.res); if (r) out.push(["Údržba", `<p>Na začátku kola každý hráč zaplatí ${U.base} ${esc(r.name)}${+U.perTab ? ` a ${U.perTab} za každou vyloženou kartu${U.type ? ` typu ${esc(U.type)}` : ""}` : ""}. Za každý chybějící kus: ${esc(describeEffect(U.penalty || ""))}.</p>`]); }
+  const disc = p.decks.flatMap(d => d.cards.filter(c => +c.disc)), ally = p.decks.flatMap(d => d.cards.filter(c => c.allyFx)), react = p.decks.flatMap(d => d.cards.filter(c => c.reaction));
+  if (disc.length) out.push(["Slevy", `<ul>${disc.map(c => `<li><b>${esc(c.title)}</b>: −${c.disc} z ceny ${c.discType ? `karet typu ${esc(c.discType)}` : "každé karty"}, dokud je vyložená</li>`).join("")}</ul>`]);
+  if (ally.length) out.push(["Spojenecké schopnosti", `<ul>${ally.map(c => `<li><b>${esc(c.title)}</b>: máš-li vyloženou kartu typu ${esc(c.allyType || c.type)}, navíc ${esc(describeEffect(c.allyFx))}</li>`).join("")}</ul>`]);
+  if (react.length) out.push(["Reakce", `<p>Tyto karty smíš zahrát i mimo svůj tah: ${react.map(c => esc(c.title)).join(", ")}.</p>`]);
+  if (p.reserve.on) out.push(["Rezervace", `<p>Místo nákupu si můžeš kartu z trhu odložit stranou (nejvýš ${p.reserve.max})${p.reserve.res && +p.reserve.bonus ? ` a vzít si ${p.reserve.bonus} ${esc((p.resources.find(r => r.id === p.reserve.res) || {}).name || "")}` : ""}. Později ji koupíš za její cenu.</p>`]);
+  const ev = p.decks.find(d => d.id === p.roundEvent); if (ev) out.push(["Událost kola", `<p>Na začátku každého kola otoč vrchní kartu balíčku ${esc(ev.name)} a proveď ji.</p>`]);
   return out;
 }
 

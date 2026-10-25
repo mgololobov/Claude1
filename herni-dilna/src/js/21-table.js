@@ -127,7 +127,7 @@ function clockMs(t) { const c = t.clock || {}; return (c.acc || 0) + (c.run ? Da
 function fmtClock(ms) { const s = Math.floor(ms / 1000); const h = Math.floor(s / 3600); return (h ? h + ":" : "") + pad2(Math.floor(s / 60) % 60) + ":" + pad2(s % 60); }
 onInit(() => setInterval(() => { const el = document.getElementById("clock"); const p = P(); if (el && p && p.table) el.textContent = fmtClock(clockMs(p.table)); }, 1000));
 
-const TOOLS = [["stul", "Komponenty"], ["kolo", "Kolo"], ["hraci", "Hráči"], ["trh", "Trh"], ["akce", "Akce"], ["ruce", "Ruce"], ["draft", "Draft"], ["styk", "Štych"], ["program", "Program"], ["drazba", "Dražba"], ["obchod", "Obchod"], ["sacek", "Sáček"], ["kostky", "Kostky"], ["dilky", "Dílky"], ["draha", "Dráha"], ["tajne", "Tajné"], ["boj", "Boj"], ["uzemi", "Území"], ["aktivace", "Aktivace"], ["rozvoj", "Rozvoj"], ["hromadka", "Hromádka"], ["riskuj", "Riskuj"], ["vyprava", "Výprava"], ["kameny", "Kameny"], ["kod", "Kód"], ["lokace", "Lokace"], ["rozsevani", "Rozsévání"], ["sit", "Síť"], ["zakazky", "Zakázky"], ["souboj", "Souboj"], ["spolecnosti", "Společnosti"]];
+const TOOLS = [["stul", "Komponenty"], ["kolo", "Kolo"], ["hraci", "Hráči"], ["trh", "Trh"], ["akce", "Akce"], ["ruce", "Ruce"], ["draft", "Draft"], ["styk", "Štych"], ["program", "Program"], ["drazba", "Dražba"], ["obchod", "Obchod"], ["sacek", "Sáček"], ["kostky", "Kostky"], ["dilky", "Dílky"], ["draha", "Dráha"], ["tajne", "Tajné"], ["boj", "Boj"], ["uzemi", "Území"], ["aktivace", "Aktivace"], ["rozvoj", "Rozvoj"], ["hromadka", "Hromádka"], ["riskuj", "Riskuj"], ["vyprava", "Výprava"], ["kameny", "Kameny"], ["kod", "Kód"], ["lokace", "Lokace"], ["rozsevani", "Rozsévání"], ["sit", "Síť"], ["zakazky", "Zakázky"], ["souboj", "Souboj"], ["spolecnosti", "Společnosti"], ["rondel", "Rondel"]];
 function renderTable(main, p) {
   const t = ensureTable(p);
   const b = tableBoard(p); const g = b ? geo(b) : null;
@@ -155,7 +155,7 @@ function renderTable(main, p) {
       ${(p.ruleset.fog || p.factions.some(f => f.hidden)) && p.units.length ? `<label class="f" style="flex-direction:row;align-items:center;gap:8px">Pohled<select id="view"><option value="">Vidím vše (rozhodčí)</option>${p.factions.map(f => `<option value="${f.id}" ${S.view === f.id ? "selected" : ""}>${esc(f.name)}</option>`).join("")}</select></label>` : ""}
       ${selItem ? selBarHTML(p, selItem) : ""}
       ${toolsHTML(p)}
-      ${({ stul: sideComponents, kolo: sideTurn, hraci: sidePlayers, trh: sideMarket, akce: sideActions, ruce: sideHands, draft: sideDraft, styk: sideTrick, program: sideProgram, drazba: sideAuction, sacek: sideBag, kostky: sideDice, boj: sideCombat, uzemi: sideTerritory, dilky: sideTiles, draha: sideTrack, obchod: sideTrade, tajne: sideSecret, aktivace: sideActivation, rozvoj: sideDevelop, hromadka: sideShed, riskuj: sidePush, vyprava: sideCrawl, kameny: sideStones, kod: sideCode, lokace: sideCmap, rozsevani: sideMancala, sit: sideNet, zakazky: sideDeliver, souboj: sideFight, spolecnosti: sideRail })[S.tool](p, t)}
+      ${({ stul: sideComponents, kolo: sideTurn, hraci: sidePlayers, trh: sideMarket, akce: sideActions, ruce: sideHands, draft: sideDraft, styk: sideTrick, program: sideProgram, drazba: sideAuction, sacek: sideBag, kostky: sideDice, boj: sideCombat, uzemi: sideTerritory, dilky: sideTiles, draha: sideTrack, obchod: sideTrade, tajne: sideSecret, aktivace: sideActivation, rozvoj: sideDevelop, hromadka: sideShed, riskuj: sidePush, vyprava: sideCrawl, kameny: sideStones, kod: sideCode, lokace: sideCmap, rozsevani: sideMancala, sit: sideNet, zakazky: sideDeliver, souboj: sideFight, spolecnosti: sideRail, rondel: sideRondel })[S.tool](p, t)}
     </aside></div>`;
   S.justRolled = false;
   S.undoBase = JSON.stringify(p.table);
@@ -192,7 +192,7 @@ function selBarHTML(p, i) {
       <div class="row">${k ? `<button class="btn small ${S.rangeUid === i.uid ? "on" : ""}" data-sa="range">Dosah pohybu</button><button class="btn small ${S.losUid === i.uid && !S.losR ? "on" : ""}" data-sa="los">Výhled</button>${unitStat(p, i, "range") ? `<button class="btn small ${S.losUid === i.uid && S.losR ? "on" : ""}" data-sa="fire">Dostřel ${unitStat(p, i, "range")}</button>` : ""}` : ""}${hasReduced(u) ? `<button class="btn small" data-sa="flip">${i.reduced ? "Obnovit" : "Oslabit"}</button>` : ""}${facingOn(p) ? "" : `<button class="btn small" data-sa="rot">Natočit</button>`}</div>
       ${u.att !== "" && u.att != null || u.def !== "" && u.def != null ? `<div class="row">${Object.entries(UNIT_ST).filter(([, v]) => v[3] === 2 || !!v[3] === !!+u.hp).map(([k, v]) => `<button class="btn small ${i.st && i.st[k] ? "on" : ""}" data-ust="${k}" title="${v[2]}">${v[1]} ${v[0]}</button>`).join("")}</div>
       <div class="row"><button class="btn small" data-sa="asAtt">Útočí</button><button class="btn small" data-sa="addAtt">+ k útoku</button><button class="btn small" data-sa="asDef">Brání</button></div>` : ""}
-      ${facingSelHTML(p, p.table, i)}${moraleSelHTML(p, p.table, i)}${opsSelHTML(p, p.table, i)}${commandSelHTML(p, p.table, i)}${unitsPlusSelHTML(p, p.table, i)}${crawlSelHTML(p, i)}${deliverSelHTML(p, i)}${tableNet(p) && netNodeOf(p, p.table, i) ? `<div class="row"><button class="btn small ${S.netReach && S.netReachUid === i.uid ? "on" : ""}" data-sa="netreach">Kam dojede</button></div>` : ""}
+      ${facingSelHTML(p, p.table, i)}${moraleSelHTML(p, p.table, i)}${opsSelHTML(p, p.table, i)}${lootSelHTML(p, p.table, i)}${commandSelHTML(p, p.table, i)}${unitsPlusSelHTML(p, p.table, i)}${crawlSelHTML(p, i)}${deliverSelHTML(p, i)}${tableNet(p) && netNodeOf(p, p.table, i) ? `<div class="row"><button class="btn small ${S.netReach && S.netReachUid === i.uid ? "on" : ""}" data-sa="netreach">Kam dojede</button></div>` : ""}
       <div class="row"><button class="btn small" data-sa="dup">Duplikovat</button><button class="btn small danger" data-sa="remove">Zničit</button></div></div>`;
   }
   const tk = p.tokens.find(x => x.id === i.tokenId);
@@ -281,8 +281,9 @@ function sideMarket(p, t) {
   const cur = p.resources.find(r => r.id === p.marketCur); const cp = curPlayer(p, t);
   return `<section><div class="eyebrow">Kupuje</div>${fchipsHTML(p, t)}${cur && cp ? `<span class="hint">${esc(cp.name)} má ${(t.res[cp.id] || {})[cur.id] ?? 0} × ${esc(cur.name)}</span>` : ""}</section>
     ${ds.map(d => `<section><div class="row spread"><div class="eyebrow">${esc(d.name)} · v balíčku ${t.piles[d.id].length}</div><button class="btn small" data-mrefresh="${d.id}">Vyměnit trh</button></div>
-      <div class="hand mini">${t.market[d.id].map((cId, i) => { const c = cId && d.cards.find(x => x.id === cId); return c ? `<div class="hc">${cardHTML(c, d)}<div class="row">${+c.fight ? `<button class="btn small primary" data-mfight="${d.id}|${i}">⚔ Porazit (${c.fight})</button>` : p.marketAuction ? `<button class="btn small primary" data-mauc="${d.id}|${i}">Dražit</button>` : `<button class="btn small primary" data-mbuy="${d.id}|${i}">Koupit</button>`}<button class="btn small" data-mhand="${d.id}|${i}" aria-label="Do ruky">Ruka</button><button class="btn small" data-mtab="${d.id}|${i}" aria-label="Vyložit">Vyložit</button></div></div>` : `<div class="hc empty" style="padding:8px;font-size:.8rem">prázdné</div>`; }).join("")}</div>
+      <div class="hand mini">${t.market[d.id].map((cId, i) => { const c = cId && d.cards.find(x => x.id === cId); return c ? `<div class="hc">${cardHTML(c, d)}<div class="row">${+c.fight ? `<button class="btn small primary" data-mfight="${d.id}|${i}">⚔ Porazit (${c.fight})</button>` : p.marketAuction ? `<button class="btn small primary" data-mauc="${d.id}|${i}">Dražit</button>` : `<button class="btn small primary" data-mbuy="${d.id}|${i}">Koupit${cp && cardDiscount(p, t, cp.id, c) && parseFloat(c.cost) ? ` za ${cardPrice(p, t, cp.id, c)}` : ""}</button>`}${p.reserve.on ? `<button class="btn small" data-mres="${d.id}|${i}">Rezervovat</button>` : ""}<button class="btn small" data-mhand="${d.id}|${i}" aria-label="Do ruky">Ruka</button><button class="btn small" data-mtab="${d.id}|${i}" aria-label="Vyložit">Vyložit</button></div></div>` : `<div class="hc empty" style="padding:8px;font-size:.8rem">prázdné</div>`; }).join("")}</div>
       <p class="hint">Koupit = do odhozu vlastního balíčku hráče (deck building).</p></section>`).join("")}
+    ${reserveHTML(p, t)}
     <section><label class="chk"><input type="checkbox" id="mAuc" ${p.marketAuction ? "checked" : ""}> Karty z trhu se draží (otevřená dražba od ceny karty)</label></section>`;
 }
 function sideActions(p, t) {
@@ -558,14 +559,17 @@ function wireTable(main, p, t) {
     const [dId, i] = key.split("|"); const d = p.decks.find(x => x.id === dId); const cId = t.market[dId][+i]; if (!cId || !cp) return;
     const cat = dest === "buy" ? "nakup" : dest === "hand" ? "lizat" : "vylozit"; if (!gate(p, t, cat)) return;
     const c = d.cards.find(x => x.id === cId);
-    if (dest === "buy") { const cur = p.resources.find(r => r.id === p.marketCur); const price = parseFloat(c.cost) || 0;
+    if (dest === "buy") { const cur = p.resources.find(r => r.id === p.marketCur); const price = cardPrice(p, t, cp.id, c);
       if (cur && price) { const have = (t.res[cp.id] || {})[cur.id] || 0; if (have < price) { toast(`${cp.name} nemá dost (${have} z ${price})`); return; } t.res[cp.id][cur.id] = have - price; } }
     t.market[dId][+i] = null; const h = { deckId: dId, cardId: cId, own: true };
     if (dest === "buy") (t.pdisc[cp.id] = t.pdisc[cp.id] || []).push(h); else if (dest === "hand") (t.hands[cp.id] = t.hands[cp.id] || []).push(h); else (t.tableau[cp.id] = t.tableau[cp.id] || []).push(h);
     logEv(t, `${cp.name} ${dest === "buy" ? "kupuje" : "bere"} ${c.title}`);
     if (dest === "tab" && c.effect) runEffects(p, t, cp.id, c.effect, c.title);
+    if (dest === "tab") allyCheck(p, t, cp.id, h, c);
     refillMarket(p, t, d); after(p, t, cat, cp.id, c.type); save(); render(); toast(`${c.title} → ${cp.name}`);
   };
+  on("[data-mres]", el => { if (!cp || !gate(p, t, "nakup")) return; const [dId, i] = el.dataset.mres.split("|"); const m = reserveCard(p, t, cp.id, dId, i); if (m) { toast(m); return; } save(); render(); });
+  on("[data-rbuy]", el => { if (!cp || !gate(p, t, "nakup")) return; const m = buyReserved(p, t, cp.id, +el.dataset.rbuy); if (m) { toast(m); return; } after(p, t, "nakup", cp.id); save(); render(); });
   if (q("mAuc")) q("mAuc").onchange = e => { p.marketAuction = e.target.checked; touch(p); render(); };
   on("[data-mauc]", el => { const [dId, i] = el.dataset.mauc.split("|"); const d = p.decks.find(x => x.id === dId); const c = d.cards.find(x => x.id === t.market[dId][+i]); if (!c || !gate(p, t, "nakup")) return;
     t.auction = { item: c.title, bid: parseFloat(c.cost) || 0, leader: null, passed: [], card: { dId, i: +i } }; S.tool = "drazba"; S.aucMode = "open"; save(); render(); });
@@ -691,7 +695,7 @@ function wireTable(main, p, t) {
   if (q("ctrlAuto")) q("ctrlAuto").onclick = () => { let n = 0; t.items.filter(i => i.kind === "unit").forEach(i => { const k = cellUnder(p, i); const u = p.units.find(x => x.id === i.unitId); if (k && u && u.factionId) { t.control[k] = u.factionId; n++; } }); save(); render(); toast(`Přiděleno ${n} ${plural(n, "pole", "pole", "polí")}`); };
   // vybraná položka
   const selItem = t.items.find(i => i.uid === S.sel);
-  wireExtra(main, p, t, save); wireR4(main, p, t, save); wireWar(main, p, t, save); wireIpad(main, p, t, save); wireOnline(main, p, t, save); wireMore(main, p, t, save); wireCrawl(main, p, t, save); wireLogic(main, p, t, save); wireCmap(main, p, t, save); wireExtra2(main, p, t, save); wireNet(main, p, t, save); wireDeliver(main, p, t, save); wireCB(main, p, t, save); wireRail(main, p, t, save); wireCommand(main, p, t, save); wireUnitsPlus(main, p, t, save); wireFacing(main, p, t, save); wireMorale(main, p, t, save); wireItems(main, p, t, save); wireEnvSide(main, p, t, save); wireOps(main, p, t, save);
+  wireExtra(main, p, t, save); wireR4(main, p, t, save); wireWar(main, p, t, save); wireIpad(main, p, t, save); wireOnline(main, p, t, save); wireMore(main, p, t, save); wireCrawl(main, p, t, save); wireLogic(main, p, t, save); wireCmap(main, p, t, save); wireExtra2(main, p, t, save); wireNet(main, p, t, save); wireDeliver(main, p, t, save); wireCB(main, p, t, save); wireRail(main, p, t, save); wireCommand(main, p, t, save); wireUnitsPlus(main, p, t, save); wireFacing(main, p, t, save); wireMorale(main, p, t, save); wireItems(main, p, t, save); wireEnvSide(main, p, t, save); wireOps(main, p, t, save); wireRondel(main, p, t, save); wireLoot(main, p, t, save);
   const cardTo = (el, where) => { if (where === "tab" && !gate(p, t, "vylozit")) return; const i = selItem; t.items = t.items.filter(x => x !== i); const fid = el.dataset[where === "hand" ? "tohand" : "totab"]; const h = { deckId: i.deckId, cardId: i.cardId }; (where === "hand" ? (t.hands[fid] = t.hands[fid] || []) : (t.tableau[fid] = t.tableau[fid] || [])).push(h); if (where === "tab") { const c = cardOf(p, h).c; logEv(t, `${p.factions.find(f => f.id === fid).name} vykládá ${c.title}`); if (c.effect) runEffects(p, t, fid, c.effect, c.title); after(p, t, "vylozit", fid, c.type); } S.sel = null; save(); render(); };
   on("[data-tohand]", el => cardTo(el, "hand")); on("[data-totab]", el => cardTo(el, "tab"));
   on("[data-sa]", el => {
@@ -706,7 +710,7 @@ function wireTable(main, p, t) {
     else if (a === "plus") i.value = (i.value || 0) + 1;
     else if (a === "plus5") i.value = (i.value || 0) + 5;
     else if (a === "minus") i.value = (i.value || 0) - 1;
-    else if (a === "remove") { t.items = t.items.filter(x => x !== i); S.sel = null; if (S.rangeUid === i.uid) S.rangeUid = null; if (i.kind === "unit") { logEv(t, `jednotka ${(p.units.find(u => u.id === i.unitId) || {}).name || ""} zničena`); checkWin(p, t); } }
+    else if (a === "remove") { if (i.kind === "unit") dropLoot(p, t, i); t.items = t.items.filter(x => x !== i); S.sel = null; if (S.rangeUid === i.uid) S.rangeUid = null; if (i.kind === "unit") { logEv(t, `jednotka ${(p.units.find(u => u.id === i.unitId) || {}).name || ""} zničena`); checkWin(p, t); } }
     else if (a === "dup") { const n = { ...i, uid: uid(), x: i.x + 20, y: i.y + 20 }; t.items.push(n); S.sel = n.uid; }
     else if (a === "asAtt" || a === "addAtt" || a === "asDef") {
       if (a !== "asDef" && actViolation(p, i).length && !gate(p, t, "boj", actViolation(p, i))) return;

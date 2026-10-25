@@ -592,3 +592,27 @@ test("nepřímá palba s pozorovatelem, ženista, most, palivo, zásobování v 
   p.units[0].fuel = 1; A.useFuel(p, t, a); assert.equal(A.fuelLeft(p, a), 0); assert.ok(A.moveViolations(p, t, a, "0,0", null, "1,0").includes("došlo palivo"));
   p.supplyRules.attrition = 1; t.items.filter(i => i.kind === "unit").forEach(i => { i.reduced = false; }); const before = d.reduced; A.opsRound(p, t); assert.ok(d.reduced !== before || !t.items.includes(d) || A.inSupply(p, t, d), "odříznutá jednotka ztratila krok");
 });
+test("euro: rondel zdarma a za poplatek, údržba s postihem, událost kola", () => {
+  const p = A.exampleCrafts(); const S = A.__S(); S.projects = [p]; S.currentId = p.id; const t = A.ensureTable(p); const f = p.factions[0].id; t.res[f] = { obili: 4, drevo: 2, mince: 3, body: 0 };
+  assert.equal(A.rondelMove(p, t, f, 0), ""); assert.equal(t.res[f].obili, 7, "Pole +3 obilí"); assert.match(A.rondelMove(p, t, f, 0), /stejném/);
+  assert.equal(A.rondelMove(p, t, f, 4), "", "o 4 pole: 1 za poplatek"); assert.equal(t.res[f].mince, 3 - 1 + 2, "zaplatí 1, daně +2");
+  t.res[f].mince = 0; assert.match(A.rondelMove(p, t, f, 3), /chybí/, "o 5 polí bez mincí nejde");
+  t.res[f].obili = 1; t.res[f].body = 5; t.tableau[f] = [{ deckId: p.decks[0].id, cardId: p.decks[0].cards[0].id }]; A.upkeepRound(p, t);
+  assert.equal(t.res[f].obili, 0); assert.equal(t.res[f].body, 1, "chybí 2 obilí → −4 body");
+  const before = t.piles[p.roundEvent].length; A.eventRound(p, t); assert.equal(t.piles[p.roundEvent].length, before - 1, "otočena událost");
+});
+test("karty: slevy z vyložených karet, spojenecká schopnost, reakce mimo tah, rezervace", () => {
+  const p = A.exampleCrafts(); const S = A.__S(); S.projects = [p]; S.currentId = p.id; const t = A.ensureTable(p); const [f, g] = p.factions.map(x => x.id); const d = p.decks[0];
+  const card = n => d.cards.find(c => c.title === n); const h = n => ({ deckId: d.id, cardId: card(n).id, own: true });
+  t.tableau[f] = [h("Mlýn"), h("Cech")]; assert.equal(A.cardPrice(p, t, f, card("Katedrála")), 7, "budova −1 (mlýn) −1 (cech)"); assert.equal(A.cardPrice(p, t, g, card("Katedrála")), 9);
+  t.res[f] = { mince: 0, body: 0 }; const hp = h("Pekárna"); t.tableau[f].push(hp); A.allyCheck(p, t, f, hp, card("Pekárna")); assert.equal(t.res[f].mince, 0); assert.equal(t.res[f].body, 1, "spojenec: má jinou budovu");
+  t.tableau[g] = []; const hp2 = h("Pila"); t.tableau[g].push(hp2); const m0 = (t.res[g] || {}).mince || 0; A.allyCheck(p, t, g, hp2, card("Pila")); assert.equal((t.res[g] || {}).mince || 0, m0, "bez jiné budovy nic");
+  p.ruleset.ownTurn = true; p.ruleset.strict = true; t.curF = 0; card("Mlýn").reaction = true; assert.ok(A.playCheck(p, t, g, h("Mlýn"), "zahrat"), "reakci smí zahrát hráč mimo tah"); assert.ok(!A.playCheck(p, t, g, h("Pila"), "zahrat"));
+  p.reserve.on = true; p.reserve.res = "mince"; t.res[f].mince = 0; assert.equal(A.reserveCard(p, t, f, d.id, 0), ""); assert.equal(t.res[f].mince, 1); assert.equal(t.reserved[f].length, 1);
+  t.res[f].mince = 20; assert.equal(A.buyReserved(p, t, f, 0), ""); assert.equal(t.reserved[f].length, 0); assert.equal(t.pdisc[f].length, 1);
+});
+test("kořist: padlá jednotka upustí předměty, jiná je sebere", () => {
+  const { p, t, put } = war(); p.units[1].hp = 1; p.tokens = [{ id: "mec", name: "Meč", small: true, mAtt: 1 }]; const a = put("a", 1), d = put("d", 2);
+  t.items.push({ uid: "m1", kind: "token", tokenId: "mec", attachTo: d.uid, x: 0, y: 0 }); A.damage(p, t, d, 1); assert.ok(!t.items.includes(d));
+  const m = t.items.find(i => i.uid === "m1"); assert.ok(!m.attachTo, "meč leží na zemi"); assert.ok(A.lootNear(p, t, a).includes(m), "útočník vedle ho může sebrat");
+});

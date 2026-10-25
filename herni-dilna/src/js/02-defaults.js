@@ -55,7 +55,7 @@ function normalize(p) {
   p.versions = p.versions || []; p.campaign = p.campaign || { log: [] }; p.boards.forEach(b => { b.regions = b.regions || {}; b.numbers = b.numbers || {}; });
   p.production = p.production || { mode: "both" }; if (p.roleRes == null) p.roleRes = ""; if (p.bluffPenalty == null) p.bluffPenalty = "";
   p.factions.forEach(f => { if (f.setup == null) f.setup = ""; if (f.bot == null) f.bot = ""; });
-  normalizeMore(p); normalizeFacing(p); normalizeMorale(p); normalizeEnv(p); normalizeGround(p); normalizeOps(p); normalizeCrawl(p); normalizeLogic(p); normalizeCmap(p); normalizeExtra(p); normalizeNet(p); normalizeDeliver(p); normalizeCB(p); normalizeRail(p);
+  normalizeMore(p); normalizeFacing(p); normalizeMorale(p); normalizeEnv(p); normalizeGround(p); normalizeOps(p); normalizeEuro(p); normalizeCrawl(p); normalizeLogic(p); normalizeCmap(p); normalizeExtra(p); normalizeNet(p); normalizeDeliver(p); normalizeCB(p); normalizeRail(p);
   return p;
 }
 // Terény, které vzniknou ohněm.

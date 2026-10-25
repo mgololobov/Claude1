@@ -276,6 +276,7 @@ function editCard(p, deck, card) {
           <label class="f" title="letec, dosah, bdělost, první úder, pošlapání, spěch">Klíčová slova<input type="text" id="c-kw" value="${esc(c.kw || "")}" placeholder="letec, spěch"></label>
           <label class="f" title="Příšera v centrální řadě: kolik síly ji porazí; efekt karty je odměna">Porazit za<input type="number" id="c-fight" min="0" max="20" value="${esc(c.fight || "")}" placeholder="–"></label>
         </div></details>
+        ${cardEngineHTML(c)}
         <details class="cfx" ${c.unitItem ? "open" : ""}><summary>Předmět pro jednotku (lektvar, zbraň, brnění…)</summary>
           <label class="chk"><input type="checkbox" id="c-unitItem" ${c.unitItem ? "checked" : ""}> Karta je předmět – z ruky se vybaví na jednotku nebo použije</label>
           <div id="c-ifx">${itemFxHTML(c, "data-if", true)}</div></details>
@@ -304,10 +305,10 @@ function editCard(p, deck, card) {
   $$("[data-ins]", d).forEach(b => b.onclick = () => { const ta = $("#c-text", d); const pos = ta.selectionStart ?? ta.value.length; const ins = `{${b.dataset.ins}}`; ta.value = ta.value.slice(0, pos) + ins + ta.value.slice(ta.selectionEnd ?? pos); ta.focus(); ta.setSelectionRange(pos + ins.length, pos + ins.length); prev(); });
   $("#c-imgf", d).onchange = async e => { const f = e.target.files[0]; if (!f) return; $("#c-imgst", d).textContent = "Nahrávám…"; try { const r = await storeImage(f, { max: 1000, dataMax: 420, limit: 40000 }); c.img = r.url || r.data; $("#c-imgst", d).textContent = r.url ? "Uloženo" : "Uloženo zmenšené do projektu"; prev(); } catch { $("#c-imgst", d).textContent = "Obrázek se nepodařilo načíst"; } };
   if ($("#c-imgdel", d)) $("#c-imgdel", d).onclick = () => { c.img = ""; prev(); $("#c-imgst", d).textContent = "Obrázek odebrán"; };
-  $("#c-save", d).onclick = () => { read(); readItem(); if (isNew) deck.cards.push(c); else Object.assign(card, c); touch(p); closeDialog(); render(); toast(isNew ? "Karta přidána" : "Karta uložena"); };
+  $("#c-save", d).onclick = () => { read(); readItem(); readCardEngine(c, d); if (isNew) deck.cards.push(c); else Object.assign(card, c); touch(p); closeDialog(); render(); toast(isNew ? "Karta přidána" : "Karta uložena"); };
   if (!isNew) {
     $("#c-del", d).onclick = () => { deck.cards = deck.cards.filter(x => x.id !== card.id); touch(p); closeDialog(); render(); };
-    $("#c-dup", d).onclick = () => { read(); readItem(); deck.cards.splice(deck.cards.indexOf(card) + 1, 0, { ...c, id: uid(), title: c.title + " (kopie)" }); touch(p); closeDialog(); render(); toast("Karta zduplikována"); };
+    $("#c-dup", d).onclick = () => { read(); readItem(); readCardEngine(c, d); deck.cards.splice(deck.cards.indexOf(card) + 1, 0, { ...c, id: uid(), title: c.title + " (kopie)" }); touch(p); closeDialog(); render(); toast("Karta zduplikována"); };
   }
 }
 const CARD_COLS = ["title", "type", "cost", "text", "qty", "suit", "value", "vp", "icon", "effect"];

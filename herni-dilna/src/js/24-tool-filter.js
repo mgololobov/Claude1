@@ -28,6 +28,7 @@ function toolRelevant(p, k) {
     case "zakazky": return !!(p.deliver && p.deliver.on);
     case "souboj": return p.decks.some(d => d.cards.some(c => isCreature(c)));
     case "spolecnosti": return !!(p.rail && p.rail.on);
+    case "rondel": return !!(p.rondel && p.rondel.on);
     default: return true;
   }
 }

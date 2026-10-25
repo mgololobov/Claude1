@@ -16,7 +16,7 @@ function damage(p, t, it, n, by) {
   if (n > 0) { const r = absorbHits(p, t, it, n); if (r.msg) return r.n ? r.msg + "; " + damage(p, t, it, r.n, by) : r.msg; } // brnění pohltí zásahy
   it.dmg = Math.max(0, (it.dmg || 0) + n); const u = unitOf(p, it);
   if (unitHp(p, it) > 0) return n > 0 ? `${u.name} ztrácí ${n} ${plural(n, "život", "životy", "životů")}` : `${u.name} se léčí`;
-  t.items = t.items.filter(x => x !== it); if (S.sel === it.uid) S.sel = null;
+  dropLoot(p, t, it); t.items = t.items.filter(x => x !== it); if (S.sel === it.uid) S.sel = null;
   if (by && isHero(p, by) && +u.xp) { by.xp = (by.xp || 0) + +u.xp; }
   checkWin(p, t); return `${u.name} padl${by && +u.xp && isHero(p, by) ? ` (+${u.xp} XP pro ${unitOf(p, by).name})` : ""}`;
 }

@@ -9,7 +9,7 @@ const OUT = path.join(__dirname, "out"); fs.mkdirSync(OUT, { recursive: true });
   const pw = "/opt/pw-browsers"; if (fs.existsSync(pw)) { const d = fs.readdirSync(pw).find(x => x.startsWith("chromium-")); if (d) Object.assign(opts, { executablePath: `${pw}/${d}/chrome-linux/chrome`, headless: false, args: ["--headless=new"] }); }
   const b = await chromium.launch(opts); const pg = await b.newPage({ viewport: { width: 1180, height: 820 } }); pg.setDefaultTimeout(5000);
   const errors = [], fails = [];
-  pg.on("pageerror", e => errors.push(e.message)); pg.on("console", m => { if (m.type() === "error") errors.push(m.text()); });
+  pg.on("pageerror", e => errors.push(e.message + (process.env.E2E_STACK ? "\n" + e.stack : ""))); pg.on("console", m => { if (m.type() === "error") errors.push(m.text()); });
   await pg.goto(FILE); await pg.waitForTimeout(400);
   const ev = f => pg.evaluate(f);
   const step = async (name, fn) => { try { await fn(); console.log("✓", name); } catch (e) { const w = (e.message.match(/waiting for (locator\([^)]*\))/) || [])[1] || ""; fails.push(name + ": " + e.message.split("\n")[0] + (w ? " – " + w : "")); console.log("✗", name); await pg.keyboard.press("Escape"); } };
@@ -304,6 +304,19 @@ const OUT = path.join(__dirname, "out"); fs.mkdirSync(OUT, { recursive: true });
     await pg.screenshot({ path: path.join(OUT, "zeniste-palba.png") });
     await pg.click("[data-fire]"); if ((await pg.evaluate(() => S.combat.attUids[0])) !== ids.art) throw new Error("palba nepřipravila boj");
     if ((await pg.evaluate(() => terrainOf(P(), tableBoard(P()), "7,4").name)) !== "Most") throw new Error("most chybí");
+  });
+  await step("rondel, rezervace a slevy na trhu", async () => {
+    let idx = await pg.$$eval("#projSel option", o => o.findIndex(x => /Kruh řemesel/.test(x.textContent))); await sel(idx);
+    await pg.click("[data-tab=stul]"); await pg.click("[data-tool=rondel]"); await pg.waitForSelector(".rondel .rsp");
+    const f0 = await pg.evaluate(() => { const p = P(), t = p.table; return (t.res[curPlayer(p, t).id] || {}).obili || 0; });
+    await pg.click('[data-rondel="0"]'); const f1 = await pg.evaluate(() => { const p = P(), t = p.table; return { o: (t.res[curPlayer(p, t).id] || {}).obili || 0, pos: (t.rondel || {})[curPlayer(p, t).id] }; });
+    if (f1.pos !== 0 || f1.o !== f0 + 3) throw new Error("rondel nefunguje: " + JSON.stringify([f0, f1]));
+    await pg.screenshot({ path: path.join(OUT, "rondel.png") });
+    idx = await pg.$$eval("#projSel option", o => o.findIndex(x => /Alchymistická/.test(x.textContent))); await sel(idx);
+    await pg.click("[data-tab=stul]"); await pg.click("[data-tool=trh]"); await pg.click("[data-mres]");
+    if ((await pg.evaluate(() => { const p = P(), t = p.table; return ((t.reserved || {})[curPlayer(p, t).id] || []).length; })) !== 1) throw new Error("rezervace nefunguje");
+    if (!(await pg.$("[data-rbuy]"))) throw new Error("rezervovanou kartu nejde koupit");
+    await pg.screenshot({ path: path.join(OUT, "rezervace.png") });
   });
   await step("telefon – Přehled", async () => { await pg.setViewportSize({ width: 400, height: 820 }); await pg.click("[data-tab=prehled]"); await pg.screenshot({ path: path.join(OUT, "telefon.png") }); });
   await b.close();

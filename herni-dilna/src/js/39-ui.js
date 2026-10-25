@@ -3,7 +3,7 @@ const TOOL_GROUPS = [
   ["Hra", ["stul", "kolo", "hraci", "ruce"]],
   ["Karty", ["trh", "souboj", "draft", "styk", "program", "hromadka", "riskuj", "tajne"]],
   ["Náhoda", ["kostky", "sacek"]],
-  ["Ekonomika", ["akce", "obchod", "drazba", "rozvoj", "draha", "zakazky", "spolecnosti"]],
+  ["Ekonomika", ["akce", "obchod", "drazba", "rozvoj", "draha", "zakazky", "spolecnosti", "rondel"]],
   ["Mapa a boj", ["boj", "uzemi", "dilky", "aktivace", "vyprava", "lokace", "sit"]],
   ["Logika", ["kameny", "kod", "rozsevani"]],
 ];
