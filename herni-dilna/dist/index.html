@@ -348,6 +348,7 @@ details.cfx { border: 1px solid var(--line); border-radius: 10px; padding: 6px 1
 .titem .eq { min-width: 18px; height: 16px; padding: 0 3px; border-radius: 4px; font: 800 9px/16px var(--f-mono); text-align: center; border: 1px solid rgba(0,0,0,.45); box-shadow: 0 1px 2px rgba(0,0,0,.35); }
 .titem.act::after { content: ""; position: absolute; inset: -5px; border: 3px solid #4fbf6b; border-radius: 10px; pointer-events: none; }
 .titem.small .token { transform: scale(.62); transform-origin: top left; }
+.btn .eq { display: inline-block; min-width: 22px; padding: 0 3px; border-radius: 4px; font: 800 10px/18px var(--f-mono); text-align: center; border: 1px solid rgba(0,0,0,.4); }
 </style>
 <style id="card-css">
 /* Vzhled karet. Všechny rozměry jsou v em, velikost karty určuje jen font-size (16px = šířka 150 px). */
@@ -517,6 +518,8 @@ function normalize(p) {
   return p;
 }
 
+// Všechny ukázkové hry v aktuální podobě. Neuložené (nezměněné) ukázky se při každém spuštění vytvoří znovu.
+function allExamples() { return [exampleWar(), exampleTrade(), exampleAlchemy(), exampleTricks(), exampleTiles(), exampleRace(), exampleIsland(), exampleCrypt(), examplePatrol(), exampleHansa(), exampleTower(), exampleMages(), exampleRail()]; }
 // ---------- ukázkové projekty ----------
 function exampleTrade() {
   const d1 = uid(), d2 = uid();
@@ -1072,7 +1075,7 @@ async function connectDb() {
     if (remote.length) {
       const ids = new Set(remote.map(p => p.id));
       const localOnly = S.projects.filter(p => !p.isExample && !ids.has(p.id));
-      S.projects = [...remote, ...localOnly].sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+      S.projects = [...[...remote, ...localOnly].sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0)), ...S.projects.filter(p => p.isExample)];
       // Starý formát (vše v jednom záznamu) se přeuloží po částech.
       remote.forEach(p => { if (groups[p.id] && !groups[p.id].table) { store.parts[p.id] = {}; persist(p); } });
       localOnly.forEach(persist);
@@ -1089,8 +1092,9 @@ const S = { projects: [], currentId: null, tab: "prehled", deckId: null, boardId
   edTool: "plain", combat: { att: 0, def: 0, terrainId: "plain", shift: 0, mode: "crt", aDice: 3, dDice: 2, log: [], res: null }, ctrlMode: false, snap: true, showHand: false, handF: null, undo: [], undoBase: null, pool: [], rerolls: 0 };
 function boot() {
   const saved = lsRead();
-  if (saved && saved.projects && saved.projects.length) { S.projects = saved.projects.map(normalize); S.currentId = saved.currentId; }
-  else S.projects = [exampleWar(), exampleTrade(), exampleAlchemy(), exampleTricks(), exampleTiles(), exampleRace(), exampleIsland(), exampleCrypt(), examplePatrol(), exampleHansa(), exampleTower(), exampleMages(), exampleRail()];
+  // Vlastní hry první, ukázky vždy na konci a v aktuální verzi (nezměněné ukázky se neukládají).
+  if (saved && saved.projects && saved.projects.length) { S.projects = [...saved.projects.map(normalize), ...allExamples()]; S.currentId = saved.currentId; }
+  else S.projects = allExamples();
   if (!S.projects.find(p => p.id === S.currentId)) S.currentId = S.projects[0].id;
   try { const t = localStorage.getItem(LS_KEY + "-tab"); if (t) S.tab = t; } catch {}
   if (/^#[a-z]+$/.test(location.hash)) S.tab = location.hash.slice(1);
@@ -1297,7 +1301,7 @@ function renderOverview(main, p) {
     r.onload = () => { try { const q = JSON.parse(r.result); if (!q || !Array.isArray(q.decks)) throw 0; q.id = uid(); delete q.isExample; q.name = (q.name || "Hra") + " (import)"; normalize(q); S.projects.unshift(q); S.currentId = q.id; touch(q); render(); toast("Záloha nahrána jako nová hra"); } catch { toast("Soubor není záloha z Herní dílny"); } };
     r.readAsText(f);
   };
-  $("#addEx").onclick = () => { const xs = [exampleWar(), exampleTrade(), exampleAlchemy(), exampleTricks(), exampleTiles(), exampleRace(), exampleIsland(), exampleCrypt(), examplePatrol(), exampleHansa(), exampleTower(), exampleMages(), exampleRail()]; S.projects.push(...xs); S.currentId = xs[0].id; render(); toast("Ukázkové hry přidány"); };
+  $("#addEx").onclick = () => { const xs = allExamples(); S.projects = [...S.projects.filter(p => !p.isExample), ...xs]; S.currentId = xs[0].id; render(); toast("Ukázkové hry obnoveny v aktuální verzi"); };
   wireOverviewExtras(main, p);
   $("#delProj").onclick = () => confirmDialog(`Smazat hru „${p.name}“?`, "Smažou se karty, mapy, scénáře i záznamy testů. Nejde to vrátit.", "Smazat", () => removeProject(p));
 }
@@ -1388,8 +1392,8 @@ function renderComponents(main, p) {
         <button class="btn small danger" data-tldel="${x.id}" aria-label="Smazat dílek">✕</button></div>`).join("")}</div>` : `<div class="empty">Žádné dílky.</div>`}
     </div>
     <div class="panel">
-      <div class="row spread"><h2>Žetony, markery a figurky</h2><button class="btn" id="addTok">+ Nový žeton</button></div>
-      <p class="hint">Žeton může nést krátký popis (např. OPEV., BEZ ZÁS.) a počítadlo, které na stole měníš tlačítky + a −.</p>
+      <div class="row spread"><h2>Žetony, markery a figurky</h2><div class="row"><button class="btn" id="addEquip">+ Vybavení jednotky</button><button class="btn" id="addTok">+ Nový žeton</button></div></div>
+      <p class="hint">Žeton může nést krátký popis (např. OPEV., BEZ ZÁS.) a počítadlo, které na stole měníš tlačítky + a −. <b>Vybavení</b> (zbraň, předmět) je malý žeton, který se připne na jednotku a upraví její hodnoty.</p>
       ${p.tokens.length ? `<div class="list">${p.tokens.map(t => `<div class="item-row">
         <div style="position:relative">${tokenHTML(t, 3)}</div>
         <label class="f" style="flex:1;min-width:120px">Název<input type="text" data-tname="${t.id}" value="${esc(t.name)}"></label>
@@ -1463,6 +1467,7 @@ function renderComponents(main, p) {
   // žetony
   $("#addTok").onclick = () => { p.tokens.push({ id: uid(), name: "Žeton", color: COLORS[(p.tokens.length + 4) % COLORS.length], shape: "ctverec", counter: false, text: "" }); touch(p); render(); };
   const tok = id => p.tokens.find(t => t.id === id);
+  $("#addEquip").onclick = () => { p.tokens.push({ id: uid(), name: "Zbraň", color: "#3b3631", shape: "ctverec", counter: false, text: "ZBR", small: true, mAtt: 1 }); touch(p); render(); toast("Vybavení přidáno – nastav mu úpravy hodnot"); };
   $$("[data-tname]", main).forEach(i => i.addEventListener("input", () => { tok(i.dataset.tname).name = i.value; touch(p); }));
   $$("[data-ttext]", main).forEach(i => { i.addEventListener("input", () => { tok(i.dataset.ttext).text = i.value; touch(p); }); i.addEventListener("change", render); });
   $$("[data-tshape]", main).forEach(i => i.onchange = () => { tok(i.dataset.tshape).shape = i.value; touch(p); render(); });
@@ -2787,8 +2792,10 @@ function sideComponents(p, t) {
         <button class="btn small" data-deal="${d.id}" ${t.piles[d.id].length && p.factions.length ? "" : "disabled"}>Rozdat</button>
         <button class="btn small" data-reshuffle="${d.id}" ${t.discard[d.id].length ? "" : "disabled"}>Zamíchat odhoz</button></div>`}</div>`).join("") : `<div class="hint">Žádné balíčky.</div>`}
     </section>
+    ${p.tokens.some(tk => tk.small) ? `<section><div class="eyebrow">Vybavení jednotek</div><div class="row">${p.tokens.filter(tk => tk.small).map(tk => `<button class="btn small" data-addtok="${tk.id}" title="${esc(modText(tk))}"><span class="eq" style="background:${tk.color};color:${inkFor(tk.color)}">${esc((tk.text || tk.name).slice(0, 3))}</span>${esc(tk.name)} <span class="hint">${esc(modText(tk))}</span></button>`).join("")}</div>
+      <p class="hint">Vyber jednotku a klepni na „Vybavit“, nebo žeton polož na stůl a přetáhni na jednotku.</p></section>` : ""}
     <section><div class="eyebrow">Žetony</div>
-      ${p.tokens.length ? `<div class="row">${p.tokens.map(tk => `<button class="btn small" data-addtok="${tk.id}"><span class="dot" style="background:${tk.color};border-radius:${tk.shape === "kruh" ? "50%" : "3px"}"></span>${esc(tk.name)}</button>`).join("")}</div>` : `<span class="hint">Žetony vytvoříš v Komponentách.</span>`}
+      ${p.tokens.filter(tk => !tk.small).length ? `<div class="row">${p.tokens.filter(tk => !tk.small).map(tk => `<button class="btn small" data-addtok="${tk.id}"><span class="dot" style="background:${tk.color};border-radius:${tk.shape === "kruh" ? "50%" : "3px"}"></span>${esc(tk.name)}</button>`).join("")}</div>` : `<span class="hint">Žetony vytvoříš v Komponentách.</span>`}
     </section>
     <section><div class="eyebrow">Stůl</div><div class="row"><button class="btn small" id="resetTable">Vyčistit a připravit novou hru</button></div></section>`;
 }
@@ -6195,12 +6202,15 @@ function commandCells(p, t, it) { const b = tableBoard(p); const u = unitOf(p, i
 function commandSelHTML(p, t, i) {
   const u = unitOf(p, i); const at = attachedTo(p, t, i); const cmd = +u.cmd; const under = commandersOver(p, t, i);
   const inRange = cmd ? t.items.filter(o => o !== i && o.kind === "unit" && (unitOf(p, o) || {}).factionId === u.factionId && unitDist(p, t, i, o) <= cmd).length : 0;
-  return `${at.length ? `<div class="row"><span class="hint">Vybavení:</span>${at.map(o => { const tk = tokDef(p, o); return `<span class="pl-chip">${esc(tk.name)}${modText(tk) ? ` <span class="hint">${esc(modText(tk))}</span>` : ""} <button class="btn small" data-detach="${o.uid}" aria-label="Sundat ${esc(tk.name)}">✕</button></span>`; }).join("")}</div>` : ""}
+  const eqs = p.tokens.filter(x => x.small);
+  return `${eqs.length ? `<div class="row"><span class="hint">Vybavit:</span>${eqs.map(x => `<button class="btn small" data-equip="${x.id}" title="${esc(modText(x))}"><span class="eq" style="background:${x.color};color:${inkFor(x.color)}">${esc((x.text || x.name).slice(0, 3))}</span>${esc(x.name)}</button>`).join("")}</div>` : ""}
+    ${at.length ? `<div class="row"><span class="hint">Vybavení:</span>${at.map(o => { const tk = tokDef(p, o); return `<span class="pl-chip">${esc(tk.name)}${modText(tk) ? ` <span class="hint">${esc(modText(tk))}</span>` : ""} <button class="btn small" data-detach="${o.uid}" aria-label="Sundat ${esc(tk.name)}">✕</button></span>`; }).join("")}</div>` : ""}
     ${under.length && (under.some(o => +unitOf(p, o).cmdAtt || +unitOf(p, o).cmdDef)) ? `<span class="hint">Pod velením: ${under.map(o => esc(unitOf(p, o).name)).join(", ")}</span>` : ""}
     <div class="row">${i.act ? `<span class="pl-chip">✓ aktivovaná</span>` : `<button class="btn small" data-activate="1">Aktivovat</button>`}${cmd ? `<button class="btn small primary" data-command="1">Velet (dosah ${cmd}, ${inRange} ${plural(inRange, "jednotka", "jednotky", "jednotek")})</button><button class="btn small ${S.cmdUid === i.uid ? "on" : ""}" data-cmdshow="1">Dosah velení</button>` : ""}</div>`;
 }
 function wireCommand(main, p, t, save) {
   const sel = t.items.find(i => i.uid === S.sel); const on = (s, fn) => $$(s, main).forEach(el => el.addEventListener("click", () => fn(el)));
+  on("[data-equip]", el => { const tk = p.tokens.find(x => x.id === el.dataset.equip); t.items.push({ uid: uid(), kind: "token", tokenId: tk.id, x: sel.x, y: sel.y, value: 0, rot: 0, attachTo: sel.uid }); logEv(t, `${unitOf(p, sel).name} dostává ${tk.name}${modText(tk) ? " (" + modText(tk) + ")" : ""}`); save(); render(); });
   on("[data-detach]", el => { detachToken(p, t, el.dataset.detach); save(); render(); });
   on("[data-activate]", () => { if (!gate(p, t, "aktivace")) return; activateUnit(p, t, sel); logEv(t, `${unitOf(p, sel).name} aktivována`); after(p, t, "aktivace", (unitOf(p, sel) || {}).factionId); save(); render(); });
   on("[data-command]", () => { if (!gate(p, t, "aktivace")) return; const n = activateCommand(p, t, sel); after(p, t, "aktivace", (unitOf(p, sel) || {}).factionId); save(); render(); toast(`Aktivováno ${n} ${plural(n, "jednotka", "jednotky", "jednotek")}`); });

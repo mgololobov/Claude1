@@ -1,3 +1,5 @@
+// Všechny ukázkové hry v aktuální podobě. Neuložené (nezměněné) ukázky se při každém spuštění vytvoří znovu.
+function allExamples() { return [exampleWar(), exampleTrade(), exampleAlchemy(), exampleTricks(), exampleTiles(), exampleRace(), exampleIsland(), exampleCrypt(), examplePatrol(), exampleHansa(), exampleTower(), exampleMages(), exampleRail()]; }
 // ---------- ukázkové projekty ----------
 function exampleTrade() {
   const d1 = uid(), d2 = uid();

@@ -190,6 +190,7 @@ const OUT = path.join(__dirname, "out"); fs.mkdirSync(OUT, { recursive: true });
     await pg.mouse.move(kb.x + 10, kb.y + 10); await pg.mouse.down(); await pg.mouse.move(mat.x + info.ux, mat.y + info.uy, { steps: 8 }); await pg.mouse.up();
     const att2 = await pg.evaluate(u => { const it = P().table.items.find(i => i.uid === u); if (!it) throw new Error("jednotka zmizela: " + P().name + " " + P().table.log.slice(0, 3).join(" | ")); return unitStat(P(), it, "att"); }, info.u); if (att2 !== info.att + 2) throw new Error(`útok ${info.att} → ${att2}`);
     if (!(await pg.$(`.titem[data-uid="${info.u}"] .eq`))) throw new Error("vybavení není vidět na žetonu");
+    await pg.click('[data-equip]'); if ((await ev(() => P().table.items.filter(i => i.attachTo).length)) !== 2) throw new Error("tlačítko Vybavit nepřipnulo žeton");
     const hq = await ev(() => P().table.items.find(i => i.kind === "unit" && unitOf(P(), i).name === "Štáb").uid); await pg.click(`.titem[data-uid="${hq}"]`); await pg.click("[data-command]");
     if (!(await ev(() => P().table.items.filter(i => i.act).length >= 2))) throw new Error("velení neaktivovalo jednotky");
     await pg.click("[data-cmdshow]"); await pg.screenshot({ path: path.join(OUT, "veleni.png") });

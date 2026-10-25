@@ -212,8 +212,10 @@ function sideComponents(p, t) {
         <button class="btn small" data-deal="${d.id}" ${t.piles[d.id].length && p.factions.length ? "" : "disabled"}>Rozdat</button>
         <button class="btn small" data-reshuffle="${d.id}" ${t.discard[d.id].length ? "" : "disabled"}>Zamíchat odhoz</button></div>`}</div>`).join("") : `<div class="hint">Žádné balíčky.</div>`}
     </section>
+    ${p.tokens.some(tk => tk.small) ? `<section><div class="eyebrow">Vybavení jednotek</div><div class="row">${p.tokens.filter(tk => tk.small).map(tk => `<button class="btn small" data-addtok="${tk.id}" title="${esc(modText(tk))}"><span class="eq" style="background:${tk.color};color:${inkFor(tk.color)}">${esc((tk.text || tk.name).slice(0, 3))}</span>${esc(tk.name)} <span class="hint">${esc(modText(tk))}</span></button>`).join("")}</div>
+      <p class="hint">Vyber jednotku a klepni na „Vybavit“, nebo žeton polož na stůl a přetáhni na jednotku.</p></section>` : ""}
     <section><div class="eyebrow">Žetony</div>
-      ${p.tokens.length ? `<div class="row">${p.tokens.map(tk => `<button class="btn small" data-addtok="${tk.id}"><span class="dot" style="background:${tk.color};border-radius:${tk.shape === "kruh" ? "50%" : "3px"}"></span>${esc(tk.name)}</button>`).join("")}</div>` : `<span class="hint">Žetony vytvoříš v Komponentách.</span>`}
+      ${p.tokens.filter(tk => !tk.small).length ? `<div class="row">${p.tokens.filter(tk => !tk.small).map(tk => `<button class="btn small" data-addtok="${tk.id}"><span class="dot" style="background:${tk.color};border-radius:${tk.shape === "kruh" ? "50%" : "3px"}"></span>${esc(tk.name)}</button>`).join("")}</div>` : `<span class="hint">Žetony vytvoříš v Komponentách.</span>`}
     </section>
     <section><div class="eyebrow">Stůl</div><div class="row"><button class="btn small" id="resetTable">Vyčistit a připravit novou hru</button></div></section>`;
 }

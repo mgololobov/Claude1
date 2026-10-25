@@ -84,8 +84,8 @@ function renderComponents(main, p) {
         <button class="btn small danger" data-tldel="${x.id}" aria-label="Smazat dílek">✕</button></div>`).join("")}</div>` : `<div class="empty">Žádné dílky.</div>`}
     </div>
     <div class="panel">
-      <div class="row spread"><h2>Žetony, markery a figurky</h2><button class="btn" id="addTok">+ Nový žeton</button></div>
-      <p class="hint">Žeton může nést krátký popis (např. OPEV., BEZ ZÁS.) a počítadlo, které na stole měníš tlačítky + a −.</p>
+      <div class="row spread"><h2>Žetony, markery a figurky</h2><div class="row"><button class="btn" id="addEquip">+ Vybavení jednotky</button><button class="btn" id="addTok">+ Nový žeton</button></div></div>
+      <p class="hint">Žeton může nést krátký popis (např. OPEV., BEZ ZÁS.) a počítadlo, které na stole měníš tlačítky + a −. <b>Vybavení</b> (zbraň, předmět) je malý žeton, který se připne na jednotku a upraví její hodnoty.</p>
       ${p.tokens.length ? `<div class="list">${p.tokens.map(t => `<div class="item-row">
         <div style="position:relative">${tokenHTML(t, 3)}</div>
         <label class="f" style="flex:1;min-width:120px">Název<input type="text" data-tname="${t.id}" value="${esc(t.name)}"></label>
@@ -159,6 +159,7 @@ function renderComponents(main, p) {
   // žetony
   $("#addTok").onclick = () => { p.tokens.push({ id: uid(), name: "Žeton", color: COLORS[(p.tokens.length + 4) % COLORS.length], shape: "ctverec", counter: false, text: "" }); touch(p); render(); };
   const tok = id => p.tokens.find(t => t.id === id);
+  $("#addEquip").onclick = () => { p.tokens.push({ id: uid(), name: "Zbraň", color: "#3b3631", shape: "ctverec", counter: false, text: "ZBR", small: true, mAtt: 1 }); touch(p); render(); toast("Vybavení přidáno – nastav mu úpravy hodnot"); };
   $$("[data-tname]", main).forEach(i => i.addEventListener("input", () => { tok(i.dataset.tname).name = i.value; touch(p); }));
   $$("[data-ttext]", main).forEach(i => { i.addEventListener("input", () => { tok(i.dataset.ttext).text = i.value; touch(p); }); i.addEventListener("change", render); });
   $$("[data-tshape]", main).forEach(i => i.onchange = () => { tok(i.dataset.tshape).shape = i.value; touch(p); render(); });

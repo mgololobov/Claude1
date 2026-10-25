@@ -89,7 +89,7 @@ async function connectDb() {
     if (remote.length) {
       const ids = new Set(remote.map(p => p.id));
       const localOnly = S.projects.filter(p => !p.isExample && !ids.has(p.id));
-      S.projects = [...remote, ...localOnly].sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+      S.projects = [...[...remote, ...localOnly].sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0)), ...S.projects.filter(p => p.isExample)];
       // Starý formát (vše v jednom záznamu) se přeuloží po částech.
       remote.forEach(p => { if (groups[p.id] && !groups[p.id].table) { store.parts[p.id] = {}; persist(p); } });
       localOnly.forEach(persist);

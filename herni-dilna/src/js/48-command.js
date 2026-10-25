@@ -59,12 +59,15 @@ function commandCells(p, t, it) { const b = tableBoard(p); const u = unitOf(p, i
 function commandSelHTML(p, t, i) {
   const u = unitOf(p, i); const at = attachedTo(p, t, i); const cmd = +u.cmd; const under = commandersOver(p, t, i);
   const inRange = cmd ? t.items.filter(o => o !== i && o.kind === "unit" && (unitOf(p, o) || {}).factionId === u.factionId && unitDist(p, t, i, o) <= cmd).length : 0;
-  return `${at.length ? `<div class="row"><span class="hint">Vybavení:</span>${at.map(o => { const tk = tokDef(p, o); return `<span class="pl-chip">${esc(tk.name)}${modText(tk) ? ` <span class="hint">${esc(modText(tk))}</span>` : ""} <button class="btn small" data-detach="${o.uid}" aria-label="Sundat ${esc(tk.name)}">✕</button></span>`; }).join("")}</div>` : ""}
+  const eqs = p.tokens.filter(x => x.small);
+  return `${eqs.length ? `<div class="row"><span class="hint">Vybavit:</span>${eqs.map(x => `<button class="btn small" data-equip="${x.id}" title="${esc(modText(x))}"><span class="eq" style="background:${x.color};color:${inkFor(x.color)}">${esc((x.text || x.name).slice(0, 3))}</span>${esc(x.name)}</button>`).join("")}</div>` : ""}
+    ${at.length ? `<div class="row"><span class="hint">Vybavení:</span>${at.map(o => { const tk = tokDef(p, o); return `<span class="pl-chip">${esc(tk.name)}${modText(tk) ? ` <span class="hint">${esc(modText(tk))}</span>` : ""} <button class="btn small" data-detach="${o.uid}" aria-label="Sundat ${esc(tk.name)}">✕</button></span>`; }).join("")}</div>` : ""}
     ${under.length && (under.some(o => +unitOf(p, o).cmdAtt || +unitOf(p, o).cmdDef)) ? `<span class="hint">Pod velením: ${under.map(o => esc(unitOf(p, o).name)).join(", ")}</span>` : ""}
     <div class="row">${i.act ? `<span class="pl-chip">✓ aktivovaná</span>` : `<button class="btn small" data-activate="1">Aktivovat</button>`}${cmd ? `<button class="btn small primary" data-command="1">Velet (dosah ${cmd}, ${inRange} ${plural(inRange, "jednotka", "jednotky", "jednotek")})</button><button class="btn small ${S.cmdUid === i.uid ? "on" : ""}" data-cmdshow="1">Dosah velení</button>` : ""}</div>`;
 }
 function wireCommand(main, p, t, save) {
   const sel = t.items.find(i => i.uid === S.sel); const on = (s, fn) => $$(s, main).forEach(el => el.addEventListener("click", () => fn(el)));
+  on("[data-equip]", el => { const tk = p.tokens.find(x => x.id === el.dataset.equip); t.items.push({ uid: uid(), kind: "token", tokenId: tk.id, x: sel.x, y: sel.y, value: 0, rot: 0, attachTo: sel.uid }); logEv(t, `${unitOf(p, sel).name} dostává ${tk.name}${modText(tk) ? " (" + modText(tk) + ")" : ""}`); save(); render(); });
   on("[data-detach]", el => { detachToken(p, t, el.dataset.detach); save(); render(); });
   on("[data-activate]", () => { if (!gate(p, t, "aktivace")) return; activateUnit(p, t, sel); logEv(t, `${unitOf(p, sel).name} aktivována`); after(p, t, "aktivace", (unitOf(p, sel) || {}).factionId); save(); render(); });
   on("[data-command]", () => { if (!gate(p, t, "aktivace")) return; const n = activateCommand(p, t, sel); after(p, t, "aktivace", (unitOf(p, sel) || {}).factionId); save(); render(); toast(`Aktivováno ${n} ${plural(n, "jednotka", "jednotky", "jednotek")}`); });
