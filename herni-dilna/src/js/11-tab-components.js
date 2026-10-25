@@ -205,6 +205,7 @@ function editUnit(p, unit) {
         <div class="grid" style="grid-template-columns:repeat(3,1fr)"><input type="number" id="u-ra" value="${esc(u.rAtt)}" aria-label="Útok oslabené"><input type="number" id="u-rd" value="${esc(u.rDef)}" aria-label="Obrana oslabené"><input type="number" id="u-rm" value="${esc(u.rMov)}" aria-label="Pohyb oslabené"></div>
         <label class="f" style="width:120px">Počet žetonů<input type="number" id="u-q" min="0" max="99" value="${u.qty}"></label>
         <label class="chk"><input type="checkbox" id="u-hq" ${u.hq ? "checked" : ""}> Velitelství – zdroj zásobování</label>
+        <details class="cfx" style="width:100%" ${["kind", "hp", "xp", "cap", "cmd", "cmdAtt", "cmdDef", "transport", "tsize", "carry", "mor", "ammo", "range", "fuel", "big", "indirect", "engineer"].some(k => u[k] !== "" && u[k] != null && u[k] !== false && u[k] !== 0) ? "open" : ""}><summary>Další schopnosti – životy, velení, přeprava, dostřel, munice, palivo, morálka</summary><div class="row" style="flex-wrap:wrap;gap:8px;align-items:flex-end">
         <label class="f" style="width:150px">Druh<select id="u-kind"><option value="">Běžná jednotka</option><option value="hero" ${u.kind === "hero" ? "selected" : ""}>Hrdina</option><option value="monster" ${u.kind === "monster" ? "selected" : ""}>Příšera</option></select></label>
         <label class="f" style="width:110px">Životy<input type="number" id="u-hp" min="0" max="99" value="${esc(u.hp || "")}" placeholder="–"></label>
         <label class="f" style="width:130px">XP za zabití<input type="number" id="u-xp" min="0" max="99" value="${esc(u.xp || "")}" placeholder="–"></label>
@@ -222,6 +223,7 @@ function editUnit(p, unit) {
         <label class="chk"><input type="checkbox" id="u-big" ${u.big ? "checked" : ""}> Velký žeton (zabírá víc místa)</label>
         <label class="chk" title="Střílí i na cíl, který sama nevidí, když ho vidí jiná její jednotka"><input type="checkbox" id="u-indirect" ${u.indirect ? "checked" : ""}> Nepřímá palba</label>
         <label class="chk" title="Odstraní minu nebo drát, odhalí skryté miny vedle sebe"><input type="checkbox" id="u-engineer" ${u.engineer ? "checked" : ""}> Ženista</label>
+        </div></details>
       </div>
       <div id="u-prev" style="display:flex;flex-direction:column;align-items:center;gap:10px;font-size:20px"></div>
     </div>

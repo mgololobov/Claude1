@@ -53,6 +53,7 @@ function leaveOnline(p) { if (ON.unsub) ON.unsub(); ON.unsub = null; S.projects 
 function onlineBlocked(p) {
   if (!p.online || !S.undoBase) return false; const base = JSON.parse(S.undoBase); if (!base || !base.turnLock) return false;
   const cur = curPlayer(p, base); const seat = p.online.seat; if (cur && seat === cur.id) return false;
+  if (S.reactionBy && seat === S.reactionBy) { S.reactionBy = null; return false; } // reakci smí zahrát i hráč mimo tah (za sebe)
   toast(seat ? `Teď hraje ${cur ? cur.name : "jiný hráč"} – počkej na svůj tah` : "Pozorovatel nemůže měnit stůl – vyber, za koho hraješ"); return true;
 }
 function onlineHTML(p, t) {

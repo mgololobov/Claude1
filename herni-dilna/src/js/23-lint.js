@@ -21,7 +21,7 @@ function checkEffect(p, text) {
 }
 function lintProject(p) {
   const out = []; const W = t => out.push({ lv: "warn", t }), E = t => out.push({ lv: "err", t });
-  lintMore(p, W, E);
+  lintNewer(p, W, E);
   if (!facingOn(p)) { p.units.filter(u => unitZones(u).some(z => z.arc)).forEach(u => W(`Jednotka „${u.name}“ má zóny vázané na směr, ale natočení jednotek je vypnuté (Mechaniky) – zóny se trefují bez ohledu na směr.`)); }
   p.tokens.filter(x => x.frontOnly && !x.fixed).forEach(x => W(`Žeton „${x.name}“ chrání jen zepředu, ale není pevný – směr se počítá jen u pevných žetonů.`));
   p.units.filter(u => unitZones(u).some(z => !String(z.name || "").trim())).forEach(u => W(`Jednotka „${u.name}“ má zónu bez názvu.`));
@@ -82,7 +82,7 @@ function lintMore(p, E, W) {
   p.resources.forEach(r => { if (r.pool && !R(r.pool)) E(`Zdroj „${r.name}“ se bere ze smazané zásoby.`); });
   if (p.ruleset.win.poolEnd && !p.resources.some(r => r.pool)) W("Konec při prázdné zásobě je zapnutý, ale žádný zdroj se ze zásoby nebere.");
   p.scenarios.forEach(s => (s.reinf || []).forEach(r => { if (!p.units.find(u => u.id === r.unitId)) E(`Scénář „${s.name}“: posila odkazuje na smazanou jednotku.`); }));
-  p.tokens.filter(x => x.small && !MODS.some(([m]) => +x[m])).forEach(x => W(`Malý žeton „${x.name}“ nic neupravuje – nastav mu úpravy hodnot.`));
+  p.tokens.filter(x => x.small && !MODS.some(([m]) => +x[m]) && !itemText(x) && !x.fx && !(x.zone && +x.mZone)).forEach(x => W(`Malý žeton „${x.name}“ nic neupravuje – nastav mu úpravy hodnot.`));
   if (p.ruleset.actOnly && p.units.length && !p.units.some(u => +u.cmd)) W("Táhnout smí jen aktivované jednotky, ale žádná jednotka nemá dosah velení – aktivovat půjdou jen jednotlivě.");
   chitList(p).forEach(c => { if (!c.fid) W(`Žeton aktivace „${c.name}“ nemá stranu (piš „Název; Strana“).`); });
 }

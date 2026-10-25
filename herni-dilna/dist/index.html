@@ -1620,6 +1620,7 @@ function editUnit(p, unit) {
         <div class="grid" style="grid-template-columns:repeat(3,1fr)"><input type="number" id="u-ra" value="${esc(u.rAtt)}" aria-label="Útok oslabené"><input type="number" id="u-rd" value="${esc(u.rDef)}" aria-label="Obrana oslabené"><input type="number" id="u-rm" value="${esc(u.rMov)}" aria-label="Pohyb oslabené"></div>
         <label class="f" style="width:120px">Počet žetonů<input type="number" id="u-q" min="0" max="99" value="${u.qty}"></label>
         <label class="chk"><input type="checkbox" id="u-hq" ${u.hq ? "checked" : ""}> Velitelství – zdroj zásobování</label>
+        <details class="cfx" style="width:100%" ${["kind", "hp", "xp", "cap", "cmd", "cmdAtt", "cmdDef", "transport", "tsize", "carry", "mor", "ammo", "range", "fuel", "big", "indirect", "engineer"].some(k => u[k] !== "" && u[k] != null && u[k] !== false && u[k] !== 0) ? "open" : ""}><summary>Další schopnosti – životy, velení, přeprava, dostřel, munice, palivo, morálka</summary><div class="row" style="flex-wrap:wrap;gap:8px;align-items:flex-end">
         <label class="f" style="width:150px">Druh<select id="u-kind"><option value="">Běžná jednotka</option><option value="hero" ${u.kind === "hero" ? "selected" : ""}>Hrdina</option><option value="monster" ${u.kind === "monster" ? "selected" : ""}>Příšera</option></select></label>
         <label class="f" style="width:110px">Životy<input type="number" id="u-hp" min="0" max="99" value="${esc(u.hp || "")}" placeholder="–"></label>
         <label class="f" style="width:130px">XP za zabití<input type="number" id="u-xp" min="0" max="99" value="${esc(u.xp || "")}" placeholder="–"></label>
@@ -1637,6 +1638,7 @@ function editUnit(p, unit) {
         <label class="chk"><input type="checkbox" id="u-big" ${u.big ? "checked" : ""}> Velký žeton (zabírá víc místa)</label>
         <label class="chk" title="Střílí i na cíl, který sama nevidí, když ho vidí jiná její jednotka"><input type="checkbox" id="u-indirect" ${u.indirect ? "checked" : ""}> Nepřímá palba</label>
         <label class="chk" title="Odstraní minu nebo drát, odhalí skryté miny vedle sebe"><input type="checkbox" id="u-engineer" ${u.engineer ? "checked" : ""}> Ženista</label>
+        </div></details>
       </div>
       <div id="u-prev" style="display:flex;flex-direction:column;align-items:center;gap:10px;font-size:20px"></div>
     </div>
@@ -3249,7 +3251,7 @@ function sideTerritory(p, t) {
 }
 
 function wireTable(main, p, t) {
-  const save = () => { if (onlineBlocked(p)) { p.table = JSON.parse(S.undoBase); render(); return; } const now = JSON.stringify(p.table); if (S.undoBase && now !== S.undoBase) { S.undo.push(S.undoBase); if (S.undo.length > 40) S.undo.shift(); } S.undoBase = now; touch(p); };
+  const save = () => { const blocked = onlineBlocked(p); S.reactionBy = null; if (blocked) { p.table = JSON.parse(S.undoBase); render(); return; } const now = JSON.stringify(p.table); if (S.undoBase && now !== S.undoBase) { S.undo.push(S.undoBase); if (S.undo.length > 40) S.undo.shift(); } S.undoBase = now; touch(p); };
   const on = (sel, fn) => $$(sel, main).forEach(el => el.addEventListener("click", () => fn(el)));
   const q = id => document.getElementById(id);
   const pl = players(p, t); const cp = curPlayer(p, t);
@@ -3336,8 +3338,8 @@ function wireTable(main, p, t) {
   if (q("showHand")) q("showHand").onclick = () => { S.showHand = true; render(); };
   if (q("hideHand")) q("hideHand").onclick = () => { S.showHand = false; render(); };
   on("[data-hdraw]", el => { if (!gate(p, t, "lizat")) return; const c = t.piles[el.dataset.hdraw].pop(); if (!c) return; after(p, t, "lizat", S.handF); (t.hands[S.handF] = t.hands[S.handF] || []).push({ deckId: el.dataset.hdraw, cardId: c }); save(); render(); toast("Karta je v ruce"); });
-  on("[data-hplay]", el => { if (!playCheck(p, t, S.handF, t.hands[S.handF][+el.dataset.hplay], "zahrat")) return; const h = t.hands[S.handF].splice(+el.dataset.hplay, 1)[0]; playDone(p, t, S.handF, h, "zahrat"); const pos = freeSpot(t); t.items.push({ uid: uid(), kind: "card", deckId: h.deckId, cardId: h.cardId, x: pos.x, y: pos.y, faceUp: true, rot: 0 }); save(); render(); });
-  on("[data-htab]", el => { if (!playCheck(p, t, S.handF, t.hands[S.handF][+el.dataset.htab], "vylozit")) return; const h = t.hands[S.handF].splice(+el.dataset.htab, 1)[0]; playDone(p, t, S.handF, h, "vylozit"); (t.tableau[S.handF] = t.tableau[S.handF] || []).push(h); save(); render(); });
+  on("[data-hplay]", el => { if (!playCheck(p, t, S.handF, t.hands[S.handF][+el.dataset.hplay], "zahrat")) return; S.reactionBy = (cardOf(p, t.hands[S.handF][+el.dataset.hplay]).c || {}).reaction ? S.handF : null; const h = t.hands[S.handF].splice(+el.dataset.hplay, 1)[0]; playDone(p, t, S.handF, h, "zahrat"); const pos = freeSpot(t); t.items.push({ uid: uid(), kind: "card", deckId: h.deckId, cardId: h.cardId, x: pos.x, y: pos.y, faceUp: true, rot: 0 }); save(); render(); });
+  on("[data-htab]", el => { if (!playCheck(p, t, S.handF, t.hands[S.handF][+el.dataset.htab], "vylozit")) return; S.reactionBy = (cardOf(p, t.hands[S.handF][+el.dataset.htab]).c || {}).reaction ? S.handF : null; const h = t.hands[S.handF].splice(+el.dataset.htab, 1)[0]; playDone(p, t, S.handF, h, "vylozit"); (t.tableau[S.handF] = t.tableau[S.handF] || []).push(h); save(); render(); });
   on("[data-hdisc]", el => { const h = t.hands[S.handF].splice(+el.dataset.hdisc, 1)[0]; discardCard(t, h, S.handF); save(); render(); });
   // draft
   if (q("dStart")) q("dStart").onclick = () => {
@@ -3832,7 +3834,7 @@ function checkEffect(p, text) {
 }
 function lintProject(p) {
   const out = []; const W = t => out.push({ lv: "warn", t }), E = t => out.push({ lv: "err", t });
-  lintMore(p, W, E);
+  lintNewer(p, W, E);
   if (!facingOn(p)) { p.units.filter(u => unitZones(u).some(z => z.arc)).forEach(u => W(`Jednotka „${u.name}“ má zóny vázané na směr, ale natočení jednotek je vypnuté (Mechaniky) – zóny se trefují bez ohledu na směr.`)); }
   p.tokens.filter(x => x.frontOnly && !x.fixed).forEach(x => W(`Žeton „${x.name}“ chrání jen zepředu, ale není pevný – směr se počítá jen u pevných žetonů.`));
   p.units.filter(u => unitZones(u).some(z => !String(z.name || "").trim())).forEach(u => W(`Jednotka „${u.name}“ má zónu bez názvu.`));
@@ -3893,7 +3895,7 @@ function lintMore(p, E, W) {
   p.resources.forEach(r => { if (r.pool && !R(r.pool)) E(`Zdroj „${r.name}“ se bere ze smazané zásoby.`); });
   if (p.ruleset.win.poolEnd && !p.resources.some(r => r.pool)) W("Konec při prázdné zásobě je zapnutý, ale žádný zdroj se ze zásoby nebere.");
   p.scenarios.forEach(s => (s.reinf || []).forEach(r => { if (!p.units.find(u => u.id === r.unitId)) E(`Scénář „${s.name}“: posila odkazuje na smazanou jednotku.`); }));
-  p.tokens.filter(x => x.small && !MODS.some(([m]) => +x[m])).forEach(x => W(`Malý žeton „${x.name}“ nic neupravuje – nastav mu úpravy hodnot.`));
+  p.tokens.filter(x => x.small && !MODS.some(([m]) => +x[m]) && !itemText(x) && !x.fx && !(x.zone && +x.mZone)).forEach(x => W(`Malý žeton „${x.name}“ nic neupravuje – nastav mu úpravy hodnot.`));
   if (p.ruleset.actOnly && p.units.length && !p.units.some(u => +u.cmd)) W("Táhnout smí jen aktivované jednotky, ale žádná jednotka nemá dosah velení – aktivovat půjdou jen jednotlivě.");
   chitList(p).forEach(c => { if (!c.fid) W(`Žeton aktivace „${c.name}“ nemá stranu (piš „Název; Strana“).`); });
 }
@@ -4443,6 +4445,7 @@ function leaveOnline(p) { if (ON.unsub) ON.unsub(); ON.unsub = null; S.projects 
 function onlineBlocked(p) {
   if (!p.online || !S.undoBase) return false; const base = JSON.parse(S.undoBase); if (!base || !base.turnLock) return false;
   const cur = curPlayer(p, base); const seat = p.online.seat; if (cur && seat === cur.id) return false;
+  if (S.reactionBy && seat === S.reactionBy) { S.reactionBy = null; return false; } // reakci smí zahrát i hráč mimo tah (za sebe)
   toast(seat ? `Teď hraje ${cur ? cur.name : "jiný hráč"} – počkej na svůj tah` : "Pozorovatel nemůže měnit stůl – vyber, za koho hraješ"); return true;
 }
 function onlineHTML(p, t) {
@@ -7665,7 +7668,7 @@ function affordableValue(p, t, fid, text, spent = 0) {
 
 // ---------- Kontrola návrhu pro novější mechaniky ----------
 // Hledá nesrovnalosti, které by se jinak projevily až při hře: chybné efekty, názvy, které na nic neodkazují, a nastavení bez účinku.
-function lintMore(p, W, E) {
+function lintNewer(p, W, E) {
   const fx = (where, text) => { if (String(text || "").trim()) checkEffect(p, text).forEach(x => E(`${where}: ${x}.`)); };
   // Rondel, údržba, události
   if (p.rondel.on) {

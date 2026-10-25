@@ -628,3 +628,13 @@ test("šablona podle žánru: prázdná hra převezme obsah ukázky, ponechá id
   assert.equal(p.id, id); assert.ok(!p.isExample); assert.match(p.name, /Kruh řemesel – moje verze/); assert.ok(p.rondel.on && p.decks.length === 2); assert.ok(!A.isBlank(p));
   assert.equal(A.lintProject(p).filter(m => m.lv === "err").length, 0);
 });
+test("online zámek tahu: reakci smí zahrát hráč mimo tah jen za sebe", () => {
+  const { p, t } = game(); const S = A.__S(); p.online = { code: "X", host: false, seat: "bert" }; t.turnLock = true; t.curF = 0; S.undoBase = JSON.stringify(t);
+  assert.equal(A.onlineBlocked(p), true); S.reactionBy = "bert"; assert.equal(A.onlineBlocked(p), false, "reakce za sebe projde"); assert.equal(S.reactionBy, null);
+  S.reactionBy = "cyril"; assert.equal(A.onlineBlocked(p), true, "za cizí stranu ne"); S.reactionBy = null;
+});
+test("zdrojáky: žádná funkce ani konstanta není definovaná ve dvou modulech", () => {
+  const fs = require("fs"), path = require("path"); const dir = path.join(__dirname, "..", "src", "js"); const seen = {}; const dup = [];
+  fs.readdirSync(dir).filter(f => f.endsWith(".js")).forEach(f => fs.readFileSync(path.join(dir, f), "utf8").split("\n").forEach(l => { const m = l.match(/^(?:async\s+)?function\s+([A-Za-z0-9_$]+)|^(?:const|let)\s+([A-Za-z0-9_$]+)\s*=/); if (!m) return; const n = m[1] || m[2]; if (seen[n]) dup.push(`${n} (${seen[n]}, ${f})`); else seen[n] = f; }));
+  assert.deepEqual(dup, []);
+});

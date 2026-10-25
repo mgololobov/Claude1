@@ -519,7 +519,7 @@ function sideTerritory(p, t) {
 }
 
 function wireTable(main, p, t) {
-  const save = () => { if (onlineBlocked(p)) { p.table = JSON.parse(S.undoBase); render(); return; } const now = JSON.stringify(p.table); if (S.undoBase && now !== S.undoBase) { S.undo.push(S.undoBase); if (S.undo.length > 40) S.undo.shift(); } S.undoBase = now; touch(p); };
+  const save = () => { const blocked = onlineBlocked(p); S.reactionBy = null; if (blocked) { p.table = JSON.parse(S.undoBase); render(); return; } const now = JSON.stringify(p.table); if (S.undoBase && now !== S.undoBase) { S.undo.push(S.undoBase); if (S.undo.length > 40) S.undo.shift(); } S.undoBase = now; touch(p); };
   const on = (sel, fn) => $$(sel, main).forEach(el => el.addEventListener("click", () => fn(el)));
   const q = id => document.getElementById(id);
   const pl = players(p, t); const cp = curPlayer(p, t);
@@ -606,8 +606,8 @@ function wireTable(main, p, t) {
   if (q("showHand")) q("showHand").onclick = () => { S.showHand = true; render(); };
   if (q("hideHand")) q("hideHand").onclick = () => { S.showHand = false; render(); };
   on("[data-hdraw]", el => { if (!gate(p, t, "lizat")) return; const c = t.piles[el.dataset.hdraw].pop(); if (!c) return; after(p, t, "lizat", S.handF); (t.hands[S.handF] = t.hands[S.handF] || []).push({ deckId: el.dataset.hdraw, cardId: c }); save(); render(); toast("Karta je v ruce"); });
-  on("[data-hplay]", el => { if (!playCheck(p, t, S.handF, t.hands[S.handF][+el.dataset.hplay], "zahrat")) return; const h = t.hands[S.handF].splice(+el.dataset.hplay, 1)[0]; playDone(p, t, S.handF, h, "zahrat"); const pos = freeSpot(t); t.items.push({ uid: uid(), kind: "card", deckId: h.deckId, cardId: h.cardId, x: pos.x, y: pos.y, faceUp: true, rot: 0 }); save(); render(); });
-  on("[data-htab]", el => { if (!playCheck(p, t, S.handF, t.hands[S.handF][+el.dataset.htab], "vylozit")) return; const h = t.hands[S.handF].splice(+el.dataset.htab, 1)[0]; playDone(p, t, S.handF, h, "vylozit"); (t.tableau[S.handF] = t.tableau[S.handF] || []).push(h); save(); render(); });
+  on("[data-hplay]", el => { if (!playCheck(p, t, S.handF, t.hands[S.handF][+el.dataset.hplay], "zahrat")) return; S.reactionBy = (cardOf(p, t.hands[S.handF][+el.dataset.hplay]).c || {}).reaction ? S.handF : null; const h = t.hands[S.handF].splice(+el.dataset.hplay, 1)[0]; playDone(p, t, S.handF, h, "zahrat"); const pos = freeSpot(t); t.items.push({ uid: uid(), kind: "card", deckId: h.deckId, cardId: h.cardId, x: pos.x, y: pos.y, faceUp: true, rot: 0 }); save(); render(); });
+  on("[data-htab]", el => { if (!playCheck(p, t, S.handF, t.hands[S.handF][+el.dataset.htab], "vylozit")) return; S.reactionBy = (cardOf(p, t.hands[S.handF][+el.dataset.htab]).c || {}).reaction ? S.handF : null; const h = t.hands[S.handF].splice(+el.dataset.htab, 1)[0]; playDone(p, t, S.handF, h, "vylozit"); (t.tableau[S.handF] = t.tableau[S.handF] || []).push(h); save(); render(); });
   on("[data-hdisc]", el => { const h = t.hands[S.handF].splice(+el.dataset.hdisc, 1)[0]; discardCard(t, h, S.handF); save(); render(); });
   // draft
   if (q("dStart")) q("dStart").onclick = () => {

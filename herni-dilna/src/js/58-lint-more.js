@@ -1,6 +1,6 @@
 // ---------- Kontrola návrhu pro novější mechaniky ----------
 // Hledá nesrovnalosti, které by se jinak projevily až při hře: chybné efekty, názvy, které na nic neodkazují, a nastavení bez účinku.
-function lintMore(p, W, E) {
+function lintNewer(p, W, E) {
   const fx = (where, text) => { if (String(text || "").trim()) checkEffect(p, text).forEach(x => E(`${where}: ${x}.`)); };
   // Rondel, údržba, události
   if (p.rondel.on) {
