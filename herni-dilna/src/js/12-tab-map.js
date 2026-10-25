@@ -46,6 +46,7 @@ function renderMap(main, p) {
         <label class="f" style="width:64px">Barva<input type="color" data-trx="${t.id}" value="${t.color}" style="width:52px;height:40px;border:0;background:none;padding:0"></label>
         <label class="f" style="width:80px" title="Výška pro výhled a boj (0 = rovina)">Výška<input type="number" min="0" max="9" data-trh="${t.id}" value="${esc(t.h || 0)}"></label>
         <label class="chk"><input type="checkbox" data-trb="${t.id}" ${t.blocks ? "checked" : ""}> Blokuje výhled</label>
+        <label class="chk" title="Oheň se do něj může šířit"><input type="checkbox" data-trf="${t.id}" ${t.burns ? "checked" : ""}> Hořlavý</label>
         <label class="f" style="width:130px">Produkuje<select data-trp="${t.id}"><option value="">nic</option>${p.resources.filter(r => !r.global).map(r => `<option value="${r.id}" ${r.id === t.produces ? "selected" : ""}>${esc(r.name)}</option>`).join("")}</select></label>
         ${p.terrains.length > 1 ? `<button class="btn small danger" data-trdel="${t.id}" aria-label="Smazat terén">✕</button>` : ""}</div>`).join("")}</div>
     </div>${netEditorHTML(p)}</div>`;
@@ -88,6 +89,7 @@ function renderMap(main, p) {
   tin("data-trn", "name", v => v, true); tin("data-trg", "glyph", v => v, true); tin("data-trm", "move"); tin("data-trd", "def", v => +v || 1); tin("data-trv", "vp", v => +v || 0); tin("data-trs", "shift", v => parseInt(v, 10) || 0);
   $$("[data-trx]", main).forEach(x => x.addEventListener("change", () => { tr(x.dataset.trx).color = x.value; touch(p); render(); }));
   $$("[data-trb]", main).forEach(x => x.onchange = () => { tr(x.dataset.trb).blocks = x.checked; touch(p); });
+  $$("[data-trf]", main).forEach(x => x.onchange = () => { tr(x.dataset.trf).burns = x.checked; touch(p); });
   $$("[data-trh]", main).forEach(x => x.onchange = () => { tr(x.dataset.trh).h = +x.value || 0; touch(p); });
   $$("[data-trp]", main).forEach(x => x.onchange = () => { tr(x.dataset.trp).produces = x.value; touch(p); });
   $$("[data-trdel]", main).forEach(x => x.onclick = () => { const id = x.dataset.trdel; p.terrains = p.terrains.filter(t => t.id !== id); p.boards.forEach(bb => Object.keys(bb.terrain).forEach(k => { if (bb.terrain[k] === id) delete bb.terrain[k]; })); touch(p); render(); });

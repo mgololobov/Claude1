@@ -365,6 +365,9 @@ details.cfx { border: 1px solid var(--line); border-radius: 10px; padding: 6px 1
 .envchip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 999px; background: #1b2421; color: #fff; font-weight: 700; font-size: .85rem; }
 .row.pick { background: #fdf3d8; border-radius: 8px; padding: 4px; }
 .envtint { position: absolute; left: 0; top: 0; pointer-events: none; border-radius: 6px; }
+.titem.fx-kour { opacity: .55; transform: scale(.72) !important; }
+.titem.fx-kour .token-label, .titem.fx-ohen .token-label { display: none; }
+.titem.fx-ohen { transform: scale(.8) !important; filter: drop-shadow(0 0 6px #ff8a2e); }
 </style>
 <style id="card-css">
 /* Vzhled karet. Všechny rozměry jsou v em, velikost karty určuje jen font-size (16px = šířka 150 px). */
@@ -530,7 +533,7 @@ function normalize(p) {
   p.versions = p.versions || []; p.campaign = p.campaign || { log: [] }; p.boards.forEach(b => { b.regions = b.regions || {}; b.numbers = b.numbers || {}; });
   p.production = p.production || { mode: "both" }; if (p.roleRes == null) p.roleRes = ""; if (p.bluffPenalty == null) p.bluffPenalty = "";
   p.factions.forEach(f => { if (f.setup == null) f.setup = ""; if (f.bot == null) f.bot = ""; });
-  normalizeMore(p); normalizeFacing(p); normalizeMorale(p); normalizeEnv(p); normalizeCrawl(p); normalizeLogic(p); normalizeCmap(p); normalizeExtra(p); normalizeNet(p); normalizeDeliver(p); normalizeCB(p); normalizeRail(p);
+  normalizeMore(p); normalizeFacing(p); normalizeMorale(p); normalizeEnv(p); normalizeGround(p); normalizeCrawl(p); normalizeLogic(p); normalizeCmap(p); normalizeExtra(p); normalizeNet(p); normalizeDeliver(p); normalizeCB(p); normalizeRail(p);
   return p;
 }
 
@@ -664,6 +667,10 @@ function exampleWar() {
       ...fxT,
       { id: uid(), name: "Granát", color: "#4a5a2a", shape: "kruh", counter: false, text: "GRA", small: true, use: "once", target: "area", reach: 2, radius: 1, hits: 2, weight: 1 },
       { id: uid(), name: "Polní lékárna", color: "#e8e2d0", shape: "ctverec", counter: false, text: "+", small: true, use: "once", target: "unit", foes: "ally", reach: 1, heal: 1, cure: true, weight: 1 },
+      { id: uid(), name: "Dýmovnice", color: "#9a9a96", shape: "kruh", counter: false, text: "DÝM", small: true, use: "once", target: "area", foes: "all", reach: 2, radius: 1, spawn: "kour", weight: 1 },
+      { id: uid(), name: "Zápalná láhev", color: "#c86a2e", shape: "kruh", counter: false, text: "ZÁP", small: true, use: "once", target: "unit", reach: 2, hits: 1, spawn: "ohen", weight: 1 },
+      { id: uid(), name: "Kouř", color: "#9a9a96", shape: "kruh", counter: false, text: "KOUŘ", fixed: true, fx: "kour", fxN: 3 },
+      { id: uid(), name: "Oheň", color: "#e0602e", shape: "kruh", counter: false, text: "OHEŇ", fixed: true, fx: "ohen", fxN: 2 },
     ],
     table: null, sessions: [],
   });
@@ -1005,6 +1012,7 @@ function boardSVG(p, b, control, opts = {}) {
   if (b.bg && (b.bg.url || b.bg.data)) parts.push(`<image href="${esc(b.bg.url || b.bg.data)}" x="${PAD}" y="${PAD}" width="${g.W - PAD * 2}" height="${g.H - PAD * 2}" preserveAspectRatio="none" opacity="${b.bg.opacity ?? 1}"/>`);
   const fid = id => p.factions.find(f => f.id === id);
   parts.push(st.cells);
+  if (opts.ground) parts.push(groundSVG(b, opts.ground));
   if (control) Object.entries(control).forEach(([k, id]) => { const f = fid(id); if (!f) return; const [c, r] = k.split(",").map(Number); if (c >= b.cols || r >= b.rows) return; const [cx, cy] = g.center(c, r);
     parts.push(`<polygon class="ctrl" points="${g.poly(cx, cy)}" fill="${f.color}" fill-opacity=".42" stroke="${f.color}" stroke-width="2.5"/>`); });
   parts.push(st.marks);
@@ -1017,6 +1025,7 @@ function boardSVG(p, b, control, opts = {}) {
     parts.push(`<circle cx="${cx}" cy="${cy}" r="${(+b.size || 34) * .38}" fill="${f.color}" stroke="rgba(0,0,0,.45)" stroke-width="2"/><circle cx="${cx - (+b.size || 34) * .1}" cy="${cy - (+b.size || 34) * .12}" r="${(+b.size || 34) * .1}" fill="rgba(255,255,255,.35)"/>`); });
   if (opts.dark && opts.dark.size) opts.dark.forEach(k => { const [c, r] = k.split(",").map(Number); if (c >= b.cols || r >= b.rows) return; const [cx, cy] = g.center(c, r); parts.push(`<polygon points="${g.poly(cx, cy)}" fill="#141414" fill-opacity=".9" stroke="#141414"/>`); });
   if (opts.arcs) parts.push(arcsSVG(b, opts.arcs));
+  if (opts.smoke) parts.push(opts.smoke);
   if (opts.los) Object.keys(opts.los).forEach(k => { const [c, r] = k.split(",").map(Number); const [cx, cy] = g.center(c, r); parts.push(`<polygon class="rng" points="${g.poly(cx, cy)}" fill="#3f8fd0" fill-opacity=".32" stroke="#2a6aa0" stroke-width="1.5"/>`); });
   if (opts.range) Object.entries(opts.range).forEach(([k, v]) => { const [c, r] = k.split(",").map(Number); const [cx, cy] = g.center(c, r);
     parts.push(`<polygon class="rng" points="${g.poly(cx, cy)}" fill="#e0aa2e" fill-opacity=".45" stroke="#b07d10" stroke-width="2"/><text class="rngt" x="${cx}" y="${cy + 4}" text-anchor="middle">${Math.round(v * 10) / 10}</text>`); });
@@ -1766,6 +1775,7 @@ function renderMap(main, p) {
         <label class="f" style="width:64px">Barva<input type="color" data-trx="${t.id}" value="${t.color}" style="width:52px;height:40px;border:0;background:none;padding:0"></label>
         <label class="f" style="width:80px" title="Výška pro výhled a boj (0 = rovina)">Výška<input type="number" min="0" max="9" data-trh="${t.id}" value="${esc(t.h || 0)}"></label>
         <label class="chk"><input type="checkbox" data-trb="${t.id}" ${t.blocks ? "checked" : ""}> Blokuje výhled</label>
+        <label class="chk" title="Oheň se do něj může šířit"><input type="checkbox" data-trf="${t.id}" ${t.burns ? "checked" : ""}> Hořlavý</label>
         <label class="f" style="width:130px">Produkuje<select data-trp="${t.id}"><option value="">nic</option>${p.resources.filter(r => !r.global).map(r => `<option value="${r.id}" ${r.id === t.produces ? "selected" : ""}>${esc(r.name)}</option>`).join("")}</select></label>
         ${p.terrains.length > 1 ? `<button class="btn small danger" data-trdel="${t.id}" aria-label="Smazat terén">✕</button>` : ""}</div>`).join("")}</div>
     </div>${netEditorHTML(p)}</div>`;
@@ -1808,6 +1818,7 @@ function renderMap(main, p) {
   tin("data-trn", "name", v => v, true); tin("data-trg", "glyph", v => v, true); tin("data-trm", "move"); tin("data-trd", "def", v => +v || 1); tin("data-trv", "vp", v => +v || 0); tin("data-trs", "shift", v => parseInt(v, 10) || 0);
   $$("[data-trx]", main).forEach(x => x.addEventListener("change", () => { tr(x.dataset.trx).color = x.value; touch(p); render(); }));
   $$("[data-trb]", main).forEach(x => x.onchange = () => { tr(x.dataset.trb).blocks = x.checked; touch(p); });
+  $$("[data-trf]", main).forEach(x => x.onchange = () => { tr(x.dataset.trf).burns = x.checked; touch(p); });
   $$("[data-trh]", main).forEach(x => x.onchange = () => { tr(x.dataset.trh).h = +x.value || 0; touch(p); });
   $$("[data-trp]", main).forEach(x => x.onchange = () => { tr(x.dataset.trp).produces = x.value; touch(p); });
   $$("[data-trdel]", main).forEach(x => x.onclick = () => { const id = x.dataset.trdel; p.terrains = p.terrains.filter(t => t.id !== id); p.boards.forEach(bb => Object.keys(bb.terrain).forEach(k => { if (bb.terrain[k] === id) delete bb.terrain[k]; })); touch(p); render(); });
@@ -1965,7 +1976,7 @@ function renderMechanics(main, p) {
           <p class="hint">Dosah pohybu na stole počítá s cenou terénu (Mapa) a pohybem jednotky. Terén s pohybem „–“ je neprůchodný.</p>
         </div>
       </div>
-    </div>${moreMechHTML(p)}<div class="two">${facingMechHTML(p)}${elevMechHTML(p)}</div><div class="two">${moraleMechHTML(p)}${fxMechHTML(p)}</div><div class="two">${envMechHTML(p)}${itemsMechHTML(p)}</div><div class="two">${crawlMechHTML(p)}${logicMechHTML(p)}</div><div class="two">${cmapMechHTML(p)}${extraMechHTML(p)}</div><div class="two">${deliverMechHTML(p)}${netCubesMechHTML(p)}</div><div class="two">${cbMechHTML(p)}${railMechHTML(p)}</div></div>`;
+    </div>${moreMechHTML(p)}<div class="two">${facingMechHTML(p)}${elevMechHTML(p)}</div><div class="two">${moraleMechHTML(p)}${fxMechHTML(p)}</div><div class="two">${envMechHTML(p)}${groundMechHTML(p)}</div><div class="two">${itemsMechHTML(p)}</div><div class="two">${crawlMechHTML(p)}${logicMechHTML(p)}</div><div class="two">${cmapMechHTML(p)}${extraMechHTML(p)}</div><div class="two">${deliverMechHTML(p)}${netCubesMechHTML(p)}</div><div class="two">${cbMechHTML(p)}${railMechHTML(p)}</div></div>`;
   wireBanner(main);
   const F = id => p.factions.find(f => f.id === id);
   $("#addF").onclick = () => { p.factions.push({ id: uid(), name: "Strana " + (p.factions.length + 1), color: COLORS[p.factions.length % COLORS.length], ability: "" }); touch(p); render(); };
@@ -2037,7 +2048,7 @@ function renderMechanics(main, p) {
   $("#prodMode").onchange = e => { p.production.mode = e.target.value; touch(p); };
   $$("[data-rpt]", main).forEach(i => i.onchange = () => { p.resources.find(r => r.id === i.dataset.rpt).perTurn = i.checked; touch(p); });
   $$("[data-rpool]", main).forEach(i => i.onchange = () => { p.resources.find(r => r.id === i.dataset.rpool).pool = i.value; touch(p); });
-  wireMoreMech(main, p); wireFacingMech(main, p); wireMoraleMech(main, p); wireEnvMech(main, p); wireCrawlMech(main, p); wireLogicMech(main, p); wireCmapMech(main, p); wireExtraMech(main, p); wireDeliverMech(main, p); wireNetCubesMech(main, p); wireCBMech(main, p); wireRailMech(main, p);
+  wireMoreMech(main, p); wireFacingMech(main, p); wireMoraleMech(main, p); wireEnvMech(main, p); wireGroundMech(main, p); wireCrawlMech(main, p); wireLogicMech(main, p); wireCmapMech(main, p); wireExtraMech(main, p); wireDeliverMech(main, p); wireNetCubesMech(main, p); wireCBMech(main, p); wireRailMech(main, p);
 }
 
 // ---------- Scénáře ----------
@@ -2579,7 +2590,8 @@ function losPath(p, b, k1, k2) {
 function losCells(p, b, k1, k2) { return losPath(p, b, k1, k2).map(([k]) => k); }
 // Pole zastaví výhled, když je jeho výška (překážka o 1 výš) nad čarou výhledu mezi výškami koncových polí.
 function hasLOS(p, b, k1, k2) {
-  const h1 = cellHeight(p, b, k1), h2 = cellHeight(p, b, k2);
+  const h1 = cellHeight(p, b, k1), h2 = cellHeight(p, b, k2); const smoke = smokeSet(p, p.table);
+  if (smoke.size && (losCells(p, b, k1, k2).some(k => smoke.has(k)) || (smoke.has(k1) || smoke.has(k2)) && hexDist(b, k1, k2) > 1)) return false; // kouř zakrývá
   return !losPath(p, b, k1, k2).some(([k, f]) => { const ter = terrainOf(p, b, k) || p.terrains[0]; const top = (+(ter && ter.h) || 0) + (ter && ter.blocks ? 1 : 0); return top > h1 + (h2 - h1) * f + 1e-9; });
 }
 function visibleFrom(p, b, k0, range) {
@@ -2734,7 +2746,7 @@ function computeRange(p, t, it) {
   const enemy = new Set(enemyCells(p, t, it)), zoc = new Set();
   if (p.zoc) enemy.forEach(k => { const [c, r] = k.split(",").map(Number); neighbors(b, c, r).forEach(([x, y]) => zoc.add(x + "," + y)); });
   const wire = wireCost(p, t); // ostnatý drát: pohyb navíc a zastaví
-  const cost = k => { const ter = terrainOf(p, b, k) || p.terrains[0]; const v = parseFloat(ter ? ter.move : 1); return (isFinite(v) && v > 0 ? v : Infinity) + (wire[k] || 0); };
+  const cost = k => terrainMove(p, b, k) + (wire[k] || 0); // terén, bláto a jiné stavy po počasí, drát
   const best = { [k0]: 0 }; const queue = [k0];
   while (queue.length) {
     queue.sort((a, c) => best[a] - best[c]); const k = queue.shift();
@@ -2795,7 +2807,7 @@ function renderTable(main, p) {
   main.innerHTML = `<div class="table-wrap">
     <div class="mat-area">${zoomBarHTML(t)}<div class="mat-scroll"><div class="mat-sizer" style="width:${S.matW * zoomOf()}px;height:${S.matH * zoomOf()}px"><div class="mat ${S.ctrlMode && b ? "ctrlmode" : ""} ${S.inkMode ? "inkmode" : ""}" id="mat" style="width:${S.matW}px;height:${S.matH}px;transform:scale(${zoomOf()})">
       <div class="mat-ruler">${Array.from({ length: Math.ceil(S.matW / 100) }, (_, i) => `<span style="left:${i * 100}px">${i * 10}</span>`).join("")}</div>
-      ${b ? `<div class="boardlayer" style="left:${BX}px;top:${BY}px">${boardSVG(p, b, t.control, { range, los, tiles: t.tilesPlaced, links: t.links, routeSel: S.routeSel, dark: crawlDarkSet(p, t), stones: t.stones, arcs })}${envTintHTML(p, t, g)}</div>` : ""}
+      ${b ? `<div class="boardlayer" style="left:${BX}px;top:${BY}px">${boardSVG(p, b, t.control, { range, los, tiles: t.tilesPlaced, links: t.links, routeSel: S.routeSel, dark: crawlDarkSet(p, t), stones: t.stones, arcs, ground: groundCells(p, t, b), smoke: smokeSVG(p, t, b) })}${envTintHTML(p, t, g)}</div>` : ""}
       ${nt ? `<div class="boardlayer netlayer" style="left:${BX}px;top:${BY}px">${netSVG(p, nt, { t, sel: S.netSel, reach: S.netReach, goods: p.deliver.on ? t.goods : null })}</div>` : ""}${cmapHTML(p, t)}${t.items.map(i => itemHTML(p, i)).join("")}${ghostsHTML(p, t)}${inkSVG(t, S.matW, S.matH)}
     </div></div></div></div>
     <aside class="side">
@@ -2821,7 +2833,7 @@ function itemHTML(p, i) {
     if (fg && fg.has(i.uid + ":block")) { const f = p.factions.find(x => x.id === u.factionId); inner = `<div class="unit" style="background:${f ? f.color : "#888"}" title="Nepřátelská jednotka"></div>`; }
     else inner = unitHTML(p, effUnit(p, i, u), i.reduced) + equipBadges(p, p.table, i) + zoneBadge(p, i) + loadBadge(p, p.table, i) + ammoBadge(p, i) + (inSupply(p, p.table, i) ? "" : `<span class="oos" title="Mimo zásobování">⚠</span>`) + (i.st ? `<span class="usts">${stBadges(i)}</span>` : "") + hpBadge(p, i); }
   else { const tk = p.tokens.find(x => x.id === i.tokenId); if (!tk || hiddenMine(p, i)) return ""; if (i.attachTo && p.table.items.some(o => o.uid === i.attachTo)) return ""; inner = tokenHTML(tk, i.value) + (tk.text ? "" : `<span class="token-label">${esc(tk.name)}</span>`); }
-  return `<div class="titem ${i.uid === S.sel ? "sel" : ""}${i.act ? " act" : ""}${(p.tokens.find(x => x.id === i.tokenId) || {}).small ? " small" : ""}${i.kind === "token" && isFixed(p, i) ? " fixed" : ""}" data-uid="${i.uid}" style="left:${i.x}px;top:${i.y}px;transform:rotate(${faced(p, i) ? 0 : i.rot || 0}deg)">${inner}${faced(p, i) ? `<span class="facearr" style="transform:rotate(${i.rot || 0}deg)" aria-hidden="true"></span>` : ""}</div>`;
+  return `<div class="titem ${i.uid === S.sel ? "sel" : ""}${i.act ? " act" : ""}${(p.tokens.find(x => x.id === i.tokenId) || {}).small ? " small" : ""}${i.kind === "token" && isFixed(p, i) ? " fixed" : ""}${i.kind === "token" && ["kour", "ohen"].includes(fxOf(p, i)) ? " fx-" + fxOf(p, i) : ""}" data-uid="${i.uid}" style="left:${i.x}px;top:${i.y}px;transform:rotate(${faced(p, i) ? 0 : i.rot || 0}deg)">${inner}${faced(p, i) ? `<span class="facearr" style="transform:rotate(${i.rot || 0}deg)" aria-hidden="true"></span>` : ""}</div>`;
 }
 const fchipsHTML = (p, t, attr = "data-curf") => `<div class="fchips">${players(p, t).map((x, i) => `<button class="fchip" ${attr}="${i}" aria-pressed="${i === t.curF}"><span class="dot" style="background:${x.color};border-radius:50%"></span>${esc(x.name)}</button>`).join("")}</div>`;
 function selBarHTML(p, i) {
@@ -3430,7 +3442,7 @@ function wireTable(main, p, t) {
             if (facingOn(p) && p.facing.auto) faceAlong(p, it, origin, k);
             t.moved[it.uid] = true; if (hiddenFaction(p, u.factionId)) hiddenMove(p, t, it, k); else logEv(t, `${u.name} táhne na ${k.split(",").map(n => pad2(+n + 1)).join("")}${b.labels[k] ? " (" + b.labels[k] + ")" : ""}`);
             after(p, t, "pohyb", u.factionId, ter ? ter.name : ""); crawlOnMove(p, t, it, k);
-            const mine = minesOnEnter(p, t, it, k); if (mine) { checkWin(p, t); toast(mine); if (!t.items.includes(it)) { S.sel = null; save(); render(); return; } }
+            const mine = [minesOnEnter(p, t, it, k), fireOnEnter(p, t, it, k)].filter(Boolean).join("; "); if (mine) { checkWin(p, t); toast(mine); if (!t.items.includes(it)) { S.sel = null; save(); render(); return; } }
             if (triggerOverwatch(p, t, it)) { S.sel = it.uid; save(); render(); return; }
           }
         }
@@ -4613,7 +4625,7 @@ function retreat(p, t, it, n = 1) {
   for (let s = 0; s < n; s++) {
     const enemy = enemyCells(p, t, it); const [c, r] = k.split(",").map(Number);
     const dist = x => enemy.length ? Math.min(...enemy.map(e => hexDist(b, x, e))) : 0;
-    const opts = neighbors(b, c, r).map(([x, y]) => x + "," + y).filter(x => { const ter = terrainOf(p, b, x) || p.terrains[0]; return !enemy.includes(x) && !(ter && !isFinite(parseFloat(ter.move))) && dist(x) > dist(k); });
+    const opts = neighbors(b, c, r).map(([x, y]) => x + "," + y).filter(x => { return !enemy.includes(x) && isFinite(terrainMove(p, b, x)) && dist(x) > dist(k); });
     if (!opts.length) return `${u.name} nemá kam ustoupit – ` + stepLoss(p, t, it);
     k = opts.sort((a, b2) => dist(b2) - dist(a))[0];
   }
@@ -4644,7 +4656,7 @@ function supplySet(p, t, fid) {
   const enemy = new Set(t.items.filter(i => i.kind === "unit" && unitOf(p, i) && unitOf(p, i).factionId !== fid).map(i => cellUnder(p, i)).filter(Boolean));
   const dist = {}; const q = []; src.forEach(k => { if (!enemy.has(k)) { dist[k] = 0; q.push(k); } });
   while (q.length) { const k = q.shift(); if (dist[k] >= R) continue; const [c, r] = k.split(",").map(Number);
-    neighbors(b, c, r).forEach(([x, y]) => { const nk = x + "," + y; const ter = terrainOf(p, b, nk) || p.terrains[0]; if (dist[nk] != null || enemy.has(nk) || (ter && !isFinite(parseFloat(ter.move)))) return; dist[nk] = dist[k] + 1; q.push(nk); }); }
+    neighbors(b, c, r).forEach(([x, y]) => { const nk = x + "," + y; if (dist[nk] != null || enemy.has(nk) || !isFinite(terrainMove(p, b, nk))) return; dist[nk] = dist[k] + 1; q.push(nk); }); }
   return dist;
 }
 function inSupply(p, t, it) {
@@ -5274,7 +5286,7 @@ function moreRulebook(p) {
   if (fx.length) out.push(["Pevné žetony", `<p>Pevné žetony po položení zůstávají na místě. Bonus platí pro jednotky na stejném poli.</p><ul>${fx.map(x => `<li><b>${esc(x.name)}</b>${x.buildable ? " (jednotka ho může postavit na svém poli)" : ""}: ${esc(modText(x) || "bez bonusu")}</li>`).join("")}</ul>`]);
   if (zu.length) out.push(["Zóny jednotek", `<p>Útok zasáhne zónu podle váhy (vyšší váha = častěji) a brání se její obranou. Zóna s výdrží ji ztrácí; zničená kritická zóna vyřadí jednotku.</p><table><tr><th>Jednotka</th><th>Zóny (obrana, výdrž, váha)</th></tr>${zu.map(u => `<tr><td>${esc(u.name)}</td><td>${unitZones(u).map(z => `${esc(z.name)} ${z.def || 0}${+z.hp ? `/${z.hp}` : ""} ×${z.w || 1}${z.crit ? " ★" : ""}`).join(", ")}</td></tr>`).join("")}</table>`]);
   if (tr.length || ca.length) out.push(["Nosnost", `${tr.length ? `<p>Přeprava: ${tr.map(u => `${esc(u.name)} převeze ${u.transport}`).join(", ")}. Jednotka nastoupí na stejném poli a jede s vozidlem.</p>` : ""}${ca.length ? `<p>Nosnost předmětů: ${ca.map(u => `${esc(u.name)} ${u.carry}`).join(", ")}. Váha předmětů: ${p.tokens.filter(x => x.small).map(x => `${esc(x.name)} ${tokWeight(x)}`).join(", ")}.</p>` : ""}`]);
-  out.push(...facingRulebook(p), ...moraleRulebook(p), ...itemsRulebook(p), ...envRulebook(p));
+  out.push(...facingRulebook(p), ...moraleRulebook(p), ...itemsRulebook(p), ...envRulebook(p), ...groundRulebook(p));
   if (p.mancala.on) out.push(["Rozsévání", `<p>Každý hráč má ${p.mancala.pits} jamek po ${p.mancala.seeds} semínkách a sklad. Ve svém tahu vezmi všechna semínka z jedné své jamky a rozděl je po jednom do dalších jamek proti směru hodin (soupeřův sklad přeskoč).${p.mancala.extra ? " Skončíš-li ve svém skladu, hraješ znovu." : ""}${p.mancala.capture ? " Skončíš-li ve své prázdné jamce, bereš i semínka z protější jamky." : ""} Hra končí, když jedna strana nemá semínka; vyhrává plnější sklad.</p>`]);
   const inc = p.decks.flatMap(d => d.cards.filter(c => c.income || c.act)); if (inc.length) out.push(["Schopnosti karet", `<ul>${inc.map(c => `<li><b>${esc(c.title)}</b>: ${c.income ? "každé kolo " + esc(describeEffect(c.income)) : ""}${c.income && c.act ? "; " : ""}${c.act ? "vyčerpáním " + esc(describeEffect(c.act)) : ""}</li>`).join("")}</ul>${p.refreshExhaust ? "<p>Vyčerpané karty se na začátku kola obnoví.</p>" : ""}`]);
   if (p.trickBid.on) out.push(["Sázky", `<p>Před kolem každý řekne, kolik štychů vezme. Přesná sázka: ${p.trickBid.hit} bodů + ${p.trickBid.per} za každý štych; jinak −${p.trickBid.miss} za každý štych rozdílu.</p>`]);
@@ -6599,7 +6611,7 @@ function facingRulebook(p) {
 function normalizeMorale(p) {
   p.morale = Object.assign({ on: false, base: 7, dice: 2, sides: 6, auto: true, cmdBonus: 1, supHit: 5, supClear: true, hunger: false }, p.morale || {});
 }
-const FX_NAMES = { "": "žádný", mina: "Mina – zasáhne při vstupu", drat: "Ostnatý drát – zdrží pohyb", vybusnina: "Výbušnina – odpálit", jidlo: "Potraviny – spotřebovat" };
+const FX_NAMES = { "": "žádný", mina: "Mina – zasáhne při vstupu", drat: "Ostnatý drát – zdrží pohyb", vybusnina: "Výbušnina – odpálit", jidlo: "Potraviny – spotřebovat", kour: "Kouř – zakrývá výhled", ohen: "Oheň – pálí a šíří se" };
 const fxOf = (p, it) => (tokDef(p, it) || {}).fx || "";
 // Zásah jednotky: s životy ubere životy, jinak kroky.
 function harm(p, t, it, n, by) {
@@ -6703,7 +6715,7 @@ function fxEditorHTML(t) {
 }
 function wireFxEditor(main, p) {
   const tok = id => p.tokens.find(x => x.id === id);
-  $$("[data-tfx]", main).forEach(i => i.onchange = () => { const t = tok(i.dataset.tfx); t.fx = i.value; if (["mina", "drat"].includes(t.fx)) { t.fixed = true; t.small = false; } if (["vybusnina", "jidlo"].includes(t.fx)) { t.small = true; t.fixed = false; } if (t.fx === "jidlo") { t.use = "once"; t.heal = t.heal || 2; t.cure = true; } touch(p); render(); });
+  $$("[data-tfx]", main).forEach(i => i.onchange = () => { const t = tok(i.dataset.tfx); t.fx = i.value; if (["mina", "drat", "kour", "ohen"].includes(t.fx)) { t.fixed = true; t.small = false; } if (["vybusnina", "jidlo"].includes(t.fx)) { t.small = true; t.fixed = false; } if (t.fx === "jidlo") { t.use = "once"; t.heal = t.heal || 2; t.cure = true; } touch(p); render(); });
   $$("[data-tfxn]", main).forEach(i => i.addEventListener("change", () => { tok(i.dataset.tfxn).fxN = +i.value || 0; touch(p); }));
   $$("[data-tfxh]", main).forEach(i => i.onchange = () => { tok(i.dataset.tfxh).hidden = i.checked; touch(p); });
   $$("[data-tfxo]", main).forEach(i => i.onchange = () => { tok(i.dataset.tfxo).once = i.checked; touch(p); });
@@ -6817,13 +6829,15 @@ function itemTargets(p, t, it, d) {
 function useItem(p, t, it, e, target) {
   const d = e.def; const u = unitOf(p, it); const name = itemName(e);
   if (+d.hits && !isOnce(d) && !useAmmo(p, t, it)) return `${u.name}: došla munice`;
-  const aff = itemAffected(p, t, it, d, target); const parts = aff.map(x => { const r = itemEffectOn(p, t, x, d, name, it); return d.target ? `${unitOf(p, x).name}: ${r.join(", ") || "bez účinku"}` : r.join(", "); }).filter(Boolean);
+  const aff = itemAffected(p, t, it, d, target); const parts = aff.map(x => { const r = itemEffectOn(p, t, x, d, name, it); return d.target ? (r.length ? `${unitOf(p, x).name}: ${r.join(", ")}` : "") : r.join(", "); }).filter(Boolean);
+  const b = tableBoard(p); const kc = b && cellUnder(p, target || it);
+  if (d.spawn && kc) { let n = 0; for (let c = 0; c < b.cols; c++) for (let r = 0; r < b.rows; r++) { const k = c + "," + r; if (hexDist(b, kc, k) <= (d.target === "area" ? +d.radius || 0 : 0) && placeFx(p, t, d.spawn, k)) n++; } if (n) parts.push(`${d.spawn === "kour" ? "kouř" : "oheň"} na ${n} ${plural(n, "poli", "polích", "polích")}`); }
   if (e.kind === "hand") { const h = e.src; const fid = u.factionId; t.hands[fid] = (t.hands[fid] || []).filter(x => x !== h); discardCard(t, h, fid); }
   else if (isOnce(d)) destroyItem(p, t, it, e);
   else if (+d.dur && !d.wear) parts.push(damageItem(p, t, it, e, 1)); // náboj / opotřebení při použití
   checkWin(p, t);
   const where = d.target === "area" ? ` (okruh ${+d.radius || 0}${target && target !== it ? " kolem " + unitOf(p, target).name : ""})` : d.target === "unit" && target ? ` na ${unitOf(p, target).name}` : "";
-  const msg = `${u.name} použije ${name}${where}${parts.length ? ": " + parts.join("; ") : aff.length ? "" : ": nikoho nezasáhl"}`; logEv(t, msg); return msg;
+  const msg = `${u.name} použije ${name}${where}${parts.length ? ": " + parts.join("; ") : aff.length || d.spawn ? "" : ": nikoho nezasáhl"}`; logEv(t, msg); return msg;
 }
 function equipCard(p, t, it, h) {
   const u = unitOf(p, it); t.hands[u.factionId] = (t.hands[u.factionId] || []).filter(x => x !== h); (it.gear = it.gear || []).push({ deckId: h.deckId, cardId: h.cardId, dmg: 0 });
@@ -6836,7 +6850,7 @@ function itemText(d) {
   const a = []; const mt = modText(d); if (mt) a.push(mt + (isOnce(d) && d.fx !== "jidlo" ? ` na ${Math.max(1, +d.turns || 1)} ${plural(Math.max(1, +d.turns || 1), "kolo", "kola", "kol")}` : ""));
   if (isOnce(d)) a.unshift("jednorázový"); const heal = +(d.heal || (d.fx === "jidlo" ? d.fxN : 0)) || 0; if (heal) a.push(`+${heal} ${plural(heal, "život", "životy", "životů")}`);
   if (d.cure || d.fx === "jidlo") a.push("zažene únavu, otravu, rozvrácení"); if (d.ammo) a.push("doplní munici");
-  if (d.target) a.push(`${d.target === "area" ? `plošně (okruh ${+d.radius || 0})` : "cíleně"} na ${d.foes === "ally" ? "spojence" : d.foes === "all" ? "všechny" : "nepřátele"}, dosah ${+d.reach || 0}`); if (+d.hits) a.push(`zásah ${d.hits} ${plural(+d.hits, "kostkou", "kostkami", "kostkami")}`);
+  if (d.target) a.push(`${d.target === "area" ? `plošně (okruh ${+d.radius || 0})` : "cíleně"} na ${d.foes === "ally" ? "spojence" : d.foes === "all" ? "všechny" : "nepřátele"}, dosah ${+d.reach || 0}`); if (+d.hits) a.push(`zásah ${d.hits} ${plural(+d.hits, "kostkou", "kostkami", "kostkami")}`); if (d.spawn) a.push(d.spawn === "kour" ? "vytvoří kouř" : "založí oheň");
   if (+d.light) a.push(`světlo ${d.light}`);
   if (+d.dur) a.push(`výdrž ${d.dur}`); if (d.absorb) a.push("pohlcuje zásahy"); if (d.wear) a.push("opotřebí se útokem");
   return a.join(" · ");
@@ -6871,7 +6885,8 @@ function itemFxHTML(o, attr, withMods) {
     ${o.target ? `<label class="f" style="width:84px" title="Jak daleko lze cíl nebo střed okruhu zvolit (polí)">Dosah<input type="number" min="0" max="30" ${attr}="reach" value="${v("reach")}" placeholder="0"></label>
       ${o.target === "area" ? `<label class="f" style="width:84px" title="0 = jen cílové pole">Poloměr<input type="number" min="0" max="10" ${attr}="radius" value="${v("radius")}" placeholder="0"></label>` : ""}
       <label class="f" style="width:130px">Na koho<select ${attr}="foes"><option value="">nepřátele</option><option value="ally" ${o.foes === "ally" ? "selected" : ""}>spojence</option><option value="all" ${o.foes === "all" ? "selected" : ""}>všechny</option></select></label>
-      <label class="f" style="width:110px" title="Kolik kostek zásahu hodí na každou zasaženou jednotku (zásah na hodnotu z Mechanik)">Zásah kostek<input type="number" min="0" max="20" ${attr}="hits" value="${v("hits")}" placeholder="0"></label>` : ""}
+      <label class="f" style="width:110px" title="Kolik kostek zásahu hodí na každou zasaženou jednotku (zásah na hodnotu z Mechanik)">Zásah kostek<input type="number" min="0" max="20" ${attr}="hits" value="${v("hits")}" placeholder="0"></label>
+      <label class="f" style="width:120px" title="Na cílovém poli (u plošného v celém okruhu) vznikne kouř nebo oheň">Vytvoří<select ${attr}="spawn"><option value="">nic</option><option value="kour" ${o.spawn === "kour" ? "selected" : ""}>kouř</option><option value="ohen" ${o.spawn === "ohen" ? "selected" : ""}>oheň</option></select></label>` : ""}
     <label class="f" style="width:190px">Použití<select ${attr}="use"><option value="">trvalý – platí, dokud ho nese</option><option value="once" ${o.use === "once" ? "selected" : ""}>jednorázový – použije se a zmizí</option></select></label>
     ${o.use === "once" ? `<label class="f" style="width:96px" title="Kolik kol platí úpravy hodnot po použití">Platí kol<input type="number" min="1" max="20" ${attr}="turns" value="${v("turns")}" placeholder="1"></label>
       <label class="f" style="width:96px" title="Okamžitě vyléčí (jednotka bez životů obnoví krok)">Vyléčí životy<input type="number" min="0" max="20" ${attr}="heal" value="${v("heal")}" placeholder="0"></label>
@@ -6880,7 +6895,7 @@ function itemFxHTML(o, attr, withMods) {
       <label class="f" style="width:96px" title="Nositel vidí a osvětluje do této vzdálenosti i v noci, mlze nebo tmě">Světlo<input type="number" min="0" max="10" ${attr}="light" value="${v("light")}" placeholder="–"></label>`}</div>`;
 }
 function readItemFx(o, el, attr) {
-  const k = el.getAttribute(attr); if (el.type === "checkbox") o[k] = el.checked; else if (["use", "target", "foes"].includes(k)) o[k] = el.value; else o[k] = el.value === "" ? "" : +el.value;
+  const k = el.getAttribute(attr); if (el.type === "checkbox") o[k] = el.checked; else if (["use", "target", "foes", "spawn"].includes(k)) o[k] = el.value; else o[k] = el.value === "" ? "" : +el.value;
 }
 function itemsRulebook(p) {
   const toks = p.tokens.filter(x => x.small && itemText(x)), cards = p.decks.flatMap(d => d.cards.filter(c => c.unitItem));
@@ -6935,6 +6950,7 @@ function envRound(p, t) {
   if (tm && tm !== t.envTime) { t.envTime = tm; changed.push(tm); }
   if (p.env.auto) { const w = weatherRoll(p); if (w && w.name !== t.envWeather) { t.envWeather = w.name; changed.push(w.name); } }
   if (changed.length) logEv(t, "počasí a doba: " + envNow(p, t).map(c => c.name).join(", "));
+  weatherRoundFx(p, t); // bláto, vítr, kouř, oheň
 }
 const envBadge = (p, t) => envNow(p, t).map(c => `<span class="envchip" title="${esc(envText(c))}">${esc(c.icon || "")} ${esc(c.name)}</span>`).join("");
 function envText(c) { const a = []; if (c.sight !== "" && c.sight != null) a.push(`výhled ${c.sight}`); const mt = modText(c); if (mt) a.push(mt); return a.join(", ") || "bez vlivu"; }
@@ -6943,12 +6959,13 @@ function envSideHTML(p, t) {
   return `<section><div class="eyebrow">Denní doba a počasí</div><div class="row">${envBadge(p, t)}</div>
     <div class="grid" style="grid-template-columns:1fr 1fr"><label class="f">Doba<select id="envT">${C.filter(c => c.kind === "time").map(c => `<option ${now.some(n => n === c) ? "selected" : ""}>${esc(c.name)}</option>`).join("")}</select></label>
     <label class="f">Počasí<select id="envW"><option value="">–</option>${C.filter(c => c.kind === "weather").map(c => `<option ${c.name === t.envWeather ? "selected" : ""}>${esc(c.name)}</option>`).join("")}</select></label></div>
-    <button class="btn small" id="envRoll">Hodit na počasí</button><span class="hint"> ${esc(now.map(c => `${c.name}: ${envText(c)}`).join(" · "))}</span></section>`;
+    ${groundSideHTML(p, t)}<button class="btn small" id="envRoll">Hodit na počasí</button><span class="hint"> ${esc(now.map(c => `${c.name}: ${envText(c)}`).join(" · "))}</span></section>`;
 }
 function wireEnvSide(main, p, t, save) {
   const q = id => document.getElementById(id); if (!q("envT")) return;
   q("envT").onchange = e => { t.envTime = e.target.value; logEv(t, "doba: " + t.envTime); save(); render(); };
-  q("envW").onchange = e => { t.envWeather = e.target.value; logEv(t, "počasí: " + (t.envWeather || "–")); save(); render(); };
+  q("envW").onchange = e => { t.envWeather = e.target.value; groundTouch(p, t); logEv(t, "počasí: " + (t.envWeather || "–")); save(); render(); };
+  wireGroundSide(main, p, t, save);
   q("envRoll").onclick = () => { const w = weatherRoll(p); if (!w) return; t.envWeather = w.name; logEv(t, "počasí: " + w.name); save(); render(); toast(`Počasí: ${w.icon || ""} ${w.name}`); };
 }
 function envMechHTML(p) {
@@ -6957,8 +6974,8 @@ function envMechHTML(p) {
     <label class="chk"><input type="checkbox" id="envOn" ${E.on ? "checked" : ""}> Hra má denní dobu a počasí</label>
     ${E.on ? `<label class="f">Střídání doby po kolech (opakuje se)<input type="text" id="envCyc" value="${esc(E.cycle)}" placeholder="Den, Den, Soumrak, Noc"></label>
     <label class="chk"><input type="checkbox" id="envAuto" ${E.auto ? "checked" : ""}> Počasí se na začátku kola losuje podle vah</label>
-    <div style="overflow-x:auto"><table class="crt-tab"><thead><tr><th>Podmínka</th><th>Druh</th><th title="Nejdál, kam jednotky vidí (prázdné = beze změny)">Výhled</th><th>Útok</th><th>Obrana</th><th>Pohyb</th><th>Dostřel</th><th title="Jak často padne (jen počasí)">Váha</th><th></th></tr></thead>
-    <tbody>${E.conds.map(c => `<tr><td><input type="text" data-env="name|${c.id}" value="${esc(c.name)}" style="width:96px" aria-label="Název"></td><td>${c.kind === "time" ? "doba" : "počasí"}</td><td>${n("sight", c, 58)}</td><td>${n("mAtt", c, 52)}</td><td>${n("mDef", c, 52)}</td><td>${n("mMov", c, 52)}</td><td>${n("mRange", c, 52)}</td><td>${c.kind === "weather" ? n("w", c, 52) : ""}</td><td><button class="btn small danger" data-envdel="${c.id}" aria-label="Smazat">✕</button></td></tr>`).join("")}</tbody></table></div>
+    <div style="overflow-x:auto"><table class="crt-tab"><thead><tr><th>Podmínka</th><th>Druh</th><th title="Nejdál, kam jednotky vidí (prázdné = beze změny)">Výhled</th><th>Útok</th><th>Obrana</th><th>Pohyb</th><th>Dostřel</th><th title="Jak často padne (jen počasí)">Váha</th><th title="Fouká vítr (kouř a oheň se šíří po větru)">Vítr</th><th title="Mokro: hasí oheň, rozpouští kouř">Mokro</th><th></th></tr></thead>
+    <tbody>${E.conds.map(c => `<tr><td><input type="text" data-env="name|${c.id}" value="${esc(c.name)}" style="width:96px" aria-label="Název"></td><td>${c.kind === "time" ? "doba" : "počasí"}</td><td>${n("sight", c, 58)}</td><td>${n("mAtt", c, 52)}</td><td>${n("mDef", c, 52)}</td><td>${n("mMov", c, 52)}</td><td>${n("mRange", c, 52)}</td><td>${c.kind === "weather" ? n("w", c, 52) : ""}</td><td><input type="checkbox" data-envc="wind|${c.id}" ${c.wind ? "checked" : ""} aria-label="Vítr"></td><td><input type="checkbox" data-envc="wet|${c.id}" ${c.wet ? "checked" : ""} aria-label="Mokro"></td><td><button class="btn small danger" data-envdel="${c.id}" aria-label="Smazat">✕</button></td></tr>`).join("")}</tbody></table></div>
     <div class="row"><button class="btn small" data-envadd="time">+ Denní doba</button><button class="btn small" data-envadd="weather">+ Počasí</button></div>
     <p class="hint">Výhled omezí mlhu války, „Výhled“ a cíle střelby i předmětů. Předmět se světlem (v Komponentách) dovolí nositeli vidět do své vzdálenosti i v noci a mlze. Na stole doba a počasí najdeš v nástroji Kolo.</p>` : ""}</div>`;
 }
@@ -6968,6 +6985,7 @@ function wireEnvMech(main, p) {
   if (q("envCyc")) q("envCyc").onchange = e => { E.cycle = e.target.value; touch(p); };
   if (q("envAuto")) q("envAuto").onchange = e => { E.auto = e.target.checked; touch(p); };
   $$("[data-env]", main).forEach(i => i.addEventListener("change", () => { const [k, id] = i.dataset.env.split("|"); const c = E.conds.find(x => x.id === id); c[k] = k === "name" ? i.value : i.value === "" ? "" : +i.value; touch(p); }));
+  $$("[data-envc]", main).forEach(i => i.onchange = () => { const [k, id] = i.dataset.envc.split("|"); E.conds.find(x => x.id === id)[k] = i.checked; touch(p); });
   $$("[data-envdel]", main).forEach(b => b.onclick = () => { E.conds = E.conds.filter(x => x.id !== b.dataset.envdel); touch(p); render(); });
   $$("[data-envadd]", main).forEach(b => b.onclick = () => { E.conds.push({ id: uid(), name: b.dataset.envadd === "time" ? "Nová doba" : "Nové počasí", kind: b.dataset.envadd, icon: "", w: 1, sight: "", mAtt: 0, mDef: 0, mMov: 0, mRange: 0 }); touch(p); render(); });
 }
@@ -6978,6 +6996,145 @@ function envRulebook(p) {
 // Zabarvení mapy podle doby a počasí (noc tmavne, mlha bělá, déšť šedne).
 const ENV_TINT = { soumrak: "rgba(90,50,100,.16)", noc: "rgba(15,25,70,.42)", mlha: "rgba(245,245,245,.45)", dest: "rgba(80,100,130,.22)", vitr: "rgba(200,190,150,.10)" };
 function envTintHTML(p, t, g) { const c = envNow(p, t).map(x => ENV_TINT[x.id]).filter(Boolean); return c.length ? `<div class="envtint" style="width:${g.W}px;height:${g.H}px;background:${c.map(x => `linear-gradient(${x},${x})`).join(",")}"></div>` : ""; }
+
+// ---------- Terén ovlivněný počasím, vítr, kouř a oheň ----------
+// Stav terénu (bláto, zamrzlo, závěje) vznikne za určitého počasí a vydrží ještě několik kol po něm; mění pohyb na vybraných terénech.
+// Vítr má směr: kouř se každé kolo posune po větru a rychleji se rozplyne; oheň se po větru šíří do hořlavého terénu,
+// dýmí a déšť ho uhasí. Kouř zakrývá výhled. Předmět (dýmovnice, zápalná láhev) může kouř nebo oheň vytvořit.
+function defaultGrounds() {
+  return [
+    { id: "blato", name: "Bláto", from: "Déšť", lasts: 2, fx: "Rovina +1, Kopce +1, Bažina –", color: "#6b4a2a" },
+    { id: "zamrzlo", name: "Zamrzlo", from: "Mráz", lasts: 1, fx: "Voda 2, Bažina 1", color: "#cfe6f5" },
+    { id: "zaveje", name: "Závěje", from: "Sníh", lasts: 3, fx: "Rovina +1, Les +1, Kopce +2", color: "#ffffff" },
+  ];
+}
+function normalizeGround(p) {
+  const E = p.env; if (!Array.isArray(E.grounds)) E.grounds = defaultGrounds();
+  E.fire = Object.assign({ hits: 2, spread: 50, still: 15, life: 4, smoke: 3 }, E.fire || {});
+  // doplnění starších her o vítr, mokro a nová počasí
+  E.conds.forEach(c => { if (c.wind == null) c.wind = c.id === "vitr"; if (c.wet == null) c.wet = c.id === "dest"; });
+  if (!E.conds.some(c => c.id === "snih")) E.conds.push({ id: "snih", name: "Sníh", kind: "weather", icon: "❄", w: 0, sight: 3, mAtt: 0, mDef: 0, mMov: 0, mRange: 0, wet: true, wind: false });
+  if (!E.conds.some(c => c.id === "mraz")) E.conds.push({ id: "mraz", name: "Mráz", kind: "weather", icon: "✱", w: 0, sight: "", mAtt: 0, mDef: 0, mMov: 0, mRange: 0, wet: false, wind: false });
+  if (!E.conds.some(c => c.id === "boure")) E.conds.push({ id: "boure", name: "Bouře", kind: "weather", icon: "⚡", w: 0, sight: 2, mAtt: 0, mDef: 0, mMov: -1, mRange: -2, wet: true, wind: true });
+  p.terrains.forEach(x => { if (x.burns == null) x.burns = ["forest", "town"].includes(x.id); });
+}
+const windy = (p, t) => envNow(p, t).some(c => c.wind), wet = (p, t) => envNow(p, t).some(c => c.wet);
+// Úpravy terénu: „Rovina +1, Bažina –, Voda 2“ → { název: "+1" | "–" | "2" }.
+function parseGroundFx(s) { const out = {}; String(s || "").split(/[,;]/).map(x => x.trim()).filter(Boolean).forEach(x => { const m = x.match(/^(.+?)\s+([+-]?\d+(?:[.,]\d+)?|[–-])$/); if (m) out[m[1].trim().toLowerCase()] = m[2].replace(",", "."); }); return out; }
+function groundActive(p, t) {
+  if (!envOn(p) || !t) return []; const now = envNow(p, t).map(c => c.name.toLowerCase());
+  return p.env.grounds.filter(g => String(g.from || "").split(",").map(x => x.trim().toLowerCase()).some(n => n && now.includes(n)) || (t.ground || {})[g.id] > 0);
+}
+// Účinný pohyb na poli: terén, případně změněný stavem terénu (Infinity = neprůchodné).
+function terrainMove(p, b, k) {
+  const ter = terrainOf(p, b, k) || p.terrains[0]; let v = parseFloat(ter ? ter.move : 1); v = isFinite(v) && v > 0 ? v : Infinity;
+  for (const g of groundActive(p, p.table)) { const e = parseGroundFx(g.fx)[(ter ? ter.name : "").toLowerCase()]; if (e == null) continue;
+    if (e === "–" || e === "-") v = Infinity; else if (/^[+-]/.test(e)) v = v === Infinity ? v : Math.max(0.5, v + parseFloat(e)); else v = +e || Infinity; }
+  return v;
+}
+function groundRound(p, t) {
+  t.ground = t.ground || {}; const now = envNow(p, t).map(c => c.name.toLowerCase());
+  p.env.grounds.forEach(g => { const trig = String(g.from || "").split(",").map(x => x.trim().toLowerCase()).some(n => n && now.includes(n));
+    if (trig) { if (!(t.ground[g.id] > 0)) logEv(t, `terén: ${g.name}`); t.ground[g.id] = (+g.lasts || 0) + 1; }
+    else if (t.ground[g.id] > 0) { t.ground[g.id]--; if (!t.ground[g.id]) { delete t.ground[g.id]; logEv(t, `terén: ${g.name} zmizelo`); } } });
+}
+function groundCells(p, t, b) {
+  const out = []; groundActive(p, t).forEach(g => { const fx = parseGroundFx(g.fx); for (let c = 0; c < b.cols; c++) for (let r = 0; r < b.rows; r++) { const k = c + "," + r; const ter = terrainOf(p, b, k) || p.terrains[0]; if (ter && fx[ter.name.toLowerCase()] != null) out.push([k, g.color || "#6b4a2a"]); } });
+  return out;
+}
+// Šedý opar na zakouřených polích.
+function smokeSVG(p, t, b) { const s = smokeSet(p, t); if (!s.size) return ""; const g = geo(b); return [...s].map(k => { const [c, r] = k.split(",").map(Number); const [cx, cy] = g.center(c, r); return `<polygon points="${g.poly(cx, cy)}" fill="#8e8e8a" fill-opacity=".55"/>`; }).join(""); }
+// Ruční změna počasí: stav terénu vznikne hned (bez odpočtu kol).
+function groundTouch(p, t) { t.ground = t.ground || {}; const now = envNow(p, t).map(c => c.name.toLowerCase()); p.env.grounds.forEach(g => { if (String(g.from || "").split(",").map(x => x.trim().toLowerCase()).some(n => n && now.includes(n))) t.ground[g.id] = Math.max(t.ground[g.id] || 0, (+g.lasts || 0) + 1); }); }
+function groundSVG(b, cells) {
+  if (!cells || !cells.length) return ""; const g = geo(b);
+  return cells.map(([k, col]) => { const [c, r] = k.split(",").map(Number); const [cx, cy] = g.center(c, r); return `<polygon points="${g.poly(cx, cy)}" fill="${col}" fill-opacity=".2" stroke="${col}" stroke-opacity=".6" stroke-dasharray="2 4" stroke-width="1"/>`; }).join("");
+}
+// Vítr
+const DIR_NAMES_HEX = ["sever", "severovýchod", "jihovýchod", "jih", "jihozápad", "severozápad"], DIR_NAMES_SQ = ["sever", "východ", "jih", "západ"];
+function windName(p, t) { const b = tableBoard(p); const n = b && b.type === "square" ? DIR_NAMES_SQ : DIR_NAMES_HEX; return n[(t.windDir || 0) % n.length]; }
+function windArrow(p, t) { const b = tableBoard(p); const step = b && b.type === "square" ? 90 : 60; return `<span class="facedir" style="transform:rotate(${(t.windDir || 0) * step}deg)" aria-hidden="true">▲</span>`; }
+// Kouř a oheň na mapě
+function fxItems(p, t, fx) { return t.items.filter(o => o.kind === "token" && !o.attachTo && fxOf(p, o) === fx); }
+function smokeSet(p, t) { const s = new Set(); if (!t) return s; fxItems(p, t, "kour").forEach(o => { const k = cellUnder(p, o); if (k) s.add(k); }); return s; }
+function fxTokenDef(p, fx) {
+  let tk = p.tokens.find(x => x.fx === fx); if (tk) return tk;
+  tk = fx === "kour" ? { id: uid(), name: "Kouř", color: "#9a9a96", shape: "kruh", counter: false, text: "KOUŘ", fixed: true, fx: "kour", fxN: p.env.fire.smoke }
+    : { id: uid(), name: "Oheň", color: "#e0602e", shape: "kruh", counter: false, text: "OHEŇ", fixed: true, fx: "ohen", fxN: p.env.fire.hits };
+  p.tokens.push(tk); return tk;
+}
+function placeFx(p, t, fx, k) {
+  const b = tableBoard(p); if (!b || !k) return null; if (fxItems(p, t, fx).some(o => cellUnder(p, o) === k)) return null;
+  if (fx === "ohen") { const ter = terrainOf(p, b, k) || p.terrains[0]; if (ter && !isFinite(parseFloat(ter.move)) && !ter.burns) return null; }
+  const tk = fxTokenDef(p, fx); const [c, r] = k.split(",").map(Number); const [cx, cy] = geo(b).center(c, r);
+  const it = { uid: uid(), kind: "token", tokenId: tk.id, x: Math.round(BX + cx - 23 + (fx === "kour" ? 12 : -12)), y: Math.round(BY + cy - 23 + (fx === "kour" ? -12 : 12)), value: 0, rot: 0, life: fx === "kour" ? +tk.fxN || p.env.fire.smoke : p.env.fire.life };
+  t.items.push(it); return it;
+}
+function moveFx(p, t, it, k) { const b = tableBoard(p); const [c, r] = k.split(",").map(Number); const [cx, cy] = geo(b).center(c, r); it.x = Math.round(BX + cx - 23 + 12); it.y = Math.round(BY + cy - 23 - 12); }
+function burnUnits(p, t, k, why) {
+  const out = []; const F = p.env.fire; t.items.filter(o => o.kind === "unit" && !o.inside && cellUnder(p, o) === k).forEach(u => { const roll = rollN(+F.hits || 0, +p.dice.sides || 6); const h = roll.filter(v => v >= +p.dice.aHit).length; out.push(`${why}: ${unitOf(p, u).name} ${roll.join(",") || "–"} → ${h ? harm(p, t, u, h) : "bez zásahu"}`); });
+  return out;
+}
+// Kolo: kouř se rozplývá a pluje po větru, oheň pálí, dýmí, šíří se a déšť ho hasí.
+function fireRound(p, t) {
+  const b = tableBoard(p); if (!b) return; const F = p.env.fire; const W = windy(p, t), Wet = wet(p, t); const n = b.type === "square" ? 4 : 6; const msgs = [];
+  fxItems(p, t, "kour").forEach(s => { s.life = (s.life ?? 3) - 1 - (W ? 1 : 0) - (Wet ? 1 : 0); const k = cellUnder(p, s);
+    if (s.life > 0 && W && k) { const [c, r] = k.split(",").map(Number); const nk = (dirNeighbor(b, c, r, (t.windDir || 0) % n) || []).join(","); const [x, y] = nk.split(",").map(Number);
+      if (nk && x >= 0 && y >= 0 && x < b.cols && y < b.rows && !smokeSet(p, t).has(nk)) moveFx(p, t, s, nk); else if (!(x >= 0 && y >= 0 && x < b.cols && y < b.rows)) s.life = 0; }
+    if (s.life <= 0) t.items = t.items.filter(o => o !== s); });
+  const fires = fxItems(p, t, "ohen");
+  if (Wet && fires.length) { t.items = t.items.filter(o => !fires.includes(o)); msgs.push(`déšť uhasil ${fires.length} ${plural(fires.length, "oheň", "ohně", "ohňů")}`); }
+  else fires.forEach(f => { const k = cellUnder(p, f); if (!k) return; msgs.push(...burnUnits(p, t, k, "oheň")); placeFx(p, t, "kour", k);
+    const [c, r] = k.split(",").map(Number);
+    for (let i = 0; i < n; i++) { const nb = dirNeighbor(b, c, r, i); if (!nb) continue; const [x, y] = nb; if (x < 0 || y < 0 || x >= b.cols || y >= b.rows) continue; const nk = x + "," + y; const ter = terrainOf(p, b, nk) || p.terrains[0];
+      if (!ter || !ter.burns) continue; const ch = W ? (i === (t.windDir || 0) % n ? +F.spread : 0) : +F.still; if (ch && Math.random() * 100 < ch && placeFx(p, t, "ohen", nk)) msgs.push(`oheň se šíří na ${cellLabel(nk)}`); }
+    f.life = (f.life ?? F.life) - 1; if (f.life <= 0) { t.items = t.items.filter(o => o !== f); msgs.push(`oheň na ${cellLabel(k)} dohořel`); } });
+  msgs.forEach(m => logEv(t, m));
+}
+function weatherRoundFx(p, t) {
+  if (!envOn(p)) return; groundRound(p, t);
+  if (windy(p, t)) { const b = tableBoard(p); const n = b && b.type === "square" ? 4 : 6; if (t.windDir == null || Math.random() < 0.34) { t.windDir = Math.floor(Math.random() * n); logEv(t, `vítr fouká na ${windName(p, t)}`); } }
+  fireRound(p, t);
+}
+// Vstup do ohně pálí jako mina.
+function fireOnEnter(p, t, it, k) { if (!fxItems(p, t, "ohen").some(o => cellUnder(p, o) === k)) return ""; const m = burnUnits(p, t, k, "oheň").join("; "); if (m) logEv(t, m); return m; }
+function groundSideHTML(p, t) {
+  if (!envOn(p)) return ""; const ga = groundActive(p, t); const sm = fxItems(p, t, "kour").length, fi = fxItems(p, t, "ohen").length;
+  return `<div class="row">${windy(p, t) ? `<span class="hint">Vítr fouká na ${windName(p, t)}</span>${windArrow(p, t)}<button class="btn small" id="windRot" aria-label="Otočit vítr">↻</button>` : ""}
+    ${ga.map(g => `<span class="envchip" style="background:${g.color};color:${inkFor(g.color)}" title="${esc(g.fx)}">${esc(g.name)}${(t.ground || {})[g.id] > 0 ? ` ${t.ground[g.id]}` : ""}</span>`).join("")}
+    ${sm ? `<span class="hint">kouř ${sm}×</span>` : ""}${fi ? `<span class="hint">oheň ${fi}×</span>` : ""}</div>`;
+}
+function wireGroundSide(main, p, t, save) { const b = document.getElementById("windRot"); if (b) b.onclick = () => { const bd = tableBoard(p); const n = bd && bd.type === "square" ? 4 : 6; t.windDir = ((t.windDir || 0) + 1) % n; save(); render(); }; }
+function groundMechHTML(p) {
+  const E = p.env; const F = E.fire;
+  return `<div class="panel"><h2>Terén po počasí, kouř a oheň</h2>
+    ${E.on ? `<p class="hint">Stav terénu vznikne za uvedeného počasí a vydrží ještě zadaný počet kol. Úpravy: „Rovina +1“ přidá k pohybu, „Voda 2“ nastaví pohyb, „Bažina –“ znamená neprůchodné.</p>
+    <div class="list">${E.grounds.map(g => `<div class="item-row"><input type="text" data-gr="name|${g.id}" value="${esc(g.name)}" style="width:100px" aria-label="Název">
+      <input type="text" data-gr="from|${g.id}" value="${esc(g.from)}" placeholder="Při počasí" style="width:110px" aria-label="Při počasí">
+      <label class="f" style="width:84px">Kol po<input type="number" min="0" max="20" data-gr="lasts|${g.id}" value="${esc(g.lasts)}"></label>
+      <input type="text" data-gr="fx|${g.id}" value="${esc(g.fx)}" placeholder="Rovina +1, Bažina –" style="flex:1;min-width:140px;width:auto" aria-label="Úpravy terénu">
+      <input type="color" data-gr="color|${g.id}" value="${g.color || "#6b4a2a"}" style="width:44px;height:40px;border:0;background:none;padding:0" aria-label="Barva">
+      <button class="btn small danger" data-grdel="${g.id}" aria-label="Smazat">✕</button></div>`).join("")}</div>
+    <button class="btn small" id="grAdd">+ Stav terénu</button>
+    <h3>Kouř a oheň</h3>
+    <div class="grid" style="grid-template-columns:repeat(3,1fr)"><label class="f">Oheň: kostek zásahu<input type="number" id="fiH" min="0" max="10" value="${esc(F.hits)}"></label><label class="f">Oheň hoří kol<input type="number" id="fiL" min="1" max="20" value="${esc(F.life)}"></label><label class="f">Kouř vydrží kol<input type="number" id="fiS" min="1" max="20" value="${esc(F.smoke)}"></label>
+      <label class="f" title="Šance za kolo, že oheň přeskočí na hořlavé pole po větru">Šíření po větru %<input type="number" id="fiW" min="0" max="100" value="${esc(F.spread)}"></label><label class="f" title="Šance za kolo na každé sousední hořlavé pole bez větru">Šíření bez větru %<input type="number" id="fiN" min="0" max="100" value="${esc(F.still)}"></label></div>
+    <p class="hint">Kouř zakrývá výhled, po větru se posouvá a ve větru nebo dešti se rozplyne rychleji. Oheň pálí jednotky na svém poli, dýmí a šíří se do hořlavého terénu (zaškrtneš v Mapě); počasí s mokrem ho uhasí. U počasí v tabulce výše označ „vítr“ a „mokro“. Kouř nebo oheň vytvoří předmět s volbou „Vytvoří“.</p>` : `<p class="hint">Zapni nejdřív denní dobu a počasí.</p>`}</div>`;
+}
+function wireGroundMech(main, p) {
+  const E = p.env; const q = id => document.getElementById(id); if (!E.on) return;
+  $$("[data-gr]", main).forEach(i => i.addEventListener("change", () => { const [k, id] = i.dataset.gr.split("|"); const g = E.grounds.find(x => x.id === id); g[k] = k === "lasts" ? +i.value || 0 : i.value; touch(p); }));
+  $$("[data-grdel]", main).forEach(b => b.onclick = () => { E.grounds = E.grounds.filter(x => x.id !== b.dataset.grdel); touch(p); render(); });
+  if (q("grAdd")) q("grAdd").onclick = () => { E.grounds.push({ id: uid(), name: "Nový stav", from: "", lasts: 1, fx: "", color: "#6b4a2a" }); touch(p); render(); };
+  [["fiH", "hits"], ["fiL", "life"], ["fiS", "smoke"], ["fiW", "spread"], ["fiN", "still"]].forEach(([id, k]) => { if (q(id)) q(id).onchange = e => { E.fire[k] = +e.target.value || 0; touch(p); }; });
+}
+function groundRulebook(p) {
+  if (!envOn(p)) return []; const E = p.env; const out = [];
+  if (E.grounds.length) out.push(["Terén po počasí", `<ul>${E.grounds.map(g => `<li><b>${esc(g.name)}</b> (při počasí ${esc(g.from || "–")}, vydrží ${g.lasts} ${plural(+g.lasts, "kolo", "kola", "kol")} po něm): ${esc(g.fx || "bez úprav")}</li>`).join("")}</ul>`]);
+  const wc = E.conds.filter(c => c.wind).map(c => c.name), wt = E.conds.filter(c => c.wet).map(c => c.name);
+  out.push(["Vítr, kouř a oheň", `<p>${wc.length ? `Vítr fouká za počasí ${esc(wc.join(", "))}; jeho směr se občas změní. ` : ""}Kouř zakrývá výhled a vydrží ${E.fire.smoke} ${plural(+E.fire.smoke, "kolo", "kola", "kol")}; ve větru se každé kolo posune po větru a rozplyne rychleji${wt.length ? `, stejně jako za počasí ${esc(wt.join(", "))}` : ""}.</p><p>Oheň hoří ${E.fire.life} ${plural(+E.fire.life, "kolo", "kola", "kol")}, každé kolo hodí ${E.fire.hits} ${plural(+E.fire.hits, "kostku", "kostky", "kostek")} na jednotky na svém poli (i na ty, které do něj vstoupí), dýmí a šíří se do hořlavého terénu (${esc(p.terrains.filter(x => x.burns).map(x => x.name).join(", ") || "žádný")}): po větru s šancí ${E.fire.spread} %, bez větru ${E.fire.still} % na každé sousední pole.${wt.length ? ` ${esc(wt.join(", "))} oheň uhasí.` : ""}</p>`]);
+  return out;
+}
 
 // ---------- Spuštění ----------
 function init() {

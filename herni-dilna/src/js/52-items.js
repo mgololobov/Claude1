@@ -64,13 +64,15 @@ function itemTargets(p, t, it, d) {
 function useItem(p, t, it, e, target) {
   const d = e.def; const u = unitOf(p, it); const name = itemName(e);
   if (+d.hits && !isOnce(d) && !useAmmo(p, t, it)) return `${u.name}: došla munice`;
-  const aff = itemAffected(p, t, it, d, target); const parts = aff.map(x => { const r = itemEffectOn(p, t, x, d, name, it); return d.target ? `${unitOf(p, x).name}: ${r.join(", ") || "bez účinku"}` : r.join(", "); }).filter(Boolean);
+  const aff = itemAffected(p, t, it, d, target); const parts = aff.map(x => { const r = itemEffectOn(p, t, x, d, name, it); return d.target ? (r.length ? `${unitOf(p, x).name}: ${r.join(", ")}` : "") : r.join(", "); }).filter(Boolean);
+  const b = tableBoard(p); const kc = b && cellUnder(p, target || it);
+  if (d.spawn && kc) { let n = 0; for (let c = 0; c < b.cols; c++) for (let r = 0; r < b.rows; r++) { const k = c + "," + r; if (hexDist(b, kc, k) <= (d.target === "area" ? +d.radius || 0 : 0) && placeFx(p, t, d.spawn, k)) n++; } if (n) parts.push(`${d.spawn === "kour" ? "kouř" : "oheň"} na ${n} ${plural(n, "poli", "polích", "polích")}`); }
   if (e.kind === "hand") { const h = e.src; const fid = u.factionId; t.hands[fid] = (t.hands[fid] || []).filter(x => x !== h); discardCard(t, h, fid); }
   else if (isOnce(d)) destroyItem(p, t, it, e);
   else if (+d.dur && !d.wear) parts.push(damageItem(p, t, it, e, 1)); // náboj / opotřebení při použití
   checkWin(p, t);
   const where = d.target === "area" ? ` (okruh ${+d.radius || 0}${target && target !== it ? " kolem " + unitOf(p, target).name : ""})` : d.target === "unit" && target ? ` na ${unitOf(p, target).name}` : "";
-  const msg = `${u.name} použije ${name}${where}${parts.length ? ": " + parts.join("; ") : aff.length ? "" : ": nikoho nezasáhl"}`; logEv(t, msg); return msg;
+  const msg = `${u.name} použije ${name}${where}${parts.length ? ": " + parts.join("; ") : aff.length || d.spawn ? "" : ": nikoho nezasáhl"}`; logEv(t, msg); return msg;
 }
 function equipCard(p, t, it, h) {
   const u = unitOf(p, it); t.hands[u.factionId] = (t.hands[u.factionId] || []).filter(x => x !== h); (it.gear = it.gear || []).push({ deckId: h.deckId, cardId: h.cardId, dmg: 0 });
@@ -83,7 +85,7 @@ function itemText(d) {
   const a = []; const mt = modText(d); if (mt) a.push(mt + (isOnce(d) && d.fx !== "jidlo" ? ` na ${Math.max(1, +d.turns || 1)} ${plural(Math.max(1, +d.turns || 1), "kolo", "kola", "kol")}` : ""));
   if (isOnce(d)) a.unshift("jednorázový"); const heal = +(d.heal || (d.fx === "jidlo" ? d.fxN : 0)) || 0; if (heal) a.push(`+${heal} ${plural(heal, "život", "životy", "životů")}`);
   if (d.cure || d.fx === "jidlo") a.push("zažene únavu, otravu, rozvrácení"); if (d.ammo) a.push("doplní munici");
-  if (d.target) a.push(`${d.target === "area" ? `plošně (okruh ${+d.radius || 0})` : "cíleně"} na ${d.foes === "ally" ? "spojence" : d.foes === "all" ? "všechny" : "nepřátele"}, dosah ${+d.reach || 0}`); if (+d.hits) a.push(`zásah ${d.hits} ${plural(+d.hits, "kostkou", "kostkami", "kostkami")}`);
+  if (d.target) a.push(`${d.target === "area" ? `plošně (okruh ${+d.radius || 0})` : "cíleně"} na ${d.foes === "ally" ? "spojence" : d.foes === "all" ? "všechny" : "nepřátele"}, dosah ${+d.reach || 0}`); if (+d.hits) a.push(`zásah ${d.hits} ${plural(+d.hits, "kostkou", "kostkami", "kostkami")}`); if (d.spawn) a.push(d.spawn === "kour" ? "vytvoří kouř" : "založí oheň");
   if (+d.light) a.push(`světlo ${d.light}`);
   if (+d.dur) a.push(`výdrž ${d.dur}`); if (d.absorb) a.push("pohlcuje zásahy"); if (d.wear) a.push("opotřebí se útokem");
   return a.join(" · ");
@@ -118,7 +120,8 @@ function itemFxHTML(o, attr, withMods) {
     ${o.target ? `<label class="f" style="width:84px" title="Jak daleko lze cíl nebo střed okruhu zvolit (polí)">Dosah<input type="number" min="0" max="30" ${attr}="reach" value="${v("reach")}" placeholder="0"></label>
       ${o.target === "area" ? `<label class="f" style="width:84px" title="0 = jen cílové pole">Poloměr<input type="number" min="0" max="10" ${attr}="radius" value="${v("radius")}" placeholder="0"></label>` : ""}
       <label class="f" style="width:130px">Na koho<select ${attr}="foes"><option value="">nepřátele</option><option value="ally" ${o.foes === "ally" ? "selected" : ""}>spojence</option><option value="all" ${o.foes === "all" ? "selected" : ""}>všechny</option></select></label>
-      <label class="f" style="width:110px" title="Kolik kostek zásahu hodí na každou zasaženou jednotku (zásah na hodnotu z Mechanik)">Zásah kostek<input type="number" min="0" max="20" ${attr}="hits" value="${v("hits")}" placeholder="0"></label>` : ""}
+      <label class="f" style="width:110px" title="Kolik kostek zásahu hodí na každou zasaženou jednotku (zásah na hodnotu z Mechanik)">Zásah kostek<input type="number" min="0" max="20" ${attr}="hits" value="${v("hits")}" placeholder="0"></label>
+      <label class="f" style="width:120px" title="Na cílovém poli (u plošného v celém okruhu) vznikne kouř nebo oheň">Vytvoří<select ${attr}="spawn"><option value="">nic</option><option value="kour" ${o.spawn === "kour" ? "selected" : ""}>kouř</option><option value="ohen" ${o.spawn === "ohen" ? "selected" : ""}>oheň</option></select></label>` : ""}
     <label class="f" style="width:190px">Použití<select ${attr}="use"><option value="">trvalý – platí, dokud ho nese</option><option value="once" ${o.use === "once" ? "selected" : ""}>jednorázový – použije se a zmizí</option></select></label>
     ${o.use === "once" ? `<label class="f" style="width:96px" title="Kolik kol platí úpravy hodnot po použití">Platí kol<input type="number" min="1" max="20" ${attr}="turns" value="${v("turns")}" placeholder="1"></label>
       <label class="f" style="width:96px" title="Okamžitě vyléčí (jednotka bez životů obnoví krok)">Vyléčí životy<input type="number" min="0" max="20" ${attr}="heal" value="${v("heal")}" placeholder="0"></label>
@@ -127,7 +130,7 @@ function itemFxHTML(o, attr, withMods) {
       <label class="f" style="width:96px" title="Nositel vidí a osvětluje do této vzdálenosti i v noci, mlze nebo tmě">Světlo<input type="number" min="0" max="10" ${attr}="light" value="${v("light")}" placeholder="–"></label>`}</div>`;
 }
 function readItemFx(o, el, attr) {
-  const k = el.getAttribute(attr); if (el.type === "checkbox") o[k] = el.checked; else if (["use", "target", "foes"].includes(k)) o[k] = el.value; else o[k] = el.value === "" ? "" : +el.value;
+  const k = el.getAttribute(attr); if (el.type === "checkbox") o[k] = el.checked; else if (["use", "target", "foes", "spawn"].includes(k)) o[k] = el.value; else o[k] = el.value === "" ? "" : +el.value;
 }
 function itemsRulebook(p) {
   const toks = p.tokens.filter(x => x.small && itemText(x)), cards = p.decks.flatMap(d => d.cards.filter(c => c.unitItem));

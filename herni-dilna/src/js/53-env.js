@@ -38,6 +38,7 @@ function envRound(p, t) {
   if (tm && tm !== t.envTime) { t.envTime = tm; changed.push(tm); }
   if (p.env.auto) { const w = weatherRoll(p); if (w && w.name !== t.envWeather) { t.envWeather = w.name; changed.push(w.name); } }
   if (changed.length) logEv(t, "počasí a doba: " + envNow(p, t).map(c => c.name).join(", "));
+  weatherRoundFx(p, t); // bláto, vítr, kouř, oheň
 }
 const envBadge = (p, t) => envNow(p, t).map(c => `<span class="envchip" title="${esc(envText(c))}">${esc(c.icon || "")} ${esc(c.name)}</span>`).join("");
 function envText(c) { const a = []; if (c.sight !== "" && c.sight != null) a.push(`výhled ${c.sight}`); const mt = modText(c); if (mt) a.push(mt); return a.join(", ") || "bez vlivu"; }
@@ -46,12 +47,13 @@ function envSideHTML(p, t) {
   return `<section><div class="eyebrow">Denní doba a počasí</div><div class="row">${envBadge(p, t)}</div>
     <div class="grid" style="grid-template-columns:1fr 1fr"><label class="f">Doba<select id="envT">${C.filter(c => c.kind === "time").map(c => `<option ${now.some(n => n === c) ? "selected" : ""}>${esc(c.name)}</option>`).join("")}</select></label>
     <label class="f">Počasí<select id="envW"><option value="">–</option>${C.filter(c => c.kind === "weather").map(c => `<option ${c.name === t.envWeather ? "selected" : ""}>${esc(c.name)}</option>`).join("")}</select></label></div>
-    <button class="btn small" id="envRoll">Hodit na počasí</button><span class="hint"> ${esc(now.map(c => `${c.name}: ${envText(c)}`).join(" · "))}</span></section>`;
+    ${groundSideHTML(p, t)}<button class="btn small" id="envRoll">Hodit na počasí</button><span class="hint"> ${esc(now.map(c => `${c.name}: ${envText(c)}`).join(" · "))}</span></section>`;
 }
 function wireEnvSide(main, p, t, save) {
   const q = id => document.getElementById(id); if (!q("envT")) return;
   q("envT").onchange = e => { t.envTime = e.target.value; logEv(t, "doba: " + t.envTime); save(); render(); };
-  q("envW").onchange = e => { t.envWeather = e.target.value; logEv(t, "počasí: " + (t.envWeather || "–")); save(); render(); };
+  q("envW").onchange = e => { t.envWeather = e.target.value; groundTouch(p, t); logEv(t, "počasí: " + (t.envWeather || "–")); save(); render(); };
+  wireGroundSide(main, p, t, save);
   q("envRoll").onclick = () => { const w = weatherRoll(p); if (!w) return; t.envWeather = w.name; logEv(t, "počasí: " + w.name); save(); render(); toast(`Počasí: ${w.icon || ""} ${w.name}`); };
 }
 function envMechHTML(p) {
@@ -60,8 +62,8 @@ function envMechHTML(p) {
     <label class="chk"><input type="checkbox" id="envOn" ${E.on ? "checked" : ""}> Hra má denní dobu a počasí</label>
     ${E.on ? `<label class="f">Střídání doby po kolech (opakuje se)<input type="text" id="envCyc" value="${esc(E.cycle)}" placeholder="Den, Den, Soumrak, Noc"></label>
     <label class="chk"><input type="checkbox" id="envAuto" ${E.auto ? "checked" : ""}> Počasí se na začátku kola losuje podle vah</label>
-    <div style="overflow-x:auto"><table class="crt-tab"><thead><tr><th>Podmínka</th><th>Druh</th><th title="Nejdál, kam jednotky vidí (prázdné = beze změny)">Výhled</th><th>Útok</th><th>Obrana</th><th>Pohyb</th><th>Dostřel</th><th title="Jak často padne (jen počasí)">Váha</th><th></th></tr></thead>
-    <tbody>${E.conds.map(c => `<tr><td><input type="text" data-env="name|${c.id}" value="${esc(c.name)}" style="width:96px" aria-label="Název"></td><td>${c.kind === "time" ? "doba" : "počasí"}</td><td>${n("sight", c, 58)}</td><td>${n("mAtt", c, 52)}</td><td>${n("mDef", c, 52)}</td><td>${n("mMov", c, 52)}</td><td>${n("mRange", c, 52)}</td><td>${c.kind === "weather" ? n("w", c, 52) : ""}</td><td><button class="btn small danger" data-envdel="${c.id}" aria-label="Smazat">✕</button></td></tr>`).join("")}</tbody></table></div>
+    <div style="overflow-x:auto"><table class="crt-tab"><thead><tr><th>Podmínka</th><th>Druh</th><th title="Nejdál, kam jednotky vidí (prázdné = beze změny)">Výhled</th><th>Útok</th><th>Obrana</th><th>Pohyb</th><th>Dostřel</th><th title="Jak často padne (jen počasí)">Váha</th><th title="Fouká vítr (kouř a oheň se šíří po větru)">Vítr</th><th title="Mokro: hasí oheň, rozpouští kouř">Mokro</th><th></th></tr></thead>
+    <tbody>${E.conds.map(c => `<tr><td><input type="text" data-env="name|${c.id}" value="${esc(c.name)}" style="width:96px" aria-label="Název"></td><td>${c.kind === "time" ? "doba" : "počasí"}</td><td>${n("sight", c, 58)}</td><td>${n("mAtt", c, 52)}</td><td>${n("mDef", c, 52)}</td><td>${n("mMov", c, 52)}</td><td>${n("mRange", c, 52)}</td><td>${c.kind === "weather" ? n("w", c, 52) : ""}</td><td><input type="checkbox" data-envc="wind|${c.id}" ${c.wind ? "checked" : ""} aria-label="Vítr"></td><td><input type="checkbox" data-envc="wet|${c.id}" ${c.wet ? "checked" : ""} aria-label="Mokro"></td><td><button class="btn small danger" data-envdel="${c.id}" aria-label="Smazat">✕</button></td></tr>`).join("")}</tbody></table></div>
     <div class="row"><button class="btn small" data-envadd="time">+ Denní doba</button><button class="btn small" data-envadd="weather">+ Počasí</button></div>
     <p class="hint">Výhled omezí mlhu války, „Výhled“ a cíle střelby i předmětů. Předmět se světlem (v Komponentách) dovolí nositeli vidět do své vzdálenosti i v noci a mlze. Na stole doba a počasí najdeš v nástroji Kolo.</p>` : ""}</div>`;
 }
@@ -71,6 +73,7 @@ function wireEnvMech(main, p) {
   if (q("envCyc")) q("envCyc").onchange = e => { E.cycle = e.target.value; touch(p); };
   if (q("envAuto")) q("envAuto").onchange = e => { E.auto = e.target.checked; touch(p); };
   $$("[data-env]", main).forEach(i => i.addEventListener("change", () => { const [k, id] = i.dataset.env.split("|"); const c = E.conds.find(x => x.id === id); c[k] = k === "name" ? i.value : i.value === "" ? "" : +i.value; touch(p); }));
+  $$("[data-envc]", main).forEach(i => i.onchange = () => { const [k, id] = i.dataset.envc.split("|"); E.conds.find(x => x.id === id)[k] = i.checked; touch(p); });
   $$("[data-envdel]", main).forEach(b => b.onclick = () => { E.conds = E.conds.filter(x => x.id !== b.dataset.envdel); touch(p); render(); });
   $$("[data-envadd]", main).forEach(b => b.onclick = () => { E.conds.push({ id: uid(), name: b.dataset.envadd === "time" ? "Nová doba" : "Nové počasí", kind: b.dataset.envadd, icon: "", w: 1, sight: "", mAtt: 0, mDef: 0, mMov: 0, mRange: 0 }); touch(p); render(); });
 }

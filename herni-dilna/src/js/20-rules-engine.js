@@ -196,7 +196,8 @@ function losPath(p, b, k1, k2) {
 function losCells(p, b, k1, k2) { return losPath(p, b, k1, k2).map(([k]) => k); }
 // Pole zastaví výhled, když je jeho výška (překážka o 1 výš) nad čarou výhledu mezi výškami koncových polí.
 function hasLOS(p, b, k1, k2) {
-  const h1 = cellHeight(p, b, k1), h2 = cellHeight(p, b, k2);
+  const h1 = cellHeight(p, b, k1), h2 = cellHeight(p, b, k2); const smoke = smokeSet(p, p.table);
+  if (smoke.size && (losCells(p, b, k1, k2).some(k => smoke.has(k)) || (smoke.has(k1) || smoke.has(k2)) && hexDist(b, k1, k2) > 1)) return false; // kouř zakrývá
   return !losPath(p, b, k1, k2).some(([k, f]) => { const ter = terrainOf(p, b, k) || p.terrains[0]; const top = (+(ter && ter.h) || 0) + (ter && ter.blocks ? 1 : 0); return top > h1 + (h2 - h1) * f + 1e-9; });
 }
 function visibleFrom(p, b, k0, range) {

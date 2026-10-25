@@ -128,6 +128,10 @@ function exampleWar() {
       ...fxT,
       { id: uid(), name: "Granát", color: "#4a5a2a", shape: "kruh", counter: false, text: "GRA", small: true, use: "once", target: "area", reach: 2, radius: 1, hits: 2, weight: 1 },
       { id: uid(), name: "Polní lékárna", color: "#e8e2d0", shape: "ctverec", counter: false, text: "+", small: true, use: "once", target: "unit", foes: "ally", reach: 1, heal: 1, cure: true, weight: 1 },
+      { id: uid(), name: "Dýmovnice", color: "#9a9a96", shape: "kruh", counter: false, text: "DÝM", small: true, use: "once", target: "area", foes: "all", reach: 2, radius: 1, spawn: "kour", weight: 1 },
+      { id: uid(), name: "Zápalná láhev", color: "#c86a2e", shape: "kruh", counter: false, text: "ZÁP", small: true, use: "once", target: "unit", reach: 2, hits: 1, spawn: "ohen", weight: 1 },
+      { id: uid(), name: "Kouř", color: "#9a9a96", shape: "kruh", counter: false, text: "KOUŘ", fixed: true, fx: "kour", fxN: 3 },
+      { id: uid(), name: "Oheň", color: "#e0602e", shape: "kruh", counter: false, text: "OHEŇ", fixed: true, fx: "ohen", fxN: 2 },
     ],
     table: null, sessions: [],
   });

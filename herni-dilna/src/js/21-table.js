@@ -85,7 +85,7 @@ function computeRange(p, t, it) {
   const enemy = new Set(enemyCells(p, t, it)), zoc = new Set();
   if (p.zoc) enemy.forEach(k => { const [c, r] = k.split(",").map(Number); neighbors(b, c, r).forEach(([x, y]) => zoc.add(x + "," + y)); });
   const wire = wireCost(p, t); // ostnatý drát: pohyb navíc a zastaví
-  const cost = k => { const ter = terrainOf(p, b, k) || p.terrains[0]; const v = parseFloat(ter ? ter.move : 1); return (isFinite(v) && v > 0 ? v : Infinity) + (wire[k] || 0); };
+  const cost = k => terrainMove(p, b, k) + (wire[k] || 0); // terén, bláto a jiné stavy po počasí, drát
   const best = { [k0]: 0 }; const queue = [k0];
   while (queue.length) {
     queue.sort((a, c) => best[a] - best[c]); const k = queue.shift();
@@ -146,7 +146,7 @@ function renderTable(main, p) {
   main.innerHTML = `<div class="table-wrap">
     <div class="mat-area">${zoomBarHTML(t)}<div class="mat-scroll"><div class="mat-sizer" style="width:${S.matW * zoomOf()}px;height:${S.matH * zoomOf()}px"><div class="mat ${S.ctrlMode && b ? "ctrlmode" : ""} ${S.inkMode ? "inkmode" : ""}" id="mat" style="width:${S.matW}px;height:${S.matH}px;transform:scale(${zoomOf()})">
       <div class="mat-ruler">${Array.from({ length: Math.ceil(S.matW / 100) }, (_, i) => `<span style="left:${i * 100}px">${i * 10}</span>`).join("")}</div>
-      ${b ? `<div class="boardlayer" style="left:${BX}px;top:${BY}px">${boardSVG(p, b, t.control, { range, los, tiles: t.tilesPlaced, links: t.links, routeSel: S.routeSel, dark: crawlDarkSet(p, t), stones: t.stones, arcs })}${envTintHTML(p, t, g)}</div>` : ""}
+      ${b ? `<div class="boardlayer" style="left:${BX}px;top:${BY}px">${boardSVG(p, b, t.control, { range, los, tiles: t.tilesPlaced, links: t.links, routeSel: S.routeSel, dark: crawlDarkSet(p, t), stones: t.stones, arcs, ground: groundCells(p, t, b), smoke: smokeSVG(p, t, b) })}${envTintHTML(p, t, g)}</div>` : ""}
       ${nt ? `<div class="boardlayer netlayer" style="left:${BX}px;top:${BY}px">${netSVG(p, nt, { t, sel: S.netSel, reach: S.netReach, goods: p.deliver.on ? t.goods : null })}</div>` : ""}${cmapHTML(p, t)}${t.items.map(i => itemHTML(p, i)).join("")}${ghostsHTML(p, t)}${inkSVG(t, S.matW, S.matH)}
     </div></div></div></div>
     <aside class="side">
@@ -172,7 +172,7 @@ function itemHTML(p, i) {
     if (fg && fg.has(i.uid + ":block")) { const f = p.factions.find(x => x.id === u.factionId); inner = `<div class="unit" style="background:${f ? f.color : "#888"}" title="Nepřátelská jednotka"></div>`; }
     else inner = unitHTML(p, effUnit(p, i, u), i.reduced) + equipBadges(p, p.table, i) + zoneBadge(p, i) + loadBadge(p, p.table, i) + ammoBadge(p, i) + (inSupply(p, p.table, i) ? "" : `<span class="oos" title="Mimo zásobování">⚠</span>`) + (i.st ? `<span class="usts">${stBadges(i)}</span>` : "") + hpBadge(p, i); }
   else { const tk = p.tokens.find(x => x.id === i.tokenId); if (!tk || hiddenMine(p, i)) return ""; if (i.attachTo && p.table.items.some(o => o.uid === i.attachTo)) return ""; inner = tokenHTML(tk, i.value) + (tk.text ? "" : `<span class="token-label">${esc(tk.name)}</span>`); }
-  return `<div class="titem ${i.uid === S.sel ? "sel" : ""}${i.act ? " act" : ""}${(p.tokens.find(x => x.id === i.tokenId) || {}).small ? " small" : ""}${i.kind === "token" && isFixed(p, i) ? " fixed" : ""}" data-uid="${i.uid}" style="left:${i.x}px;top:${i.y}px;transform:rotate(${faced(p, i) ? 0 : i.rot || 0}deg)">${inner}${faced(p, i) ? `<span class="facearr" style="transform:rotate(${i.rot || 0}deg)" aria-hidden="true"></span>` : ""}</div>`;
+  return `<div class="titem ${i.uid === S.sel ? "sel" : ""}${i.act ? " act" : ""}${(p.tokens.find(x => x.id === i.tokenId) || {}).small ? " small" : ""}${i.kind === "token" && isFixed(p, i) ? " fixed" : ""}${i.kind === "token" && ["kour", "ohen"].includes(fxOf(p, i)) ? " fx-" + fxOf(p, i) : ""}" data-uid="${i.uid}" style="left:${i.x}px;top:${i.y}px;transform:rotate(${faced(p, i) ? 0 : i.rot || 0}deg)">${inner}${faced(p, i) ? `<span class="facearr" style="transform:rotate(${i.rot || 0}deg)" aria-hidden="true"></span>` : ""}</div>`;
 }
 const fchipsHTML = (p, t, attr = "data-curf") => `<div class="fchips">${players(p, t).map((x, i) => `<button class="fchip" ${attr}="${i}" aria-pressed="${i === t.curF}"><span class="dot" style="background:${x.color};border-radius:50%"></span>${esc(x.name)}</button>`).join("")}</div>`;
 function selBarHTML(p, i) {
@@ -781,7 +781,7 @@ function wireTable(main, p, t) {
             if (facingOn(p) && p.facing.auto) faceAlong(p, it, origin, k);
             t.moved[it.uid] = true; if (hiddenFaction(p, u.factionId)) hiddenMove(p, t, it, k); else logEv(t, `${u.name} táhne na ${k.split(",").map(n => pad2(+n + 1)).join("")}${b.labels[k] ? " (" + b.labels[k] + ")" : ""}`);
             after(p, t, "pohyb", u.factionId, ter ? ter.name : ""); crawlOnMove(p, t, it, k);
-            const mine = minesOnEnter(p, t, it, k); if (mine) { checkWin(p, t); toast(mine); if (!t.items.includes(it)) { S.sel = null; save(); render(); return; } }
+            const mine = [minesOnEnter(p, t, it, k), fireOnEnter(p, t, it, k)].filter(Boolean).join("; "); if (mine) { checkWin(p, t); toast(mine); if (!t.items.includes(it)) { S.sel = null; save(); render(); return; } }
             if (triggerOverwatch(p, t, it)) { S.sel = it.uid; save(); render(); return; }
           }
         }

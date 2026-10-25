@@ -19,7 +19,7 @@ function retreat(p, t, it, n = 1) {
   for (let s = 0; s < n; s++) {
     const enemy = enemyCells(p, t, it); const [c, r] = k.split(",").map(Number);
     const dist = x => enemy.length ? Math.min(...enemy.map(e => hexDist(b, x, e))) : 0;
-    const opts = neighbors(b, c, r).map(([x, y]) => x + "," + y).filter(x => { const ter = terrainOf(p, b, x) || p.terrains[0]; return !enemy.includes(x) && !(ter && !isFinite(parseFloat(ter.move))) && dist(x) > dist(k); });
+    const opts = neighbors(b, c, r).map(([x, y]) => x + "," + y).filter(x => { return !enemy.includes(x) && isFinite(terrainMove(p, b, x)) && dist(x) > dist(k); });
     if (!opts.length) return `${u.name} nemá kam ustoupit – ` + stepLoss(p, t, it);
     k = opts.sort((a, b2) => dist(b2) - dist(a))[0];
   }
@@ -50,7 +50,7 @@ function supplySet(p, t, fid) {
   const enemy = new Set(t.items.filter(i => i.kind === "unit" && unitOf(p, i) && unitOf(p, i).factionId !== fid).map(i => cellUnder(p, i)).filter(Boolean));
   const dist = {}; const q = []; src.forEach(k => { if (!enemy.has(k)) { dist[k] = 0; q.push(k); } });
   while (q.length) { const k = q.shift(); if (dist[k] >= R) continue; const [c, r] = k.split(",").map(Number);
-    neighbors(b, c, r).forEach(([x, y]) => { const nk = x + "," + y; const ter = terrainOf(p, b, nk) || p.terrains[0]; if (dist[nk] != null || enemy.has(nk) || (ter && !isFinite(parseFloat(ter.move)))) return; dist[nk] = dist[k] + 1; q.push(nk); }); }
+    neighbors(b, c, r).forEach(([x, y]) => { const nk = x + "," + y; if (dist[nk] != null || enemy.has(nk) || !isFinite(terrainMove(p, b, nk))) return; dist[nk] = dist[k] + 1; q.push(nk); }); }
   return dist;
 }
 function inSupply(p, t, it) {

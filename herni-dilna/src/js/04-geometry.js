@@ -61,6 +61,7 @@ function boardSVG(p, b, control, opts = {}) {
   if (b.bg && (b.bg.url || b.bg.data)) parts.push(`<image href="${esc(b.bg.url || b.bg.data)}" x="${PAD}" y="${PAD}" width="${g.W - PAD * 2}" height="${g.H - PAD * 2}" preserveAspectRatio="none" opacity="${b.bg.opacity ?? 1}"/>`);
   const fid = id => p.factions.find(f => f.id === id);
   parts.push(st.cells);
+  if (opts.ground) parts.push(groundSVG(b, opts.ground));
   if (control) Object.entries(control).forEach(([k, id]) => { const f = fid(id); if (!f) return; const [c, r] = k.split(",").map(Number); if (c >= b.cols || r >= b.rows) return; const [cx, cy] = g.center(c, r);
     parts.push(`<polygon class="ctrl" points="${g.poly(cx, cy)}" fill="${f.color}" fill-opacity=".42" stroke="${f.color}" stroke-width="2.5"/>`); });
   parts.push(st.marks);
@@ -73,6 +74,7 @@ function boardSVG(p, b, control, opts = {}) {
     parts.push(`<circle cx="${cx}" cy="${cy}" r="${(+b.size || 34) * .38}" fill="${f.color}" stroke="rgba(0,0,0,.45)" stroke-width="2"/><circle cx="${cx - (+b.size || 34) * .1}" cy="${cy - (+b.size || 34) * .12}" r="${(+b.size || 34) * .1}" fill="rgba(255,255,255,.35)"/>`); });
   if (opts.dark && opts.dark.size) opts.dark.forEach(k => { const [c, r] = k.split(",").map(Number); if (c >= b.cols || r >= b.rows) return; const [cx, cy] = g.center(c, r); parts.push(`<polygon points="${g.poly(cx, cy)}" fill="#141414" fill-opacity=".9" stroke="#141414"/>`); });
   if (opts.arcs) parts.push(arcsSVG(b, opts.arcs));
+  if (opts.smoke) parts.push(opts.smoke);
   if (opts.los) Object.keys(opts.los).forEach(k => { const [c, r] = k.split(",").map(Number); const [cx, cy] = g.center(c, r); parts.push(`<polygon class="rng" points="${g.poly(cx, cy)}" fill="#3f8fd0" fill-opacity=".32" stroke="#2a6aa0" stroke-width="1.5"/>`); });
   if (opts.range) Object.entries(opts.range).forEach(([k, v]) => { const [c, r] = k.split(",").map(Number); const [cx, cy] = g.center(c, r);
     parts.push(`<polygon class="rng" points="${g.poly(cx, cy)}" fill="#e0aa2e" fill-opacity=".45" stroke="#b07d10" stroke-width="2"/><text class="rngt" x="${cx}" y="${cy + 4}" text-anchor="middle">${Math.round(v * 10) / 10}</text>`); });

@@ -6,7 +6,7 @@
 function normalizeMorale(p) {
   p.morale = Object.assign({ on: false, base: 7, dice: 2, sides: 6, auto: true, cmdBonus: 1, supHit: 5, supClear: true, hunger: false }, p.morale || {});
 }
-const FX_NAMES = { "": "žádný", mina: "Mina – zasáhne při vstupu", drat: "Ostnatý drát – zdrží pohyb", vybusnina: "Výbušnina – odpálit", jidlo: "Potraviny – spotřebovat" };
+const FX_NAMES = { "": "žádný", mina: "Mina – zasáhne při vstupu", drat: "Ostnatý drát – zdrží pohyb", vybusnina: "Výbušnina – odpálit", jidlo: "Potraviny – spotřebovat", kour: "Kouř – zakrývá výhled", ohen: "Oheň – pálí a šíří se" };
 const fxOf = (p, it) => (tokDef(p, it) || {}).fx || "";
 // Zásah jednotky: s životy ubere životy, jinak kroky.
 function harm(p, t, it, n, by) {
@@ -110,7 +110,7 @@ function fxEditorHTML(t) {
 }
 function wireFxEditor(main, p) {
   const tok = id => p.tokens.find(x => x.id === id);
-  $$("[data-tfx]", main).forEach(i => i.onchange = () => { const t = tok(i.dataset.tfx); t.fx = i.value; if (["mina", "drat"].includes(t.fx)) { t.fixed = true; t.small = false; } if (["vybusnina", "jidlo"].includes(t.fx)) { t.small = true; t.fixed = false; } if (t.fx === "jidlo") { t.use = "once"; t.heal = t.heal || 2; t.cure = true; } touch(p); render(); });
+  $$("[data-tfx]", main).forEach(i => i.onchange = () => { const t = tok(i.dataset.tfx); t.fx = i.value; if (["mina", "drat", "kour", "ohen"].includes(t.fx)) { t.fixed = true; t.small = false; } if (["vybusnina", "jidlo"].includes(t.fx)) { t.small = true; t.fixed = false; } if (t.fx === "jidlo") { t.use = "once"; t.heal = t.heal || 2; t.cure = true; } touch(p); render(); });
   $$("[data-tfxn]", main).forEach(i => i.addEventListener("change", () => { tok(i.dataset.tfxn).fxN = +i.value || 0; touch(p); }));
   $$("[data-tfxh]", main).forEach(i => i.onchange = () => { tok(i.dataset.tfxh).hidden = i.checked; touch(p); });
   $$("[data-tfxo]", main).forEach(i => i.onchange = () => { tok(i.dataset.tfxo).once = i.checked; touch(p); });

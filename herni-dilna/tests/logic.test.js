@@ -549,3 +549,21 @@ test("denní doba a počasí: výhled, úpravy hodnot, světlo, střídání po 
   p.env.auto = false; t.envTime = ""; t.turn = 4; A.envRound(p, t); assert.equal(t.envTime, "Noc", "4. kolo cyklu Den, Den, Soumrak, Noc");
   p.env.on = false; assert.equal(A.sightOf(p, t, a), 6); assert.equal(A.unitStat(p, a, "mov"), 2);
 });
+test("terén po počasí: bláto za deště a ještě dvě kola po něm", () => {
+  const { p, t, put } = war(); p.env.on = true; p.env.auto = false; p.units[0].mov = 3; const a = put("a", 0); t.turn = 1;
+  assert.equal(A.computeRange(p, t, a)["3,0"], 3, "suchá rovina");
+  t.envWeather = "Déšť"; A.groundRound(p, t); assert.equal(A.terrainMove(p, p.boards[0], "1,0"), 2, "bláto +1"); assert.deepEqual(A.computeRange(p, t, a), { "1,0": 2 }, "za deště pohyb 2 a bláto stojí 2");
+  t.envWeather = "Jasno"; A.groundRound(p, t); assert.ok(A.groundActive(p, t).length, "1. kolo po dešti"); A.groundRound(p, t); assert.ok(A.groundActive(p, t).length, "2. kolo po dešti"); A.groundRound(p, t); assert.equal(A.groundActive(p, t).length, 0, "vyschlo");
+  p.boards[0].terrain = { "1,0": "water" }; t.envWeather = "Mráz"; assert.equal(A.terrainMove(p, p.boards[0], "1,0"), 2, "zamrzlá voda je průchozí");
+});
+test("vítr, kouř a oheň: kouř zakryje výhled a pluje po větru, oheň se šíří do lesa, déšť ho uhasí, dýmovnice", () => {
+  const { p, t, put } = war(); p.env.on = true; p.env.auto = false; const b = p.boards[0]; b.terrain = { "3,0": "forest", "4,0": "forest" }; p.terrains.find(x => x.id === "forest").blocks = false;
+  assert.ok(A.hasLOS(p, b, "0,0", "5,0")); const s = A.placeFx(p, t, "kour", "2,0"); assert.ok(!A.hasLOS(p, b, "0,0", "5,0"), "kouř zakryl");
+  t.envWeather = "Vítr"; t.windDir = 1; s.life = 5; A.fireRound(p, t); assert.equal(A.cellUnder(p, s), "3,0", "kouř se posunul po větru na východ"); assert.equal(s.life, 3, "ve větru ubývá rychleji");
+  t.items = t.items.filter(o => o !== s); p.env.fire.spread = 100; const f = A.placeFx(p, t, "ohen", "2,0"); A.fireRound(p, t);
+  assert.ok(A.fxItems(p, t, "ohen").some(o => A.cellUnder(p, o) === "3,0"), "oheň přeskočil do lesa po větru"); assert.ok(A.smokeSet(p, t).has("2,0"), "oheň dýmí");
+  const a = put("a", 3); const before = A.unitHp(p, a); p.units[0].hp = 6; p.dice.aHit = 1; A.fireOnEnter(p, t, a, "3,0"); assert.ok((a.dmg || 0) > 0 || a.reduced || !t.items.includes(a), "oheň pálí");
+  t.envWeather = "Déšť"; A.fireRound(p, t); assert.equal(A.fxItems(p, t, "ohen").length, 0, "déšť uhasil");
+  const d = put("d", 5); const dym = { name: "Dýmovnice", use: "once", target: "area", foes: "all", reach: 5, radius: 1, spawn: "kour" }; A.useItem(p, t, a, { kind: "tok", src: { uid: "z" }, def: dym }, d);
+  assert.ok(A.smokeSet(p, t).has("4,0") && A.smokeSet(p, t).has("5,0"), "dýmovnice zakouřila okruh");
+});
