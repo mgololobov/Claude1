@@ -353,6 +353,12 @@ details.cfx { border: 1px solid var(--line); border-radius: 10px; padding: 6px 1
 .titem .zb { position: absolute; left: -6px; top: -8px; background: #fbfaf6; color: #1b2421; border: 1px solid #1b2421; border-radius: 4px; font: 800 10px/14px var(--f-mono); padding: 0 3px; pointer-events: none; }
 .titem .lb { position: absolute; left: 50%; top: -10px; transform: translateX(-50%); background: #1b2421; color: #fff; border-radius: 4px; font: 800 9px/14px var(--f-mono); padding: 0 4px; white-space: nowrap; pointer-events: none; }
 .zones { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; } .zrow { align-items: end; }
+/* natočení: pruh na čelní straně žetonu (otáčí se s žetonem) */
+.titem .facearr { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
+.titem .facearr::before { content: ""; position: absolute; left: 50%; top: -11px; transform: translateX(-50%); border: 7px solid transparent; border-bottom: 10px solid #e0aa2e; border-top: 0; filter: drop-shadow(0 0 1px #1b2421) drop-shadow(0 0 1px #1b2421); }
+.titem .ammo { position: absolute; left: -6px; bottom: -8px; background: #fbfaf6; color: #1b2421; border: 1px solid #1b2421; border-radius: 4px; font: 800 10px/14px var(--f-mono); padding: 0 3px; pointer-events: none; }
+.titem .ammo.out { background: #c8463c; color: #fff; }
+.facedir { display: inline-block; font-size: 16px; color: #b07d10; width: 22px; text-align: center; }
 </style>
 <style id="card-css">
 /* Vzhled karet. Všechny rozměry jsou v em, velikost karty určuje jen font-size (16px = šířka 150 px). */
@@ -468,8 +474,8 @@ function defaultTerrains() {
   return [
     { id: "plain", name: "Rovina", color: "#c9d6a3", glyph: "", move: "1", def: 1, vp: 0 },
     { id: "forest", name: "Les", color: "#7fa766", glyph: "♣", move: "2", def: 1.5, vp: 0, blocks: true },
-    { id: "hill", name: "Kopce", color: "#cdb27a", glyph: "⌒", move: "2", def: 2, vp: 0 },
-    { id: "mount", name: "Hory", color: "#9a8c7d", glyph: "▲", move: "3", def: 3, vp: 0, blocks: true },
+    { id: "hill", name: "Kopce", color: "#cdb27a", glyph: "⌒", move: "2", def: 2, vp: 0, h: 1 },
+    { id: "mount", name: "Hory", color: "#9a8c7d", glyph: "▲", move: "3", def: 3, vp: 0, blocks: true, h: 2 },
     { id: "water", name: "Voda", color: "#86b7d8", glyph: "≈", move: "–", def: 1, vp: 0 },
     { id: "town", name: "Město", color: "#d8c8ad", glyph: "■", move: "1", def: 2, vp: 3, blocks: true },
     { id: "marsh", name: "Bažina", color: "#98ae8c", glyph: "~", move: "3", def: 1, vp: 0 },
@@ -518,7 +524,7 @@ function normalize(p) {
   p.versions = p.versions || []; p.campaign = p.campaign || { log: [] }; p.boards.forEach(b => { b.regions = b.regions || {}; b.numbers = b.numbers || {}; });
   p.production = p.production || { mode: "both" }; if (p.roleRes == null) p.roleRes = ""; if (p.bluffPenalty == null) p.bluffPenalty = "";
   p.factions.forEach(f => { if (f.setup == null) f.setup = ""; if (f.bot == null) f.bot = ""; });
-  normalizeMore(p); normalizeCrawl(p); normalizeLogic(p); normalizeCmap(p); normalizeExtra(p); normalizeNet(p); normalizeDeliver(p); normalizeCB(p); normalizeRail(p);
+  normalizeMore(p); normalizeFacing(p); normalizeCrawl(p); normalizeLogic(p); normalizeCmap(p); normalizeExtra(p); normalizeNet(p); normalizeDeliver(p); normalizeCB(p); normalizeRail(p);
   return p;
 }
 
@@ -597,16 +603,17 @@ function exampleWar() {
   const units = [
     U("1. pěší", blue, "pechota", "III", 4, 4, 3, 2, 2, 3, 3),
     U("7. tankový", blue, "tanky", "II", 6, 3, 6, 3, 2, 6, 1),
-    U("12. dělostř.", blue, "delo", "III", 5, 2, 2, 2, 1, 2, 1),
+    Object.assign(U("12. dělostř.", blue, "delo", "III", 5, 2, 2, 2, 1, 2, 1), { ammo: 4 }),
     Object.assign(U("Štáb", blue, "stab", "XX", 0, 1, 4, "", "", "", 1), { hq: true, cmd: 3, cmdAtt: 1 }),
     U("3. pěší", red, "pechota", "III", 3, 5, 3, 2, 3, 3, 3),
     U("Husaři", red, "jezdectvo", "II", 3, 2, 7, 1, 1, 7, 1),
-    U("Baterie", red, "delo", "II", 4, 2, 2, 2, 1, 2, 1),
+    Object.assign(U("Baterie", red, "delo", "II", 4, 2, 2, 2, 1, 2, 1), { ammo: 3 }),
     // nové jednotky jen na konec – rozestavení scénáře odkazuje na pořadí
     Object.assign(U("Transportér", blue, "mech", "I", 2, 3, 5, "", "", "", 1), { transport: 2, zones: [{ name: "Podvozek", def: 4, w: 1 }, { name: "Vrch", def: 2, w: 1 }] }),
   ];
   const g = geo(board);
-  const at = (unitId, c, r) => { const [cx, cy] = g.center(c, r); return { uid: uid(), kind: "unit", unitId, x: Math.round(BX + cx - 26), y: Math.round(BY + cy - 26), reduced: false, rot: 0 }; };
+  // Modří hledí na východ k řece, Červení na západ.
+  const at = (unitId, c, r) => { const [cx, cy] = g.center(c, r); const f = units.find(u => u.id === unitId).factionId; return { uid: uid(), kind: "unit", unitId, x: Math.round(BX + cx - 26), y: Math.round(BY + cy - 26), reduced: false, rot: f === blue.id ? 60 : 240 }; };
   const setup = [
     at(units[0].id, 1, 2), at(units[0].id, 1, 4), at(units[0].id, 2, 5), at(units[1].id, 0, 3), at(units[2].id, 0, 5), at(units[3].id, 0, 4),
     at(units[4].id, 8, 3), at(units[4].id, 8, 5), at(units[4].id, 11, 5), at(units[5].id, 9, 2), at(units[6].id, 10, 4),
@@ -621,6 +628,7 @@ function exampleWar() {
     terrains: defaultTerrains(),
     ruleset: Object.assign(defaultRules(), { strict: true, actCats: [], phaseOf: { pohyb: [1], boj: [2] }, stackLimit: 2, moveRange: true, moveOnce: true, ownTurn: true, fog: true, sight: 5, win: { vp: "", turns: "", elimination: true } }),
     majority: { points: "3,1" },
+    facing: { on: true, vision: true },
     boards: [board], units,
     scenarios: [{ id: uid(), name: "Most přes Brodec", turns: 6, boardId: board.id,
       desc: "Ráno 3. dne. Modrá divize musí dobýt přechod přes řeku dřív, než dorazí nepřátelské posily.",
@@ -640,7 +648,7 @@ function exampleWar() {
       { id: uid(), name: "Kulomet", color: "#2b2b2b", shape: "ctverec", counter: false, text: "KUL", small: true, mAtt: 2 },
       { id: uid(), name: "Minomet", color: "#5a4632", shape: "ctverec", counter: false, text: "MIN", small: true, mAtt: 1, mRange: 2 },
       { id: uid(), name: "Zákopy", color: "#7a6a4a", shape: "ctverec", counter: false, text: "ZÁK", small: true, mDef: 2, mMov: -1 },
-      { id: uid(), name: "Okop", color: "#8a7a52", shape: "kruh", counter: false, text: "OKOP", fixed: true, buildable: true, mDef: 1 },
+      { id: uid(), name: "Okop", color: "#8a7a52", shape: "kruh", counter: false, text: "OKOP", fixed: true, buildable: true, frontOnly: true, mDef: 1 },
     ],
     table: null, sessions: [],
   });
@@ -783,9 +791,9 @@ function exampleCrypt() {
   const board = { id: uid(), name: "Krypta", type: "square", cols, rows, size: 34, terrain, labels, regions, bg: null, coords: false };
   const U = (name, f, symbol, a, d, m, extra) => ({ id: uid(), name, factionId: f.id, symbol, symText: "", size: "", att: a, def: d, mov: m, rAtt: "", rDef: "", rMov: "", qty: 1, note: "", ...extra });
   const body = [{ name: "Hlava", def: 1, w: 1 }, { name: "Trup", def: 2, w: 3 }, { name: "Ruce", def: 2, w: 2 }, { name: "Nohy", def: 2, w: 2 }];
-  const units = [U("Bojovnice", heroes, "pechota", 3, 2, 4, { kind: "hero", hp: 8, carry: 3, zones: clone(body) }), U("Lučištník", heroes, "jezdectvo", 2, 1, 4, { kind: "hero", hp: 6, range: 4, carry: 2, zones: clone(body) }),
+  const units = [U("Bojovnice", heroes, "pechota", 3, 2, 4, { kind: "hero", hp: 8, carry: 3, zones: clone(body) }), U("Lučištník", heroes, "jezdectvo", 2, 1, 4, { kind: "hero", hp: 6, range: 4, ammo: 6, carry: 2, zones: clone(body) }),
     U("Kostlivec", dark, "pechota", 2, 1, 3, { kind: "monster", hp: 3, xp: 1, qty: 3 }), U("Nekromant", dark, "stab", 3, 2, 2, { kind: "monster", hp: 6, xp: 4, range: 3 })];
-  const g = geo(board); const at = (u, c, r) => { const [cx, cy] = g.center(c, r); return { uid: uid(), kind: "unit", unitId: u.id, x: Math.round(BX + cx - 26), y: Math.round(BY + cy - 26), reduced: false, rot: 0 }; };
+  const g = geo(board); const at = (u, c, r) => { const [cx, cy] = g.center(c, r); return { uid: uid(), kind: "unit", unitId: u.id, x: Math.round(BX + cx - 26), y: Math.round(BY + cy - 26), reduced: false, rot: u.kind === "hero" ? 60 : 240 }; };
   const setup = [at(units[0], 1, 3), at(units[1], 0, 2), at(units[2], 4, 2), at(units[2], 5, 4), at(units[2], 7, 2), at(units[3], 8, 3)];
   const c = (title, text, effect, qty) => ({ id: uid(), title, type: "Poklad", cost: "", text, qty, suit: "", value: "", vp: "", icon: "", effect });
   return normalize({
@@ -797,6 +805,7 @@ function exampleCrypt() {
     terrains: [{ id: "floor", name: "Podlaha", color: "#cfc6b4", glyph: "", move: "1", def: 1, vp: 0 }, { id: "wall", name: "Zeď", color: "#3b3631", glyph: "", move: "–", def: 1, vp: 0, blocks: true }],
     boards: [board], units, dice: { sides: 6, aHit: 4, dHit: 5 },
     crawl: { rooms: true, lootDeck: "poklady", levelXp: 3, doom: 10 },
+    facing: { on: true, vision: true, view: 60 },
     ruleset: Object.assign(defaultRules(), { moveRange: true, moveOnce: true, win: { vp: "", turns: "", elimination: true },
       triggers: [{ id: uid(), on: "mistnost", param: "Krypta", cond: "", effect: "zpráva Nekromant se probouzí!" }, { id: uid(), on: "hrozba", param: "", cond: "", effect: "zpráva Temnota pohltila kryptu – hrdinové prohráli" }] }),
     scenarios: [{ id: uid(), name: "Sestup do krypty", turns: 10, boardId: board.id, desc: "Hrdinové stojí u vstupu. Z chodby je slyšet chrastění kostí.", victory: "Porazte všechny příšery.", special: "", setup: { items: setup, control: {} },
@@ -986,6 +995,7 @@ function boardSVG(p, b, control, opts = {}) {
   if (opts.stones) Object.entries(opts.stones).forEach(([k, fid]) => { const f = p.factions.find(x => x.id === fid); const [c, r] = k.split(",").map(Number); if (!f || c >= b.cols || r >= b.rows) return; const [cx, cy] = g.center(c, r);
     parts.push(`<circle cx="${cx}" cy="${cy}" r="${(+b.size || 34) * .38}" fill="${f.color}" stroke="rgba(0,0,0,.45)" stroke-width="2"/><circle cx="${cx - (+b.size || 34) * .1}" cy="${cy - (+b.size || 34) * .12}" r="${(+b.size || 34) * .1}" fill="rgba(255,255,255,.35)"/>`); });
   if (opts.dark && opts.dark.size) opts.dark.forEach(k => { const [c, r] = k.split(",").map(Number); if (c >= b.cols || r >= b.rows) return; const [cx, cy] = g.center(c, r); parts.push(`<polygon points="${g.poly(cx, cy)}" fill="#141414" fill-opacity=".9" stroke="#141414"/>`); });
+  if (opts.arcs) parts.push(arcsSVG(b, opts.arcs));
   if (opts.los) Object.keys(opts.los).forEach(k => { const [c, r] = k.split(",").map(Number); const [cx, cy] = g.center(c, r); parts.push(`<polygon class="rng" points="${g.poly(cx, cy)}" fill="#3f8fd0" fill-opacity=".32" stroke="#2a6aa0" stroke-width="1.5"/>`); });
   if (opts.range) Object.entries(opts.range).forEach(([k, v]) => { const [c, r] = k.split(",").map(Number); const [cx, cy] = g.center(c, r);
     parts.push(`<polygon class="rng" points="${g.poly(cx, cy)}" fill="#e0aa2e" fill-opacity=".45" stroke="#b07d10" stroke-width="2"/><text class="rngt" x="${cx}" y="${cy + 4}" text-anchor="middle">${Math.round(v * 10) / 10}</text>`); });
@@ -1412,7 +1422,7 @@ function renderComponents(main, p) {
         <label class="chk"><input type="checkbox" data-tcount="${t.id}" ${t.counter ? "checked" : ""}> Počítadlo</label>
         <label class="chk" title="Malý žeton se přetažením připne na jednotku a upraví její hodnoty"><input type="checkbox" data-tsmall="${t.id}" ${t.small ? "checked" : ""}> Malý žeton – vybavení jednotky</label>
         <label class="chk" title="Po položení zůstává na místě (okop, minové pole); úpravy platí pro jednotky na stejném poli"><input type="checkbox" data-tfixed="${t.id}" ${t.fixed ? "checked" : ""}> Pevný – zůstává na místě</label>
-        ${t.fixed ? `<label class="chk"><input type="checkbox" data-tbuild="${t.id}" ${t.buildable ? "checked" : ""}> Jednotky ho mohou postavit</label>` : ""}
+        ${t.fixed ? `<label class="chk"><input type="checkbox" data-tbuild="${t.id}" ${t.buildable ? "checked" : ""}> Jednotky ho mohou postavit</label><label class="chk" title="Bonus platí jen proti útoku z přední výseče žetonu; žeton natočíš na stole"><input type="checkbox" data-tfront="${t.id}" ${t.frontOnly ? "checked" : ""}> Chrání jen zepředu</label>` : ""}
         ${t.small || t.fixed ? `<div class="row" style="width:100%"><span class="hint">${t.fixed ? "Bonus jednotkám na poli:" : "Úpravy jednotky:"}</span>${MODS.filter(([m]) => !t.fixed || m !== "mHp").map(([m, , l]) => `<label class="f" style="width:84px">${l}<input type="number" data-tmod="${m}|${t.id}" value="${esc(t[m] || "")}" placeholder="±0"></label>`).join("")}
           ${t.small ? `<label class="f" style="width:84px" title="Kolik zabere z nosnosti jednotky">Váha<input type="number" data-tw="${t.id}" min="0" value="${esc(t.weight ?? "")}" placeholder="1"></label><label class="f" style="width:110px" title="Obrana navíc jen pro tuto zónu jednotky">Zóna<input type="text" data-tzone="${t.id}" value="${esc(t.zone || "")}" placeholder="např. Hlava"></label><label class="f" style="width:96px">Obrana zóny<input type="number" data-tmod="mZone|${t.id}" value="${esc(t.mZone || "")}" placeholder="±0"></label>` : ""}</div>` : ""}
         <button class="btn small danger" data-tdel="${t.id}" aria-label="Smazat žeton">✕</button></div>`).join("")}</div>`
@@ -1489,6 +1499,7 @@ function renderComponents(main, p) {
   $$("[data-tsmall]", main).forEach(i => i.onchange = () => { tok(i.dataset.tsmall).small = i.checked; if (i.checked) tok(i.dataset.tsmall).fixed = false; touch(p); render(); });
   $$("[data-tfixed]", main).forEach(i => i.onchange = () => { tok(i.dataset.tfixed).fixed = i.checked; if (i.checked) tok(i.dataset.tfixed).small = false; touch(p); render(); });
   $$("[data-tbuild]", main).forEach(i => i.onchange = () => { tok(i.dataset.tbuild).buildable = i.checked; touch(p); });
+  $$("[data-tfront]", main).forEach(i => i.onchange = () => { tok(i.dataset.tfront).frontOnly = i.checked; touch(p); });
   $$("[data-tw]", main).forEach(i => i.addEventListener("change", () => { tok(i.dataset.tw).weight = i.value === "" ? "" : +i.value; touch(p); }));
   $$("[data-tzone]", main).forEach(i => i.addEventListener("change", () => { tok(i.dataset.tzone).zone = i.value.trim(); touch(p); }));
   $$("[data-tmod]", main).forEach(i => i.addEventListener("change", () => { const [m, id] = i.dataset.tmod.split("|"); tok(id)[m] = i.value === "" ? "" : +i.value; touch(p); render(); }));
@@ -1524,6 +1535,7 @@ function editUnit(p, unit) {
         <label class="f" style="width:150px" title="Kolik jednotek (podle velikosti) vozidlo převeze">Převáží jednotek<input type="number" id="u-transport" min="0" max="30" value="${esc(u.transport || "")}" placeholder="–"></label>
         <label class="f" style="width:150px" title="Kolik místa zabere ve vozidle (výchozí 1)">Velikost při přepravě<input type="number" id="u-tsize" min="0" max="10" value="${esc(u.tsize ?? "")}" placeholder="1"></label>
         <label class="f" style="width:150px" title="Kolik předmětů (podle váhy) unese">Nosnost předmětů<input type="number" id="u-carry" min="0" max="30" value="${esc(u.carry ?? "")}" placeholder="bez limitu"></label>
+        <label class="f" style="width:130px" title="Kolikrát může zaútočit, než musí doplnit">Munice<input type="number" id="u-ammo" min="0" max="99" value="${esc(u.ammo ?? "")}" placeholder="bez limitu"></label>
         <label class="f" style="width:140px">Dostřel (polí)<input type="number" id="u-range" min="0" max="30" value="${esc(u.range || "")}" placeholder="–"></label>
         <label class="chk"><input type="checkbox" id="u-big" ${u.big ? "checked" : ""}> Velký žeton (zabírá víc místa)</label>
       </div>
@@ -1539,7 +1551,7 @@ function editUnit(p, unit) {
     u.att = num($("#u-a", d).value); u.def = num($("#u-d", d).value); u.mov = num($("#u-m", d).value); u.rAtt = num($("#u-ra", d).value); u.rDef = num($("#u-rd", d).value); u.rMov = num($("#u-rm", d).value);
     u.qty = Math.max(0, Math.min(99, parseInt($("#u-q", d).value, 10) || 0)); u.hq = $("#u-hq", d).checked; u.big = $("#u-big", d).checked; u.range = $("#u-range", d).value === "" ? "" : +$("#u-range", d).value;
     u.kind = $("#u-kind", d).value; u.cap = $("#u-cap", d).value === "" ? "" : +$("#u-cap", d).value;
-    ["cmd", "cmdAtt", "cmdDef", "transport", "tsize", "carry"].forEach(k => { const v = $("#u-" + k, d).value; u[k] = v === "" ? "" : +v; }); u.hp = $("#u-hp", d).value === "" ? "" : +$("#u-hp", d).value; u.xp = $("#u-xp", d).value === "" ? "" : +$("#u-xp", d).value; };
+    ["cmd", "cmdAtt", "cmdDef", "transport", "tsize", "carry", "ammo"].forEach(k => { const v = $("#u-" + k, d).value; u[k] = v === "" ? "" : +v; }); u.hp = $("#u-hp", d).value === "" ? "" : +$("#u-hp", d).value; u.xp = $("#u-xp", d).value === "" ? "" : +$("#u-xp", d).value; };
   const prev = () => { read(); $("#u-prev", d).innerHTML = unitHTML(p, u) + (hasReduced(u) ? unitHTML(p, u, true) : "") + `<span class="hint" style="font-size:.8rem">líc${hasReduced(u) ? " / rub" : ""}</span>`; };
   d.addEventListener("input", prev); d.addEventListener("change", prev); prev(); u.zones = clone(u.zones || []); wireZonesEditor(d, u);
   $("#u-save", d).onclick = () => { read(); if (isNew) p.units.push(u); else Object.assign(unit, u); touch(p); closeDialog(); render(); toast(isNew ? "Jednotka přidána" : "Jednotka uložena"); };
@@ -1723,6 +1735,7 @@ function renderMap(main, p) {
         <label class="f" style="width:80px">Body<input type="number" data-trv="${t.id}" value="${esc(t.vp)}"></label>
         <label class="f" style="width:96px" title="Posun sloupce bojové tabulky; záporný pomáhá obránci">Posun CRT<input type="number" data-trs="${t.id}" value="${esc(t.shift || 0)}"></label>
         <label class="f" style="width:64px">Barva<input type="color" data-trx="${t.id}" value="${t.color}" style="width:52px;height:40px;border:0;background:none;padding:0"></label>
+        <label class="f" style="width:80px" title="Výška pro výhled a boj (0 = rovina)">Výška<input type="number" min="0" max="9" data-trh="${t.id}" value="${esc(t.h || 0)}"></label>
         <label class="chk"><input type="checkbox" data-trb="${t.id}" ${t.blocks ? "checked" : ""}> Blokuje výhled</label>
         <label class="f" style="width:130px">Produkuje<select data-trp="${t.id}"><option value="">nic</option>${p.resources.filter(r => !r.global).map(r => `<option value="${r.id}" ${r.id === t.produces ? "selected" : ""}>${esc(r.name)}</option>`).join("")}</select></label>
         ${p.terrains.length > 1 ? `<button class="btn small danger" data-trdel="${t.id}" aria-label="Smazat terén">✕</button>` : ""}</div>`).join("")}</div>
@@ -1766,6 +1779,7 @@ function renderMap(main, p) {
   tin("data-trn", "name", v => v, true); tin("data-trg", "glyph", v => v, true); tin("data-trm", "move"); tin("data-trd", "def", v => +v || 1); tin("data-trv", "vp", v => +v || 0); tin("data-trs", "shift", v => parseInt(v, 10) || 0);
   $$("[data-trx]", main).forEach(x => x.addEventListener("change", () => { tr(x.dataset.trx).color = x.value; touch(p); render(); }));
   $$("[data-trb]", main).forEach(x => x.onchange = () => { tr(x.dataset.trb).blocks = x.checked; touch(p); });
+  $$("[data-trh]", main).forEach(x => x.onchange = () => { tr(x.dataset.trh).h = +x.value || 0; touch(p); });
   $$("[data-trp]", main).forEach(x => x.onchange = () => { tr(x.dataset.trp).produces = x.value; touch(p); });
   $$("[data-trdel]", main).forEach(x => x.onclick = () => { const id = x.dataset.trdel; p.terrains = p.terrains.filter(t => t.id !== id); p.boards.forEach(bb => Object.keys(bb.terrain).forEach(k => { if (bb.terrain[k] === id) delete bb.terrain[k]; })); touch(p); render(); });
 }
@@ -1922,7 +1936,7 @@ function renderMechanics(main, p) {
           <p class="hint">Dosah pohybu na stole počítá s cenou terénu (Mapa) a pohybem jednotky. Terén s pohybem „–“ je neprůchodný.</p>
         </div>
       </div>
-    </div>${moreMechHTML(p)}<div class="two">${crawlMechHTML(p)}${logicMechHTML(p)}</div><div class="two">${cmapMechHTML(p)}${extraMechHTML(p)}</div><div class="two">${deliverMechHTML(p)}${netCubesMechHTML(p)}</div><div class="two">${cbMechHTML(p)}${railMechHTML(p)}</div></div>`;
+    </div>${moreMechHTML(p)}<div class="two">${facingMechHTML(p)}${elevMechHTML(p)}</div><div class="two">${crawlMechHTML(p)}${logicMechHTML(p)}</div><div class="two">${cmapMechHTML(p)}${extraMechHTML(p)}</div><div class="two">${deliverMechHTML(p)}${netCubesMechHTML(p)}</div><div class="two">${cbMechHTML(p)}${railMechHTML(p)}</div></div>`;
   wireBanner(main);
   const F = id => p.factions.find(f => f.id === id);
   $("#addF").onclick = () => { p.factions.push({ id: uid(), name: "Strana " + (p.factions.length + 1), color: COLORS[p.factions.length % COLORS.length], ability: "" }); touch(p); render(); };
@@ -1994,7 +2008,7 @@ function renderMechanics(main, p) {
   $("#prodMode").onchange = e => { p.production.mode = e.target.value; touch(p); };
   $$("[data-rpt]", main).forEach(i => i.onchange = () => { p.resources.find(r => r.id === i.dataset.rpt).perTurn = i.checked; touch(p); });
   $$("[data-rpool]", main).forEach(i => i.onchange = () => { p.resources.find(r => r.id === i.dataset.rpool).pool = i.value; touch(p); });
-  wireMoreMech(main, p); wireCrawlMech(main, p); wireLogicMech(main, p); wireCmapMech(main, p); wireExtraMech(main, p); wireDeliverMech(main, p); wireNetCubesMech(main, p); wireCBMech(main, p); wireRailMech(main, p);
+  wireMoreMech(main, p); wireFacingMech(main, p); wireCrawlMech(main, p); wireLogicMech(main, p); wireCmapMech(main, p); wireExtraMech(main, p); wireDeliverMech(main, p); wireNetCubesMech(main, p); wireCBMech(main, p); wireRailMech(main, p);
 }
 
 // ---------- Scénáře ----------
@@ -2526,13 +2540,19 @@ function endTurn(p, t, done) {
   finish();
 }
 // Výhled: vzorkuje úsečku mezi středy polí a hledá pole s terénem, který blokuje výhled.
-function losCells(p, b, k1, k2) {
+// Vrací [pole, poloha na úsečce 0–1] pro pole mezi koncovými body.
+function losPath(p, b, k1, k2) {
   const g = geo(b); const [c1, r1] = k1.split(",").map(Number), [c2, r2] = k2.split(",").map(Number);
-  const [x1, y1] = g.center(c1, r1), [x2, y2] = g.center(c2, r2); const n = Math.max(2, Math.ceil(Math.hypot(x2 - x1, y2 - y1) / 6)); const seen = new Set();
-  for (let i = 1; i < n; i++) { const cr = g.pick(x1 + (x2 - x1) * i / n, y1 + (y2 - y1) * i / n); if (cr) { const k = cr.join(","); if (k !== k1 && k !== k2) seen.add(k); } }
+  const [x1, y1] = g.center(c1, r1), [x2, y2] = g.center(c2, r2); const n = Math.max(2, Math.ceil(Math.hypot(x2 - x1, y2 - y1) / 6)); const seen = new Map();
+  for (let i = 1; i < n; i++) { const cr = g.pick(x1 + (x2 - x1) * i / n, y1 + (y2 - y1) * i / n); if (cr) { const k = cr.join(","); if (k !== k1 && k !== k2 && !seen.has(k)) seen.set(k, i / n); } }
   return [...seen];
 }
-function hasLOS(p, b, k1, k2) { return !losCells(p, b, k1, k2).some(k => { const ter = terrainOf(p, b, k); return ter && ter.blocks; }); }
+function losCells(p, b, k1, k2) { return losPath(p, b, k1, k2).map(([k]) => k); }
+// Pole zastaví výhled, když je jeho výška (překážka o 1 výš) nad čarou výhledu mezi výškami koncových polí.
+function hasLOS(p, b, k1, k2) {
+  const h1 = cellHeight(p, b, k1), h2 = cellHeight(p, b, k2);
+  return !losPath(p, b, k1, k2).some(([k, f]) => { const ter = terrainOf(p, b, k) || p.terrains[0]; const top = (+(ter && ter.h) || 0) + (ter && ter.blocks ? 1 : 0); return top > h1 + (h2 - h1) * f + 1e-9; });
+}
 function visibleFrom(p, b, k0, range) {
   const out = {}; for (let c = 0; c < b.cols; c++) for (let r = 0; r < b.rows; r++) { const k = c + "," + r; if (k === k0) continue; const d = hexDist(b, k0, k); if (d <= range && hasLOS(p, b, k0, k)) out[k] = d; }
   return out;
@@ -2542,9 +2562,9 @@ function fogHidden(p, t) {
   const fid = S.view; if (!fid) return null; const b = tableBoard(p); const hidden = new Set();
   t.items.forEach(i => { if (i.kind !== "unit") return; const u = p.units.find(x => x.id === i.unitId); if (u && u.factionId !== fid && hiddenFaction(p, u.factionId)) hidden.add(i.uid + ":gone"); });
   if (!p.ruleset.fog) return hidden.size ? hidden : null;
-  const own = t.items.filter(i => i.kind === "unit" && (p.units.find(u => u.id === i.unitId) || {}).factionId === fid).map(i => cellUnder(p, i)).filter(Boolean);
+  const own = t.items.filter(i => i.kind === "unit" && !i.inside && (p.units.find(u => u.id === i.unitId) || {}).factionId === fid && cellUnder(p, i));
   t.items.forEach(i => { if (i.kind !== "unit") return; const u = p.units.find(x => x.id === i.unitId); if (!u || u.factionId === fid) return;
-    const k = cellUnder(p, i); const seen = b && k && own.some(o => hexDist(b, o, k) <= +p.ruleset.sight && hasLOS(p, b, o, k)); hidden.add(i.uid + (seen ? ":block" : ":gone")); });
+    const k = cellUnder(p, i); const seen = b && k && own.some(o => { const ko = cellUnder(p, o); return hexDist(b, ko, k) <= +p.ruleset.sight && hasLOS(p, b, ko, k) && sees(p, o, i); }); hidden.add(i.uid + (seen ? ":block" : ":gone")); });
   return hidden;
 }
 // Poslední známé pozice skrytých jednotek (pro ostatní hráče).
@@ -2736,14 +2756,16 @@ function renderTable(main, p) {
   const selItem = t.items.find(i => i.uid === S.sel);
   const rangeItem = S.rangeUid && t.items.find(i => i.uid === S.rangeUid);
   const range = rangeItem ? computeRange(p, t, rangeItem) : null;
-  const losItem = S.losUid && t.items.find(i => i.uid === S.losUid); const losK = losItem && cellUnder(p, losItem); const cmdItem = S.cmdUid && t.items.find(i => i.uid === S.cmdUid); const los = cmdItem ? commandCells(p, t, cmdItem) : losK && b ? visibleFrom(p, b, losK, S.losR || +p.ruleset.sight || 6) : null;
+  const losItem = S.losUid && t.items.find(i => i.uid === S.losUid); const losK = losItem && cellUnder(p, losItem); const cmdItem = S.cmdUid && t.items.find(i => i.uid === S.cmdUid); let los = cmdItem ? commandCells(p, t, cmdItem) : losK && b ? visibleFrom(p, b, losK, S.losR || +p.ruleset.sight || 6) : null;
+  if (los && losItem && !cmdItem && facingOn(p) && p.facing.vision) los = Object.fromEntries(Object.entries(los).filter(([k]) => { const [c, r] = k.split(",").map(Number); const [cx, cy] = g.center(c, r); return sees(p, losItem, { kind: "token", x: BX + cx - 23, y: BY + cy - 23 }); }));
+  const arcItem = S.arcUid && t.items.find(i => i.uid === S.arcUid); const arcs = arcItem && b ? arcCells(p, arcItem, 3) : null;
   syncPassengers(t); S.fog = fogHidden(p, t); S.supCache = {};
   const cp = curPlayer(p, t);
   if (!TOOLS.find(x => x[0] === S.tool)) S.tool = "stul";
   main.innerHTML = `<div class="table-wrap">
     <div class="mat-area">${zoomBarHTML(t)}<div class="mat-scroll"><div class="mat-sizer" style="width:${S.matW * zoomOf()}px;height:${S.matH * zoomOf()}px"><div class="mat ${S.ctrlMode && b ? "ctrlmode" : ""} ${S.inkMode ? "inkmode" : ""}" id="mat" style="width:${S.matW}px;height:${S.matH}px;transform:scale(${zoomOf()})">
       <div class="mat-ruler">${Array.from({ length: Math.ceil(S.matW / 100) }, (_, i) => `<span style="left:${i * 100}px">${i * 10}</span>`).join("")}</div>
-      ${b ? `<div class="boardlayer" style="left:${BX}px;top:${BY}px">${boardSVG(p, b, t.control, { range, los, tiles: t.tilesPlaced, links: t.links, routeSel: S.routeSel, dark: crawlDarkSet(p, t), stones: t.stones })}</div>` : ""}
+      ${b ? `<div class="boardlayer" style="left:${BX}px;top:${BY}px">${boardSVG(p, b, t.control, { range, los, tiles: t.tilesPlaced, links: t.links, routeSel: S.routeSel, dark: crawlDarkSet(p, t), stones: t.stones, arcs })}</div>` : ""}
       ${nt ? `<div class="boardlayer netlayer" style="left:${BX}px;top:${BY}px">${netSVG(p, nt, { t, sel: S.netSel, reach: S.netReach, goods: p.deliver.on ? t.goods : null })}</div>` : ""}${cmapHTML(p, t)}${t.items.map(i => itemHTML(p, i)).join("")}${ghostsHTML(p, t)}${inkSVG(t, S.matW, S.matH)}
     </div></div></div></div>
     <aside class="side">
@@ -2767,9 +2789,9 @@ function itemHTML(p, i) {
     if (fg && fg.has(i.uid + ":gone")) return "";
     if (isMonster(p, i) && p.crawl.rooms && crawlDarkSet(p, p.table).has(cellUnder(p, i))) return "";
     if (fg && fg.has(i.uid + ":block")) { const f = p.factions.find(x => x.id === u.factionId); inner = `<div class="unit" style="background:${f ? f.color : "#888"}" title="Nepřátelská jednotka"></div>`; }
-    else inner = unitHTML(p, effUnit(p, i, u), i.reduced) + equipBadges(p, p.table, i) + zoneBadge(p, i) + loadBadge(p, p.table, i) + (inSupply(p, p.table, i) ? "" : `<span class="oos" title="Mimo zásobování">⚠</span>`) + (i.st ? `<span class="usts">${stBadges(i)}</span>` : "") + hpBadge(p, i); }
+    else inner = unitHTML(p, effUnit(p, i, u), i.reduced) + equipBadges(p, p.table, i) + zoneBadge(p, i) + loadBadge(p, p.table, i) + ammoBadge(p, i) + (inSupply(p, p.table, i) ? "" : `<span class="oos" title="Mimo zásobování">⚠</span>`) + (i.st ? `<span class="usts">${stBadges(i)}</span>` : "") + hpBadge(p, i); }
   else { const tk = p.tokens.find(x => x.id === i.tokenId); if (!tk) return ""; if (i.attachTo && p.table.items.some(o => o.uid === i.attachTo)) return ""; inner = tokenHTML(tk, i.value) + (tk.text ? "" : `<span class="token-label">${esc(tk.name)}</span>`); }
-  return `<div class="titem ${i.uid === S.sel ? "sel" : ""}${i.act ? " act" : ""}${(p.tokens.find(x => x.id === i.tokenId) || {}).small ? " small" : ""}${i.kind === "token" && isFixed(p, i) ? " fixed" : ""}" data-uid="${i.uid}" style="left:${i.x}px;top:${i.y}px;transform:rotate(${i.rot || 0}deg)">${inner}</div>`;
+  return `<div class="titem ${i.uid === S.sel ? "sel" : ""}${i.act ? " act" : ""}${(p.tokens.find(x => x.id === i.tokenId) || {}).small ? " small" : ""}${i.kind === "token" && isFixed(p, i) ? " fixed" : ""}" data-uid="${i.uid}" style="left:${i.x}px;top:${i.y}px;transform:rotate(${faced(p, i) ? 0 : i.rot || 0}deg)">${inner}${faced(p, i) ? `<span class="facearr" style="transform:rotate(${i.rot || 0}deg)" aria-hidden="true"></span>` : ""}</div>`;
 }
 const fchipsHTML = (p, t, attr = "data-curf") => `<div class="fchips">${players(p, t).map((x, i) => `<button class="fchip" ${attr}="${i}" aria-pressed="${i === t.curF}"><span class="dot" style="background:${x.color};border-radius:50%"></span>${esc(x.name)}</button>`).join("")}</div>`;
 function selBarHTML(p, i) {
@@ -2786,14 +2808,14 @@ function selBarHTML(p, i) {
     const en = k && b ? enemyCells(p, p.table, i) : []; const near = en.length ? Math.min(...en.map(e => hexDist(b, k, e))) : null;
     return `<div class="selbar"><b>${esc(u.name)} <span class="mono" style="font-weight:400">${esc(unitVals(effUnit(p, i, u), i.reduced))}</span>${p.table.moved && p.table.moved[i.uid] ? ` <span class="count">· táhla</span>` : ""}</b>
       ${k ? `<span class="hint">Pole ${k.split(",").map(n => pad2(+n + 1)).join("")}${ter ? " · " + esc(ter.name) + ` (pohyb ${esc(ter.move)}, obrana ×${ter.def})` : ""}${b.labels[k] ? " · " + esc(b.labels[k]) : ""}${near != null ? ` · nejbližší nepřítel ${near} ${plural(near, "pole", "pole", "polí")}` : ""}</span>` : ""}
-      <div class="row">${k ? `<button class="btn small ${S.rangeUid === i.uid ? "on" : ""}" data-sa="range">Dosah pohybu</button><button class="btn small ${S.losUid === i.uid && !S.losR ? "on" : ""}" data-sa="los">Výhled</button>${unitStat(p, i, "range") ? `<button class="btn small ${S.losUid === i.uid && S.losR ? "on" : ""}" data-sa="fire">Dostřel ${unitStat(p, i, "range")}</button>` : ""}` : ""}${hasReduced(u) ? `<button class="btn small" data-sa="flip">${i.reduced ? "Obnovit" : "Oslabit"}</button>` : ""}<button class="btn small" data-sa="rot">Natočit</button></div>
-      ${u.att !== "" && u.att != null || u.def !== "" && u.def != null ? `<div class="row">${Object.entries(UNIT_ST).filter(([, v]) => !!v[3] === !!+u.hp).map(([k, v]) => `<button class="btn small ${i.st && i.st[k] ? "on" : ""}" data-ust="${k}" title="${v[2]}">${v[1]} ${v[0]}</button>`).join("")}</div>
+      <div class="row">${k ? `<button class="btn small ${S.rangeUid === i.uid ? "on" : ""}" data-sa="range">Dosah pohybu</button><button class="btn small ${S.losUid === i.uid && !S.losR ? "on" : ""}" data-sa="los">Výhled</button>${unitStat(p, i, "range") ? `<button class="btn small ${S.losUid === i.uid && S.losR ? "on" : ""}" data-sa="fire">Dostřel ${unitStat(p, i, "range")}</button>` : ""}` : ""}${hasReduced(u) ? `<button class="btn small" data-sa="flip">${i.reduced ? "Obnovit" : "Oslabit"}</button>` : ""}${facingOn(p) ? "" : `<button class="btn small" data-sa="rot">Natočit</button>`}</div>
+      ${u.att !== "" && u.att != null || u.def !== "" && u.def != null ? `<div class="row">${Object.entries(UNIT_ST).filter(([, v]) => v[3] === 2 || !!v[3] === !!+u.hp).map(([k, v]) => `<button class="btn small ${i.st && i.st[k] ? "on" : ""}" data-ust="${k}" title="${v[2]}">${v[1]} ${v[0]}</button>`).join("")}</div>
       <div class="row"><button class="btn small" data-sa="asAtt">Útočí</button><button class="btn small" data-sa="addAtt">+ k útoku</button><button class="btn small" data-sa="asDef">Brání</button></div>` : ""}
-      ${commandSelHTML(p, p.table, i)}${unitsPlusSelHTML(p, p.table, i)}${crawlSelHTML(p, i)}${deliverSelHTML(p, i)}${tableNet(p) && netNodeOf(p, p.table, i) ? `<div class="row"><button class="btn small ${S.netReach && S.netReachUid === i.uid ? "on" : ""}" data-sa="netreach">Kam dojede</button></div>` : ""}
+      ${facingSelHTML(p, p.table, i)}${commandSelHTML(p, p.table, i)}${unitsPlusSelHTML(p, p.table, i)}${crawlSelHTML(p, i)}${deliverSelHTML(p, i)}${tableNet(p) && netNodeOf(p, p.table, i) ? `<div class="row"><button class="btn small ${S.netReach && S.netReachUid === i.uid ? "on" : ""}" data-sa="netreach">Kam dojede</button></div>` : ""}
       <div class="row"><button class="btn small" data-sa="dup">Duplikovat</button><button class="btn small danger" data-sa="remove">Zničit</button></div></div>`;
   }
   const tk = p.tokens.find(x => x.id === i.tokenId);
-  return `<div class="selbar"><b>${esc(tk.name)}</b>${tk.fixed ? `<span class="hint">Pevný žeton${modText(tk) ? ` – jednotkám na tomto poli: ${esc(modText(tk))}` : ""}.</span><div class="row"><button class="btn small" data-unfix="1">${i.free ? "Znovu ukotvit" : "Odemknout pro přesun"}</button></div>` : ""}${tk.small ? `<span class="hint">Vybavení${modText(tk) ? " (" + esc(modText(tk)) + ")" : ""} – přetáhni žeton na jednotku a připne se k ní.</span>` : ""}
+  return `<div class="selbar"><b>${esc(tk.name)}</b>${tk.fixed ? `<span class="hint">Pevný žeton${modText(tk) ? ` – jednotkám na tomto poli: ${esc(modText(tk))}` : ""}.</span><div class="row"><button class="btn small" data-unfix="1">${i.free ? "Znovu ukotvit" : "Odemknout pro přesun"}</button></div>${facingSelHTML(p, p.table, i)}` : ""}${tk.small ? `<span class="hint">Vybavení${modText(tk) ? " (" + esc(modText(tk)) + ")" : ""} – přetáhni žeton na jednotku a připne se k ní.</span>` : ""}
     ${tk.counter ? `<div class="row"><button class="btn small" data-sa="minus" aria-label="Ubrat">−</button><span class="mono" style="font-size:1.2rem;min-width:40px;text-align:center">${i.value || 0}</span><button class="btn small" data-sa="plus" aria-label="Přidat">+</button><button class="btn small" data-sa="plus5">+5</button></div>` : ""}
     <div class="row"><button class="btn small" data-sa="dup">Duplikovat</button><button class="btn small danger" data-sa="remove">Odebrat ze stolu</button></div></div>`;
 }
@@ -3052,7 +3074,7 @@ function combatCalc(p) {
   const C = S.combat; const ter = p.terrains.find(x => x.id === C.terrainId) || p.terrains[0];
   const defEff = Math.round((+C.def || 0) * (ter ? +ter.def || 1 : 1) * 10) / 10;
   const base = crtColumn(+C.att || 0, defEff, p.crt.cols);
-  const col = Math.max(0, Math.min(p.crt.cols.length - 1, (base < 0 ? 0 : base) + (+C.shift || 0)));
+  const col = Math.max(0, Math.min(p.crt.cols.length - 1, (base < 0 ? 0 : base) + (+C.shift || 0) + (+C.fshift || 0)));
   return { defEff, base, col };
 }
 function sideCombat(p, t) {
@@ -3064,7 +3086,7 @@ function sideCombat(p, t) {
         <label class="f">Síla obrany<input type="number" id="cDef" value="${C.def}"></label></div>
       <label class="f">Terén obránce<select id="cTer">${p.terrains.map(x => `<option value="${x.id}" ${x.id === C.terrainId ? "selected" : ""}>${esc(x.name)} (×${x.def})</option>`).join("")}</select></label>
       <label class="f">Posun sloupce (podpora, překvapení…)<select id="cShift">${[-3, -2, -1, 0, 1, 2, 3].map(n => `<option value="${n}" ${n === +C.shift ? "selected" : ""}>${n > 0 ? "+" + n : n}</option>`).join("")}</select></label>
-      <div class="hint">Obrana po terénu: <b class="mono">${defEff}</b> · poměr <b class="mono">${ratioText(+C.att || 0, defEff)}</b> → sloupec <b class="mono">${esc(p.crt.cols[col])}</b>${base < 0 ? " (pod nejnižším poměrem)" : ""}</div>
+      <div class="hint">Obrana po terénu: <b class="mono">${defEff}</b> · poměr <b class="mono">${ratioText(+C.att || 0, defEff)}</b> → sloupec <b class="mono">${esc(p.crt.cols[col])}</b>${base < 0 ? " (pod nejnižším poměrem)" : ""}${C.ftext ? `<br>Poloha: ${esc(C.ftext)} (posun ${+C.fshift > 0 ? "+" : ""}${+C.fshift || 0})` : ""}</div>
       <button class="btn primary" id="cRoll">Hodit k${p.crt.rows.length} a vyhodnotit</button>
       ${C.res ? `<div class="result"><span>Hod ${C.res.roll} · sloupec ${esc(C.res.col)}</span><b>${esc(C.res.out || "–")}</b><span style="font-size:.85rem">${esc(legendFor(p, C.res.out))}</span></div>` : ""}
       <div style="overflow-x:auto"><table class="crt-tab"><thead><tr><th></th>${p.crt.cols.map((c, i) => `<th class="${i === col ? "hl" : ""}">${esc(c)}</th>`).join("")}</tr></thead>
@@ -3279,7 +3301,7 @@ function wireTable(main, p, t) {
   cin("cAtt", "att"); cin("cDef", "def"); cin("cTer", "terrainId", v => v); cin("cShift", "shift"); cin("cAD", "aDice"); cin("cDD", "dDice");
   if (q("cRoll")) q("cRoll").onclick = () => { if (!gate(p, t, "boj")) return; const { defEff, col } = combatCalc(p); const roll = rnd(p.crt.rows.length); const out = p.crt.rows[roll - 1][col]; C.res = { roll, ci: col, col: p.crt.cols[col], out }; C.log.unshift(`${C.att} : ${defEff} (${ratioText(+C.att || 0, defEff)}) → ${p.crt.cols[col]}, hod ${roll} = ${out}`); C.log = C.log.slice(0, 12); logEv(t, `boj ${C.att}:${defEff} (${p.crt.cols[col]}), hod ${roll} → ${out}`); after(p, t, "boj", (cp || {}).id, out); save(); render(); };
   if (q("cRollD")) q("cRollD").onclick = () => { if (!gate(p, t, "boj")) return; const ds = +p.dice.sides || 6; const a = Array.from({ length: Math.min(20, +C.aDice || 0) }, () => rnd(ds)), d = Array.from({ length: Math.min(20, +C.dDice || 0) }, () => rnd(ds)); C.dres = { a, d, aHits: a.filter(v => v >= p.dice.aHit).length, dHits: d.filter(v => v >= p.dice.dHit).length }; C.log.unshift(`Kostky ${a.length} vs ${d.length}: útočník ${C.dres.aHits} zás., obránce ${C.dres.dHits} zás.`); C.log = C.log.slice(0, 12); render(); };
-  if (q("cClear")) q("cClear").onclick = () => { C.att = 0; C.def = 0; C.res = null; C.shift = 0; C.attUids = []; C.defUid = null; render(); };
+  if (q("cClear")) q("cClear").onclick = () => { C.att = 0; C.def = 0; C.res = null; C.shift = 0; C.attUids = []; C.defUid = null; C.zone = ""; C.fshift = 0; C.ftext = ""; render(); };
   // území
   if (q("ctrlMode")) q("ctrlMode").onclick = () => { S.ctrlMode = !S.ctrlMode; S.sel = null; render(); };
   if (q("ctrlPaint")) q("ctrlPaint").onchange = e => { S.ctrlPaint = e.target.value; };
@@ -3287,13 +3309,13 @@ function wireTable(main, p, t) {
   if (q("ctrlAuto")) q("ctrlAuto").onclick = () => { let n = 0; t.items.filter(i => i.kind === "unit").forEach(i => { const k = cellUnder(p, i); const u = p.units.find(x => x.id === i.unitId); if (k && u && u.factionId) { t.control[k] = u.factionId; n++; } }); save(); render(); toast(`Přiděleno ${n} ${plural(n, "pole", "pole", "polí")}`); };
   // vybraná položka
   const selItem = t.items.find(i => i.uid === S.sel);
-  wireExtra(main, p, t, save); wireR4(main, p, t, save); wireWar(main, p, t, save); wireIpad(main, p, t, save); wireOnline(main, p, t, save); wireMore(main, p, t, save); wireCrawl(main, p, t, save); wireLogic(main, p, t, save); wireCmap(main, p, t, save); wireExtra2(main, p, t, save); wireNet(main, p, t, save); wireDeliver(main, p, t, save); wireCB(main, p, t, save); wireRail(main, p, t, save); wireCommand(main, p, t, save); wireUnitsPlus(main, p, t, save);
+  wireExtra(main, p, t, save); wireR4(main, p, t, save); wireWar(main, p, t, save); wireIpad(main, p, t, save); wireOnline(main, p, t, save); wireMore(main, p, t, save); wireCrawl(main, p, t, save); wireLogic(main, p, t, save); wireCmap(main, p, t, save); wireExtra2(main, p, t, save); wireNet(main, p, t, save); wireDeliver(main, p, t, save); wireCB(main, p, t, save); wireRail(main, p, t, save); wireCommand(main, p, t, save); wireUnitsPlus(main, p, t, save); wireFacing(main, p, t, save);
   const cardTo = (el, where) => { if (where === "tab" && !gate(p, t, "vylozit")) return; const i = selItem; t.items = t.items.filter(x => x !== i); const fid = el.dataset[where === "hand" ? "tohand" : "totab"]; const h = { deckId: i.deckId, cardId: i.cardId }; (where === "hand" ? (t.hands[fid] = t.hands[fid] || []) : (t.tableau[fid] = t.tableau[fid] || [])).push(h); if (where === "tab") { const c = cardOf(p, h).c; logEv(t, `${p.factions.find(f => f.id === fid).name} vykládá ${c.title}`); if (c.effect) runEffects(p, t, fid, c.effect, c.title); after(p, t, "vylozit", fid, c.type); } S.sel = null; save(); render(); };
   on("[data-tohand]", el => cardTo(el, "hand")); on("[data-totab]", el => cardTo(el, "tab"));
   on("[data-sa]", el => {
     const i = selItem; const a = el.dataset.sa;
     if (a === "flip") { if (i.kind === "unit") i.reduced = !i.reduced; else i.faceUp = !i.faceUp; }
-    else if (a === "rot") i.rot = ((i.rot || 0) + (i.kind === "unit" ? 60 : 90)) % 360;
+    else if (a === "rot") i.rot = ((i.rot || 0) + rotStep(p, i)) % 360;
     else if (a === "range") { S.rangeUid = S.rangeUid === i.uid ? null : i.uid; render(); return; }
     else if (a === "los") { S.losUid = S.losUid === i.uid && !S.losR ? null : i.uid; S.losR = null; render(); return; }
     else if (a === "fire") return;
@@ -3306,12 +3328,15 @@ function wireTable(main, p, t) {
     else if (a === "dup") { const n = { ...i, uid: uid(), x: i.x + 20, y: i.y + 20 }; t.items.push(n); S.sel = n.uid; }
     else if (a === "asAtt" || a === "addAtt" || a === "asDef") {
       if (a !== "asDef" && actViolation(p, i).length && !gate(p, t, "boj", actViolation(p, i))) return;
+      if (a !== "asDef" && !useAmmo(p, t, i)) return;
+      if (a !== "asDef" && facingOn(p) && p.facing.auto) { const d0 = t.items.find(o => o.uid === C.defUid); if (d0) faceToward(p, i, d0); }
       const v = unitStat(p, i, "att"), dv = unitStat(p, i, "def");
       S.tool = "boj"; C.mode = "crt"; C.res = null;
       const half = a !== "asDef" && !inSupply(p, t, i); const va = a !== "asDef" ? unitAttack(p, t, i) : v;
       if (a === "asAtt") { C.att = va; C.attUids = [i.uid]; } else if (a === "addAtt") { C.att = (+C.att || 0) + va; C.attUids = [...(C.attUids || []), i.uid]; }
-      else { C.defUid = i.uid; C.shift = defShift(p, t, i); C.def = dv; const k = cellUnder(p, i); const b = tableBoard(p); const ter = k && b ? terrainOf(p, b, k) : null; C.terrainId = ter ? ter.id : (p.terrains[0] || {}).id; }
-      render(); toast(a === "asDef" ? `Obrana ${dv}` : `Útok ${C.att}${half ? " (mimo zásobování – polovina)" : ""}`); return;
+      else { C.defUid = i.uid; C.zone = ""; C.shift = defShift(p, t, i); C.def = dv; const k = cellUnder(p, i); const b = tableBoard(p); const ter = k && b ? terrainOf(p, b, k) : null; C.terrainId = ter ? ter.id : (p.terrains[0] || {}).id; }
+      updatePosCombat(p, t); save();
+      render(); toast((a === "asDef" ? `Obrana ${C.def}` : `Útok ${C.att}${half ? " (mimo zásobování – polovina)" : ""}`) + (C.ftext ? " · " + C.ftext : "")); return;
     }
     save(); render();
   });
@@ -3371,8 +3396,10 @@ function wireTable(main, p, t) {
           if (k && k !== origin) {
             if (!gate(p, t, "pohyb", moveViolations(p, t, it, origin, originRange, k))) { it.x = ox; it.y = oy; render(); return; }
             const u = p.units.find(x => x.id === it.unitId); const ter = terrainOf(p, b, k) || p.terrains[0];
+            if (facingOn(p) && p.facing.auto) faceAlong(p, it, origin, k);
             t.moved[it.uid] = true; if (hiddenFaction(p, u.factionId)) hiddenMove(p, t, it, k); else logEv(t, `${u.name} táhne na ${k.split(",").map(n => pad2(+n + 1)).join("")}${b.labels[k] ? " (" + b.labels[k] + ")" : ""}`);
             after(p, t, "pohyb", u.factionId, ter ? ter.name : ""); crawlOnMove(p, t, it, k);
+            if (triggerOverwatch(p, t, it)) { S.sel = it.uid; save(); render(); return; }
           }
         }
         if (it.kind === "unit" && cmapOn(p, t) && !b && !cmapMove(p, t, it, cmFrom)) { it.x = ox; it.y = oy; render(); return; }
@@ -3676,6 +3703,9 @@ function checkEffect(p, text) {
 }
 function lintProject(p) {
   const out = []; const W = t => out.push({ lv: "warn", t }), E = t => out.push({ lv: "err", t });
+  if (!facingOn(p)) { p.units.filter(u => unitZones(u).some(z => z.arc)).forEach(u => W(`Jednotka „${u.name}“ má zóny vázané na směr, ale natočení jednotek je vypnuté (Mechaniky) – zóny se trefují bez ohledu na směr.`)); }
+  p.tokens.filter(x => x.frontOnly && !x.fixed).forEach(x => W(`Žeton „${x.name}“ chrání jen zepředu, ale není pevný – směr se počítá jen u pevných žetonů.`));
+  p.units.filter(u => unitZones(u).some(z => !String(z.name || "").trim())).forEach(u => W(`Jednotka „${u.name}“ má zónu bez názvu.`));
   p.decks.forEach(d => {
     const n = d.cards.reduce((a, c) => a + (+c.qty || 0), 0);
     if (!d.cards.length) W(`Balíček „${d.name}“ je prázdný.`);
@@ -4893,7 +4923,7 @@ const fname = (p, fid) => (p.factions.find(f => f.id === fid) || {}).name || "";
 // ----- Wargame -----
 // Čtvrtá položka označuje stavy pro jednotky s životy (dungeon crawler).
 const UNIT_ST = { dis: ["Rozvrácená", "✖", "útočí polovinou síly"], dug: ["Zakopaná", "⛨", "obránce má posun o 1 sloupec ve svůj prospěch"], tired: ["Unavená", "z", "pohyb poloviční"],
-  poison: ["Otrávená", "☠", "na začátku kola ztrácí 1 život", 1], stun: ["Omráčená", "✷", "příšera v příštím tahu nejedná", 1], tiredC: ["Zpomalená", "z", "pohyb poloviční", 1] };
+  poison: ["Otrávená", "☠", "na začátku kola ztrácí 1 život", 1], stun: ["Omráčená", "✷", "příšera v příštím tahu nejedná", 1], tiredC: ["Zpomalená", "z", "pohyb poloviční", 1], watch: ["Na hlídce", "👁", "vystřelí na nepřítele, který vstoupí do jejího dostřelu a výhledu", 2] };
 const stBadges = i => i.st ? Object.keys(UNIT_ST).filter(k => i.st[k]).map(k => `<span class="ust" title="${UNIT_ST[k][0]}">${UNIT_ST[k][1]}</span>`).join("") : "";
 function unitAttack(p, t, i) { let v = unitStat(p, i, "att"); if (!inSupply(p, t, i)) v = Math.floor(v / 2); if (i.st && i.st.dis) v = Math.floor(v / 2); return v; }
 function defShift(p, t, i) { const b = tableBoard(p); const k = cellUnder(p, i); const ter = b && k ? terrainOf(p, b, k) || p.terrains[0] : null; return Math.max(-3, Math.min(3, (ter ? +ter.shift || 0 : 0) - (i.st && i.st.dug ? 1 : 0))); }
@@ -5209,6 +5239,7 @@ function moreRulebook(p) {
   if (fx.length) out.push(["Pevné žetony", `<p>Pevné žetony po položení zůstávají na místě. Bonus platí pro jednotky na stejném poli.</p><ul>${fx.map(x => `<li><b>${esc(x.name)}</b>${x.buildable ? " (jednotka ho může postavit na svém poli)" : ""}: ${esc(modText(x) || "bez bonusu")}</li>`).join("")}</ul>`]);
   if (zu.length) out.push(["Zóny jednotek", `<p>Útok zasáhne zónu podle váhy (vyšší váha = častěji) a brání se její obranou. Zóna s výdrží ji ztrácí; zničená kritická zóna vyřadí jednotku.</p><table><tr><th>Jednotka</th><th>Zóny (obrana, výdrž, váha)</th></tr>${zu.map(u => `<tr><td>${esc(u.name)}</td><td>${unitZones(u).map(z => `${esc(z.name)} ${z.def || 0}${+z.hp ? `/${z.hp}` : ""} ×${z.w || 1}${z.crit ? " ★" : ""}`).join(", ")}</td></tr>`).join("")}</table>`]);
   if (tr.length || ca.length) out.push(["Nosnost", `${tr.length ? `<p>Přeprava: ${tr.map(u => `${esc(u.name)} převeze ${u.transport}`).join(", ")}. Jednotka nastoupí na stejném poli a jede s vozidlem.</p>` : ""}${ca.length ? `<p>Nosnost předmětů: ${ca.map(u => `${esc(u.name)} ${u.carry}`).join(", ")}. Váha předmětů: ${p.tokens.filter(x => x.small).map(x => `${esc(x.name)} ${tokWeight(x)}`).join(", ")}.</p>` : ""}`]);
+  out.push(...facingRulebook(p));
   if (p.mancala.on) out.push(["Rozsévání", `<p>Každý hráč má ${p.mancala.pits} jamek po ${p.mancala.seeds} semínkách a sklad. Ve svém tahu vezmi všechna semínka z jedné své jamky a rozděl je po jednom do dalších jamek proti směru hodin (soupeřův sklad přeskoč).${p.mancala.extra ? " Skončíš-li ve svém skladu, hraješ znovu." : ""}${p.mancala.capture ? " Skončíš-li ve své prázdné jamce, bereš i semínka z protější jamky." : ""} Hra končí, když jedna strana nemá semínka; vyhrává plnější sklad.</p>`]);
   const inc = p.decks.flatMap(d => d.cards.filter(c => c.income || c.act)); if (inc.length) out.push(["Schopnosti karet", `<ul>${inc.map(c => `<li><b>${esc(c.title)}</b>: ${c.income ? "každé kolo " + esc(describeEffect(c.income)) : ""}${c.income && c.act ? "; " : ""}${c.act ? "vyčerpáním " + esc(describeEffect(c.act)) : ""}</li>`).join("")}</ul>${p.refreshExhaust ? "<p>Vyčerpané karty se na začátku kola obnoví.</p>" : ""}`]);
   if (p.trickBid.on) out.push(["Sázky", `<p>Před kolem každý řekne, kolik štychů vezme. Přesná sázka: ${p.trickBid.hit} bodů + ${p.trickBid.per} za každý štych; jinak −${p.trickBid.miss} za každý štych rozdílu.</p>`]);
@@ -5306,10 +5337,13 @@ function damage(p, t, it, n, by) {
 // Útok: útočník hází tolik kostek, kolik má útok, obránce tolik, kolik má obranu; zranění = zásahy − bloky.
 function crawlAttack(p, t, a, d) {
   const ua = unitOf(p, a), ud = unitOf(p, d); const s = +p.dice.sides || 6;
-  const z = unitZones(ud).length ? pickZone(p, d) : null; // zásah do náhodné zóny podle vah
-  const ad = Array.from({ length: Math.max(0, unitAttack(p, t, a)) }, () => rnd(s)), dd = Array.from({ length: Math.max(0, (z ? zoneDef(p, d, z) : unitStat(p, d, "def")) + coverOf(p, t, d)) }, () => rnd(s));
+  if (!useAmmo(p, t, a)) return `${ua.name}: došla munice`;
+  if (facingOn(p) && p.facing.auto) faceToward(p, a, d);
+  const pos = positionCombat(p, t, [a], d); // směr útoku, nepozorovaný útok, výška → kostky navíc / méně
+  const z = unitZones(ud).length ? pickZone(p, d, pos.arc) : null; // zásah do náhodné zóny podle vah (a směru)
+  const ad = Array.from({ length: Math.max(0, unitAttack(p, t, a) + pos.shift) }, () => rnd(s)), dd = Array.from({ length: Math.max(0, withAttacker(a, () => z ? zoneDef(p, d, z) : unitStat(p, d, "def")) + coverOf(p, t, d)) }, () => rnd(s));
   const hits = ad.filter(v => v >= p.dice.aHit).length, blocks = dd.filter(v => v >= p.dice.dHit).length; const dmg = Math.max(0, hits - blocks);
-  const res = `${ua.name} útočí na ${ud.name}${z ? ` (${z.name})` : ""}: ${ad.join(",") || "–"} proti ${dd.join(",") || "–"} → ${dmg} ${plural(dmg, "zranění", "zranění", "zranění")}`;
+  const res = `${ua.name} útočí na ${ud.name}${z ? ` (${z.name})` : ""}${pos.parts.length ? ` [${pos.parts.join(", ")}]` : ""}: ${ad.join(",") || "–"} proti ${dd.join(",") || "–"} → ${dmg} ${plural(dmg, "zranění", "zranění", "zranění")}`;
   const after2 = dmg ? (z ? zoneHit(p, t, d, z, dmg, a) : damage(p, t, d, dmg, a)) : ""; logEv(t, res + (after2 ? "; " + after2 : "")); return res + (after2 ? ". " + after2 : "");
 }
 function targetsOf(p, t, it) {
@@ -5329,7 +5363,7 @@ function monsterTurn(p, t) {
     const heroes = t.items.filter(i => isHero(p, i) && cellUnder(p, i)); if (!heroes.length) return;
     const near = k => Math.min(...heroes.map(h => hexDist(b, k, cellUnder(p, h))));
     if (!targetsOf(p, t, m).length) { const rng = computeRange(p, t, m) || {}; const best = Object.keys(rng).filter(k => !t.items.some(o => o.kind === "unit" && cellUnder(p, o) === k)).sort((a, c) => near(a) - near(c) || rng[a] - rng[c])[0];
-      if (best && near(best) < near(km)) { placeOn(p, t, m, best); out.push(`${unitOf(p, m).name} jde na ${cellName(best)}`); } }
+      if (best && near(best) < near(km)) { placeOn(p, t, m, best); if (facingOn(p) && p.facing.auto) faceAlong(p, m, km, best); out.push(`${unitOf(p, m).name} jde na ${cellName(best)}`); } }
     const tg = targetsOf(p, t, m)[0]; if (tg) out.push(crawlAttack(p, t, m, tg));
   });
   if (!out.length) out.push("Žádná příšera nejedná"); logEv(t, "tah příšer"); return out;
@@ -6255,14 +6289,14 @@ function locKey(p, t, it) {
 }
 function fieldMods(p, it, key) {
   const t = p.table || {}; const m = (MODS.find(x => x[1] === key) || [])[0]; if (!m || key === "hp") return 0; const k = locKey(p, t, it); if (!k) return 0;
-  return (t.items || []).filter(o => o.kind === "token" && (tokDef(p, o) || {}).fixed && locKey(p, t, o) === k).reduce((a, o) => a + (+tokDef(p, o)[m] || 0), 0);
+  return (t.items || []).filter(o => o.kind === "token" && (tokDef(p, o) || {}).fixed && locKey(p, t, o) === k && tokenCovers(p, o, tokDef(p, o))).reduce((a, o) => a + (+tokDef(p, o)[m] || 0), 0);
 }
 const isFixed = (p, it) => !!(tokDef(p, it) || {}).fixed && !it.free;
 // Postavení pevného žetonu na místě jednotky.
 function buildToken(p, t, unitIt, tokenId) {
   const tk = p.tokens.find(x => x.id === tokenId); const k = locKey(p, t, unitIt); if (!tk || !k) return "Jednotka nestojí na mapě";
   if (t.items.some(o => o.kind === "token" && o.tokenId === tk.id && locKey(p, t, o) === k)) return `${tk.name} tu už je`;
-  const it = { uid: uid(), kind: "token", tokenId: tk.id, x: unitIt.x, y: unitIt.y, value: 0, rot: 0 };
+  const it = { uid: uid(), kind: "token", tokenId: tk.id, x: unitIt.x, y: unitIt.y, value: 0, rot: tk.frontOnly ? unitIt.rot || 0 : 0 };
   const b = tableBoard(p); if (b) { const [c, r] = k.split(",").map(Number); const [cx, cy] = geo(b).center(c, r); it.x = Math.round(BX + cx - 23 - 14); it.y = Math.round(BY + cy - 23 + 12); }
   else if (tableNet(p)) { const n = netNode(tableNet(p), k); it.x = Math.round(BX + n.x - 40); it.y = Math.round(BY + n.y + 4); }
   else if (cmapOn(p, t)) { const bx = cmapBox(p, +k.slice(1)); it.x = bx.x + CM.W - 52; it.y = bx.y + 60; }
@@ -6276,8 +6310,9 @@ function zoneDef(p, it, z) {
   const general = unitStat(p, it, "def") - baseDef; const own = attachedTo(p, p.table || {}, it).filter(o => same(tokDef(p, o).zone, z.name)).reduce((a, o) => a + (+tokDef(p, o).mZone || 0), 0);
   return Math.max(0, (+z.def || 0) + general + own);
 }
-function pickZone(p, it) {
-  const zs = unitZones(unitOf(p, it)).filter(z => zoneLeft(it, z) !== 0); if (!zs.length) return null;
+function pickZone(p, it, arc) {
+  let zs = unitZones(unitOf(p, it)).filter(z => zoneLeft(it, z) !== 0); if (!zs.length) return null;
+  if (arc && zs.some(z => z.arc)) { const m = zs.filter(z => !z.arc || z.arc === arc); if (m.length) zs = m; } // zóna vázaná na směr útoku
   const w = z => z.w === "" || z.w == null ? 1 : Math.max(0, +z.w || 0); const tot = zs.reduce((a, z) => a + w(z), 0);
   if (!tot) return zs[Math.floor(Math.random() * zs.length)]; let r = Math.random() * tot;
   for (const z of zs) { r -= w(z); if (r < 0) return z; } return zs.filter(z => w(z) > 0).pop();
@@ -6325,21 +6360,22 @@ function unitsPlusSelHTML(p, t, i) {
 }
 function wireUnitsPlus(main, p, t, save) {
   const sel = t.items.find(i => i.uid === S.sel); const on = (s, fn) => $$(s, main).forEach(el => el.addEventListener("click", () => fn(el))); const C = S.combat;
-  on("[data-zdef]", el => { const z = el.dataset.zdef === "?" ? pickZone(p, sel) : unitZones(unitOf(p, sel)).find(x => x.name === el.dataset.zdef); if (!z) { toast("Žádná zóna"); return; }
-    S.tool = "boj"; C.mode = "crt"; C.res = null; C.def = zoneDef(p, sel, z); C.defUid = sel.uid; C.zone = z.name; C.shift = defShift(p, t, sel); const ter = tableBoard(p) && cellUnder(p, sel) ? terrainOf(p, tableBoard(p), cellUnder(p, sel)) : null; C.terrainId = ter ? ter.id : (p.terrains[0] || {}).id;
-    render(); toast(`Brání ${z.name}: obrana ${C.def}`); });
+  on("[data-zdef]", el => { const a0 = facingOn(p) && (C.attUids || []).map(u => t.items.find(i => i.uid === u)).find(Boolean); const z = el.dataset.zdef === "?" ? pickZone(p, sel, a0 ? arcOf(p, sel, a0) : null) : unitZones(unitOf(p, sel)).find(x => x.name === el.dataset.zdef); if (!z) { toast("Žádná zóna"); return; }
+    S.tool = "boj"; C.mode = "crt"; C.res = null; C.def = zoneDef(p, sel, z); C.defUid = sel.uid; C.zone = z.name; C.shift = defShift(p, t, sel); const ter = tableBoard(p) && cellUnder(p, sel) ? terrainOf(p, tableBoard(p), cellUnder(p, sel)) : null; C.terrainId = ter ? ter.id : (p.terrains[0] || {}).id; updatePosCombat(p, t);
+    render(); toast(`Brání ${z.name}: obrana ${C.def}${C.ftext ? " · " + C.ftext : ""}`); });
   on("[data-build]", el => { if (!gate(p, t, "stavba")) return; const r = buildToken(p, t, sel, el.dataset.build); if (r) { toast(r); return; } save(); render(); });
   on("[data-embark]", el => { const tr = t.items.find(o => o.uid === el.dataset.embark); if (embark(p, t, sel, tr)) { S.sel = tr.uid; save(); render(); } });
   on("[data-disembark]", el => { const o = t.items.find(x => x.uid === el.dataset.disembark); disembark(p, t, o); save(); render(); });
   on("[data-unfix]", () => { sel.free = !sel.free; save(); render(); });
 }
 // Editor zón v dialogu jednotky.
-const ZONE_PRESETS = { vozidlo: [{ name: "Podvozek", def: 4, w: 1 }, { name: "Vrch", def: 2, w: 1 }], postava: [{ name: "Hlava", def: 1, w: 1, crit: true }, { name: "Trup", def: 3, w: 3, crit: true }, { name: "Ruce", def: 2, w: 2 }, { name: "Nohy", def: 2, w: 2 }] };
+const ZONE_PRESETS = { vozidlo: [{ name: "Podvozek", def: 4, w: 1 }, { name: "Vrch", def: 2, w: 1 }], postava: [{ name: "Hlava", def: 1, w: 1, crit: true }, { name: "Trup", def: 3, w: 3, crit: true }, { name: "Ruce", def: 2, w: 2 }, { name: "Nohy", def: 2, w: 2 }],
+  pancir: [{ name: "Čelo", def: 5, w: 1, arc: "front" }, { name: "Bok", def: 3, w: 1, arc: "flank" }, { name: "Záď", def: 2, w: 1, arc: "rear" }, { name: "Vrch", def: 2, w: 0.3 }] };
 function zonesEditorHTML(u) {
   const zs = u.zones || [];
   return `<div class="eyebrow">Zóny jednotky (části s vlastní obranou)</div>
-    ${zs.map((z, i) => `<div class="row zrow"><input type="text" data-zn="${i}" value="${esc(z.name)}" placeholder="Název" style="width:110px" aria-label="Název zóny"><label class="f" style="width:74px">Obrana<input type="number" data-zd="${i}" value="${esc(z.def ?? "")}"></label><label class="f" style="width:74px" title="Kolik zásahů zóna vydrží (prázdné = zásah jde do životů)">Výdrž<input type="number" data-zh="${i}" value="${esc(z.hp ?? "")}" placeholder="–"></label><label class="f" style="width:66px" title="Jak často se zóna trefí (poměr)">Váha<input type="number" data-zw="${i}" value="${esc(z.w ?? 1)}" min="0"></label><label class="chk" title="Zničení zóny vyřadí jednotku"><input type="checkbox" data-zc="${i}" ${z.crit ? "checked" : ""}> kritická</label><button type="button" class="btn small danger" data-zdel="${i}" aria-label="Smazat zónu">✕</button></div>`).join("")}
-    <div class="row"><button type="button" class="btn small" id="zAdd">+ Zóna</button><button type="button" class="btn small" data-zpre="vozidlo">Předvolba: vozidlo</button><button type="button" class="btn small" data-zpre="postava">Předvolba: postava</button></div>`;
+    ${zs.map((z, i) => `<div class="row zrow"><input type="text" data-zn="${i}" value="${esc(z.name)}" placeholder="Název" style="width:110px" aria-label="Název zóny"><label class="f" style="width:74px">Obrana<input type="number" data-zd="${i}" value="${esc(z.def ?? "")}"></label><label class="f" style="width:74px" title="Kolik zásahů zóna vydrží (prázdné = zásah jde do životů)">Výdrž<input type="number" data-zh="${i}" value="${esc(z.hp ?? "")}" placeholder="–"></label><label class="f" style="width:66px" title="Jak často se zóna trefí (poměr)">Váha<input type="number" data-zw="${i}" value="${esc(z.w ?? 1)}" min="0"></label><label class="f" style="width:110px" title="Při natočení jednotek: zóna se zasáhne jen útokem z tohoto směru">Směr<select data-za="${i}"><option value="">jakýkoli</option>${Object.entries(ARC_NAMES).map(([k, v]) => `<option value="${k}" ${z.arc === k ? "selected" : ""}>${v}</option>`).join("")}</select></label><label class="chk" title="Zničení zóny vyřadí jednotku"><input type="checkbox" data-zc="${i}" ${z.crit ? "checked" : ""}> kritická</label><button type="button" class="btn small danger" data-zdel="${i}" aria-label="Smazat zónu">✕</button></div>`).join("")}
+    <div class="row"><button type="button" class="btn small" id="zAdd">+ Zóna</button><button type="button" class="btn small" data-zpre="vozidlo">Předvolba: vozidlo</button><button type="button" class="btn small" data-zpre="postava">Předvolba: postava</button><button type="button" class="btn small" data-zpre="pancir">Předvolba: pancíř podle směru</button></div>`;
 }
 function wireZonesEditor(d, u) {
   const box = $("#u-zones", d); const draw = () => { box.innerHTML = zonesEditorHTML(u); wire(); };
@@ -6347,11 +6383,170 @@ function wireZonesEditor(d, u) {
     const set = (attr, k, conv) => $$(`[${attr}]`, box).forEach(i => i.addEventListener("input", () => { u.zones[+i.getAttribute(attr)][k] = conv(i); }));
     set("data-zn", "name", i => i.value); set("data-zd", "def", i => i.value === "" ? "" : +i.value); set("data-zh", "hp", i => i.value === "" ? "" : +i.value); set("data-zw", "w", i => i.value === "" ? 1 : +i.value);
     $$("[data-zc]", box).forEach(i => i.addEventListener("change", () => { u.zones[+i.dataset.zc].crit = i.checked; }));
+    $$("[data-za]", box).forEach(i => i.addEventListener("change", () => { u.zones[+i.dataset.za].arc = i.value; }));
     $$("[data-zdel]", box).forEach(b => b.onclick = () => { u.zones.splice(+b.dataset.zdel, 1); draw(); });
     $("#zAdd", box).onclick = () => { (u.zones = u.zones || []).push({ name: "", def: "", w: 1 }); draw(); };
     $$("[data-zpre]", box).forEach(b => b.onclick = () => { u.zones = clone(ZONE_PRESETS[b.dataset.zpre]); draw(); });
   };
   draw();
+}
+
+// ---------- Natočení žetonů, hlídka, výška terénu, munice ----------
+// Natočení: jednotka stojí čelem do jednoho směru (hrana hexu / strana čtverce). Útok z boku nebo zezadu dostane bonus,
+// jednotka vidí jen do zorného pole a útok mimo něj je nepozorovaný. Pevný žeton může chránit jen zepředu, zóny se mohou vázat na směr.
+// Hlídka: jednotka na hlídce se ozve, když nepřítel vstoupí do jejího dostřelu a výhledu.
+// Výška terénu: výhled jde přes nižší terén, vyšší kopec nebo překážka ho zastaví; útok do kopce může mít posun.
+// Munice: jednotka smí zaútočit jen tolikrát, kolik má munice, pak musí doplnit.
+function normalizeFacing(p) {
+  p.facing = Object.assign({ on: false, front: 60, rear: 30, flank: 1, rearB: 2, auto: true, vision: false, view: 90, adjSee: true, stealth: true, stealthB: 1, elevShift: 1 }, p.facing || {});
+}
+const ARC_NAMES = { front: "zepředu", flank: "z boku", rear: "zezadu" };
+const facingOn = p => !!(p.facing && p.facing.on);
+// Natočený žeton zůstává rovně (čitelný) a směr ukazuje šipka na okraji.
+function faced(p, it) { return it.kind === "unit" && facingOn(p) || it.kind === "token" && !!(tokDef(p, it) || {}).frontOnly; }
+function rotStep(p, it) { const b = tableBoard(p); if (it.kind === "card") return 90; return b && b.type === "square" ? 90 : 60; }
+function itemCenter(p, it) {
+  const b = tableBoard(p); const k = b && cellUnder(p, it);
+  if (k) { const [c, r] = k.split(",").map(Number); return geo(b).center(c, r); }
+  const [w, h] = itemSize(it); return [it.x + w / 2 - BX, it.y + h / 2 - BY];
+}
+// Směr (0 = nahoru, po směru hodin) z bodu do bodu.
+function bearingXY(x1, y1, x2, y2) { return Math.atan2(x2 - x1, -(y2 - y1)) * 180 / Math.PI; }
+function normAngle(a) { return ((a % 360) + 540) % 360 - 180; }
+// Výseč, ze které přichází „other“ vzhledem k natočení „it“.
+function arcOf(p, it, other) {
+  const F = p.facing; const [x1, y1] = itemCenter(p, it), [x2, y2] = itemCenter(p, other);
+  if (Math.hypot(x2 - x1, y2 - y1) < 1) return "front";
+  const a = Math.abs(normAngle(bearingXY(x1, y1, x2, y2) - (it.rot || 0)));
+  if (a <= +F.front + 0.5) return "front"; if (a >= 180 - +F.rear - 0.5) return "rear"; return "flank";
+}
+// Vidí jednotka „viewer“ cíl? Bez pravidla výhledu podle natočení vždy ano.
+function sees(p, viewer, target) {
+  const F = p.facing; if (!facingOn(p) || !F.vision) return true;
+  const b = tableBoard(p); const k1 = b && cellUnder(p, viewer), k2 = b && cellUnder(p, target);
+  if (F.adjSee && k1 && k2 && hexDist(b, k1, k2) <= 1) return true;
+  const [x1, y1] = itemCenter(p, viewer), [x2, y2] = itemCenter(p, target); if (Math.hypot(x2 - x1, y2 - y1) < 1) return true;
+  return Math.abs(normAngle(bearingXY(x1, y1, x2, y2) - (viewer.rot || 0))) <= +F.view + 0.5;
+}
+function snapRot(p, it, ang) { const s = rotStep(p, it); return ((Math.round(ang / s) * s) % 360 + 360) % 360; }
+function faceToward(p, it, other) { const [x1, y1] = itemCenter(p, it), [x2, y2] = itemCenter(p, other); if (Math.hypot(x2 - x1, y2 - y1) >= 1) it.rot = snapRot(p, it, bearingXY(x1, y1, x2, y2)); }
+function faceAlong(p, it, fromKey, toKey) {
+  const b = tableBoard(p); if (!b || !fromKey || !toKey || fromKey === toKey) return;
+  const g = geo(b); const [x1, y1] = g.center(...fromKey.split(",").map(Number)), [x2, y2] = g.center(...toKey.split(",").map(Number)); it.rot = snapRot(p, it, bearingXY(x1, y1, x2, y2));
+}
+// Útočník právě vyhodnocovaného boje – pevné žetony „jen zepředu“ podle něj poznají směr útoku.
+let FACE_FROM = null;
+function withAttacker(a, fn) { const o = FACE_FROM; FACE_FROM = a || null; try { return fn(); } finally { FACE_FROM = o; } }
+function tokenCovers(p, tokIt, tk) { return !tk.frontOnly || !FACE_FROM || arcOf(p, tokIt, FACE_FROM) === "front"; }
+// Výška pole (terén může mít výšku; výchozí 0).
+function cellHeight(p, b, k) { const ter = terrainOf(p, b, k) || p.terrains[0]; return +(ter && ter.h) || 0; }
+// Úpravy boje podle polohy: směr útoku, nepozorovaný útok, výška. Vrací { shift, arc, stealth, parts }.
+function positionCombat(p, t, atts, def) {
+  const out = { shift: 0, arc: null, stealth: false, parts: [] }; if (!def || !atts.length) return out; const F = p.facing;
+  if (facingOn(p)) {
+    const rank = { front: 0, flank: 1, rear: 2 }; const arcs = atts.map(a => arcOf(p, def, a));
+    out.arc = arcs.reduce((m, a) => rank[a] > rank[m] ? a : m, "front");
+    const v = out.arc === "rear" ? +F.rearB || 0 : out.arc === "flank" ? +F.flank || 0 : 0;
+    if (out.arc !== "front") { out.shift += v; out.parts.push(`útok ${ARC_NAMES[out.arc]}${v ? ` ${v > 0 ? "+" : ""}${v}` : ""}`); }
+    if (F.vision && F.stealth && atts.every(a => !sees(p, def, a))) { out.stealth = true; const s = +F.stealthB || 0; out.shift += s; out.parts.push(`nepozorovaně${s ? ` +${s}` : ""}`); }
+  }
+  const b = tableBoard(p); const kd = b && cellUnder(p, def);
+  if (b && kd && +F.elevShift) { const hd = cellHeight(p, b, kd); const ks = atts.map(a => cellUnder(p, a)).filter(Boolean);
+    if (ks.length && ks.every(k => cellHeight(p, b, k) < hd)) { out.shift -= +F.elevShift; out.parts.push(`obránce výš −${F.elevShift}`); }
+    else if (ks.length && ks.every(k => cellHeight(p, b, k) > hd)) { out.shift += +F.elevShift; out.parts.push(`útočník výš +${F.elevShift}`); } }
+  return out;
+}
+// Přepočet bojové tabulky po zadání útočníků / obránce.
+function updatePosCombat(p, t) {
+  const C = S.combat; const d = t.items.find(i => i.uid === C.defUid); const atts = (C.attUids || []).map(u => t.items.find(i => i.uid === u)).filter(Boolean);
+  if (!d || !atts.length) { C.fshift = 0; C.ftext = ""; return; }
+  const r = positionCombat(p, t, atts, d); C.fshift = r.shift; C.ftext = r.parts.join(", ");
+  const z = C.zone && unitZones(unitOf(p, d)).find(x => x.name === C.zone);
+  C.def = withAttacker(atts[0], () => z ? zoneDef(p, d, z) : unitStat(p, d, "def"));
+}
+// Munice
+const ammoMax = (p, it) => { const u = unitOf(p, it); return u && u.ammo !== "" && u.ammo != null ? +u.ammo : null; };
+function ammoLeft(p, it) { const m = ammoMax(p, it); return m == null ? null : Math.max(0, m - (it.ammoUsed || 0)); }
+function useAmmo(p, t, it) {
+  const left = ammoLeft(p, it); if (left == null) return true;
+  if (left <= 0) { toast(`${unitOf(p, it).name}: došla munice`); return false; }
+  it.ammoUsed = (it.ammoUsed || 0) + 1; return true;
+}
+const ammoBadge = (p, it) => { const l = ammoLeft(p, it); return l == null ? "" : `<span class="ammo ${l ? "" : "out"}" title="Munice">▮${l}</span>`; };
+// Hlídka: po pohybu nepřítele zkontroluje jednotky na hlídce. Vrátí hlídkující jednotku, která může vystřelit.
+function overwatchCheck(p, t, mover) {
+  const b = tableBoard(p); const km = b && cellUnder(p, mover); const um = unitOf(p, mover); if (!km || !um) return null;
+  return t.items.find(w => { if (w.kind !== "unit" || !w.st || !w.st.watch || w.inside) return false; const uw = unitOf(p, w); const kw = cellUnder(p, w);
+    if (!uw || !kw || uw.factionId === um.factionId) return false;
+    const reach = Math.max(1, unitStat(p, w, "range") || 1); return hexDist(b, kw, km) <= reach && (reach === 1 || hasLOS(p, b, kw, km)) && sees(p, w, mover) && ammoLeft(p, w) !== 0; }) || null;
+}
+function triggerOverwatch(p, t, mover) {
+  const w = overwatchCheck(p, t, mover); if (!w) return false; const C = S.combat;
+  w.st.watch = false; if (!useAmmo(p, t, w)) return false;
+  if (facingOn(p) && p.facing.auto) faceToward(p, w, mover);
+  S.tool = "boj"; C.mode = "crt"; C.res = null; C.zone = ""; C.att = unitAttack(p, t, w); C.attUids = [w.uid]; C.defUid = mover.uid; C.shift = defShift(p, t, mover);
+  const k = cellUnder(p, mover); const ter = k ? terrainOf(p, tableBoard(p), k) : null; C.terrainId = ter ? ter.id : (p.terrains[0] || {}).id; updatePosCombat(p, t);
+  const msg = `Hlídka: ${unitOf(p, w).name} střílí na ${unitOf(p, mover).name}`; logEv(t, msg); toast(msg + " – vyhodnoť v Boji"); return true;
+}
+// Výseče kolem vybrané jednotky (pro zobrazení na mapě).
+function arcCells(p, it, radius = 3) {
+  const b = tableBoard(p); const k0 = b && cellUnder(p, it); if (!k0) return null; const out = {}; const g = geo(b);
+  for (let c = 0; c < b.cols; c++) for (let r = 0; r < b.rows; r++) { const k = c + "," + r; if (k === k0 || hexDist(b, k0, k) > radius) continue;
+    const [cx, cy] = g.center(c, r); out[k] = arcOf(p, it, { kind: "token", x: BX + cx - 23, y: BY + cy - 23 }); }
+  return out;
+}
+function arcsSVG(b, arcs) {
+  if (!arcs) return ""; const g = geo(b); const col = { front: "#3f9a5a", flank: "#e0aa2e", rear: "#c8463c" };
+  return Object.entries(arcs).map(([k, a]) => { const [c, r] = k.split(",").map(Number); const [cx, cy] = g.center(c, r); return `<polygon class="rng" points="${g.poly(cx, cy)}" fill="${col[a]}" fill-opacity=".3" stroke="${col[a]}" stroke-width="1.5"/>`; }).join("");
+}
+function facingSelHTML(p, t, i) {
+  const out = []; const tk = i.kind === "token" ? tokDef(p, i) : null;
+  if (i.kind === "unit" && facingOn(p) || tk && tk.frontOnly) out.push(`<div class="row"><span class="hint">${i.kind === "unit" ? "Čelem" : "Chrání směrem"}:</span><button class="btn small" data-face="-1" aria-label="Otočit doleva">↺</button><span class="facedir" style="transform:rotate(${i.rot || 0}deg)" aria-hidden="true">▲</span><button class="btn small" data-face="1" aria-label="Otočit doprava">↻</button>${i.kind === "unit" && tableBoard(p) && cellUnder(p, i) ? `<button class="btn small ${S.arcUid === i.uid ? "on" : ""}" data-arcs="1">Výseče</button>` : ""}</div>`);
+  if (i.kind === "unit") {
+    const l = ammoLeft(p, i); if (l != null) out.push(`<div class="row"><span class="hint">Munice ${l}/${ammoMax(p, i)}</span><button class="btn small" data-reload="1">Doplnit</button></div>`);
+    const C = S.combat; if (facingOn(p) && C.defUid === i.uid && C.ftext) out.push(`<span class="hint">V boji: ${esc(C.ftext)}</span>`);
+  }
+  return out.join("");
+}
+function wireFacing(main, p, t, save) {
+  const sel = t.items.find(i => i.uid === S.sel); if (!sel) return; const on = (s, fn) => $$(s, main).forEach(el => el.addEventListener("click", () => fn(el)));
+  on("[data-face]", el => { sel.rot = (((sel.rot || 0) + +el.dataset.face * rotStep(p, sel)) % 360 + 360) % 360; if (S.combat.defUid) updatePosCombat(p, t); save(); render(); });
+  on("[data-arcs]", () => { S.arcUid = S.arcUid === sel.uid ? null : sel.uid; render(); });
+  on("[data-reload]", () => { if (!inSupply(p, t, sel)) { toast("Mimo zásobování – munici nelze doplnit"); return; } sel.ammoUsed = 0; logEv(t, `${unitOf(p, sel).name} doplňuje munici`); save(); render(); });
+}
+function facingMechHTML(p) {
+  const F = p.facing; const n = (id, l, v, t2 = "") => `<label class="f" ${t2 ? `title="${t2}"` : ""}>${l}<input type="number" id="${id}" value="${esc(v)}"></label>`;
+  return `<div class="panel"><h2>Natočení jednotek</h2>
+    <label class="chk"><input type="checkbox" id="fOn" ${F.on ? "checked" : ""}> Jednotky stojí čelem do jednoho směru (čelo, bok, záď)</label>
+    ${F.on ? `<div class="grid" style="grid-template-columns:1fr 1fr">${n("fFront", "Přední výseč ± stupňů", F.front, "60 = tři přední hrany hexu")}${n("fRear", "Zadní výseč ± stupňů", F.rear, "30 = jen zadní hrana")}
+      ${n("fFlank", "Útok z boku: posun", F.flank, "Posun sloupce, v kostkách kostky navíc")}${n("fRearB", "Útok zezadu: posun", F.rearB)}</div>
+    <label class="chk"><input type="checkbox" id="fAuto" ${F.auto ? "checked" : ""}> Po pohybu se jednotka natočí ve směru pohybu, útočník k cíli</label>
+    <label class="chk"><input type="checkbox" id="fVis" ${F.vision ? "checked" : ""}> Jednotka vidí jen do zorného pole (výhled, mlha války, hlídka)</label>
+    ${F.vision ? `<div class="grid" style="grid-template-columns:1fr 1fr">${n("fView", "Zorné pole ± stupňů", F.view, "90 = vidí do stran, ne dozadu")}${n("fStB", "Nepozorovaný útok: posun", F.stealthB)}</div>
+      <label class="chk"><input type="checkbox" id="fAdj" ${F.adjSee ? "checked" : ""}> Sousední pole vidí vždy</label>
+      <label class="chk"><input type="checkbox" id="fSt" ${F.stealth ? "checked" : ""}> Útok mimo zorné pole obránce je nepozorovaný (bonus)</label>` : ""}` : ""}
+    <p class="hint">Na stole jednotku otočíš šipkami ↺ ↻, „Výseče“ ukážou čelo (zeleně), bok (žlutě) a záď (červeně). Pevný žeton může chránit „jen zepředu“ (nastavíš v Komponentách) a zóna jednotky se může vázat na směr – např. čelní pancíř.</p></div>`;
+}
+function elevMechHTML(p) {
+  return `<div class="panel"><h2>Výška, hlídka, munice</h2>
+    <label class="f">Útok do kopce / z kopce: posun<input type="number" id="fElev" value="${esc(p.facing.elevShift)}" min="0" max="3"></label>
+    <p class="hint">Výšku terénu nastavíš v záložce Mapa. Výhled vede přes nižší terén; vyšší pole nebo překážka (les, město) ve výšce čáry výhledu ho zastaví. Ze zvýšeného místa je vidět přes les dál.</p>
+    <p class="hint"><b>Hlídka:</b> u vybrané jednotky zapni stav „Na hlídce“. Když nepřítel vstoupí do jejího dostřelu a výhledu, boj se připraví sám.</p>
+    <p class="hint"><b>Munice:</b> u jednotky v Komponentách vyplň „Munice“. Každý útok ji sníží o 1, s prázdnou jednotka neútočí; doplní ji tlačítkem „Doplnit“ v zásobování.</p></div>`;
+}
+function wireFacingMech(main, p) {
+  const F = p.facing; const q = id => document.getElementById(id);
+  const ch = (id, fn, re) => { if (q(id)) q(id).addEventListener("change", e => { fn(e.target); touch(p); if (re) render(); }); };
+  ch("fOn", e => { F.on = e.checked; }, 1); ch("fVis", e => { F.vision = e.checked; }, 1); ch("fAuto", e => { F.auto = e.checked; }); ch("fAdj", e => { F.adjSee = e.checked; }); ch("fSt", e => { F.stealth = e.checked; });
+  [["fFront", "front"], ["fRear", "rear"], ["fFlank", "flank"], ["fRearB", "rearB"], ["fView", "view"], ["fStB", "stealthB"], ["fElev", "elevShift"]].forEach(([id, k]) => ch(id, e => { F[k] = +e.value || 0; }));
+}
+function facingRulebook(p) {
+  const out = []; const F = p.facing;
+  if (facingOn(p)) out.push(["Natočení jednotek", `<p>Každá jednotka stojí čelem do jednoho směru. Přední výseč je ±${F.front}°, zadní ±${F.rear}° od zádi, zbytek je bok. Útok z boku má posun ${F.flank}, zezadu ${F.rearB}${F.auto ? "; po pohybu se jednotka natočí ve směru pohybu" : ""}.</p>${F.vision ? `<p>Jednotka vidí jen do zorného pole ±${F.view}°${F.adjSee ? " a na sousední pole" : ""}.${F.stealth ? ` Útok mimo zorné pole obránce je nepozorovaný, posun ${F.stealthB}.` : ""}</p>` : ""}`]);
+  const dirT = p.tokens.filter(x => x.frontOnly); if (dirT.length) out.push(["Kryt jen zepředu", `<p>${dirT.map(x => esc(x.name)).join(", ")} chrání jen proti útoku z přední výseče žetonu.</p>`]);
+  const hs = p.terrains.filter(x => +x.h); if (hs.length) out.push(["Výška terénu", `<p>Výšky: ${hs.map(x => `${esc(x.name)} ${x.h}`).join(", ")}. Výhled zastaví pole, které je (s překážkou o 1 výš) vyšší než čára výhledu.${+F.elevShift ? ` Útok na výše stojící jednotku má posun −${F.elevShift}, z výšky +${F.elevShift}.` : ""}</p>`]);
+  const am = p.units.filter(u => u.ammo !== "" && u.ammo != null); if (am.length) out.push(["Munice", `<p>${am.map(u => `${esc(u.name)} ${u.ammo}`).join(", ")}. Každý útok spotřebuje 1; doplnit lze v zásobování.</p>`]);
+  return out;
 }
 
 // ---------- Spuštění ----------

@@ -73,16 +73,17 @@ function exampleWar() {
   const units = [
     U("1. pěší", blue, "pechota", "III", 4, 4, 3, 2, 2, 3, 3),
     U("7. tankový", blue, "tanky", "II", 6, 3, 6, 3, 2, 6, 1),
-    U("12. dělostř.", blue, "delo", "III", 5, 2, 2, 2, 1, 2, 1),
+    Object.assign(U("12. dělostř.", blue, "delo", "III", 5, 2, 2, 2, 1, 2, 1), { ammo: 4 }),
     Object.assign(U("Štáb", blue, "stab", "XX", 0, 1, 4, "", "", "", 1), { hq: true, cmd: 3, cmdAtt: 1 }),
     U("3. pěší", red, "pechota", "III", 3, 5, 3, 2, 3, 3, 3),
     U("Husaři", red, "jezdectvo", "II", 3, 2, 7, 1, 1, 7, 1),
-    U("Baterie", red, "delo", "II", 4, 2, 2, 2, 1, 2, 1),
+    Object.assign(U("Baterie", red, "delo", "II", 4, 2, 2, 2, 1, 2, 1), { ammo: 3 }),
     // nové jednotky jen na konec – rozestavení scénáře odkazuje na pořadí
     Object.assign(U("Transportér", blue, "mech", "I", 2, 3, 5, "", "", "", 1), { transport: 2, zones: [{ name: "Podvozek", def: 4, w: 1 }, { name: "Vrch", def: 2, w: 1 }] }),
   ];
   const g = geo(board);
-  const at = (unitId, c, r) => { const [cx, cy] = g.center(c, r); return { uid: uid(), kind: "unit", unitId, x: Math.round(BX + cx - 26), y: Math.round(BY + cy - 26), reduced: false, rot: 0 }; };
+  // Modří hledí na východ k řece, Červení na západ.
+  const at = (unitId, c, r) => { const [cx, cy] = g.center(c, r); const f = units.find(u => u.id === unitId).factionId; return { uid: uid(), kind: "unit", unitId, x: Math.round(BX + cx - 26), y: Math.round(BY + cy - 26), reduced: false, rot: f === blue.id ? 60 : 240 }; };
   const setup = [
     at(units[0].id, 1, 2), at(units[0].id, 1, 4), at(units[0].id, 2, 5), at(units[1].id, 0, 3), at(units[2].id, 0, 5), at(units[3].id, 0, 4),
     at(units[4].id, 8, 3), at(units[4].id, 8, 5), at(units[4].id, 11, 5), at(units[5].id, 9, 2), at(units[6].id, 10, 4),
@@ -97,6 +98,7 @@ function exampleWar() {
     terrains: defaultTerrains(),
     ruleset: Object.assign(defaultRules(), { strict: true, actCats: [], phaseOf: { pohyb: [1], boj: [2] }, stackLimit: 2, moveRange: true, moveOnce: true, ownTurn: true, fog: true, sight: 5, win: { vp: "", turns: "", elimination: true } }),
     majority: { points: "3,1" },
+    facing: { on: true, vision: true },
     boards: [board], units,
     scenarios: [{ id: uid(), name: "Most přes Brodec", turns: 6, boardId: board.id,
       desc: "Ráno 3. dne. Modrá divize musí dobýt přechod přes řeku dřív, než dorazí nepřátelské posily.",
@@ -116,7 +118,7 @@ function exampleWar() {
       { id: uid(), name: "Kulomet", color: "#2b2b2b", shape: "ctverec", counter: false, text: "KUL", small: true, mAtt: 2 },
       { id: uid(), name: "Minomet", color: "#5a4632", shape: "ctverec", counter: false, text: "MIN", small: true, mAtt: 1, mRange: 2 },
       { id: uid(), name: "Zákopy", color: "#7a6a4a", shape: "ctverec", counter: false, text: "ZÁK", small: true, mDef: 2, mMov: -1 },
-      { id: uid(), name: "Okop", color: "#8a7a52", shape: "kruh", counter: false, text: "OKOP", fixed: true, buildable: true, mDef: 1 },
+      { id: uid(), name: "Okop", color: "#8a7a52", shape: "kruh", counter: false, text: "OKOP", fixed: true, buildable: true, frontOnly: true, mDef: 1 },
     ],
     table: null, sessions: [],
   });
@@ -259,9 +261,9 @@ function exampleCrypt() {
   const board = { id: uid(), name: "Krypta", type: "square", cols, rows, size: 34, terrain, labels, regions, bg: null, coords: false };
   const U = (name, f, symbol, a, d, m, extra) => ({ id: uid(), name, factionId: f.id, symbol, symText: "", size: "", att: a, def: d, mov: m, rAtt: "", rDef: "", rMov: "", qty: 1, note: "", ...extra });
   const body = [{ name: "Hlava", def: 1, w: 1 }, { name: "Trup", def: 2, w: 3 }, { name: "Ruce", def: 2, w: 2 }, { name: "Nohy", def: 2, w: 2 }];
-  const units = [U("Bojovnice", heroes, "pechota", 3, 2, 4, { kind: "hero", hp: 8, carry: 3, zones: clone(body) }), U("Lučištník", heroes, "jezdectvo", 2, 1, 4, { kind: "hero", hp: 6, range: 4, carry: 2, zones: clone(body) }),
+  const units = [U("Bojovnice", heroes, "pechota", 3, 2, 4, { kind: "hero", hp: 8, carry: 3, zones: clone(body) }), U("Lučištník", heroes, "jezdectvo", 2, 1, 4, { kind: "hero", hp: 6, range: 4, ammo: 6, carry: 2, zones: clone(body) }),
     U("Kostlivec", dark, "pechota", 2, 1, 3, { kind: "monster", hp: 3, xp: 1, qty: 3 }), U("Nekromant", dark, "stab", 3, 2, 2, { kind: "monster", hp: 6, xp: 4, range: 3 })];
-  const g = geo(board); const at = (u, c, r) => { const [cx, cy] = g.center(c, r); return { uid: uid(), kind: "unit", unitId: u.id, x: Math.round(BX + cx - 26), y: Math.round(BY + cy - 26), reduced: false, rot: 0 }; };
+  const g = geo(board); const at = (u, c, r) => { const [cx, cy] = g.center(c, r); return { uid: uid(), kind: "unit", unitId: u.id, x: Math.round(BX + cx - 26), y: Math.round(BY + cy - 26), reduced: false, rot: u.kind === "hero" ? 60 : 240 }; };
   const setup = [at(units[0], 1, 3), at(units[1], 0, 2), at(units[2], 4, 2), at(units[2], 5, 4), at(units[2], 7, 2), at(units[3], 8, 3)];
   const c = (title, text, effect, qty) => ({ id: uid(), title, type: "Poklad", cost: "", text, qty, suit: "", value: "", vp: "", icon: "", effect });
   return normalize({
@@ -273,6 +275,7 @@ function exampleCrypt() {
     terrains: [{ id: "floor", name: "Podlaha", color: "#cfc6b4", glyph: "", move: "1", def: 1, vp: 0 }, { id: "wall", name: "Zeď", color: "#3b3631", glyph: "", move: "–", def: 1, vp: 0, blocks: true }],
     boards: [board], units, dice: { sides: 6, aHit: 4, dHit: 5 },
     crawl: { rooms: true, lootDeck: "poklady", levelXp: 3, doom: 10 },
+    facing: { on: true, vision: true, view: 60 },
     ruleset: Object.assign(defaultRules(), { moveRange: true, moveOnce: true, win: { vp: "", turns: "", elimination: true },
       triggers: [{ id: uid(), on: "mistnost", param: "Krypta", cond: "", effect: "zpráva Nekromant se probouzí!" }, { id: uid(), on: "hrozba", param: "", cond: "", effect: "zpráva Temnota pohltila kryptu – hrdinové prohráli" }] }),
     scenarios: [{ id: uid(), name: "Sestup do krypty", turns: 10, boardId: board.id, desc: "Hrdinové stojí u vstupu. Z chodby je slyšet chrastění kostí.", victory: "Porazte všechny příšery.", special: "", setup: { items: setup, control: {} },

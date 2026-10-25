@@ -136,14 +136,16 @@ function renderTable(main, p) {
   const selItem = t.items.find(i => i.uid === S.sel);
   const rangeItem = S.rangeUid && t.items.find(i => i.uid === S.rangeUid);
   const range = rangeItem ? computeRange(p, t, rangeItem) : null;
-  const losItem = S.losUid && t.items.find(i => i.uid === S.losUid); const losK = losItem && cellUnder(p, losItem); const cmdItem = S.cmdUid && t.items.find(i => i.uid === S.cmdUid); const los = cmdItem ? commandCells(p, t, cmdItem) : losK && b ? visibleFrom(p, b, losK, S.losR || +p.ruleset.sight || 6) : null;
+  const losItem = S.losUid && t.items.find(i => i.uid === S.losUid); const losK = losItem && cellUnder(p, losItem); const cmdItem = S.cmdUid && t.items.find(i => i.uid === S.cmdUid); let los = cmdItem ? commandCells(p, t, cmdItem) : losK && b ? visibleFrom(p, b, losK, S.losR || +p.ruleset.sight || 6) : null;
+  if (los && losItem && !cmdItem && facingOn(p) && p.facing.vision) los = Object.fromEntries(Object.entries(los).filter(([k]) => { const [c, r] = k.split(",").map(Number); const [cx, cy] = g.center(c, r); return sees(p, losItem, { kind: "token", x: BX + cx - 23, y: BY + cy - 23 }); }));
+  const arcItem = S.arcUid && t.items.find(i => i.uid === S.arcUid); const arcs = arcItem && b ? arcCells(p, arcItem, 3) : null;
   syncPassengers(t); S.fog = fogHidden(p, t); S.supCache = {};
   const cp = curPlayer(p, t);
   if (!TOOLS.find(x => x[0] === S.tool)) S.tool = "stul";
   main.innerHTML = `<div class="table-wrap">
     <div class="mat-area">${zoomBarHTML(t)}<div class="mat-scroll"><div class="mat-sizer" style="width:${S.matW * zoomOf()}px;height:${S.matH * zoomOf()}px"><div class="mat ${S.ctrlMode && b ? "ctrlmode" : ""} ${S.inkMode ? "inkmode" : ""}" id="mat" style="width:${S.matW}px;height:${S.matH}px;transform:scale(${zoomOf()})">
       <div class="mat-ruler">${Array.from({ length: Math.ceil(S.matW / 100) }, (_, i) => `<span style="left:${i * 100}px">${i * 10}</span>`).join("")}</div>
-      ${b ? `<div class="boardlayer" style="left:${BX}px;top:${BY}px">${boardSVG(p, b, t.control, { range, los, tiles: t.tilesPlaced, links: t.links, routeSel: S.routeSel, dark: crawlDarkSet(p, t), stones: t.stones })}</div>` : ""}
+      ${b ? `<div class="boardlayer" style="left:${BX}px;top:${BY}px">${boardSVG(p, b, t.control, { range, los, tiles: t.tilesPlaced, links: t.links, routeSel: S.routeSel, dark: crawlDarkSet(p, t), stones: t.stones, arcs })}</div>` : ""}
       ${nt ? `<div class="boardlayer netlayer" style="left:${BX}px;top:${BY}px">${netSVG(p, nt, { t, sel: S.netSel, reach: S.netReach, goods: p.deliver.on ? t.goods : null })}</div>` : ""}${cmapHTML(p, t)}${t.items.map(i => itemHTML(p, i)).join("")}${ghostsHTML(p, t)}${inkSVG(t, S.matW, S.matH)}
     </div></div></div></div>
     <aside class="side">
@@ -167,9 +169,9 @@ function itemHTML(p, i) {
     if (fg && fg.has(i.uid + ":gone")) return "";
     if (isMonster(p, i) && p.crawl.rooms && crawlDarkSet(p, p.table).has(cellUnder(p, i))) return "";
     if (fg && fg.has(i.uid + ":block")) { const f = p.factions.find(x => x.id === u.factionId); inner = `<div class="unit" style="background:${f ? f.color : "#888"}" title="Nepřátelská jednotka"></div>`; }
-    else inner = unitHTML(p, effUnit(p, i, u), i.reduced) + equipBadges(p, p.table, i) + zoneBadge(p, i) + loadBadge(p, p.table, i) + (inSupply(p, p.table, i) ? "" : `<span class="oos" title="Mimo zásobování">⚠</span>`) + (i.st ? `<span class="usts">${stBadges(i)}</span>` : "") + hpBadge(p, i); }
+    else inner = unitHTML(p, effUnit(p, i, u), i.reduced) + equipBadges(p, p.table, i) + zoneBadge(p, i) + loadBadge(p, p.table, i) + ammoBadge(p, i) + (inSupply(p, p.table, i) ? "" : `<span class="oos" title="Mimo zásobování">⚠</span>`) + (i.st ? `<span class="usts">${stBadges(i)}</span>` : "") + hpBadge(p, i); }
   else { const tk = p.tokens.find(x => x.id === i.tokenId); if (!tk) return ""; if (i.attachTo && p.table.items.some(o => o.uid === i.attachTo)) return ""; inner = tokenHTML(tk, i.value) + (tk.text ? "" : `<span class="token-label">${esc(tk.name)}</span>`); }
-  return `<div class="titem ${i.uid === S.sel ? "sel" : ""}${i.act ? " act" : ""}${(p.tokens.find(x => x.id === i.tokenId) || {}).small ? " small" : ""}${i.kind === "token" && isFixed(p, i) ? " fixed" : ""}" data-uid="${i.uid}" style="left:${i.x}px;top:${i.y}px;transform:rotate(${i.rot || 0}deg)">${inner}</div>`;
+  return `<div class="titem ${i.uid === S.sel ? "sel" : ""}${i.act ? " act" : ""}${(p.tokens.find(x => x.id === i.tokenId) || {}).small ? " small" : ""}${i.kind === "token" && isFixed(p, i) ? " fixed" : ""}" data-uid="${i.uid}" style="left:${i.x}px;top:${i.y}px;transform:rotate(${faced(p, i) ? 0 : i.rot || 0}deg)">${inner}${faced(p, i) ? `<span class="facearr" style="transform:rotate(${i.rot || 0}deg)" aria-hidden="true"></span>` : ""}</div>`;
 }
 const fchipsHTML = (p, t, attr = "data-curf") => `<div class="fchips">${players(p, t).map((x, i) => `<button class="fchip" ${attr}="${i}" aria-pressed="${i === t.curF}"><span class="dot" style="background:${x.color};border-radius:50%"></span>${esc(x.name)}</button>`).join("")}</div>`;
 function selBarHTML(p, i) {
@@ -186,14 +188,14 @@ function selBarHTML(p, i) {
     const en = k && b ? enemyCells(p, p.table, i) : []; const near = en.length ? Math.min(...en.map(e => hexDist(b, k, e))) : null;
     return `<div class="selbar"><b>${esc(u.name)} <span class="mono" style="font-weight:400">${esc(unitVals(effUnit(p, i, u), i.reduced))}</span>${p.table.moved && p.table.moved[i.uid] ? ` <span class="count">· táhla</span>` : ""}</b>
       ${k ? `<span class="hint">Pole ${k.split(",").map(n => pad2(+n + 1)).join("")}${ter ? " · " + esc(ter.name) + ` (pohyb ${esc(ter.move)}, obrana ×${ter.def})` : ""}${b.labels[k] ? " · " + esc(b.labels[k]) : ""}${near != null ? ` · nejbližší nepřítel ${near} ${plural(near, "pole", "pole", "polí")}` : ""}</span>` : ""}
-      <div class="row">${k ? `<button class="btn small ${S.rangeUid === i.uid ? "on" : ""}" data-sa="range">Dosah pohybu</button><button class="btn small ${S.losUid === i.uid && !S.losR ? "on" : ""}" data-sa="los">Výhled</button>${unitStat(p, i, "range") ? `<button class="btn small ${S.losUid === i.uid && S.losR ? "on" : ""}" data-sa="fire">Dostřel ${unitStat(p, i, "range")}</button>` : ""}` : ""}${hasReduced(u) ? `<button class="btn small" data-sa="flip">${i.reduced ? "Obnovit" : "Oslabit"}</button>` : ""}<button class="btn small" data-sa="rot">Natočit</button></div>
-      ${u.att !== "" && u.att != null || u.def !== "" && u.def != null ? `<div class="row">${Object.entries(UNIT_ST).filter(([, v]) => !!v[3] === !!+u.hp).map(([k, v]) => `<button class="btn small ${i.st && i.st[k] ? "on" : ""}" data-ust="${k}" title="${v[2]}">${v[1]} ${v[0]}</button>`).join("")}</div>
+      <div class="row">${k ? `<button class="btn small ${S.rangeUid === i.uid ? "on" : ""}" data-sa="range">Dosah pohybu</button><button class="btn small ${S.losUid === i.uid && !S.losR ? "on" : ""}" data-sa="los">Výhled</button>${unitStat(p, i, "range") ? `<button class="btn small ${S.losUid === i.uid && S.losR ? "on" : ""}" data-sa="fire">Dostřel ${unitStat(p, i, "range")}</button>` : ""}` : ""}${hasReduced(u) ? `<button class="btn small" data-sa="flip">${i.reduced ? "Obnovit" : "Oslabit"}</button>` : ""}${facingOn(p) ? "" : `<button class="btn small" data-sa="rot">Natočit</button>`}</div>
+      ${u.att !== "" && u.att != null || u.def !== "" && u.def != null ? `<div class="row">${Object.entries(UNIT_ST).filter(([, v]) => v[3] === 2 || !!v[3] === !!+u.hp).map(([k, v]) => `<button class="btn small ${i.st && i.st[k] ? "on" : ""}" data-ust="${k}" title="${v[2]}">${v[1]} ${v[0]}</button>`).join("")}</div>
       <div class="row"><button class="btn small" data-sa="asAtt">Útočí</button><button class="btn small" data-sa="addAtt">+ k útoku</button><button class="btn small" data-sa="asDef">Brání</button></div>` : ""}
-      ${commandSelHTML(p, p.table, i)}${unitsPlusSelHTML(p, p.table, i)}${crawlSelHTML(p, i)}${deliverSelHTML(p, i)}${tableNet(p) && netNodeOf(p, p.table, i) ? `<div class="row"><button class="btn small ${S.netReach && S.netReachUid === i.uid ? "on" : ""}" data-sa="netreach">Kam dojede</button></div>` : ""}
+      ${facingSelHTML(p, p.table, i)}${commandSelHTML(p, p.table, i)}${unitsPlusSelHTML(p, p.table, i)}${crawlSelHTML(p, i)}${deliverSelHTML(p, i)}${tableNet(p) && netNodeOf(p, p.table, i) ? `<div class="row"><button class="btn small ${S.netReach && S.netReachUid === i.uid ? "on" : ""}" data-sa="netreach">Kam dojede</button></div>` : ""}
       <div class="row"><button class="btn small" data-sa="dup">Duplikovat</button><button class="btn small danger" data-sa="remove">Zničit</button></div></div>`;
   }
   const tk = p.tokens.find(x => x.id === i.tokenId);
-  return `<div class="selbar"><b>${esc(tk.name)}</b>${tk.fixed ? `<span class="hint">Pevný žeton${modText(tk) ? ` – jednotkám na tomto poli: ${esc(modText(tk))}` : ""}.</span><div class="row"><button class="btn small" data-unfix="1">${i.free ? "Znovu ukotvit" : "Odemknout pro přesun"}</button></div>` : ""}${tk.small ? `<span class="hint">Vybavení${modText(tk) ? " (" + esc(modText(tk)) + ")" : ""} – přetáhni žeton na jednotku a připne se k ní.</span>` : ""}
+  return `<div class="selbar"><b>${esc(tk.name)}</b>${tk.fixed ? `<span class="hint">Pevný žeton${modText(tk) ? ` – jednotkám na tomto poli: ${esc(modText(tk))}` : ""}.</span><div class="row"><button class="btn small" data-unfix="1">${i.free ? "Znovu ukotvit" : "Odemknout pro přesun"}</button></div>${facingSelHTML(p, p.table, i)}` : ""}${tk.small ? `<span class="hint">Vybavení${modText(tk) ? " (" + esc(modText(tk)) + ")" : ""} – přetáhni žeton na jednotku a připne se k ní.</span>` : ""}
     ${tk.counter ? `<div class="row"><button class="btn small" data-sa="minus" aria-label="Ubrat">−</button><span class="mono" style="font-size:1.2rem;min-width:40px;text-align:center">${i.value || 0}</span><button class="btn small" data-sa="plus" aria-label="Přidat">+</button><button class="btn small" data-sa="plus5">+5</button></div>` : ""}
     <div class="row"><button class="btn small" data-sa="dup">Duplikovat</button><button class="btn small danger" data-sa="remove">Odebrat ze stolu</button></div></div>`;
 }
@@ -452,7 +454,7 @@ function combatCalc(p) {
   const C = S.combat; const ter = p.terrains.find(x => x.id === C.terrainId) || p.terrains[0];
   const defEff = Math.round((+C.def || 0) * (ter ? +ter.def || 1 : 1) * 10) / 10;
   const base = crtColumn(+C.att || 0, defEff, p.crt.cols);
-  const col = Math.max(0, Math.min(p.crt.cols.length - 1, (base < 0 ? 0 : base) + (+C.shift || 0)));
+  const col = Math.max(0, Math.min(p.crt.cols.length - 1, (base < 0 ? 0 : base) + (+C.shift || 0) + (+C.fshift || 0)));
   return { defEff, base, col };
 }
 function sideCombat(p, t) {
@@ -464,7 +466,7 @@ function sideCombat(p, t) {
         <label class="f">Síla obrany<input type="number" id="cDef" value="${C.def}"></label></div>
       <label class="f">Terén obránce<select id="cTer">${p.terrains.map(x => `<option value="${x.id}" ${x.id === C.terrainId ? "selected" : ""}>${esc(x.name)} (×${x.def})</option>`).join("")}</select></label>
       <label class="f">Posun sloupce (podpora, překvapení…)<select id="cShift">${[-3, -2, -1, 0, 1, 2, 3].map(n => `<option value="${n}" ${n === +C.shift ? "selected" : ""}>${n > 0 ? "+" + n : n}</option>`).join("")}</select></label>
-      <div class="hint">Obrana po terénu: <b class="mono">${defEff}</b> · poměr <b class="mono">${ratioText(+C.att || 0, defEff)}</b> → sloupec <b class="mono">${esc(p.crt.cols[col])}</b>${base < 0 ? " (pod nejnižším poměrem)" : ""}</div>
+      <div class="hint">Obrana po terénu: <b class="mono">${defEff}</b> · poměr <b class="mono">${ratioText(+C.att || 0, defEff)}</b> → sloupec <b class="mono">${esc(p.crt.cols[col])}</b>${base < 0 ? " (pod nejnižším poměrem)" : ""}${C.ftext ? `<br>Poloha: ${esc(C.ftext)} (posun ${+C.fshift > 0 ? "+" : ""}${+C.fshift || 0})` : ""}</div>
       <button class="btn primary" id="cRoll">Hodit k${p.crt.rows.length} a vyhodnotit</button>
       ${C.res ? `<div class="result"><span>Hod ${C.res.roll} · sloupec ${esc(C.res.col)}</span><b>${esc(C.res.out || "–")}</b><span style="font-size:.85rem">${esc(legendFor(p, C.res.out))}</span></div>` : ""}
       <div style="overflow-x:auto"><table class="crt-tab"><thead><tr><th></th>${p.crt.cols.map((c, i) => `<th class="${i === col ? "hl" : ""}">${esc(c)}</th>`).join("")}</tr></thead>
@@ -679,7 +681,7 @@ function wireTable(main, p, t) {
   cin("cAtt", "att"); cin("cDef", "def"); cin("cTer", "terrainId", v => v); cin("cShift", "shift"); cin("cAD", "aDice"); cin("cDD", "dDice");
   if (q("cRoll")) q("cRoll").onclick = () => { if (!gate(p, t, "boj")) return; const { defEff, col } = combatCalc(p); const roll = rnd(p.crt.rows.length); const out = p.crt.rows[roll - 1][col]; C.res = { roll, ci: col, col: p.crt.cols[col], out }; C.log.unshift(`${C.att} : ${defEff} (${ratioText(+C.att || 0, defEff)}) → ${p.crt.cols[col]}, hod ${roll} = ${out}`); C.log = C.log.slice(0, 12); logEv(t, `boj ${C.att}:${defEff} (${p.crt.cols[col]}), hod ${roll} → ${out}`); after(p, t, "boj", (cp || {}).id, out); save(); render(); };
   if (q("cRollD")) q("cRollD").onclick = () => { if (!gate(p, t, "boj")) return; const ds = +p.dice.sides || 6; const a = Array.from({ length: Math.min(20, +C.aDice || 0) }, () => rnd(ds)), d = Array.from({ length: Math.min(20, +C.dDice || 0) }, () => rnd(ds)); C.dres = { a, d, aHits: a.filter(v => v >= p.dice.aHit).length, dHits: d.filter(v => v >= p.dice.dHit).length }; C.log.unshift(`Kostky ${a.length} vs ${d.length}: útočník ${C.dres.aHits} zás., obránce ${C.dres.dHits} zás.`); C.log = C.log.slice(0, 12); render(); };
-  if (q("cClear")) q("cClear").onclick = () => { C.att = 0; C.def = 0; C.res = null; C.shift = 0; C.attUids = []; C.defUid = null; render(); };
+  if (q("cClear")) q("cClear").onclick = () => { C.att = 0; C.def = 0; C.res = null; C.shift = 0; C.attUids = []; C.defUid = null; C.zone = ""; C.fshift = 0; C.ftext = ""; render(); };
   // území
   if (q("ctrlMode")) q("ctrlMode").onclick = () => { S.ctrlMode = !S.ctrlMode; S.sel = null; render(); };
   if (q("ctrlPaint")) q("ctrlPaint").onchange = e => { S.ctrlPaint = e.target.value; };
@@ -687,13 +689,13 @@ function wireTable(main, p, t) {
   if (q("ctrlAuto")) q("ctrlAuto").onclick = () => { let n = 0; t.items.filter(i => i.kind === "unit").forEach(i => { const k = cellUnder(p, i); const u = p.units.find(x => x.id === i.unitId); if (k && u && u.factionId) { t.control[k] = u.factionId; n++; } }); save(); render(); toast(`Přiděleno ${n} ${plural(n, "pole", "pole", "polí")}`); };
   // vybraná položka
   const selItem = t.items.find(i => i.uid === S.sel);
-  wireExtra(main, p, t, save); wireR4(main, p, t, save); wireWar(main, p, t, save); wireIpad(main, p, t, save); wireOnline(main, p, t, save); wireMore(main, p, t, save); wireCrawl(main, p, t, save); wireLogic(main, p, t, save); wireCmap(main, p, t, save); wireExtra2(main, p, t, save); wireNet(main, p, t, save); wireDeliver(main, p, t, save); wireCB(main, p, t, save); wireRail(main, p, t, save); wireCommand(main, p, t, save); wireUnitsPlus(main, p, t, save);
+  wireExtra(main, p, t, save); wireR4(main, p, t, save); wireWar(main, p, t, save); wireIpad(main, p, t, save); wireOnline(main, p, t, save); wireMore(main, p, t, save); wireCrawl(main, p, t, save); wireLogic(main, p, t, save); wireCmap(main, p, t, save); wireExtra2(main, p, t, save); wireNet(main, p, t, save); wireDeliver(main, p, t, save); wireCB(main, p, t, save); wireRail(main, p, t, save); wireCommand(main, p, t, save); wireUnitsPlus(main, p, t, save); wireFacing(main, p, t, save);
   const cardTo = (el, where) => { if (where === "tab" && !gate(p, t, "vylozit")) return; const i = selItem; t.items = t.items.filter(x => x !== i); const fid = el.dataset[where === "hand" ? "tohand" : "totab"]; const h = { deckId: i.deckId, cardId: i.cardId }; (where === "hand" ? (t.hands[fid] = t.hands[fid] || []) : (t.tableau[fid] = t.tableau[fid] || [])).push(h); if (where === "tab") { const c = cardOf(p, h).c; logEv(t, `${p.factions.find(f => f.id === fid).name} vykládá ${c.title}`); if (c.effect) runEffects(p, t, fid, c.effect, c.title); after(p, t, "vylozit", fid, c.type); } S.sel = null; save(); render(); };
   on("[data-tohand]", el => cardTo(el, "hand")); on("[data-totab]", el => cardTo(el, "tab"));
   on("[data-sa]", el => {
     const i = selItem; const a = el.dataset.sa;
     if (a === "flip") { if (i.kind === "unit") i.reduced = !i.reduced; else i.faceUp = !i.faceUp; }
-    else if (a === "rot") i.rot = ((i.rot || 0) + (i.kind === "unit" ? 60 : 90)) % 360;
+    else if (a === "rot") i.rot = ((i.rot || 0) + rotStep(p, i)) % 360;
     else if (a === "range") { S.rangeUid = S.rangeUid === i.uid ? null : i.uid; render(); return; }
     else if (a === "los") { S.losUid = S.losUid === i.uid && !S.losR ? null : i.uid; S.losR = null; render(); return; }
     else if (a === "fire") return;
@@ -706,12 +708,15 @@ function wireTable(main, p, t) {
     else if (a === "dup") { const n = { ...i, uid: uid(), x: i.x + 20, y: i.y + 20 }; t.items.push(n); S.sel = n.uid; }
     else if (a === "asAtt" || a === "addAtt" || a === "asDef") {
       if (a !== "asDef" && actViolation(p, i).length && !gate(p, t, "boj", actViolation(p, i))) return;
+      if (a !== "asDef" && !useAmmo(p, t, i)) return;
+      if (a !== "asDef" && facingOn(p) && p.facing.auto) { const d0 = t.items.find(o => o.uid === C.defUid); if (d0) faceToward(p, i, d0); }
       const v = unitStat(p, i, "att"), dv = unitStat(p, i, "def");
       S.tool = "boj"; C.mode = "crt"; C.res = null;
       const half = a !== "asDef" && !inSupply(p, t, i); const va = a !== "asDef" ? unitAttack(p, t, i) : v;
       if (a === "asAtt") { C.att = va; C.attUids = [i.uid]; } else if (a === "addAtt") { C.att = (+C.att || 0) + va; C.attUids = [...(C.attUids || []), i.uid]; }
-      else { C.defUid = i.uid; C.shift = defShift(p, t, i); C.def = dv; const k = cellUnder(p, i); const b = tableBoard(p); const ter = k && b ? terrainOf(p, b, k) : null; C.terrainId = ter ? ter.id : (p.terrains[0] || {}).id; }
-      render(); toast(a === "asDef" ? `Obrana ${dv}` : `Útok ${C.att}${half ? " (mimo zásobování – polovina)" : ""}`); return;
+      else { C.defUid = i.uid; C.zone = ""; C.shift = defShift(p, t, i); C.def = dv; const k = cellUnder(p, i); const b = tableBoard(p); const ter = k && b ? terrainOf(p, b, k) : null; C.terrainId = ter ? ter.id : (p.terrains[0] || {}).id; }
+      updatePosCombat(p, t); save();
+      render(); toast((a === "asDef" ? `Obrana ${C.def}` : `Útok ${C.att}${half ? " (mimo zásobování – polovina)" : ""}`) + (C.ftext ? " · " + C.ftext : "")); return;
     }
     save(); render();
   });
@@ -771,8 +776,10 @@ function wireTable(main, p, t) {
           if (k && k !== origin) {
             if (!gate(p, t, "pohyb", moveViolations(p, t, it, origin, originRange, k))) { it.x = ox; it.y = oy; render(); return; }
             const u = p.units.find(x => x.id === it.unitId); const ter = terrainOf(p, b, k) || p.terrains[0];
+            if (facingOn(p) && p.facing.auto) faceAlong(p, it, origin, k);
             t.moved[it.uid] = true; if (hiddenFaction(p, u.factionId)) hiddenMove(p, t, it, k); else logEv(t, `${u.name} táhne na ${k.split(",").map(n => pad2(+n + 1)).join("")}${b.labels[k] ? " (" + b.labels[k] + ")" : ""}`);
             after(p, t, "pohyb", u.factionId, ter ? ter.name : ""); crawlOnMove(p, t, it, k);
+            if (triggerOverwatch(p, t, it)) { S.sel = it.uid; save(); render(); return; }
           }
         }
         if (it.kind === "unit" && cmapOn(p, t) && !b && !cmapMove(p, t, it, cmFrom)) { it.x = ox; it.y = oy; render(); return; }

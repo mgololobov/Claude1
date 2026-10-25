@@ -186,13 +186,19 @@ function endTurn(p, t, done) {
   finish();
 }
 // Výhled: vzorkuje úsečku mezi středy polí a hledá pole s terénem, který blokuje výhled.
-function losCells(p, b, k1, k2) {
+// Vrací [pole, poloha na úsečce 0–1] pro pole mezi koncovými body.
+function losPath(p, b, k1, k2) {
   const g = geo(b); const [c1, r1] = k1.split(",").map(Number), [c2, r2] = k2.split(",").map(Number);
-  const [x1, y1] = g.center(c1, r1), [x2, y2] = g.center(c2, r2); const n = Math.max(2, Math.ceil(Math.hypot(x2 - x1, y2 - y1) / 6)); const seen = new Set();
-  for (let i = 1; i < n; i++) { const cr = g.pick(x1 + (x2 - x1) * i / n, y1 + (y2 - y1) * i / n); if (cr) { const k = cr.join(","); if (k !== k1 && k !== k2) seen.add(k); } }
+  const [x1, y1] = g.center(c1, r1), [x2, y2] = g.center(c2, r2); const n = Math.max(2, Math.ceil(Math.hypot(x2 - x1, y2 - y1) / 6)); const seen = new Map();
+  for (let i = 1; i < n; i++) { const cr = g.pick(x1 + (x2 - x1) * i / n, y1 + (y2 - y1) * i / n); if (cr) { const k = cr.join(","); if (k !== k1 && k !== k2 && !seen.has(k)) seen.set(k, i / n); } }
   return [...seen];
 }
-function hasLOS(p, b, k1, k2) { return !losCells(p, b, k1, k2).some(k => { const ter = terrainOf(p, b, k); return ter && ter.blocks; }); }
+function losCells(p, b, k1, k2) { return losPath(p, b, k1, k2).map(([k]) => k); }
+// Pole zastaví výhled, když je jeho výška (překážka o 1 výš) nad čarou výhledu mezi výškami koncových polí.
+function hasLOS(p, b, k1, k2) {
+  const h1 = cellHeight(p, b, k1), h2 = cellHeight(p, b, k2);
+  return !losPath(p, b, k1, k2).some(([k, f]) => { const ter = terrainOf(p, b, k) || p.terrains[0]; const top = (+(ter && ter.h) || 0) + (ter && ter.blocks ? 1 : 0); return top > h1 + (h2 - h1) * f + 1e-9; });
+}
 function visibleFrom(p, b, k0, range) {
   const out = {}; for (let c = 0; c < b.cols; c++) for (let r = 0; r < b.rows; r++) { const k = c + "," + r; if (k === k0) continue; const d = hexDist(b, k0, k); if (d <= range && hasLOS(p, b, k0, k)) out[k] = d; }
   return out;
@@ -202,9 +208,9 @@ function fogHidden(p, t) {
   const fid = S.view; if (!fid) return null; const b = tableBoard(p); const hidden = new Set();
   t.items.forEach(i => { if (i.kind !== "unit") return; const u = p.units.find(x => x.id === i.unitId); if (u && u.factionId !== fid && hiddenFaction(p, u.factionId)) hidden.add(i.uid + ":gone"); });
   if (!p.ruleset.fog) return hidden.size ? hidden : null;
-  const own = t.items.filter(i => i.kind === "unit" && (p.units.find(u => u.id === i.unitId) || {}).factionId === fid).map(i => cellUnder(p, i)).filter(Boolean);
+  const own = t.items.filter(i => i.kind === "unit" && !i.inside && (p.units.find(u => u.id === i.unitId) || {}).factionId === fid && cellUnder(p, i));
   t.items.forEach(i => { if (i.kind !== "unit") return; const u = p.units.find(x => x.id === i.unitId); if (!u || u.factionId === fid) return;
-    const k = cellUnder(p, i); const seen = b && k && own.some(o => hexDist(b, o, k) <= +p.ruleset.sight && hasLOS(p, b, o, k)); hidden.add(i.uid + (seen ? ":block" : ":gone")); });
+    const k = cellUnder(p, i); const seen = b && k && own.some(o => { const ko = cellUnder(p, o); return hexDist(b, ko, k) <= +p.ruleset.sight && hasLOS(p, b, ko, k) && sees(p, o, i); }); hidden.add(i.uid + (seen ? ":block" : ":gone")); });
   return hidden;
 }
 // Poslední známé pozice skrytých jednotek (pro ostatní hráče).

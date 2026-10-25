@@ -22,10 +22,13 @@ function damage(p, t, it, n, by) {
 // Útok: útočník hází tolik kostek, kolik má útok, obránce tolik, kolik má obranu; zranění = zásahy − bloky.
 function crawlAttack(p, t, a, d) {
   const ua = unitOf(p, a), ud = unitOf(p, d); const s = +p.dice.sides || 6;
-  const z = unitZones(ud).length ? pickZone(p, d) : null; // zásah do náhodné zóny podle vah
-  const ad = Array.from({ length: Math.max(0, unitAttack(p, t, a)) }, () => rnd(s)), dd = Array.from({ length: Math.max(0, (z ? zoneDef(p, d, z) : unitStat(p, d, "def")) + coverOf(p, t, d)) }, () => rnd(s));
+  if (!useAmmo(p, t, a)) return `${ua.name}: došla munice`;
+  if (facingOn(p) && p.facing.auto) faceToward(p, a, d);
+  const pos = positionCombat(p, t, [a], d); // směr útoku, nepozorovaný útok, výška → kostky navíc / méně
+  const z = unitZones(ud).length ? pickZone(p, d, pos.arc) : null; // zásah do náhodné zóny podle vah (a směru)
+  const ad = Array.from({ length: Math.max(0, unitAttack(p, t, a) + pos.shift) }, () => rnd(s)), dd = Array.from({ length: Math.max(0, withAttacker(a, () => z ? zoneDef(p, d, z) : unitStat(p, d, "def")) + coverOf(p, t, d)) }, () => rnd(s));
   const hits = ad.filter(v => v >= p.dice.aHit).length, blocks = dd.filter(v => v >= p.dice.dHit).length; const dmg = Math.max(0, hits - blocks);
-  const res = `${ua.name} útočí na ${ud.name}${z ? ` (${z.name})` : ""}: ${ad.join(",") || "–"} proti ${dd.join(",") || "–"} → ${dmg} ${plural(dmg, "zranění", "zranění", "zranění")}`;
+  const res = `${ua.name} útočí na ${ud.name}${z ? ` (${z.name})` : ""}${pos.parts.length ? ` [${pos.parts.join(", ")}]` : ""}: ${ad.join(",") || "–"} proti ${dd.join(",") || "–"} → ${dmg} ${plural(dmg, "zranění", "zranění", "zranění")}`;
   const after2 = dmg ? (z ? zoneHit(p, t, d, z, dmg, a) : damage(p, t, d, dmg, a)) : ""; logEv(t, res + (after2 ? "; " + after2 : "")); return res + (after2 ? ". " + after2 : "");
 }
 function targetsOf(p, t, it) {
@@ -45,7 +48,7 @@ function monsterTurn(p, t) {
     const heroes = t.items.filter(i => isHero(p, i) && cellUnder(p, i)); if (!heroes.length) return;
     const near = k => Math.min(...heroes.map(h => hexDist(b, k, cellUnder(p, h))));
     if (!targetsOf(p, t, m).length) { const rng = computeRange(p, t, m) || {}; const best = Object.keys(rng).filter(k => !t.items.some(o => o.kind === "unit" && cellUnder(p, o) === k)).sort((a, c) => near(a) - near(c) || rng[a] - rng[c])[0];
-      if (best && near(best) < near(km)) { placeOn(p, t, m, best); out.push(`${unitOf(p, m).name} jde na ${cellName(best)}`); } }
+      if (best && near(best) < near(km)) { placeOn(p, t, m, best); if (facingOn(p) && p.facing.auto) faceAlong(p, m, km, best); out.push(`${unitOf(p, m).name} jde na ${cellName(best)}`); } }
     const tg = targetsOf(p, t, m)[0]; if (tg) out.push(crawlAttack(p, t, m, tg));
   });
   if (!out.length) out.push("Žádná příšera nejedná"); logEv(t, "tah příšer"); return out;

@@ -21,6 +21,9 @@ function checkEffect(p, text) {
 }
 function lintProject(p) {
   const out = []; const W = t => out.push({ lv: "warn", t }), E = t => out.push({ lv: "err", t });
+  if (!facingOn(p)) { p.units.filter(u => unitZones(u).some(z => z.arc)).forEach(u => W(`Jednotka „${u.name}“ má zóny vázané na směr, ale natočení jednotek je vypnuté (Mechaniky) – zóny se trefují bez ohledu na směr.`)); }
+  p.tokens.filter(x => x.frontOnly && !x.fixed).forEach(x => W(`Žeton „${x.name}“ chrání jen zepředu, ale není pevný – směr se počítá jen u pevných žetonů.`));
+  p.units.filter(u => unitZones(u).some(z => !String(z.name || "").trim())).forEach(u => W(`Jednotka „${u.name}“ má zónu bez názvu.`));
   p.decks.forEach(d => {
     const n = d.cards.reduce((a, c) => a + (+c.qty || 0), 0);
     if (!d.cards.length) W(`Balíček „${d.name}“ je prázdný.`);

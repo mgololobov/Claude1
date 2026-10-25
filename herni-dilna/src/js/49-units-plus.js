@@ -8,14 +8,14 @@ function locKey(p, t, it) {
 }
 function fieldMods(p, it, key) {
   const t = p.table || {}; const m = (MODS.find(x => x[1] === key) || [])[0]; if (!m || key === "hp") return 0; const k = locKey(p, t, it); if (!k) return 0;
-  return (t.items || []).filter(o => o.kind === "token" && (tokDef(p, o) || {}).fixed && locKey(p, t, o) === k).reduce((a, o) => a + (+tokDef(p, o)[m] || 0), 0);
+  return (t.items || []).filter(o => o.kind === "token" && (tokDef(p, o) || {}).fixed && locKey(p, t, o) === k && tokenCovers(p, o, tokDef(p, o))).reduce((a, o) => a + (+tokDef(p, o)[m] || 0), 0);
 }
 const isFixed = (p, it) => !!(tokDef(p, it) || {}).fixed && !it.free;
 // Postavení pevného žetonu na místě jednotky.
 function buildToken(p, t, unitIt, tokenId) {
   const tk = p.tokens.find(x => x.id === tokenId); const k = locKey(p, t, unitIt); if (!tk || !k) return "Jednotka nestojí na mapě";
   if (t.items.some(o => o.kind === "token" && o.tokenId === tk.id && locKey(p, t, o) === k)) return `${tk.name} tu už je`;
-  const it = { uid: uid(), kind: "token", tokenId: tk.id, x: unitIt.x, y: unitIt.y, value: 0, rot: 0 };
+  const it = { uid: uid(), kind: "token", tokenId: tk.id, x: unitIt.x, y: unitIt.y, value: 0, rot: tk.frontOnly ? unitIt.rot || 0 : 0 };
   const b = tableBoard(p); if (b) { const [c, r] = k.split(",").map(Number); const [cx, cy] = geo(b).center(c, r); it.x = Math.round(BX + cx - 23 - 14); it.y = Math.round(BY + cy - 23 + 12); }
   else if (tableNet(p)) { const n = netNode(tableNet(p), k); it.x = Math.round(BX + n.x - 40); it.y = Math.round(BY + n.y + 4); }
   else if (cmapOn(p, t)) { const bx = cmapBox(p, +k.slice(1)); it.x = bx.x + CM.W - 52; it.y = bx.y + 60; }
@@ -29,8 +29,9 @@ function zoneDef(p, it, z) {
   const general = unitStat(p, it, "def") - baseDef; const own = attachedTo(p, p.table || {}, it).filter(o => same(tokDef(p, o).zone, z.name)).reduce((a, o) => a + (+tokDef(p, o).mZone || 0), 0);
   return Math.max(0, (+z.def || 0) + general + own);
 }
-function pickZone(p, it) {
-  const zs = unitZones(unitOf(p, it)).filter(z => zoneLeft(it, z) !== 0); if (!zs.length) return null;
+function pickZone(p, it, arc) {
+  let zs = unitZones(unitOf(p, it)).filter(z => zoneLeft(it, z) !== 0); if (!zs.length) return null;
+  if (arc && zs.some(z => z.arc)) { const m = zs.filter(z => !z.arc || z.arc === arc); if (m.length) zs = m; } // zóna vázaná na směr útoku
   const w = z => z.w === "" || z.w == null ? 1 : Math.max(0, +z.w || 0); const tot = zs.reduce((a, z) => a + w(z), 0);
   if (!tot) return zs[Math.floor(Math.random() * zs.length)]; let r = Math.random() * tot;
   for (const z of zs) { r -= w(z); if (r < 0) return z; } return zs.filter(z => w(z) > 0).pop();
@@ -78,21 +79,22 @@ function unitsPlusSelHTML(p, t, i) {
 }
 function wireUnitsPlus(main, p, t, save) {
   const sel = t.items.find(i => i.uid === S.sel); const on = (s, fn) => $$(s, main).forEach(el => el.addEventListener("click", () => fn(el))); const C = S.combat;
-  on("[data-zdef]", el => { const z = el.dataset.zdef === "?" ? pickZone(p, sel) : unitZones(unitOf(p, sel)).find(x => x.name === el.dataset.zdef); if (!z) { toast("Žádná zóna"); return; }
-    S.tool = "boj"; C.mode = "crt"; C.res = null; C.def = zoneDef(p, sel, z); C.defUid = sel.uid; C.zone = z.name; C.shift = defShift(p, t, sel); const ter = tableBoard(p) && cellUnder(p, sel) ? terrainOf(p, tableBoard(p), cellUnder(p, sel)) : null; C.terrainId = ter ? ter.id : (p.terrains[0] || {}).id;
-    render(); toast(`Brání ${z.name}: obrana ${C.def}`); });
+  on("[data-zdef]", el => { const a0 = facingOn(p) && (C.attUids || []).map(u => t.items.find(i => i.uid === u)).find(Boolean); const z = el.dataset.zdef === "?" ? pickZone(p, sel, a0 ? arcOf(p, sel, a0) : null) : unitZones(unitOf(p, sel)).find(x => x.name === el.dataset.zdef); if (!z) { toast("Žádná zóna"); return; }
+    S.tool = "boj"; C.mode = "crt"; C.res = null; C.def = zoneDef(p, sel, z); C.defUid = sel.uid; C.zone = z.name; C.shift = defShift(p, t, sel); const ter = tableBoard(p) && cellUnder(p, sel) ? terrainOf(p, tableBoard(p), cellUnder(p, sel)) : null; C.terrainId = ter ? ter.id : (p.terrains[0] || {}).id; updatePosCombat(p, t);
+    render(); toast(`Brání ${z.name}: obrana ${C.def}${C.ftext ? " · " + C.ftext : ""}`); });
   on("[data-build]", el => { if (!gate(p, t, "stavba")) return; const r = buildToken(p, t, sel, el.dataset.build); if (r) { toast(r); return; } save(); render(); });
   on("[data-embark]", el => { const tr = t.items.find(o => o.uid === el.dataset.embark); if (embark(p, t, sel, tr)) { S.sel = tr.uid; save(); render(); } });
   on("[data-disembark]", el => { const o = t.items.find(x => x.uid === el.dataset.disembark); disembark(p, t, o); save(); render(); });
   on("[data-unfix]", () => { sel.free = !sel.free; save(); render(); });
 }
 // Editor zón v dialogu jednotky.
-const ZONE_PRESETS = { vozidlo: [{ name: "Podvozek", def: 4, w: 1 }, { name: "Vrch", def: 2, w: 1 }], postava: [{ name: "Hlava", def: 1, w: 1, crit: true }, { name: "Trup", def: 3, w: 3, crit: true }, { name: "Ruce", def: 2, w: 2 }, { name: "Nohy", def: 2, w: 2 }] };
+const ZONE_PRESETS = { vozidlo: [{ name: "Podvozek", def: 4, w: 1 }, { name: "Vrch", def: 2, w: 1 }], postava: [{ name: "Hlava", def: 1, w: 1, crit: true }, { name: "Trup", def: 3, w: 3, crit: true }, { name: "Ruce", def: 2, w: 2 }, { name: "Nohy", def: 2, w: 2 }],
+  pancir: [{ name: "Čelo", def: 5, w: 1, arc: "front" }, { name: "Bok", def: 3, w: 1, arc: "flank" }, { name: "Záď", def: 2, w: 1, arc: "rear" }, { name: "Vrch", def: 2, w: 0.3 }] };
 function zonesEditorHTML(u) {
   const zs = u.zones || [];
   return `<div class="eyebrow">Zóny jednotky (části s vlastní obranou)</div>
-    ${zs.map((z, i) => `<div class="row zrow"><input type="text" data-zn="${i}" value="${esc(z.name)}" placeholder="Název" style="width:110px" aria-label="Název zóny"><label class="f" style="width:74px">Obrana<input type="number" data-zd="${i}" value="${esc(z.def ?? "")}"></label><label class="f" style="width:74px" title="Kolik zásahů zóna vydrží (prázdné = zásah jde do životů)">Výdrž<input type="number" data-zh="${i}" value="${esc(z.hp ?? "")}" placeholder="–"></label><label class="f" style="width:66px" title="Jak často se zóna trefí (poměr)">Váha<input type="number" data-zw="${i}" value="${esc(z.w ?? 1)}" min="0"></label><label class="chk" title="Zničení zóny vyřadí jednotku"><input type="checkbox" data-zc="${i}" ${z.crit ? "checked" : ""}> kritická</label><button type="button" class="btn small danger" data-zdel="${i}" aria-label="Smazat zónu">✕</button></div>`).join("")}
-    <div class="row"><button type="button" class="btn small" id="zAdd">+ Zóna</button><button type="button" class="btn small" data-zpre="vozidlo">Předvolba: vozidlo</button><button type="button" class="btn small" data-zpre="postava">Předvolba: postava</button></div>`;
+    ${zs.map((z, i) => `<div class="row zrow"><input type="text" data-zn="${i}" value="${esc(z.name)}" placeholder="Název" style="width:110px" aria-label="Název zóny"><label class="f" style="width:74px">Obrana<input type="number" data-zd="${i}" value="${esc(z.def ?? "")}"></label><label class="f" style="width:74px" title="Kolik zásahů zóna vydrží (prázdné = zásah jde do životů)">Výdrž<input type="number" data-zh="${i}" value="${esc(z.hp ?? "")}" placeholder="–"></label><label class="f" style="width:66px" title="Jak často se zóna trefí (poměr)">Váha<input type="number" data-zw="${i}" value="${esc(z.w ?? 1)}" min="0"></label><label class="f" style="width:110px" title="Při natočení jednotek: zóna se zasáhne jen útokem z tohoto směru">Směr<select data-za="${i}"><option value="">jakýkoli</option>${Object.entries(ARC_NAMES).map(([k, v]) => `<option value="${k}" ${z.arc === k ? "selected" : ""}>${v}</option>`).join("")}</select></label><label class="chk" title="Zničení zóny vyřadí jednotku"><input type="checkbox" data-zc="${i}" ${z.crit ? "checked" : ""}> kritická</label><button type="button" class="btn small danger" data-zdel="${i}" aria-label="Smazat zónu">✕</button></div>`).join("")}
+    <div class="row"><button type="button" class="btn small" id="zAdd">+ Zóna</button><button type="button" class="btn small" data-zpre="vozidlo">Předvolba: vozidlo</button><button type="button" class="btn small" data-zpre="postava">Předvolba: postava</button><button type="button" class="btn small" data-zpre="pancir">Předvolba: pancíř podle směru</button></div>`;
 }
 function wireZonesEditor(d, u) {
   const box = $("#u-zones", d); const draw = () => { box.innerHTML = zonesEditorHTML(u); wire(); };
@@ -100,6 +102,7 @@ function wireZonesEditor(d, u) {
     const set = (attr, k, conv) => $$(`[${attr}]`, box).forEach(i => i.addEventListener("input", () => { u.zones[+i.getAttribute(attr)][k] = conv(i); }));
     set("data-zn", "name", i => i.value); set("data-zd", "def", i => i.value === "" ? "" : +i.value); set("data-zh", "hp", i => i.value === "" ? "" : +i.value); set("data-zw", "w", i => i.value === "" ? 1 : +i.value);
     $$("[data-zc]", box).forEach(i => i.addEventListener("change", () => { u.zones[+i.dataset.zc].crit = i.checked; }));
+    $$("[data-za]", box).forEach(i => i.addEventListener("change", () => { u.zones[+i.dataset.za].arc = i.value; }));
     $$("[data-zdel]", box).forEach(b => b.onclick = () => { u.zones.splice(+b.dataset.zdel, 1); draw(); });
     $("#zAdd", box).onclick = () => { (u.zones = u.zones || []).push({ name: "", def: "", w: 1 }); draw(); };
     $$("[data-zpre]", box).forEach(b => b.onclick = () => { u.zones = clone(ZONE_PRESETS[b.dataset.zpre]); draw(); });

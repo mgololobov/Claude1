@@ -348,3 +348,9 @@ details.cfx { border: 1px solid var(--line); border-radius: 10px; padding: 6px 1
 .titem .zb { position: absolute; left: -6px; top: -8px; background: #fbfaf6; color: #1b2421; border: 1px solid #1b2421; border-radius: 4px; font: 800 10px/14px var(--f-mono); padding: 0 3px; pointer-events: none; }
 .titem .lb { position: absolute; left: 50%; top: -10px; transform: translateX(-50%); background: #1b2421; color: #fff; border-radius: 4px; font: 800 9px/14px var(--f-mono); padding: 0 4px; white-space: nowrap; pointer-events: none; }
 .zones { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; } .zrow { align-items: end; }
+/* natočení: pruh na čelní straně žetonu (otáčí se s žetonem) */
+.titem .facearr { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
+.titem .facearr::before { content: ""; position: absolute; left: 50%; top: -11px; transform: translateX(-50%); border: 7px solid transparent; border-bottom: 10px solid #e0aa2e; border-top: 0; filter: drop-shadow(0 0 1px #1b2421) drop-shadow(0 0 1px #1b2421); }
+.titem .ammo { position: absolute; left: -6px; bottom: -8px; background: #fbfaf6; color: #1b2421; border: 1px solid #1b2421; border-radius: 4px; font: 800 10px/14px var(--f-mono); padding: 0 3px; pointer-events: none; }
+.titem .ammo.out { background: #c8463c; color: #fff; }
+.facedir { display: inline-block; font-size: 16px; color: #b07d10; width: 22px; text-align: center; }

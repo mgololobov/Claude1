@@ -3,8 +3,8 @@ function defaultTerrains() {
   return [
     { id: "plain", name: "Rovina", color: "#c9d6a3", glyph: "", move: "1", def: 1, vp: 0 },
     { id: "forest", name: "Les", color: "#7fa766", glyph: "♣", move: "2", def: 1.5, vp: 0, blocks: true },
-    { id: "hill", name: "Kopce", color: "#cdb27a", glyph: "⌒", move: "2", def: 2, vp: 0 },
-    { id: "mount", name: "Hory", color: "#9a8c7d", glyph: "▲", move: "3", def: 3, vp: 0, blocks: true },
+    { id: "hill", name: "Kopce", color: "#cdb27a", glyph: "⌒", move: "2", def: 2, vp: 0, h: 1 },
+    { id: "mount", name: "Hory", color: "#9a8c7d", glyph: "▲", move: "3", def: 3, vp: 0, blocks: true, h: 2 },
     { id: "water", name: "Voda", color: "#86b7d8", glyph: "≈", move: "–", def: 1, vp: 0 },
     { id: "town", name: "Město", color: "#d8c8ad", glyph: "■", move: "1", def: 2, vp: 3, blocks: true },
     { id: "marsh", name: "Bažina", color: "#98ae8c", glyph: "~", move: "3", def: 1, vp: 0 },
@@ -53,6 +53,6 @@ function normalize(p) {
   p.versions = p.versions || []; p.campaign = p.campaign || { log: [] }; p.boards.forEach(b => { b.regions = b.regions || {}; b.numbers = b.numbers || {}; });
   p.production = p.production || { mode: "both" }; if (p.roleRes == null) p.roleRes = ""; if (p.bluffPenalty == null) p.bluffPenalty = "";
   p.factions.forEach(f => { if (f.setup == null) f.setup = ""; if (f.bot == null) f.bot = ""; });
-  normalizeMore(p); normalizeCrawl(p); normalizeLogic(p); normalizeCmap(p); normalizeExtra(p); normalizeNet(p); normalizeDeliver(p); normalizeCB(p); normalizeRail(p);
+  normalizeMore(p); normalizeFacing(p); normalizeCrawl(p); normalizeLogic(p); normalizeCmap(p); normalizeExtra(p); normalizeNet(p); normalizeDeliver(p); normalizeCB(p); normalizeRail(p);
   return p;
 }

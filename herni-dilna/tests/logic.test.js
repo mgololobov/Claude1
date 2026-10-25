@@ -457,3 +457,35 @@ test("ukázka Obrana Brodu: rozestavení scénáře odpovídá jednotkám stran"
   const p = A.exampleWar(); const names = p.scenarios[0].setup.items.map(i => p.units.find(u => u.id === i.unitId).name);
   assert.ok(!names.includes("Transportér")); assert.equal(names.filter(n => n === "3. pěší").length, 3);
 });
+test("natočení: čelo, bok, záď a posun v boji", () => {
+  const { p, t, put } = war(); p.facing.on = true; const a = put("a", 1), d = put("d", 2);
+  d.rot = 270; assert.equal(A.arcOf(p, d, a), "front"); d.rot = 0; assert.equal(A.arcOf(p, d, a), "flank"); d.rot = 90; assert.equal(A.arcOf(p, d, a), "rear");
+  assert.equal(A.positionCombat(p, t, [a], d).shift, 2, "zezadu +2"); d.rot = 0; assert.equal(A.positionCombat(p, t, [a], d).shift, 1, "z boku +1");
+  p.facing.on = false; assert.equal(A.positionCombat(p, t, [a], d).shift, 0, "vypnuté natočení nic nemění");
+});
+test("natočení: okop chrání jen zepředu, zorné pole a nepozorovaný útok", () => {
+  const { p, t, put } = war(); p.facing.on = true; p.tokens = [{ id: "okop", name: "Okop", fixed: true, buildable: true, frontOnly: true, mDef: 2 }];
+  const d = put("d", 2), w = put("a", 1), e = put("a", 3); d.rot = 270; assert.equal(A.buildToken(p, t, d, "okop"), "");
+  assert.equal(A.withAttacker(w, () => A.unitStat(p, d, "def")), 4, "útok zepředu: 2 + okop 2"); assert.equal(A.withAttacker(e, () => A.unitStat(p, d, "def")), 2, "útok zezadu: okop nepomůže");
+  p.facing.vision = true; p.facing.adjSee = false; p.facing.view = 60;
+  assert.ok(A.sees(p, d, w)); assert.ok(!A.sees(p, d, e), "za zády nevidí"); const r = A.positionCombat(p, t, [e], d); assert.ok(r.stealth); assert.equal(r.shift, 3, "zezadu 2 + nepozorovaně 1");
+  p.facing.adjSee = true; assert.ok(A.sees(p, d, e), "sousední pole vidí vždy");
+});
+test("natočení: zóna podle směru útoku, otočení po pohybu", () => {
+  const { p, t, put } = war(); p.facing.on = true; p.units[1].zones = [{ name: "Čelo", def: 5, arc: "front" }, { name: "Záď", def: 1, arc: "rear" }];
+  const a = put("a", 1), d = put("d", 2); d.rot = 90; for (let i = 0; i < 10; i++) assert.equal(A.pickZone(p, d, A.arcOf(p, d, a)).name, "Záď");
+  A.faceAlong(p, a, "1,0", "2,0"); assert.equal(a.rot, 90, "po pohybu na východ hledí na východ"); A.faceToward(p, d, a); assert.equal(d.rot, 270);
+});
+test("výška terénu: kopec zastaví výhled, z hory je vidět přes les; útok do kopce", () => {
+  const { p, t, put } = war(); const b = p.boards[0];
+  b.terrain = { "2,0": "hill" }; assert.ok(!A.hasLOS(p, b, "0,0", "4,0"), "kopec mezi rovinami"); assert.ok(A.hasLOS(p, b, "2,0", "4,0"), "z kopce");
+  b.terrain = { "0,0": "mount", "1,0": "forest" }; assert.ok(A.hasLOS(p, b, "0,0", "5,0"), "z hory přes les u sebe");
+  b.terrain = { "0,0": "mount", "4,0": "forest" }; assert.ok(!A.hasLOS(p, b, "0,0", "5,0"), "les u cíle zakryje");
+  b.terrain = { "2,0": "hill" }; const a = put("a", 1), d = put("d", 2); assert.equal(A.positionCombat(p, t, [a], d).shift, -1, "obránce výš");
+});
+test("munice a hlídka", () => {
+  const { p, t, put } = war(); p.units[0].ammo = 2; const a = put("a", 1), d = put("d", 3);
+  assert.ok(A.useAmmo(p, t, a)); assert.ok(A.useAmmo(p, t, a)); assert.equal(A.ammoLeft(p, a), 0); assert.ok(!A.useAmmo(p, t, a), "bez munice neútočí");
+  d.st = { watch: true }; assert.equal(A.overwatchCheck(p, t, a), null, "mimo dostřel"); A.placeOn(p, t, a, "2,0"); assert.equal(A.overwatchCheck(p, t, a), d, "nepřítel vstoupil do dostřelu");
+  p.facing.on = true; p.facing.vision = true; p.facing.adjSee = false; p.facing.view = 60; d.rot = 90; assert.equal(A.overwatchCheck(p, t, a), null, "hlídka hledí jinam");
+});
