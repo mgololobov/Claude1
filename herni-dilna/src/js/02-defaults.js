@@ -2,12 +2,13 @@
 function defaultTerrains() {
   return [
     { id: "plain", name: "Rovina", color: "#c9d6a3", glyph: "", move: "1", def: 1, vp: 0 },
-    { id: "forest", name: "Les", color: "#7fa766", glyph: "♣", move: "2", def: 1.5, vp: 0, blocks: true },
+    { id: "forest", name: "Les", color: "#7fa766", glyph: "♣", move: "2", def: 1.5, vp: 0, blocks: true, burns: true, burnsTo: "burnt" },
     { id: "hill", name: "Kopce", color: "#cdb27a", glyph: "⌒", move: "2", def: 2, vp: 0, h: 1 },
     { id: "mount", name: "Hory", color: "#9a8c7d", glyph: "▲", move: "3", def: 3, vp: 0, blocks: true, h: 2 },
     { id: "water", name: "Voda", color: "#86b7d8", glyph: "≈", move: "–", def: 1, vp: 0 },
-    { id: "town", name: "Město", color: "#d8c8ad", glyph: "■", move: "1", def: 2, vp: 3, blocks: true },
+    { id: "town", name: "Město", color: "#d8c8ad", glyph: "■", move: "1", def: 2, vp: 3, blocks: true, burns: true, burnsTo: "ruins" },
     { id: "marsh", name: "Bažina", color: "#98ae8c", glyph: "~", move: "3", def: 1, vp: 0 },
+    ...burntTerrains(),
   ];
 }
 function defaultCRT() {
@@ -55,4 +56,8 @@ function normalize(p) {
   p.factions.forEach(f => { if (f.setup == null) f.setup = ""; if (f.bot == null) f.bot = ""; });
   normalizeMore(p); normalizeFacing(p); normalizeMorale(p); normalizeEnv(p); normalizeGround(p); normalizeCrawl(p); normalizeLogic(p); normalizeCmap(p); normalizeExtra(p); normalizeNet(p); normalizeDeliver(p); normalizeCB(p); normalizeRail(p);
   return p;
+}
+// Terény, které vzniknou ohněm.
+function burntTerrains() {
+  return [{ id: "burnt", name: "Spáleniště", color: "#6e655c", glyph: "⁂", move: "1", def: 1, vp: 0 }, { id: "ruins", name: "Trosky", color: "#9b8f84", glyph: "▦", move: "2", def: 2.5, vp: 0, blocks: true }];
 }

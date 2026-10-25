@@ -10,7 +10,7 @@ function renderComponents(main, p) {
   main.innerHTML = `<div class="page">
     ${exampleBanner(p)}
     <div class="panel">
-      <div class="row spread"><h2>Balíčky karet</h2><div class="row"><button class="btn" id="addDeck">+ Nový balíček</button><button class="btn" id="printSheet">Tisková archa</button><button class="btn" id="pngExp">Obrázky karet</button><button class="btn" id="ttsExp">Tabletop Simulator</button><button class="btn" id="csvExp">Export CSV</button></div></div>
+      <div class="row spread"><h2>Balíčky karet</h2><div class="row"><button class="btn" id="addDeck">+ Nový balíček</button><button class="btn primary" id="printPlan">Co vytisknout</button><button class="btn" id="printSheet">Tisková archa</button><button class="btn" id="pngExp">Obrázky karet</button><button class="btn" id="ttsExp">Tabletop Simulator</button><button class="btn" id="csvExp">Export CSV</button></div></div>
       <div class="decks">${p.decks.map(d => `<button class="chip" data-deck="${d.id}" aria-pressed="${d.id === S.deckId}"><span class="dot" style="background:${d.color}"></span>${esc(d.name)} <span class="count">${d.cards.reduce((n, c) => n + (+c.qty || 0), 0)}${d.starter ? " · start" : ""}${+d.market ? " · trh " + d.market : ""}</span></button>`).join("")}</div>
       ${deck ? `
       <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr))">
@@ -93,6 +93,7 @@ function renderComponents(main, p) {
         <label class="f">Tvar<select data-tshape="${t.id}">${Object.entries(SHAPES).map(([k, v]) => `<option value="${k}" ${k === t.shape ? "selected" : ""}>${v}</option>`).join("")}</select></label>
         ${swatchRow(t.color, `data-tc="${t.id}" data-tcolor`)}
         <label class="chk"><input type="checkbox" data-tcount="${t.id}" ${t.counter ? "checked" : ""}> Počítadlo</label>
+        <label class="f" style="width:110px" title="Kolik kusů vytisknout (prázdné = odhad podle hry)">Kusů k tisku<input type="number" min="0" max="200" data-tpq="${t.id}" value="${esc(t.printQty ?? "")}" placeholder="${tokenPrintQty(p, { ...t, printQty: "" })}"></label>
         <label class="chk" title="Malý žeton se přetažením připne na jednotku a upraví její hodnoty"><input type="checkbox" data-tsmall="${t.id}" ${t.small ? "checked" : ""}> Malý žeton – vybavení jednotky</label>
         ${fxEditorHTML(t)}
         <label class="chk" title="Po položení zůstává na místě (okop, minové pole); úpravy platí pro jednotky na stejném poli"><input type="checkbox" data-tfixed="${t.id}" ${t.fixed ? "checked" : ""}> Pevný – zůstává na místě</label>
@@ -109,6 +110,7 @@ function renderComponents(main, p) {
   $$("[data-deck]", main).forEach(b => b.onclick = () => { S.deckId = b.dataset.deck; S.cardFilter = ""; render(); });
   $("#addDeck").onclick = () => { const d = { id: uid(), name: "Balíček " + (p.decks.length + 1), color: COLORS[p.decks.length % COLORS.length], back: p.name.toUpperCase(), cards: [], market: 0, starter: false }; p.decks.push(d); S.deckId = d.id; touch(p); render(); };
   $("#printSheet").onclick = () => printDialog(p);
+  $("#printPlan").onclick = () => printPlanDialog(p);
   $("#pngExp").onclick = () => exportImages(p, "png");
   $("#ttsExp").onclick = () => exportImages(p, "tts");
   $("#csvExp").onclick = () => exportCSV(p);
@@ -169,6 +171,7 @@ function renderComponents(main, p) {
   $$("[data-ttext]", main).forEach(i => { i.addEventListener("input", () => { tok(i.dataset.ttext).text = i.value; touch(p); }); i.addEventListener("change", render); });
   $$("[data-tshape]", main).forEach(i => i.onchange = () => { tok(i.dataset.tshape).shape = i.value; touch(p); render(); });
   $$("[data-tcolor]", main).forEach(b => b.onclick = () => { tok(b.dataset.tc).color = b.dataset.tcolor; touch(p); render(); });
+  $$("[data-tpq]", main).forEach(i => i.addEventListener("change", () => { tok(i.dataset.tpq).printQty = i.value === "" ? "" : +i.value; touch(p); }));
   $$("[data-tcount]", main).forEach(i => i.onchange = () => { tok(i.dataset.tcount).counter = i.checked; touch(p); render(); });
   $$("[data-tdel]", main).forEach(b => b.onclick = () => { p.tokens = p.tokens.filter(t => t.id !== b.dataset.tdel); touch(p); render(); });
   $$("[data-tsmall]", main).forEach(i => i.onchange = () => { tok(i.dataset.tsmall).small = i.checked; if (i.checked) tok(i.dataset.tsmall).fixed = false; touch(p); render(); });
@@ -336,8 +339,8 @@ async function exportPrint(p, opt = {}) {
   const wrap = (html, bg) => opt.bleed ? `<div class="bc" style="--bc:${bg}">${html}${marks}</div>` : html;
   p.decks.forEach(d => d.cards.forEach(c => { for (let i = 0; i < (+c.qty || 0); i++) { cards.push(wrap(cardHTML(c, d), (d.template === "full" && c.img) ? `url('${esc(c.img)}')` : "#fbfaf6")); backs.push(wrap(cardHTML(c, d, false), d.backImg ? `url('${esc(d.backImg)}')` : d.color)); } }));
   const units = [], ubacks = [];
-  p.units.forEach(u => { for (let i = 0; i < (+u.qty || 0); i++) { units.push(unitHTML(p, u)); ubacks.push(hasReduced(u) ? unitHTML(p, u, true) : `<div class="unit" style="background:${(p.factions.find(f => f.id === u.factionId) || {}).color || "#888"}"></div>`); } });
-  const toks = p.tokens.map(t => tokenHTML(t, 0));
+  p.units.forEach(u => { for (let i = 0; i < unitPrintQty(p, u); i++) { units.push(unitHTML(p, u)); ubacks.push(hasReduced(u) ? unitHTML(p, u, true) : `<div class="unit" style="background:${(p.factions.find(f => f.id === u.factionId) || {}).color || "#888"}"></div>`); } });
+  const toks = p.tokens.flatMap(t => Array.from({ length: tokenPrintQty(p, t) }, () => tokenHTML(t, 0)));
   const mirror = (arr, per) => { const out = []; for (let i = 0; i < arr.length; i += per) { const row = arr.slice(i, i + per); while (row.length < per) row.push(`<div class="blank"></div>`); out.push(...row.reverse()); } return out; };
   const css = `@page{size:A4;margin:${opt.bleed ? 4 : 8}mm}*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 h1{font-size:13pt;margin:0 0 3mm}p.n{font-size:8pt;color:#555;margin:0 0 3mm}.pg{page-break-after:always}
@@ -352,7 +355,7 @@ ${(document.getElementById("card-css") || {}).textContent || ""}
 .unit .sz{font-size:.62em;letter-spacing:.1em;font-weight:700;height:1em}.unit svg{width:2.8em;height:1.8em;display:block}.unit .vals{font-weight:700;font-size:1.05em;line-height:1}
 .unit.red::after{content:"";position:absolute;top:.45em;right:-1.4em;width:4em;height:.5em;background:rgba(255,255,255,.75);transform:rotate(45deg)}.unit .note{position:absolute;left:.2em;top:1.4em;font-size:.55em;font-weight:700}
 .blank{width:16mm;height:16mm}.toks{display:flex;flex-wrap:wrap;gap:3mm}.token{width:16mm;height:16mm;display:grid;place-items:center;font-weight:700;font-size:8pt;text-align:center;border:.3mm solid rgba(0,0,0,.4);overflow:hidden}
-.token.kruh{border-radius:50%}.token.ctverec{border-radius:2mm}.token .tt{font-size:6pt}.token.figurka{border:0}.token.figurka svg{width:14mm;height:16mm}`;
+.token.kruh{border-radius:50%}.token.ctverec{border-radius:2mm}.token .tt{font-size:6pt}.token.figurka{border:0}.token.figurka svg{width:14mm;height:16mm}${opt.full ? PRINT_EXTRA_CSS : ""}`;
   let html = `<!doctype html><html lang="cs"><head><meta charset="utf-8"><title>${esc(p.name)} – tisková archa</title><link rel="stylesheet" href="${(document.querySelector('link[href*="fonts.googleapis"][rel=stylesheet]') || {}).href || ""}"><style>${css}</style></head><body>`;
   const per = opt.bleed ? 6 : 9, cols = opt.bleed ? 2 : 3, cls = opt.bleed ? "cards bl" : "cards", bw = opt.bleed ? "69mm;height:94mm" : "63mm;height:88mm";
   for (let i = 0; i < cards.length; i += per) {
@@ -363,9 +366,9 @@ ${(document.getElementById("card-css") || {}).textContent || ""}
     html += `<section class="pg"><h1>${esc(p.name)} – žetony jednotek (16 mm)</h1><div class="counters">${units.join("")}</div></section>`;
     html += `<section class="pg"><h1>Rub žetonů (oslabená strana)</h1><p class="n">Zrcadlově otočené řádky pro oboustranný tisk.</p><div class="counters">${mirror(ubacks, 12).join("")}</div></section>`;
   }
-  if (toks.length) html += `<section><h1>Žetony a markery</h1><p class="n">Každý druh jednou – vytiskni tolik kopií, kolik potřebuješ.</p><div class="toks">${toks.join("")}</div></section>`;
-  html += `</body></html>`;
-  if (!cards.length && !units.length && !toks.length) { toast("Hra zatím nemá karty ani žetony k tisku"); return; }
+  if (toks.length) html += `<section class="pg"><h1>Žetony</h1><p class="n">V počtu podle přehledu „Co vytisknout“ (počet upravíš u žetonu v Komponentách).</p><div class="counters">${toks.join("")}</div></section>`;
+  const extra = opt.full ? printExtrasHTML(p) : ""; html += extra + `</body></html>`;
+  if (!cards.length && !units.length && !toks.length && !extra) { toast("Hra zatím nemá karty ani žetony k tisku"); return; }
   toast("Připravuji tiskovou archu…"); html = await inlineImages(html);
   offerFile(slug(p.name) + "-tisk.html", html, "Tisková archa uložena – otevři ji a vytiskni");
 }

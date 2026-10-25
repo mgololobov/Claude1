@@ -18,6 +18,8 @@ function normalizeGround(p) {
   if (!E.conds.some(c => c.id === "mraz")) E.conds.push({ id: "mraz", name: "Mráz", kind: "weather", icon: "✱", w: 0, sight: "", mAtt: 0, mDef: 0, mMov: 0, mRange: 0, wet: false, wind: false });
   if (!E.conds.some(c => c.id === "boure")) E.conds.push({ id: "boure", name: "Bouře", kind: "weather", icon: "⚡", w: 0, sight: 2, mAtt: 0, mDef: 0, mMov: -1, mRange: -2, wet: true, wind: true });
   p.terrains.forEach(x => { if (x.burns == null) x.burns = ["forest", "town"].includes(x.id); });
+  // starší hry se zapnutým počasím dostanou spáleniště a trosky
+  if (E.on && p.terrains.some(x => x.burns) && !p.terrains.some(x => x.id === "burnt")) { p.terrains.push(...burntTerrains()); p.terrains.forEach(x => { if (x.burnsTo == null) x.burnsTo = x.id === "forest" ? "burnt" : x.id === "town" ? "ruins" : ""; }); }
 }
 const windy = (p, t) => envNow(p, t).some(c => c.wind), wet = (p, t) => envNow(p, t).some(c => c.wet);
 // Úpravy terénu: „Rovina +1, Bažina –, Voda 2“ → { název: "+1" | "–" | "2" }.
@@ -89,7 +91,7 @@ function fireRound(p, t) {
     const [c, r] = k.split(",").map(Number);
     for (let i = 0; i < n; i++) { const nb = dirNeighbor(b, c, r, i); if (!nb) continue; const [x, y] = nb; if (x < 0 || y < 0 || x >= b.cols || y >= b.rows) continue; const nk = x + "," + y; const ter = terrainOf(p, b, nk) || p.terrains[0];
       if (!ter || !ter.burns) continue; const ch = W ? (i === (t.windDir || 0) % n ? +F.spread : 0) : +F.still; if (ch && Math.random() * 100 < ch && placeFx(p, t, "ohen", nk)) msgs.push(`oheň se šíří na ${cellLabel(nk)}`); }
-    f.life = (f.life ?? F.life) - 1; if (f.life <= 0) { t.items = t.items.filter(o => o !== f); msgs.push(`oheň na ${cellLabel(k)} dohořel`); } });
+    f.life = (f.life ?? F.life) - 1; if (f.life <= 0) { t.items = t.items.filter(o => o !== f); msgs.push(`oheň na ${cellLabel(k)} dohořel` + burnOut(p, t, b, k)); } });
   msgs.forEach(m => logEv(t, m));
 }
 function weatherRoundFx(p, t) {
@@ -97,6 +99,13 @@ function weatherRoundFx(p, t) {
   if (windy(p, t)) { const b = tableBoard(p); const n = b && b.type === "square" ? 4 : 6; if (t.windDir == null || Math.random() < 0.34) { t.windDir = Math.floor(Math.random() * n); logEv(t, `vítr fouká na ${windName(p, t)}`); } }
   fireRound(p, t);
 }
+// Dohořelé pole změní terén (les → spáleniště, město → trosky); hra ho drží v tabulce stolu, návrh mapy zůstává.
+function burnOut(p, t, b, k) {
+  const ter = terrainOf(p, b, k); const to = ter && ter.burnsTo && p.terrains.find(x => x.id === ter.burnsTo); if (!to) return "";
+  (t.terrainOverride = t.terrainOverride || {})[k] = to.id; return `, ${ter.name.toLowerCase()} je teď ${to.name.toLowerCase()}`;
+}
+// Oheň v noci osvětlí okolí: jednotka na hořícím nebo sousedním poli je vidět až do běžného výhledu.
+function litByFire(p, t, k) { const b = tableBoard(p); return !!(b && k && fxItems(p, t, "ohen").some(o => { const kf = cellUnder(p, o); return kf && hexDist(b, kf, k) <= 1; })); }
 // Vstup do ohně pálí jako mina.
 function fireOnEnter(p, t, it, k) { if (!fxItems(p, t, "ohen").some(o => cellUnder(p, o) === k)) return ""; const m = burnUnits(p, t, k, "oheň").join("; "); if (m) logEv(t, m); return m; }
 function groundSideHTML(p, t) {

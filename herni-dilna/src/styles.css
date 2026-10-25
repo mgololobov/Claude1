@@ -363,3 +363,4 @@ details.cfx { border: 1px solid var(--line); border-radius: 10px; padding: 6px 1
 .titem.fx-kour { opacity: .55; transform: scale(.72) !important; }
 .titem.fx-kour .token-label, .titem.fx-ohen .token-label { display: none; }
 .titem.fx-ohen { transform: scale(.8) !important; filter: drop-shadow(0 0 6px #ff8a2e); }
+table.plan td { text-align: left; font-family: var(--f-body); } table.plan td.mono { text-align: right; font-family: var(--f-mono); }

@@ -21,13 +21,14 @@ function geoRaw(b) {
         for (let r = r0 - 1; r <= r0 + 1; r++) { if (r < 0 || r >= b.rows) continue; const [cx, cy] = center(c, r); const d = Math.hypot(cx - x, cy - y); if (d < bd) { bd = d; best = [c, r]; } } }
       return bd <= s ? best : null; } };
 }
-function terrainOf(p, b, k) { const id = b.terrain[k]; return p.terrains.find(t => t.id === id) || null; }
+// Terén pole; na hracím stole může být změněný hrou (spálený les → spáleniště).
+function terrainOf(p, b, k) { const T = p.table; const o = T && T.terrainOverride && T.boardId === b.id ? T.terrainOverride[k] : null; const id = o || b.terrain[k]; return p.terrains.find(t => t.id === id) || null; }
 // Neměnné vrstvy mapy (terén, popisky, regiony) se drží v mezipaměti – u velkých map se jinak skládají při každém překreslení.
 const SVG_CACHE = new Map();
 function boardStatic(p, b) {
   // Obrázek pozadí může mít stovky kB – do klíče jde jen jeho délka a konec.
   const bgKey = b.bg ? [b.bg.url || "", (b.bg.data || "").length, (b.bg.data || "").slice(-40), b.bg.opacity, b.bg.terrainOpacity] : null;
-  const key = JSON.stringify([b.type, b.size, b.cols, b.rows, b.terrain, b.labels, b.numbers, b.regions, bgKey, b.coords, b.regionColors, p.terrains]);
+  const key = JSON.stringify([b.type, b.size, b.cols, b.rows, b.terrain, b.labels, b.numbers, b.regions, bgKey, b.coords, b.regionColors, p.terrains, p.table && p.table.boardId === b.id ? p.table.terrainOverride : null]);
   let c = SVG_CACHE.get(b.id); if (c && c.key === key) return c;
   const g = geo(b); const cells = [], marks = [], regs = []; const base = p.terrains[0];
   for (let c2 = 0; c2 < b.cols; c2++) for (let r = 0; r < b.rows; r++) {

@@ -567,3 +567,17 @@ test("vítr, kouř a oheň: kouř zakryje výhled a pluje po větru, oheň se š
   const d = put("d", 5); const dym = { name: "Dýmovnice", use: "once", target: "area", foes: "all", reach: 5, radius: 1, spawn: "kour" }; A.useItem(p, t, a, { kind: "tok", src: { uid: "z" }, def: dym }, d);
   assert.ok(A.smokeSet(p, t).has("4,0") && A.smokeSet(p, t).has("5,0"), "dýmovnice zakouřila okruh");
 });
+test("oheň dohoří: les se změní na spáleniště jen ve hře, návrh mapy zůstane", () => {
+  const { p, t } = war(); p.env.on = true; A.normalize(p); const b = p.boards[0]; b.terrain = { "2,0": "forest" }; p.env.fire.spread = 0; p.env.fire.still = 0;
+  const f = A.placeFx(p, t, "ohen", "2,0"); f.life = 1; t.envWeather = "Jasno"; A.fireRound(p, t);
+  assert.equal(A.terrainOf(p, b, "2,0").name, "Spáleniště"); assert.equal(b.terrain["2,0"], "forest", "návrh mapy nezměněn"); assert.ok(!A.terrainOf(p, b, "2,0").blocks, "spáleniště neblokuje výhled");
+});
+test("hra bez aplikace: váhy počasí na kostku, procenta na hod, co vytisknout", () => {
+  const w = A.weightsToDie([{ name: "Jasno", w: 4 }, { name: "Mlha", w: 1 }, { name: "Déšť", w: 2 }, { name: "Vítr", w: 1 }, { name: "Sníh", w: 0 }]);
+  assert.equal(w.sides, 8); assert.deepEqual(w.rows.map(r => [r.name, r.from, r.to]), [["Jasno", 1, 4], ["Mlha", 5, 5], ["Déšť", 6, 7], ["Vítr", 8, 8]]);
+  assert.equal(A.weightsToDie([{ name: "a", w: 1 }, { name: "b", w: 1 }, { name: "c", w: 1 }]).sides, 6);
+  assert.equal(A.pctToRoll(50), "k6: 4+"); assert.equal(A.pctToRoll(30), "k10: 1–3"); assert.equal(A.pctToRoll(15), "k100: 1–15"); assert.equal(A.pctToRoll(0), "nikdy");
+  const p = A.exampleWar(); const rows = A.printNeeds(p); const by = n => rows.find(r => r.name === n);
+  assert.equal(by("Jednotky – Červení").qty, 5, "3× pěší + husaři + baterie podle scénáře"); assert.ok(by("Mina").qty >= 6); assert.ok(rows.some(r => r.group === "Mapa" && r.sheets >= 2));
+  assert.ok(rows.some(r => r.group === "Kostky" && r.name === "k6")); assert.ok(rows.some(r => r.name === "Rozvrácená")); assert.ok(A.analogTablesHTML(p).includes("Na začátku kola hoď"));
+});

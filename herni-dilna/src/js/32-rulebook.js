@@ -23,18 +23,7 @@ function describeEffect(text) {
   const s = (once ? parts.shift() + " " : "") + parts.join("; "); return s.charAt(0).toUpperCase() + s.slice(1) + ".";
 }
 function componentList(p) {
-  const rows = [];
-  p.decks.forEach(d => rows.push([`Karty – ${d.name}${d.starter ? " (startovní, pro každého hráče)" : ""}`, d.cards.reduce((a, c) => a + (+c.qty || 0), 0) * (d.starter ? Math.max(1, p.factions.length) : 1)]));
-  if (p.units.length) p.factions.forEach(f => { const n = p.units.filter(u => u.factionId === f.id).reduce((a, u) => a + (+u.qty || 0), 0); if (n) rows.push([`Žetony jednotek – ${f.name}`, n]); });
-  p.tokens.forEach(t => rows.push([`Žeton: ${t.name}`, "dle potřeby"]));
-  if (p.tiles.length) rows.push(["Dílky", p.tiles.reduce((a, t) => a + (+t.qty || 0), 0)]);
-  p.boards.forEach(b => rows.push([`Herní deska „${b.name}“ (${b.cols}×${b.rows} ${b.type === "hex" ? "hexů" : "polí"})`, 1]));
-  p.bags.forEach(b => rows.push([`Sáček „${b.name}“ + žetony (${b.contents.map(c => `${c.count}× ${c.label}`).join(", ")})`, 1]));
-  p.cdice.forEach(d => rows.push([`Kostka „${d.name}“ (${d.faces.map(f => f || "prázdná").join(", ")})`, 1]));
-  if (p.resources.length) rows.push([`Žetony zdrojů: ${p.resources.map(r => r.name).join(", ")}`, "dle potřeby"]);
-  if (p.actionMode !== "slots" || p.actions.length) if (p.actions.length) rows.push([`Figurky hráčů (${p.factions.length} barev)`, `${p.factions.length} × 3–5`]);
-  if (+p.track.length) rows.push([`Závodní dráha (${p.track.length} polí) a figurky`, 1]);
-  return rows;
+  return printNeeds(p).filter(r => r.group !== "Tisk pro hráče" && !/celkem/.test(r.name)).map(r => [r.name, r.qty]);
 }
 function buildRulebook(p) {
   const sec = []; const H = (t, b) => b && sec.push({ t, b });

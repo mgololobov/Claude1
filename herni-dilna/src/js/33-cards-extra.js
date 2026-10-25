@@ -47,9 +47,10 @@ function printDialog(p) {
   const d = openDialog(`<h2>Tisková archa</h2>
     <label class="chk"><input type="checkbox" id="prBleed"> Spadávka 3 mm a ořezové značky (pro tiskárnu, 6 karet na stranu)</label>
     <label class="chk"><input type="checkbox" id="prBacks" checked> Přidat rubové strany</label>
+    <label class="chk"><input type="checkbox" id="prFull" checked> Přidat mapu ve skutečné velikosti, markery, ukazatel kol a přehled pro hráče</label>
     <p class="hint">Bez spadávky se vejde 9 karet 63 × 88 mm na stranu A4. Soubor otevři v prohlížeči a vytiskni ve skutečné velikosti (100 %).</p>
     <div class="row" style="justify-content:flex-end"><button class="btn" data-close>Zrušit</button><button class="btn primary" id="prGo">Vytvořit</button></div>`);
-  $("#prGo", d).onclick = () => { const opt = { bleed: $("#prBleed", d).checked, backs: $("#prBacks", d).checked }; closeDialog(); exportPrint(p, opt); };
+  $("#prGo", d).onclick = () => { const opt = { bleed: $("#prBleed", d).checked, backs: $("#prBacks", d).checked, full: $("#prFull", d).checked }; closeDialog(); exportPrint(p, opt); };
 }
 function typeIconsHTML(p) {
   const types = [...new Set(p.decks.flatMap(d => d.cards.map(c => c.type)).filter(Boolean))];

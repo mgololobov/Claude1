@@ -281,6 +281,17 @@ const OUT = path.join(__dirname, "out"); fs.mkdirSync(OUT, { recursive: true });
     await pg.evaluate(() => { const p = P(), t = p.table; t.envWeather = "Vítr"; t.windDir = 2; placeFx(p, t, "ohen", "3,7"); touch(p); render(); });
     await pg.screenshot({ path: path.join(OUT, "kour-ohen.png") });
   });
+  await step("co vytisknout a tisková archa s mapou", async () => {
+    const idx = await pg.$$eval("#projSel option", o => o.findIndex(x => /Obrana Brodu/.test(x.textContent))); await sel(idx);
+    await pg.click("[data-tab=komponenty]"); await pg.click("#printPlan"); await pg.waitForSelector("table.plan");
+    await pg.screenshot({ path: path.join(OUT, "co-vytisknout.png") });
+    await pg.evaluate(() => { window.__printed = null; window.offerFile = (n, h) => { window.__printed = h; }; }); await pg.click("#planGo");
+    await pg.waitForFunction(() => window.__printed, null, { timeout: 15000 }); const html = await pg.evaluate(() => window.__printed);
+    if (!/list 1\/\d/.test(html) || !/přehled pro hráče/.test(html)) throw new Error("tisková archa nemá mapu nebo přehled");
+    fs.writeFileSync(path.join(OUT, "tisk.html"), html); const p2 = await b.newPage({ viewport: { width: 900, height: 1200 } }); await p2.goto("file://" + path.join(OUT, "tisk.html"));
+    const aid = await p2.$("section.aid"); await aid.scrollIntoViewIfNeeded(); await p2.screenshot({ path: path.join(OUT, "tisk-prehled.png") });
+    const tile = await p2.$("section.land, .tile"); await tile.scrollIntoViewIfNeeded(); await p2.screenshot({ path: path.join(OUT, "tisk-mapa.png") }); await p2.close();
+  });
   await step("telefon – Přehled", async () => { await pg.setViewportSize({ width: 400, height: 820 }); await pg.click("[data-tab=prehled]"); await pg.screenshot({ path: path.join(OUT, "telefon.png") }); });
   await b.close();
   console.log(`\n${fails.length ? fails.length + " kroků selhalo:\n" + fails.join("\n") : "Všechny kroky prošly."}\n${errors.length ? "Chyby v konzoli:\n" + errors.join("\n") : "Bez chyb v konzoli."}`);
