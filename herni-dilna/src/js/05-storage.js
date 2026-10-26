@@ -1,57 +1,34 @@
 // ---------- úložiště ----------
+// Vše se ukládá jen v tomto prohlížeči: hlavně do IndexedDB (pojme i hry s mnoha obrázky), kopie do localStorage pro jistotu.
+// Mezi počítači a prohlížeči se hry přenáší zálohou (Přehled → Záloha / Nahrát zálohu).
 const LS_KEY = "herni-dilna-v1";
-const store = { mode: "local", db: null, uid: null, timers: {}, chains: {}, parts: {} };
+const store = { lsFull: false, idbOk: true, timer: null };
 function lsRead() { try { const v = localStorage.getItem(LS_KEY); return v ? JSON.parse(v) : null; } catch { return null; } }
-let lsTimer = null;
-function lsWrite() { clearTimeout(lsTimer); lsTimer = setTimeout(lsWriteNow, 400); }
-function lsWriteNow() { clearTimeout(lsTimer); try { localStorage.setItem(LS_KEY, JSON.stringify({ projects: S.projects.filter(p => !p.isExample && !p.online), currentId: S.currentId })); store.lsFull = false; } catch { store.lsFull = true; if (store.mode !== "db") setSaveState("Prohlížeč je plný – stáhni zálohu"); } }
+function snapshot() { return { projects: S.projects.filter(p => !p.isExample), currentId: S.currentId, saved: Date.now() }; }
+function idbOpen() {
+  return new Promise((res, rej) => { if (!window.indexedDB) { rej(new Error("bez IndexedDB")); return; }
+    const r = indexedDB.open("herni-dilna", 1); r.onupgradeneeded = () => r.result.createObjectStore("data"); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
+}
+async function idbGet() { const db = await idbOpen(); return new Promise((res, rej) => { const q = db.transaction("data").objectStore("data").get("state"); q.onsuccess = () => res(q.result || null); q.onerror = () => rej(q.error); }); }
+async function idbPut(v) { const db = await idbOpen(); return new Promise((res, rej) => { const tx = db.transaction("data", "readwrite"); tx.objectStore("data").put(v, "state"); tx.oncomplete = () => res(); tx.onerror = () => rej(tx.error); tx.onabort = () => rej(tx.error); }); }
+function lsWrite() { clearTimeout(store.timer); store.timer = setTimeout(lsWriteNow, 400); }
+function lsWriteNow() {
+  clearTimeout(store.timer); const snap = snapshot();
+  try { localStorage.setItem(LS_KEY, JSON.stringify(snap)); store.lsFull = false; } catch { store.lsFull = true; }
+  idbPut(snap).then(() => { store.idbOk = true; setSaveState("Uloženo v tomto prohlížeči"); })
+    .catch(() => { store.idbOk = false; setSaveState(store.lsFull ? "Úložiště prohlížeče je plné – stáhni zálohu" : "Uloženo v tomto prohlížeči"); });
+}
+// Po startu: novější stav z IndexedDB má přednost před localStorage (ten se při velkých hrách nemusel vejít).
+async function loadIdb() {
+  try { const v = await idbGet(); if (!v || !v.projects) return; const ls = lsRead();
+    if (ls && ls.saved && v.saved && ls.saved >= v.saved) return;
+    S.projects = [...v.projects.map(normalize), ...allExamples()]; if (v.currentId && S.projects.find(p => p.id === v.currentId)) S.currentId = v.currentId; else S.currentId = S.projects[0].id; render(); }
+  catch { }
+}
 onInit(() => window.addEventListener("pagehide", () => lsWriteNow()));
 onInit(() => document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") lsWriteNow(); }));
-function setSaveState(t) { $("#saveState").textContent = t; }
-// K účtu se projekt ukládá po částech, aby žádná nepřekročila limit 256 kB jednoho záznamu:
-//   <id> návrh · <id>--table herní stůl · <id>--tests záznamy testů · <id>--v-<id> verze · <id>--img-<n> vložené obrázky
-// Zapisují se jen části, které se od posledního uložení změnily.
-const IMG_CHUNK = 190000;
-function splitProject(p) {
-  const q = clone(p); delete q.isExample; const parts = {}; const imgs = [];
-  q.decks.forEach(d => { if (d.backImg && d.backImg.startsWith("data:")) { imgs.push(["back", d.id, d.backImg]); d.backImg = "@img"; }
-    d.cards.forEach(c => { if (c.img && c.img.startsWith("data:")) { imgs.push(["card", d.id + "/" + c.id, c.img]); c.img = "@img"; } }); });
-  q.boards.forEach(b => { if (b.bg && b.bg.data) { imgs.push(["board", b.id, b.bg.data]); b.bg.data = "@img"; } });
-  parts.table = { table: q.table || null }; delete q.table;
-  parts.tests = { sessions: q.sessions || [] }; delete q.sessions;
-  (q.versions || []).forEach(v => { parts["v-" + v.id] = v; }); delete q.versions;
-  let chunk = [], size = 0, n = 0; const flush = () => { if (chunk.length) { parts["img-" + n++] = { items: chunk }; chunk = []; size = 0; } };
-  imgs.forEach(it => { if (size + it[2].length > IMG_CHUNK) flush(); chunk.push(it); size += it[2].length; }); flush();
-  parts[""] = q;
-  return parts;
-}
-function joinProject(docs) {
-  const p = docs[""]; if (!p) return null;
-  if (docs.table) p.table = docs.table.table; if (docs.tests) p.sessions = docs.tests.sessions;
-  const vs = Object.keys(docs).filter(k => k.startsWith("v-")).map(k => docs[k]); if (vs.length) p.versions = vs.sort((a, b) => (a.created || 0) - (b.created || 0));
-  Object.keys(docs).filter(k => k.startsWith("img-")).forEach(k => (docs[k].items || []).forEach(([kind, key, data]) => {
-    if (kind === "card") { const [dId, cId] = key.split("/"); const c = ((p.decks || []).find(d => d.id === dId) || { cards: [] }).cards.find(x => x.id === cId); if (c) c.img = data; }
-    else if (kind === "back") { const d = (p.decks || []).find(x => x.id === key); if (d) d.backImg = data; }
-    else if (kind === "board") { const b = (p.boards || []).find(x => x.id === key); if (b && b.bg) b.bg.data = data; }
-  }));
-  return p;
-}
-function persist(p) {
-  lsWrite();
-  if (store.mode !== "db" || p.isExample || p.online) { setSaveState(store.mode === "db" ? "" : "Uloženo v tomto prohlížeči"); return; }
-  setSaveState("Ukládám…");
-  clearTimeout(store.timers[p.id]);
-  store.timers[p.id] = setTimeout(() => {
-    const parts = splitProject(p); const last = store.parts[p.id] = store.parts[p.id] || {}; const col = store.db.collection("data/users/" + store.uid);
-    const jobs = [];
-    Object.entries(parts).forEach(([k, body]) => { const js = JSON.stringify(body); if (js.length > 255000) { jobs.push(() => Promise.reject({ code: "too_big", part: k })); return; } if (last[k] !== js) jobs.push(() => col.doc(p.id + (k ? "--" + k : "")).set(body).then(() => { last[k] = js; })); });
-    Object.keys(last).forEach(k => { if (!(k in parts)) jobs.push(() => col.doc(p.id + (k ? "--" + k : "")).delete().then(() => { delete last[k]; })); });
-    const prev = store.chains[p.id] || Promise.resolve();
-    store.chains[p.id] = prev.then(() => jobs.reduce((ch, job) => ch.then(job), Promise.resolve()))
-      .then(() => setSaveState("Uloženo"))
-      .catch(e => { setSaveState(e && e.code === "quota_exceeded" ? "Úložiště je plné" : e && e.code === "too_big" ? (e.part === "" ? "Návrh je moc velký – zkrať texty nebo smaž karty" : "Část projektu je moc velká – smaž záznam hry") : e && e.code === "invalid_argument" ? "Část projektu je moc velká" : "Neuloženo – zkusím znovu při další změně"); });
-  }, 800);
-}
+function setSaveState(t) { const el = $("#saveState"); if (el) el.textContent = t; }
+function persist(p) { lsWrite(); if (!p.isExample) setSaveState("Ukládám…"); }
 // Krok zpět při úpravách návrhu (stůl má vlastní krok zpět).
 const DU = { stacks: {}, last: {}, timer: null, skip: false };
 function designKey(p) { const q = { ...p }; delete q.table; delete q.sessions; delete q.versions; delete q.updatedAt; delete q.isExample; return JSON.stringify(q); }
@@ -66,37 +43,9 @@ function undoDesign() {
 function touch(p) {
   if (p.isExample) delete p.isExample; p.updatedAt = Date.now(); persist(p);
   if (!DU.skip) { clearTimeout(DU.timer); DU.timer = setTimeout(() => captureDesign(p), 600); }
-  if (p.online && typeof onlinePush === "function") onlinePush(p);
 }
-async function removeProject(p) {
+function removeProject(p) {
   S.projects = S.projects.filter(x => x.id !== p.id);
   if (!S.projects.length) S.projects.push(blankProject());
-  S.currentId = S.projects[0].id; lsWrite();
-  if (store.mode === "db") { const col = store.db.collection("data/users/" + store.uid); const keys = Object.keys(store.parts[p.id] || { "": 1 }); for (const k of keys) { try { await col.doc(p.id + (k ? "--" + k : "")).delete(); } catch {} } delete store.parts[p.id]; }
-  render();
+  S.currentId = S.projects[0].id; lsWrite(); render();
 }
-async function connectDb() {
-  try {
-    if (!window.claude || !window.claude.use) return;
-    const [db, user] = await Promise.all([window.claude.use("db"), window.claude.use("user")]);
-    if (!db || !user) return;
-    const id = await user.id(); if (!id) return;
-    const snap = await db.collection("data/users/" + id).get();
-    store.db = db; store.uid = id; store.mode = "db"; store.user = user;
-    const groups = {};
-    snap.docs.filter(d => d.exists).forEach(d => { const [base, ...rest] = d.id.split("--"); const k = rest.join("--"); (groups[base] = groups[base] || {})[k] = clone(d.data()); (store.parts[base] = store.parts[base] || {})[k] = JSON.stringify(d.data()); });
-    const remote = Object.values(groups).map(joinProject).filter(Boolean).map(normalize);
-    if (remote.length) {
-      const ids = new Set(remote.map(p => p.id));
-      const localOnly = S.projects.filter(p => !p.isExample && !ids.has(p.id));
-      S.projects = [...[...remote, ...localOnly].sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0)), ...S.projects.filter(p => p.isExample)];
-      // Starý formát (vše v jednom záznamu) se přeuloží po částech.
-      remote.forEach(p => { if (groups[p.id] && !groups[p.id].table) { store.parts[p.id] = {}; persist(p); } });
-      localOnly.forEach(persist);
-      if (!S.projects.find(p => p.id === S.currentId)) S.currentId = S.projects[0].id;
-      render();
-    } else S.projects.filter(p => !p.isExample).forEach(persist);
-    setSaveState("Ukládá se k tvému účtu");
-  } catch {}
-}
-async function cap(name) { try { return window.claude && window.claude.use ? await window.claude.use(name) : null; } catch { return null; } }

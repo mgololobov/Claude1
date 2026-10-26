@@ -55,7 +55,6 @@ function lintProject(p) {
   if (p.ruleset.win.vp && !p.resources.some(r => r.vp)) W("Cíl „vyhrává, kdo dosáhne bodů“ potřebuje zdroj označený jako Vítězné body.");
   if (!String(p.summary || "").trim()) W("Hra nemá krátký popis – hodí se pro testery i poradce.");
   // Obrázky, stůl, testy a verze se ukládají zvlášť; limit 256 kB hlídá jen samotný návrh.
-  const size = JSON.stringify(splitProject(p)[""]).length; if (size > 230000) E(`Návrh hry má ${Math.round(size / 1024)} kB, k účtu se uloží nejvýš 250 kB – zkrať texty nebo rozděl hru.`);
   lintMore(p, E, W);
   return out;
 }

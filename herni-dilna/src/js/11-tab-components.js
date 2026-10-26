@@ -27,7 +27,7 @@ function renderComponents(main, p) {
       ${typeIconsHTML(p)}
       <div class="row spread">
         <span class="muted">${deck.cards.length} ${plural(deck.cards.length, "druh", "druhy", "druhů")} karet, celkem ${total} ${plural(total, "kus", "kusy", "kusů")}</span>
-        <div class="row"><input type="text" id="cardFilter" placeholder="Hledat kartu…" value="${esc(S.cardFilter || "")}" style="width:180px"><button class="btn primary" id="addCard">+ Nová karta</button><button class="btn" id="bulk">Hromadně vložit</button><button class="btn" id="aiFill">✨ Efekty z textu</button><button class="btn danger" id="delDeck">Smazat balíček</button></div>
+        <div class="row"><input type="text" id="cardFilter" placeholder="Hledat kartu…" value="${esc(S.cardFilter || "")}" style="width:180px"><button class="btn primary" id="addCard">+ Nová karta</button><button class="btn" id="bulk">Hromadně vložit</button><button class="btn" id="aiFill">Efekty z textu</button><button class="btn danger" id="delDeck">Smazat balíček</button></div>
       </div>
       ${deck.cards.length ? `<div class="card-grid">${shown.map(c => `<button class="card-cell" data-card="${c.id}" aria-label="Upravit kartu ${esc(c.title)}">${cardHTML(c, deck)}<span class="qty">${c.qty}×${c.locked ? " · 🔒 zamčená" : ""}${c.effect ? " · ⚡" : ""}</span></button>`).join("")}
         ${flt ? "" : `<div class="card-cell">${cardHTML({}, deck, false)}<span class="qty">rub</span></div>`}</div>
@@ -129,7 +129,7 @@ function renderComponents(main, p) {
     $$("[data-color]", main).forEach(b => b.onclick = () => { deck.color = b.dataset.color; touch(p); render(); });
     $("#addCard").onclick = () => editCard(p, deck, null);
     $("#bulk").onclick = () => bulkDialog(p, deck);
-    $("#aiFill").onclick = () => aiFillDeck(p, deck);
+    $("#aiFill").onclick = () => fillDeckEffects(p, deck);
     $("#delDeck").onclick = () => confirmDialog(`Smazat balíček „${deck.name}“?`, `Smaže se ${deck.cards.length} ${plural(deck.cards.length, "druh", "druhy", "druhů")} karet.`, "Smazat", () => { p.decks = p.decks.filter(d => d.id !== deck.id); touch(p); render(); });
     $$("[data-card]", main).forEach(b => b.onclick = () => editCard(p, deck, deck.cards.find(c => c.id === b.dataset.card)));
   }
@@ -287,7 +287,7 @@ function editCard(p, deck, card) {
         ${p.resources.length ? `<div class="row"><span class="hint">Vložit ikonu:</span>${p.resources.map(r => `<button type="button" class="btn small" data-ins="${esc(r.name)}"><span class="dot" style="background:${r.color}"></span>${esc(r.icon || "")} ${esc(r.name)}</button>`).join("")}</div>` : ""}
         <div class="row"><label class="btn small" for="c-imgf">${c.img ? "Vyměnit obrázek" : "Nahrát obrázek"}</label><input type="file" id="c-imgf" accept="image/*" hidden>${c.img ? `<button type="button" class="btn small danger" id="c-imgdel">Odebrat obrázek</button>` : ""}<span class="hint" id="c-imgst"></span></div>
         <label class="f">Efekt při vyložení nebo zahrání (provede se sám)<input type="text" id="c-effect" value="${esc(c.effect)}" placeholder="+2 Mince; líznout 1"></label>
-        <div class="row"><button type="button" class="btn small" id="c-ai">✨ Převést text na efekt</button><span class="hint" id="c-aist"></span></div>
+        <div class="row"><button type="button" class="btn small" id="c-ai">Převést text na efekt</button><span class="hint" id="c-aist"></span></div>
         <label class="chk"><input type="checkbox" id="c-locked" ${c.locked ? "checked" : ""}> Zamčená – do hry vstoupí až po odemčení v kampani</label>
         <p class="hint">Barva a hodnota slouží pro štychy a bodování sad, vítězné body pro skóre z vyložených karet. Zápis efektů najdeš v záložce Pravidla.</p>
       </div>
@@ -303,7 +303,7 @@ function editCard(p, deck, card) {
   const prev = () => { read(); $("#c-prev", d).innerHTML = cardHTML(c, deck); };
   d.addEventListener("input", prev); d.addEventListener("change", prev); prev();
   setTimeout(() => $("#c-title", d).focus(), 30);
-  $("#c-ai", d).onclick = () => { read(); aiEffectForCard(p, c, $("#c-effect", d), $("#c-aist", d)); };
+  $("#c-ai", d).onclick = () => { read(); textEffectForCard(p, c, $("#c-effect", d), $("#c-aist", d)); };
   $$("[data-ins]", d).forEach(b => b.onclick = () => { const ta = $("#c-text", d); const pos = ta.selectionStart ?? ta.value.length; const ins = `{${b.dataset.ins}}`; ta.value = ta.value.slice(0, pos) + ins + ta.value.slice(ta.selectionEnd ?? pos); ta.focus(); ta.setSelectionRange(pos + ins.length, pos + ins.length); prev(); });
   $("#c-imgf", d).onchange = async e => { const f = e.target.files[0]; if (!f) return; $("#c-imgst", d).textContent = "Nahrávám…"; try { const r = await storeImage(f, { max: 1000, dataMax: 420, limit: 40000 }); c.img = r.url || r.data; $("#c-imgst", d).textContent = r.url ? "Uloženo" : "Uloženo zmenšené do projektu"; prev(); } catch { $("#c-imgst", d).textContent = "Obrázek se nepodařilo načíst"; } };
   if ($("#c-imgdel", d)) $("#c-imgdel", d).onclick = () => { c.img = ""; prev(); $("#c-imgst", d).textContent = "Obrázek odebrán"; };
@@ -327,17 +327,13 @@ function bulkDialog(p, deck) {
   $("#bulkIn", d).addEventListener("input", upd); $("#bulkHead", d).onchange = upd;
   $("#bulkOk", d).onclick = () => { const cs = parse(); if (!cs.length) return; deck.cards.push(...cs); touch(p); closeDialog(); render(); toast(`Přidáno: ${cs.length}`); };
 }
-// Stažení mimo aplikaci Claude (soubor otevřený z disku): běžné stažení přes prohlížeč.
+// Stažení souboru přes prohlížeč (do složky Stažené soubory).
 function localDownload(filename, data, okMsg) {
   try { const blob = data instanceof Blob ? data : new Blob([data], { type: /\.html?$/i.test(filename) ? "text/html" : /\.json$/i.test(filename) ? "application/json" : "text/plain" });
     const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = filename; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000); toast(okMsg || "Soubor uložen do Stažených souborů"); return true; }
   catch { return false; }
 }
-async function offerFile(filename, data, okMsg) {
-  const dl = await cap("downloads");
-  if (!dl) { if (!localDownload(filename, data, okMsg)) copyText(data); return; }
-  try { await dl.save({ filename, data }); toast(okMsg); } catch (e) { if (e && e.code !== "declined") copyText(data); }
-}
+function offerFile(filename, data, okMsg) { if (!localDownload(filename, data, okMsg)) copyText(data); }
 const slug = s => (s || "hra").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/gi, "-").toLowerCase();
 function exportCSV(p) {
   const rows = ["balíček;" + CARD_COLS.join(";")];
@@ -368,7 +364,7 @@ ${(document.getElementById("card-css") || {}).textContent || ""}
 .unit.red::after{content:"";position:absolute;top:.45em;right:-1.4em;width:4em;height:.5em;background:rgba(255,255,255,.75);transform:rotate(45deg)}.unit .note{position:absolute;left:.2em;top:1.4em;font-size:.55em;font-weight:700}
 .blank{width:16mm;height:16mm}.toks{display:flex;flex-wrap:wrap;gap:3mm}.token{width:16mm;height:16mm;display:grid;place-items:center;font-weight:700;font-size:8pt;text-align:center;border:.3mm solid rgba(0,0,0,.4);overflow:hidden}
 .token.kruh{border-radius:50%}.token.ctverec{border-radius:2mm}.token .tt{font-size:6pt}.token.figurka{border:0}.token.figurka svg{width:14mm;height:16mm}${opt.full ? PRINT_EXTRA_CSS : ""}`;
-  let html = `<!doctype html><html lang="cs"><head><meta charset="utf-8"><title>${esc(p.name)} – tisková archa</title><link rel="stylesheet" href="${(document.querySelector('link[href*="fonts.googleapis"][rel=stylesheet]') || {}).href || ""}"><style>${css}</style></head><body>`;
+  let html = `<!doctype html><html lang="cs"><head><meta charset="utf-8"><title>${esc(p.name)} – tisková archa</title><style>${(document.getElementById("font-css") || {}).textContent || ""}</style><style>${css}</style></head><body>`;
   const per = opt.bleed ? 6 : 9, cols = opt.bleed ? 2 : 3, cls = opt.bleed ? "cards bl" : "cards", bw = opt.bleed ? "69mm;height:94mm" : "63mm;height:88mm";
   for (let i = 0; i < cards.length; i += per) {
     html += `<section class="pg">${opt.bleed ? "" : `<h1>${esc(p.name)} – karty ${i + 1}–${Math.min(i + per, cards.length)}</h1><p class="n">Tiskni ve skutečné velikosti (100 %). Karta 63 × 88 mm.</p>`}<div class="${cls}">${cards.slice(i, i + per).join("")}</div></section>`;

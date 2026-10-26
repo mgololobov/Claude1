@@ -176,13 +176,6 @@ test("skrytý pohyb: soupeř skryté jednotky nevidí", () => {
   S.view = "bert"; assert.equal(A.fogHidden(p, t), null); S.view = "";
   p.hiddenReveal = "1"; t.turn = 1; A.hiddenMove(p, t, d, "4,0"); assert.equal(t.lastSeen[d.uid], "4,0"); assert.equal(t.secret.bert.length, 1);
 });
-test("dělené ukládání: návrh, stůl, testy, verze a obrázky se složí zpět", () => {
-  const { p } = game(); p.decks[0].cards[0].img = "data:image/png;base64," + "A".repeat(300000); p.versions = [{ id: "v1", ver: "1", snap: {} }]; p.sessions = [{ id: "s" }];
-  const parts = A.splitProject(p); assert.ok(Object.keys(parts).some(k => k.startsWith("img-"))); assert.ok(Object.values(parts).every(v => JSON.stringify(v).length < 256000 || v.items));
-  const docs = JSON.parse(JSON.stringify(parts)); const q = A.joinProject(docs);
-  assert.equal(q.decks[0].cards[0].img.length, p.decks[0].cards[0].img.length); assert.equal(q.versions.length, 1); assert.equal(q.sessions.length, 1);
-  const on = A.onlineParts({ ...p, online: { seat: "anna" } }); assert.equal(on.design.online, undefined, "online hra neprozradí, za koho kdo hraje"); assert.equal(on.tests, undefined);
-});
 test("verze a příručka", () => {
   const { p } = game(); const a = A.designSnapshot(p); p.decks[0].cards[0].cost = "5"; p.resources.push({ id: "z", name: "Zlato", start: 0 });
   const d = A.diffDesign(a, A.designSnapshot(p)); assert.ok(d.some(x => x.kind === "+" && /Zlato/.test(x.text))); assert.ok(d.some(x => x.kind === "~"));
@@ -208,12 +201,6 @@ test("simulace štychů a dražby z trhu", () => {
   const g = A.simGame(p, { rounds: 2, policy: "greedy", actions: 1 }); assert.ok(g.seats.some(s => s.score > 0), "někdo vzal štych");
   const q = A.exampleTrade(); q.marketAuction = true; S.projects = [q]; S.currentId = q.id;
   const gs = Array.from({ length: 10 }, () => A.simGame(q, { rounds: 10, policy: "greedy", actions: 2 })); assert.ok(gs.some(x => x.seats.some(s => s.played.length)));
-});
-test("online: mimo svůj tah nejde měnit stůl", () => {
-  const { p, t } = game(); const S = A.__S(); p.online = { code: "X", host: false, seat: "bert" }; t.turnLock = true; t.curF = 0;
-  S.undoBase = JSON.stringify(t); assert.equal(A.onlineBlocked(p), true);
-  p.online.seat = "anna"; assert.equal(A.onlineBlocked(p), false);
-  t.turnLock = false; p.online.seat = "bert"; S.undoBase = JSON.stringify(t); assert.equal(A.onlineBlocked(p), false);
 });
 test("kostky: zápis hodu, procentová kostka a rozdělení součtu", () => {
   assert.deepEqual(A.parseDice("2k6 + k8 + 3"), { dice: [6, 6, 8], custom: [], mod: 3 });
@@ -628,13 +615,24 @@ test("šablona podle žánru: prázdná hra převezme obsah ukázky, ponechá id
   assert.equal(p.id, id); assert.ok(!p.isExample); assert.match(p.name, /Kruh řemesel – moje verze/); assert.ok(p.rondel.on && p.decks.length === 2); assert.ok(!A.isBlank(p));
   assert.equal(A.lintProject(p).filter(m => m.lv === "err").length, 0);
 });
-test("online zámek tahu: reakci smí zahrát hráč mimo tah jen za sebe", () => {
-  const { p, t } = game(); const S = A.__S(); p.online = { code: "X", host: false, seat: "bert" }; t.turnLock = true; t.curF = 0; S.undoBase = JSON.stringify(t);
-  assert.equal(A.onlineBlocked(p), true); S.reactionBy = "bert"; assert.equal(A.onlineBlocked(p), false, "reakce za sebe projde"); assert.equal(S.reactionBy, null);
-  S.reactionBy = "cyril"; assert.equal(A.onlineBlocked(p), true, "za cizí stranu ne"); S.reactionBy = null;
-});
 test("zdrojáky: žádná funkce ani konstanta není definovaná ve dvou modulech", () => {
   const fs = require("fs"), path = require("path"); const dir = path.join(__dirname, "..", "src", "js"); const seen = {}; const dup = [];
   fs.readdirSync(dir).filter(f => f.endsWith(".js")).forEach(f => fs.readFileSync(path.join(dir, f), "utf8").split("\n").forEach(l => { const m = l.match(/^(?:async\s+)?function\s+([A-Za-z0-9_$]+)|^(?:const|let)\s+([A-Za-z0-9_$]+)\s*=/); if (!m) return; const n = m[1] || m[2]; if (seen[n]) dup.push(`${n} (${seen[n]}, ${f})`); else seen[n] = f; }));
   assert.deepEqual(dup, []);
+});
+test("text karty → efekt bez AI", () => {
+  const p = A.exampleCrafts(); const T = x => A.textToEffect(p, x);
+  assert.equal(T("Získej 2 mince a lízni 1 kartu."), "+2 Mince; líznout 1");
+  assert.equal(T("Zaplať 2 dřeva a získej 3 body."), "zaplať 2 Dřevo: +3 Body");
+  assert.equal(T("Vyber si: +2 mince, nebo lízni 2 karty."), "vyber: +2 Mince | líznout 2");
+  assert.equal(T("Ostatní hráči ztratí 1 obilí."), "ostatní -1 Obilí");
+  assert.equal(T("Jednou za kolo: dober 2 karty."), "jednou za kolo: líznout 2");
+  assert.equal(T("Tahle karta je jen pro radost."), "");
+  const t = A.exampleTower(); assert.equal(A.textToEffect(t, "2 runy a 1 čest."), "+2 Runy; +1 Čest"); assert.equal(A.textToEffect(t, "Odměna: 5 cti a karta."), "+5 Čest; líznout 1");
+});
+test("rozbor návrhu bez AI: nejasnosti, plán testů, varianty karet", () => {
+  const p = A.exampleCrafts(); p.rules = "Hraje se atd. a pak se uvidí."; p.decks[0].cards[0].text = "Získej 5 obilí."; p.decks[0].cards[0].effect = "+1 Obilí";
+  const c = A.advClarity(p); assert.match(c, /krátká/); assert.match(c, /Vágní „atd“/); assert.match(c, /text říká „\+5 Obilí“, efekt dělá „\+1 Obilí“/);
+  assert.match(A.advPlaytest(p), /rondelu/);
+  const v = A.cardVariants(p, p.decks[0], 4); assert.equal(v.length, 4); assert.ok(v.every(x => !A.checkEffect(p, x.effect).length)); assert.match(v[0].title, / II$/);
 });

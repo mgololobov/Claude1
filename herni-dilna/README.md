@@ -1,7 +1,10 @@
 # Herní dílna
 
 Webová aplikace (běží i na iPadu) pro vývoj, prototypování a testování deskových, karetních her a wargames.
-Publikuje se jako jeden soubor `dist/index.html`, ale zdroják je rozdělený do menších modulů.
+Výsledkem je jeden samostatný soubor `dist/index.html` – stačí ho uložit do libovolné složky a otevřít v prohlížeči.
+Nepotřebuje instalaci, internet ani účet: písma a knihovny (html2canvas, JSZip) jsou vložené v souboru a hry se ukládají
+v prohlížeči (IndexedDB, kopie v localStorage). Mezi počítači se hry přenášejí zálohou (Přehled → Záloha).
+Zdroják je rozdělený do menších modulů.
 
 ## Co aplikace umí
 
@@ -15,7 +18,7 @@ Publikuje se jako jeden soubor `dist/index.html`, ale zdroják je rozdělený do
 - **Dungeon crawler a kooperace:** hrdinové a příšery se životy, automat příšer, zakryté místnosti, zkušenosti, poklady, hrozba, mapa z karet lokací (Warfighter), kostičky s ohnisky (Pandemie).
 - **Logické a abstraktní:** kameny (řada, sevření, otáčení, gravitace, propojení okrajů), lámání kódu, rozsévání (mancala).
 - **18xx:** akciové společnosti, prezident, burza, vlaky s fázemi a rezivěním, dividendy, odhad tržeb.
-- **Testování:** herní stůl pro iPad (zvětšení, kreslení perem), hra online, záznamy testů s dotazníkem, simulace stovek her s laděním parametrů, příručka a tisk karet, kontrola návrhu.
+- **Testování:** herní stůl pro iPad (zvětšení, kreslení perem), hra na jednom zařízení s pohledem za stranu, záznamy testů s dotazníkem, simulace stovek her s laděním parametrů, příručka a tisk karet, kontrola návrhu.
 - **Výroba:** „Co vytisknout“ (počty kusů a archů), tisková archa s mapou ve skutečné velikosti, markery, ukazatel kol a přehled pro hráče s tabulkami pro hru bez aplikace.
 - **Začátek:** nová hra ze šablony podle žánru (wargame, crawler, deckbuilding, euro s rondelem…).
 
@@ -30,7 +33,7 @@ src/js/NN-*.js       moduly; sestavují se v pořadí čísel
   02-defaults        výchozí terén, bojová tabulka, normalizace a obnova starých projektů
   03-examples        ukázkové hry
   04-geometry        hexová a čtvercová mřížka (s mezipamětí)
-  05-storage         ukládání do prohlížeče a k účtu (po částech pod 256 kB), krok zpět v návrhu
+  05-storage         ukládání v prohlížeči (IndexedDB + localStorage), krok zpět v návrhu
   06-state           stav aplikace, hlavní vykreslení
   07-dialogs, 08-look, 09-images     dialogy, vzhled komponent, obrázky
   10–17              záložky (Přehled, Komponenty, Mapa, Mechaniky, Scénáře, Pravidla, Testování, Analýza)
@@ -38,8 +41,9 @@ src/js/NN-*.js       moduly; sestavují se v pořadí čísel
   21–27              herní stůl a jeho nástroje
   28-simulation      automatické testování (simulace stovek her)
   29-versions        uložené verze návrhu, porovnání a obnova
-  30-online          hra více lidí naráz, soukromé ruce, dotazník a zpětná vazba testerů
-  31-ai-effects      převod textu karty na efekt přes Claude
+  26-advisor         rozbor návrhu bez AI (simulace, nejasnosti, plán testů) a varianty karet
+  30-survey          dotazník po hře k záznamu testu
+  31-text-effects    převod textu karty na efekt podle pravidel (bez AI)
   32-rulebook        automatická příručka a seznam komponent
   33-cards-extra     vzácnost, rámečky, ikony typů, rub, tisk se spadávkou, export PNG a Tabletop Simulator
   34-war             provedení boje, zásobování, iniciativa, skrytý pohyb
@@ -106,11 +110,10 @@ Efekty karet, akcí, polí dráhy, startu stran a automatických pravidel:
 
 Do textu karty se ikona zdroje vloží zápisem `{Mince}`.
 
-## Online hra
+## Sestavení
 
-Hostitel založí hru na stole (Kolo → Založit online hru) a dostane pětimístný kód.
-Data hry jsou v databázi artefaktu: `games/<kód>` a `games/<kód>/parts/{design,table,img-N}`,
-zpětná vazba testerů v `games/<kód>/feedback`. Autor ji načte v záložce Testování.
+`python3 build.py` spojí `src/page.html`, styly, písma (`src/fonts`, licence SIL OFL 1.1), knihovny (`src/vendor`, MIT)
+a moduly `src/js` do jednoho souboru `dist/index.html`.
 
 ## Automatické testy na GitHubu
 

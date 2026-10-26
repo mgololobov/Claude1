@@ -240,7 +240,6 @@ function sideTurn(p, t) {
     ${envSideHTML(p, t)}
     <section><div class="eyebrow">Fáze</div><div class="phases">${p.phases.map((ph, i) => `<div class="phase ${i === t.phaseIdx ? "on" : ""}"><span class="mono">${i + 1}</span>${esc(ph)}</div>`).join("")}</div>
       ${p.phases.length ? `<button class="btn primary" id="phaseNext">Další fáze</button>` : `<span class="hint">Fáze nastavíš v Mechanikách.</span>`}</section>
-    ${onlineHTML(p, t)}
     ${p.factions.length ? `<section><div class="eyebrow">Pořadí a tah</div>${fchipsHTML(p, t)}
       ${cp && cp.ability ? `<div class="selbar" style="border-color:${cp.color}"><span class="eyebrow">Schopnost · ${esc(cp.name)}</span><span>${esc(cp.ability)}</span></div>` : ""}
       <div class="row"><button class="btn small primary" id="nextPlayer">Ukončit tah</button><button class="btn small" id="ordRand">Náhodné pořadí</button>${p.resources.some(r => r.vp && !r.global) ? `<button class="btn small" id="ordScore">Nejméně bodů první</button>` : ""}${+p.track.length ? `<button class="btn small" id="ordTrack">Nejvíc vzadu na dráze</button>` : ""}<button class="btn small" id="ordReset">Výchozí</button></div></section>` : ""}
@@ -317,10 +316,9 @@ function sideActions(p, t) {
 }
 function sideHands(p, t) {
   if (!S.handF || !p.factions.find(f => f.id === S.handF)) S.handF = p.factions[0] ? p.factions[0].id : null;
-  const seat = p.online && p.online.seat; if (seat) S.handF = seat;
   const f = p.factions.find(x => x.id === S.handF); const hand = f ? (t.hands[f.id] || []) : [];
   const ownDeck = f && ((t.pdeck[f.id] || []).length || (t.pdisc[f.id] || []).length);
-  return `<section><div class="eyebrow">Ruce hráčů</div><div class="fchips">${p.factions.map(x => `<button class="fchip" data-handf="${x.id}" aria-pressed="${x.id === S.handF}" ${seat && x.id !== seat ? "disabled" : ""}><span class="dot" style="background:${x.color};border-radius:50%"></span>${esc(x.name)} <span class="count">${(t.hands[x.id] || []).length}</span></button>`).join("")}</div></section>
+  return `<section><div class="eyebrow">Ruce hráčů</div><div class="fchips">${p.factions.map(x => `<button class="fchip" data-handf="${x.id}" aria-pressed="${x.id === S.handF}"><span class="dot" style="background:${x.color};border-radius:50%"></span>${esc(x.name)} <span class="count">${(t.hands[x.id] || []).length}</span></button>`).join("")}</div></section>
     ${f ? `<section>${S.showHand ? `<div class="row spread"><b>Ruka: ${esc(f.name)}</b><button class="btn small" id="hideHand">Skrýt</button></div>
       ${hand.length ? miniCards(p, hand, i => `${+(cardOf(p, hand[i]).c || {}).ops ? `<button class="btn small primary" data-hops="${i}">Operace ${cardOf(p, hand[i]).c.ops}</button><button class="btn small" data-htab="${i}">Událost</button>` : `<button class="btn small" data-hplay="${i}">Na stůl</button><button class="btn small" data-htab="${i}">Vyložit</button>`}<button class="btn small" data-hban="${i}" title="Odstranit kartu ze hry">Vyhostit</button><button class="btn small" data-hdisc="${i}" aria-label="Odhodit">✕</button>`) : `<div class="hint">Ruka je prázdná.</div>`}
       ${hand.length >= (+p.melds.min || 3) && p.decks.some(d => d.cards.some(c => c.suit && c.value)) ? `<button class="btn small" id="meld">Vyložit sestavu</button>` : ""}`
@@ -519,7 +517,7 @@ function sideTerritory(p, t) {
 }
 
 function wireTable(main, p, t) {
-  const save = () => { const blocked = onlineBlocked(p); S.reactionBy = null; if (blocked) { p.table = JSON.parse(S.undoBase); render(); return; } const now = JSON.stringify(p.table); if (S.undoBase && now !== S.undoBase) { S.undo.push(S.undoBase); if (S.undo.length > 40) S.undo.shift(); } S.undoBase = now; touch(p); };
+  const save = () => { const now = JSON.stringify(p.table); if (S.undoBase && now !== S.undoBase) { S.undo.push(S.undoBase); if (S.undo.length > 40) S.undo.shift(); } S.undoBase = now; touch(p); };
   const on = (sel, fn) => $$(sel, main).forEach(el => el.addEventListener("click", () => fn(el)));
   const q = id => document.getElementById(id);
   const pl = players(p, t); const cp = curPlayer(p, t);
@@ -606,8 +604,8 @@ function wireTable(main, p, t) {
   if (q("showHand")) q("showHand").onclick = () => { S.showHand = true; render(); };
   if (q("hideHand")) q("hideHand").onclick = () => { S.showHand = false; render(); };
   on("[data-hdraw]", el => { if (!gate(p, t, "lizat")) return; const c = t.piles[el.dataset.hdraw].pop(); if (!c) return; after(p, t, "lizat", S.handF); (t.hands[S.handF] = t.hands[S.handF] || []).push({ deckId: el.dataset.hdraw, cardId: c }); save(); render(); toast("Karta je v ruce"); });
-  on("[data-hplay]", el => { if (!playCheck(p, t, S.handF, t.hands[S.handF][+el.dataset.hplay], "zahrat")) return; S.reactionBy = (cardOf(p, t.hands[S.handF][+el.dataset.hplay]).c || {}).reaction ? S.handF : null; const h = t.hands[S.handF].splice(+el.dataset.hplay, 1)[0]; playDone(p, t, S.handF, h, "zahrat"); const pos = freeSpot(t); t.items.push({ uid: uid(), kind: "card", deckId: h.deckId, cardId: h.cardId, x: pos.x, y: pos.y, faceUp: true, rot: 0 }); save(); render(); });
-  on("[data-htab]", el => { if (!playCheck(p, t, S.handF, t.hands[S.handF][+el.dataset.htab], "vylozit")) return; S.reactionBy = (cardOf(p, t.hands[S.handF][+el.dataset.htab]).c || {}).reaction ? S.handF : null; const h = t.hands[S.handF].splice(+el.dataset.htab, 1)[0]; playDone(p, t, S.handF, h, "vylozit"); (t.tableau[S.handF] = t.tableau[S.handF] || []).push(h); save(); render(); });
+  on("[data-hplay]", el => { if (!playCheck(p, t, S.handF, t.hands[S.handF][+el.dataset.hplay], "zahrat")) return; const h = t.hands[S.handF].splice(+el.dataset.hplay, 1)[0]; playDone(p, t, S.handF, h, "zahrat"); const pos = freeSpot(t); t.items.push({ uid: uid(), kind: "card", deckId: h.deckId, cardId: h.cardId, x: pos.x, y: pos.y, faceUp: true, rot: 0 }); save(); render(); });
+  on("[data-htab]", el => { if (!playCheck(p, t, S.handF, t.hands[S.handF][+el.dataset.htab], "vylozit")) return; const h = t.hands[S.handF].splice(+el.dataset.htab, 1)[0]; playDone(p, t, S.handF, h, "vylozit"); (t.tableau[S.handF] = t.tableau[S.handF] || []).push(h); save(); render(); });
   on("[data-hdisc]", el => { const h = t.hands[S.handF].splice(+el.dataset.hdisc, 1)[0]; discardCard(t, h, S.handF); save(); render(); });
   // draft
   if (q("dStart")) q("dStart").onclick = () => {
@@ -703,7 +701,7 @@ function wireTable(main, p, t) {
   if (q("ctrlAuto")) q("ctrlAuto").onclick = () => { let n = 0; t.items.filter(i => i.kind === "unit").forEach(i => { const k = cellUnder(p, i); const u = p.units.find(x => x.id === i.unitId); if (k && u && u.factionId) { t.control[k] = u.factionId; n++; } }); save(); render(); toast(`Přiděleno ${n} ${plural(n, "pole", "pole", "polí")}`); };
   // vybraná položka
   const selItem = t.items.find(i => i.uid === S.sel);
-  wireExtra(main, p, t, save); wireR4(main, p, t, save); wireWar(main, p, t, save); wireIpad(main, p, t, save); wireOnline(main, p, t, save); wireMore(main, p, t, save); wireCrawl(main, p, t, save); wireLogic(main, p, t, save); wireCmap(main, p, t, save); wireExtra2(main, p, t, save); wireNet(main, p, t, save); wireDeliver(main, p, t, save); wireCB(main, p, t, save); wireRail(main, p, t, save); wireCommand(main, p, t, save); wireUnitsPlus(main, p, t, save); wireFacing(main, p, t, save); wireMorale(main, p, t, save); wireItems(main, p, t, save); wireEnvSide(main, p, t, save); wireOps(main, p, t, save); wireRondel(main, p, t, save); wireLoot(main, p, t, save); wireSelGroups(main);
+  wireExtra(main, p, t, save); wireR4(main, p, t, save); wireWar(main, p, t, save); wireIpad(main, p, t, save); wireMore(main, p, t, save); wireCrawl(main, p, t, save); wireLogic(main, p, t, save); wireCmap(main, p, t, save); wireExtra2(main, p, t, save); wireNet(main, p, t, save); wireDeliver(main, p, t, save); wireCB(main, p, t, save); wireRail(main, p, t, save); wireCommand(main, p, t, save); wireUnitsPlus(main, p, t, save); wireFacing(main, p, t, save); wireMorale(main, p, t, save); wireItems(main, p, t, save); wireEnvSide(main, p, t, save); wireOps(main, p, t, save); wireRondel(main, p, t, save); wireLoot(main, p, t, save); wireSelGroups(main);
   const cardTo = (el, where) => { if (where === "tab" && !gate(p, t, "vylozit")) return; const i = selItem; t.items = t.items.filter(x => x !== i); const fid = el.dataset[where === "hand" ? "tohand" : "totab"]; const h = { deckId: i.deckId, cardId: i.cardId }; (where === "hand" ? (t.hands[fid] = t.hands[fid] || []) : (t.tableau[fid] = t.tableau[fid] || [])).push(h); if (where === "tab") { const c = cardOf(p, h).c; logEv(t, `${p.factions.find(f => f.id === fid).name} vykládá ${c.title}`); if (c.effect) runEffects(p, t, fid, c.effect, c.title); after(p, t, "vylozit", fid, c.type); } S.sel = null; save(); render(); };
   on("[data-tohand]", el => cardTo(el, "hand")); on("[data-totab]", el => cardTo(el, "tab"));
   on("[data-sa]", el => {

@@ -52,7 +52,7 @@ function renderOverview(main, p) {
   $$("[data-del]", main).forEach(b => b.onclick = () => { p.changelog = p.changelog.filter(c => c.id !== b.dataset.del); touch(p); render(); });
   const json = () => { const q = clone(p); delete q.isExample; return JSON.stringify(q, null, 2); };
   const fname = () => (p.name || "hra").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/gi, "-").toLowerCase() + "-v" + (p.version || "0") + ".json";
-  $("#exp").onclick = async () => { const dl = await cap("downloads"); if (!dl) { if (!localDownload(fname(), json(), "Záloha uložena do Stažených souborů")) copyText(json()); return; } try { await dl.save({ filename: fname(), data: json() }); toast("Záloha uložena"); } catch (e) { if (e && e.code !== "declined") copyText(json()); } };
+  $("#exp").onclick = () => { if (!localDownload(fname(), json(), "Záloha uložena do Stažených souborů")) copyText(json()); };
   $("#expCopy").onclick = () => copyText(json());
   $("#impFile").onchange = e => {
     const f = e.target.files[0]; if (!f) return; const r = new FileReader();

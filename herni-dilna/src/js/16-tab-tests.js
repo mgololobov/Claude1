@@ -16,7 +16,7 @@ function renderTests(main, p) {
   const maxVer = Math.max(1, ...Object.values(byVer).map(x => x.min / x.n));
   main.innerHTML = `<div class="page">
     ${exampleBanner(p)}
-    <div class="row spread"><h2>Testovací hry</h2><div class="row">${(p.onlineCodes || []).length ? `<button class="btn" id="fbImp">Načíst hodnocení testerů</button>` : ""}<button class="btn primary" id="addSess">+ Zapsat odehranou hru</button></div></div>
+    <div class="row spread"><h2>Testovací hry</h2><div class="row"><button class="btn primary" id="addSess">+ Zapsat odehranou hru</button></div></div>
     <div class="stat-row">
       <div class="stat"><span class="eyebrow">Odehráno</span><b>${n}</b><span class="muted">${plural(n, "hra", "hry", "her")}</span></div>
       <div class="stat"><span class="eyebrow">Průměrná délka</span><b>${avgMin}</b><span class="muted">minut (cíl ${esc(p.time)})</span></div>
@@ -41,7 +41,6 @@ function renderTests(main, p) {
   </div>`;
   wireBanner(main);
   $("#addSess").onclick = () => editSession(p, null);
-  if ($("#fbImp")) $("#fbImp").onclick = () => importFeedback(p);
   $$("[data-edit]", main).forEach(b => b.onclick = () => editSession(p, p.sessions.find(s => s.id === b.dataset.edit)));
 }
 function fromTable(p) {
