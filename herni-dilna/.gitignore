@@ -1,2 +1,4 @@
 node_modules/
 tests/out/
+# kopie dist/index.html pro stažení
+herni-dilna.html
