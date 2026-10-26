@@ -1403,7 +1403,7 @@ function renderOverview(main, p) {
   $$("[data-del]", main).forEach(b => b.onclick = () => { p.changelog = p.changelog.filter(c => c.id !== b.dataset.del); touch(p); render(); });
   const json = () => { const q = clone(p); delete q.isExample; return JSON.stringify(q, null, 2); };
   const fname = () => (p.name || "hra").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/gi, "-").toLowerCase() + "-v" + (p.version || "0") + ".json";
-  $("#exp").onclick = async () => { const dl = await cap("downloads"); if (!dl) { copyText(json()); return; } try { await dl.save({ filename: fname(), data: json() }); toast("Záloha uložena"); } catch (e) { if (e && e.code !== "declined") copyText(json()); } };
+  $("#exp").onclick = async () => { const dl = await cap("downloads"); if (!dl) { if (!localDownload(fname(), json(), "Záloha uložena do Stažených souborů")) copyText(json()); return; } try { await dl.save({ filename: fname(), data: json() }); toast("Záloha uložena"); } catch (e) { if (e && e.code !== "declined") copyText(json()); } };
   $("#expCopy").onclick = () => copyText(json());
   $("#impFile").onchange = e => {
     const f = e.target.files[0]; if (!f) return; const r = new FileReader();
@@ -1744,9 +1744,15 @@ function bulkDialog(p, deck) {
   $("#bulkIn", d).addEventListener("input", upd); $("#bulkHead", d).onchange = upd;
   $("#bulkOk", d).onclick = () => { const cs = parse(); if (!cs.length) return; deck.cards.push(...cs); touch(p); closeDialog(); render(); toast(`Přidáno: ${cs.length}`); };
 }
+// Stažení mimo aplikaci Claude (soubor otevřený z disku): běžné stažení přes prohlížeč.
+function localDownload(filename, data, okMsg) {
+  try { const blob = data instanceof Blob ? data : new Blob([data], { type: /\.html?$/i.test(filename) ? "text/html" : /\.json$/i.test(filename) ? "application/json" : "text/plain" });
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = filename; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000); toast(okMsg || "Soubor uložen do Stažených souborů"); return true; }
+  catch { return false; }
+}
 async function offerFile(filename, data, okMsg) {
   const dl = await cap("downloads");
-  if (!dl) { copyText(data); return; }
+  if (!dl) { if (!localDownload(filename, data, okMsg)) copyText(data); return; }
   try { await dl.save({ filename, data }); toast(okMsg); } catch (e) { if (e && e.code !== "declined") copyText(data); }
 }
 const slug = s => (s || "hra").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/gi, "-").toLowerCase();
@@ -4640,7 +4646,7 @@ async function cardCanvas(html, width) {
 }
 const toBlob = c => new Promise(r => c.toBlob(r, "image/png"));
 async function offerBlob(filename, blob, okMsg) {
-  const dl = await cap("downloads"); if (!dl) { toast("Stažení souboru funguje jen v aplikaci Claude"); return; }
+  const dl = await cap("downloads"); if (!dl) { localDownload(filename, blob, okMsg); return; }
   try { await dl.save({ filename, data: blob }); toast(okMsg); } catch (e) { if (e && e.code !== "declined") toast("Soubor se nepodařilo uložit"); }
 }
 async function exportImages(p, mode) {

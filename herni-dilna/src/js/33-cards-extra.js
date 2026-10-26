@@ -13,7 +13,7 @@ async function cardCanvas(html, width) {
 }
 const toBlob = c => new Promise(r => c.toBlob(r, "image/png"));
 async function offerBlob(filename, blob, okMsg) {
-  const dl = await cap("downloads"); if (!dl) { toast("Stažení souboru funguje jen v aplikaci Claude"); return; }
+  const dl = await cap("downloads"); if (!dl) { localDownload(filename, blob, okMsg); return; }
   try { await dl.save({ filename, data: blob }); toast(okMsg); } catch (e) { if (e && e.code !== "declined") toast("Soubor se nepodařilo uložit"); }
 }
 async function exportImages(p, mode) {

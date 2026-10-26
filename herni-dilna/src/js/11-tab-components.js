@@ -327,9 +327,15 @@ function bulkDialog(p, deck) {
   $("#bulkIn", d).addEventListener("input", upd); $("#bulkHead", d).onchange = upd;
   $("#bulkOk", d).onclick = () => { const cs = parse(); if (!cs.length) return; deck.cards.push(...cs); touch(p); closeDialog(); render(); toast(`Přidáno: ${cs.length}`); };
 }
+// Stažení mimo aplikaci Claude (soubor otevřený z disku): běžné stažení přes prohlížeč.
+function localDownload(filename, data, okMsg) {
+  try { const blob = data instanceof Blob ? data : new Blob([data], { type: /\.html?$/i.test(filename) ? "text/html" : /\.json$/i.test(filename) ? "application/json" : "text/plain" });
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = filename; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000); toast(okMsg || "Soubor uložen do Stažených souborů"); return true; }
+  catch { return false; }
+}
 async function offerFile(filename, data, okMsg) {
   const dl = await cap("downloads");
-  if (!dl) { copyText(data); return; }
+  if (!dl) { if (!localDownload(filename, data, okMsg)) copyText(data); return; }
   try { await dl.save({ filename, data }); toast(okMsg); } catch (e) { if (e && e.code !== "declined") copyText(data); }
 }
 const slug = s => (s || "hra").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/gi, "-").toLowerCase();
