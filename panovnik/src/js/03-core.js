@@ -174,7 +174,7 @@ const garrisonGrain = p => men(p.troops) / 1000 * 8;
 function clanGrainUse(s, cid) { return sum(clanProvs(s, cid).map(garrisonGrain)) + sum(s.armies.filter(a => a.cl === cid).map(a => men(a.t) / 1000 * 12)); }
 function clanBudget(s, cid) {
   const C = s.clans[cid], ps = clanProvs(s, cid).filter(p => !p.siege);
-  const inc = { kraje: sum(ps.map(p => provGold(s, p))), doly: sum(ps.map(p => provMines(s, p).gold)), dan_vazalu: 0, rise: 0, cirkev: 0 };
+  const inc = { domeny: ps.length ? 12 : 0, kraje: sum(ps.map(p => provGold(s, p))), doly: sum(ps.map(p => provMines(s, p).gold)), dan_vazalu: 0, rise: 0, cirkev: 0 };
   for (const v of vassalsOf(s, cid)) inc.dan_vazalu += sum(clanProvs(s, v.id).map(p => provGold(s, p))) * 0.15;
   if (C.vassalOf) inc.dan_vazalu -= sum(ps.map(p => provGold(s, p))) * 0.15;
   if (s.hre.kingClan === cid) inc.rise = 35;
@@ -210,4 +210,5 @@ function snapshot(s) {
   const c = P(s);
   s.history.push({ t: s.turn, d: dateStr(s), gold: Math.round(c.gold), grain: Math.round(c.grain), provs: clanProvs(s, s.player).length, realm: realmProvs(s, s.player), men: clanMen(s, s.player), offs: officers(s, s.player).length, prestige: Math.round(c.prestige), net: c.last.net || 0 });
   if (s.history.length > 600) s.history.shift();
+  if (s.turn % 3 === 0) { s.worldHist = s.worldHist || []; const e = { d: MONTHS[s.month].slice(0, 3) + " " + s.year, p: {} }; for (const cl of aliveClans(s)) e.p[cl.id] = clanProvs(s, cl.id).length; s.worldHist.push(e); if (s.worldHist.length > 400) s.worldHist.shift(); }
 }

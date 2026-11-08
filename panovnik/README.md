@@ -23,6 +23,13 @@ Je to samostatný projekt, s Herní dílnou (`herni-dilna/`) nesdílí žádný 
 - **Objevy:** 16 objevů v pěti oborech. **Události:** přes 25 událostí s volbami a historické zprávy.
 - **Cíl:** ovládnout polovinu krajů, nebo být císařem a vládnout třetině krajů.
 
+## Grafika
+
+- Politická mapa s územími rodů a hranicemi říší, hrady, sídly, vojsky a obléháním.
+- Zjednodušené erby rodů podle skutečné heraldiky (arpádovské pruhy, bavorské routy, piastovské a slezské orlice, český a habsburský lev, řádový kříž…).
+- Přehled jako nástěnka: dlaždice s vývojem zlata, obilí, krajů, vojska a prestiže a graf moci rodů v čase.
+- Schopnosti vazalů a stav krajů jako pruhy, složení vojska jako barevný pruh, průběh bitvy jako graf, rodokmen.
+
 ## Struktura
 
 ```
@@ -35,7 +42,8 @@ src/js/06-war.js       vojska, pochody, bitvy, obléhání, dobývání
 src/js/07-turn.js      měsíční tah, rod a nástupnictví, výzkum, konec hry
 src/js/08-ai.js        umělá inteligence rodů
 src/js/09-events.js    události
-src/js/10-ui.js        rozhraní (záložky, mapa, ukládání)
+src/js/10-ui.js        rozhraní (záložky, ukládání)
+src/js/11-gfx.js       grafika: erby, politická mapa, grafy, pruhy, ikony
 ```
 
 ## Sestavení a testy
