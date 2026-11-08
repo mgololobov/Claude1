@@ -8,13 +8,14 @@ const OUT = path.join(__dirname, "out"); fs.mkdirSync(OUT, { recursive: true });
   const errors = [], fails = [];
   pg.on("pageerror", e => errors.push(e.message)); pg.on("console", m => { if (m.type() === "error") errors.push(m.text()); });
   await pg.goto(FILE); await pg.waitForSelector("#top .realm");
+  if (await pg.$("#title:not(.hidden)")) { await pg.screenshot({ path: path.join(OUT, "uvod.png") }); await pg.click("#title [data-a=titleStep]"); await pg.waitForSelector("#title .ctile"); await pg.screenshot({ path: path.join(OUT, "uvod-rody.png") }); await pg.click("#title [data-a=titleStart]"); }
   const step = async (name, fn) => { try { await fn(); console.log("✓", name); } catch (e) { fails.push(name + ": " + e.message.split("\n")[0]); console.log("✗", name, e.message.split("\n")[0]); } };
   const clearEvents = async () => { for (let i = 0; i < 15 && await pg.$("#modal:not(.hidden) .ch:not([disabled])"); i++) await pg.click("#modal:not(.hidden) .ch:not([disabled])"); };
   const ev = f => pg.evaluate(f);
   const tab = t => pg.click(`#tabs [data-x='["${t}"]']`);
   const tabs = ["prehled", "mapa", "kraj", "vazalove", "vojsko", "diplo", "rise", "hosp", "stavy", "rod", "objevy", "kronika", "hra"];
   await step("všechny záložky", async () => { for (const t of tabs) await tab(t); });
-  await step("vazal: detail", async () => { await tab("vazalove"); const rows = await pg.$$("tr[data-a=selOff]"); await rows[2].click(); await pg.waitForSelector(".card.sticky .meter"); });
+  await step("vazal: detail", async () => { await tab("vazalove"); const rows = await pg.$$(".otile[data-a=selOff]"); await rows[2].click(); await pg.waitForSelector(".card.sticky .meter"); });
   await step("rozkaz vazalovi", async () => {
     await tab("kraj"); const btns = await pg.$$("button.go[data-a=cmd]"); await btns[0].click(); await clearEvents();
     const acted = await ev(() => officers(S, S.player).filter(c => c.acted === S.turn).length); if (!(acted >= 1)) throw new Error("rozkaz neproběhl");
@@ -25,7 +26,7 @@ const OUT = path.join(__dirname, "out"); fs.mkdirSync(OUT, { recursive: true });
     await pg.click(`button[data-a=cmd][data-x='["${id}"]']`); const m1 = await ev(() => men(S.provs[P(S).capital].troops)); if (m1 !== m0 + 200) throw new Error(m0 + "→" + m1);
   });
   await step("mapa a výběr kraje", async () => { await tab("mapa"); await pg.click(`.pv[data-x='["budin"]']`); if (await ev(() => SEL.prov) !== "budin") throw new Error("výběr"); await pg.screenshot({ path: path.join(OUT, "mapa.png") }); });
-  await step("diplomacie: dary", async () => { await tab("diplo"); await pg.click(`tr[data-a=selDip][data-x='["wittL"]']`); const r0 = await ev(() => rel(S, S.player, "wittL")); await pg.selectOption("#dt_wittL", "dar"); await pg.click(`[data-a=dip][data-x='["wittL"]']`); await clearEvents(); const r1 = await ev(() => rel(S, S.player, "wittL")); await pg.screenshot({ path: path.join(OUT, "diplo-detail.png") }); if (!(r1 > r0)) throw new Error(r0 + "→" + r1); });
+  await step("diplomacie: dary", async () => { await tab("diplo"); await pg.click(`.dtile[data-a=selDip][data-x='["wittL"]']`); const r0 = await ev(() => rel(S, S.player, "wittL")); await pg.selectOption("#dt_wittL", "dar"); await pg.click(`[data-a=dip][data-x='["wittL"]']`); await clearEvents(); const r1 = await ev(() => rel(S, S.player, "wittL")); await pg.screenshot({ path: path.join(OUT, "diplo-detail.png") }); if (!(r1 > r0)) throw new Error(r0 + "→" + r1); });
   await step("válka a vyslání vojska", async () => {
     await pg.click(`[data-a=war][data-x='["wittL"]']`); await pg.click(`[data-a=war][data-x='["wittL"]']`); await clearEvents();
     if (!(await ev(() => atWar(S, S.player, "wittL")))) throw new Error("válka");

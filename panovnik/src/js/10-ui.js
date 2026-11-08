@@ -62,18 +62,6 @@ function exportSave() { const blob = new Blob([JSON.stringify(S)], { type: "appl
 function importFile(f) { const r = new FileReader(); r.onload = () => { try { const x = JSON.parse(r.result); if (!x.provs || !x.clans) throw 0; S = x; toast("Hra načtena."); autosave(); render(); } catch (e) { toast("Soubor není uložená hra."); } }; r.readAsText(f); }
 
 // ---------- hlavička ----------
-function renderModal() {
-  const m = $("#modal");
-  if (S.events.length && S.events[0].id === "_battle" && battleModal(S.events[0])) { m.innerHTML = battleModal(S.events[0]); m.classList.remove("hidden"); return; }
-  if (S.events.length) {
-    const v = eventView(S, S.events[0]);
-    m.innerHTML = `<div class="box"><div class="muted small">${dateStr(S)}${S.events.length > 1 ? ` · čeká ${S.events.length} zpráv` : ""}</div><h2>${esc(v.t)}</h2><p>${esc(v.txt)}</p>${v.ch.map(c => `<button class="b ch" data-a="event" data-x="[0,${c.i}]" ${c.ok ? "" : "disabled"}>${esc(c.t)}</button>`).join("")}</div>`;
-    m.classList.remove("hidden");
-  } else if (S.over && !S.overSeen) {
-    m.innerHTML = `<div class="box"><h2>${S.over.win ? "Vítězství" : "Konec"}</h2><p>${esc(S.over.txt)}</p><button class="b ch" onclick="S.overSeen=true;render()">${S.over.cont ? "Hrát dál" : "Zavřít"}</button></div>`;
-    m.classList.remove("hidden");
-  } else m.classList.add("hidden");
-}
 
 // ---------- Přehled ----------
 function alerts() {
@@ -115,7 +103,7 @@ function tPrehled() {
     ${tile("Papež", Math.round(S.pope.op[me()] || 0), C.excom > S.turn ? '<span class="bad">klatba</span>' : "přízeň")}
   </div>
   <div class="grid">
-  ${card("Rod", `<div class="crest">${shield(me(), 64)}<div><div class="big">${esc(C.house)}</div><div>${esc(C.n)}</div><div class="muted">${esc(cap(C.t))} ${esc(L ? L.n : "—")}${L ? `, ${age(S, L)} let, zdraví ${Math.round(L.hp)}` : ""}</div><div class="muted">Dědic: ${heir ? esc(heir.n) + " (" + age(S, heir) + ")" : '<b class="bad">žádný</b>'}</div><div class="muted">Římský král: ${hreKingTxt()}</div></div></div>`)}
+  ${card("Rod", `<div class="crest">${portrait(L, 80)}${shield(me(), 48)}<div><div class="big">${esc(C.house)}</div><div>${esc(C.n)}</div><div class="muted">${esc(cap(C.t))} ${esc(L ? L.n : "—")}${L ? `, ${age(S, L)} let, zdraví ${Math.round(L.hp)}` : ""}</div><div class="muted">Dědic: ${heir ? esc(heir.n) + " (" + age(S, heir) + ")" : '<b class="bad">žádný</b>'}</div><div class="muted">Římský král: ${hreKingTxt()}</div></div></div>`)}
   ${card("Hlášení rádců", al.map(([c, t]) => `<div class="alert ${c}">${t}</div>`).join("") || '<div class="alert good">Klid. Nic naléhavého.</div>')}
   ${card("Mocnosti", tbl(["Rod", "#Kraje", "#Vojsko", "#Vztah"], top.map(([c, n, m]) => tr([chip(c.id), n, `~${fmt(Math.round(m / 500) * 500)}`, c.id === me() ? "<td></td>" : `<td class="n ${cls(rel(S, me(), c.id), -20, 30)}">${Math.round(rel(S, me(), c.id))}</td>`]))))}
   ${card("Moc rodů (počet krajů)", powerChart(), "wide")}
@@ -157,19 +145,17 @@ function tKraj() {
   let p = S.provs[SEL.prov]; if (p.owner !== me()) { p = S.provs[P(S).capital] || clanProvs(S, me())[0]; if (!p) return card("Kraj", "Nemáš žádný kraj."); SEL.prov = p.id; }
   const offs = officersIn(S, p.id).filter(c => !c.army);
   const cmdOpts = Object.entries(CMDS).map(([k, K]) => [k, K.n + (K.cost ? ` (${K.cost} zl)` : "")]);
-  const rows = offs.map(c => { const k = SEL.cmd[c.id] || (c.id === P(S).leader ? "poselstvo" : "zemedelstvi"); SEL.cmd[c.id] = k; const done = c.acted === S.turn;
-    return tr([`<b>${esc(c.n)}</b>${c.id === p.lord ? " <span class='tag'>purkrabí</span>" : ""}${c.id === P(S).leader ? " <span class='tag'>hlava rodu</span>" : ""}<div class="small muted">${RANKS[c.rank].n}, věrnost ${Math.round(c.loy)}${traitsTxt(c) ? ", " + traitsTxt(c) : ""}</div>`, statsTd(c),
-      done ? '<td colspan="2" class="muted">tento měsíc už jedná</td>' : `<td>${sel("cs_" + c.id, cmdOpts, k, `data-a="cmdSel" data-x='["${c.id}"]'`)}<div class="small muted">${CMDS[k].d}</div></td><td>${cmdParams(c, k, p)} ${btn("Provést", "cmd", [c.id], null, "go")}</td>`]); });
+  const rows = offs.map(c => cmdCard(c, p, false));
   const myProv = clanProvs(S, me()).sort((a, b) => b.v - a.v);
   const reach = Object.values(S.provs).filter(q => q.id !== p.id && (q.owner === me() || atWar(S, me(), q.owner))).sort((a, b) => dist(p, a) - dist(p, b)).slice(0, 25);
   const cmOpts = [["", "—"]].concat(offs.filter(c => c.acted !== S.turn).map(c => [c.id, `${c.n} (vůd. ${st(c, "ved")}, ${RANKS[c.rank].cmd} mužů)`]));
   return `<div class="row provpick">Kraj: ${sel("pk", myProv.map(q => [q.id, `${q.n}${q.siege ? " (obléhán)" : ""}${officersIn(S, q.id).some(c => c.acted !== S.turn && !c.army) ? " •" : ""}`]), p.id, `data-a="provOnly" data-x='[]'`)}
     <label><input type="checkbox" data-a="deleg" data-x='["${p.id}"]' ${p.deleg ? "checked" : ""}> svěřit správu purkrabímu (rozkazy zadá sám)</label></div>
   <div class="grid">
-  ${card(`${shield(me(), 22)} ${esc(p.n)}`, provDetail(p) + `<div class="kv"><span>Měsíční výnos</span><span>${r1(provGold(S, p) + provMines(S, p).gold)} zl</span><span>Sklizeň (září)</span><span>asi ${Math.round(provHarvest(S, p))} obilí</span><span>Výcvik</span><span>${Math.round(p.train)}</span><span>Strop posádky</span><span>${fmt(troopCap(p))}</span><span>Stavba</span><span>${p.build ? BUILD[p.build.b].n + `, zbývá ${p.build.left} měs.` : "—"}</span></div>`)}
+  ${card(`${shield(me(), 22)} ${esc(p.n)}`, provArt(p) + provDetail(p) + `<div class="kv"><span>Měsíční výnos</span><span>${r1(provGold(S, p) + provMines(S, p).gold)} zl</span><span>Sklizeň (září)</span><span>asi ${Math.round(provHarvest(S, p))} obilí</span><span>Výcvik</span><span>${Math.round(p.train)}</span><span>Strop posádky</span><span>${fmt(troopCap(p))}</span><span>Stavba</span><span>${p.build ? BUILD[p.build.b].n + `, zbývá ${p.build.left} měs.` : "—"}</span></div>`)}
   ${card("Spokojenost lidu a obchod", (() => { const lb = loyBreakdown(S, p); return meter("Spokojenost", Math.round(p.loy), 100, p.loy < 30 ? "var(--bad)" : "var(--accent2)") + `<p class="small">Směřuje k <b>${lb.val}</b> (mění se pozvolna).</p>` + tbl(["Proč", "#"], lb.rows.map(r => tr([esc(r[0]), `<td class="n ${r[1] < 0 ? "bad" : "good"}">${sg(r[1])}</td>`]))); })() + `<h4>Obchodní cesty</h4>${provRoutes(p).map(R => `<div><span class="rdot" style="background:${R.col}"></span>${R.n} – průchodnost ${Math.round(routeState(S, R) * 100)} %</div>`).join("") || '<span class="muted small">Kraj neleží na žádné obchodní cestě.</span>'}<div class="small">Zisk z cest: ${r1(routeIncomeProv(S, p))} zl/měs.${p.hanza ? " · člen Hanzy" : ""}</div>`)}
   ${card("Posádka", troopBar(p.troops) + troopLegend() + tbl(["Druh", "#Mužů"], TROOP_IDS.map(k => tr([TROOPS[k].n, p.troops[k] || 0]))) + meter("Výcvik", Math.round(p.train), 100, "#a3332b") + `<p class="small">Celkem ${fmt(men(p.troops))} mužů, obranná síla ${r1(provDefense(S, p))}.</p>`)}
-  ${card(`Vazalové v kraji – rozkazy (${offs.filter(c => c.acted !== S.turn).length} volných)`, tbl(["Vazal", "#Vůd", "#Uda", "#Roz", "#Spr", "Rozkaz", ""], rows) + `<p class="small muted">Každý vazal vykoná jeden rozkaz za měsíc. Výsledek závisí na jeho schopnostech (správa: rozvoj, vůdcovství: nábor a výcvik, rozum: zvědové, intriky a diplomacie).</p>`, "wide")}
+  ${card(`Vazalové v kraji – rozkazy (${offs.filter(c => c.acted !== S.turn).length} volných)`, `<div class="ccards">${rows.join("") || '<p class="muted">V kraji není žádný volný vazal.</p>'}</div>` + `<p class="small muted">Každý vazal vykoná jeden rozkaz za měsíc. Výsledek závisí na jeho schopnostech (správa: rozvoj, vůdcovství: nábor a výcvik, rozum: zvědové, intriky a diplomacie).</p>`, "wide")}
   ${card("Vyslat vojsko", `<div class="kv"><span>Cíl</span>${sel("dto", reach.map(q => [q.id, `${q.n} (${q.owner === me() ? "vlastní" : S.clans[q.owner].house}, ${Math.round(dist(p, q))} km)`]), "")}<span>Druh</span>${sel("dmode", [["utok", "tažení (dobýt kraj)"], ["presun", "přesun posádky do vlastního kraje"]], "utok")}
     ${TROOP_IDS.map(k => `<span>${TROOPS[k].n}</span><span><input type="number" id="dt_${k}" value="${Math.floor((p.troops[k] || 0) * 0.7)}" min="0" max="${p.troops[k] || 0}"> / ${fmt(p.troops[k] || 0)}</span>`).join("")}
     <span>Velitel</span>${sel("dc1", cmOpts, cmOpts[1] ? cmOpts[1][0] : "")}<span>Druhý velitel</span>${sel("dc2", cmOpts, "")}<span>Třetí velitel</span>${sel("dc3", cmOpts, "")}
@@ -179,32 +165,6 @@ function tKraj() {
 }
 
 // ---------- Vazalové ----------
-function offCard(c) {
-  const nx = RANKS[c.rank + 1], lordOf = Object.values(S.provs).filter(p => p.lord === c.id).map(p => p.n).join(", "), lead = c.id === P(S).leader;
-  return `<div class="crest">${shield(me(), 44)}<div><div class="big">${esc(c.n)}</div><div class="muted">${RANKS[c.rank].n}, ${age(S, c)} let${c.hist ? ", historická postava" : ""}${c.dyn ? ", člen rodu" : ""}</div><div class="muted">${traitsTxt(c) || "bez zvláštních vlastností"}${c.burgher ? " · měšťan" : ""}${Object.entries(P(S).offices || {}).filter(([, v]) => v === c.id).map(([k]) => " · " + OFFICES[k].n).join("")}</div></div></div>
-  ${STAT_IDS.map(k => meter(STATS[k], st(c, k), 100, { ved: "#a3332b", uda: "#b06a2e", roz: "#3f6fa8", spr: "#4f7f4f" }[k])).join("")}
-  ${meter("Věrnost", Math.round(c.loy), 100, c.loy < 35 ? "var(--bad)" : "var(--accent2)")}
-  ${c.dyn || lead ? "" : (() => { const lb = offLoyBreakdown(S, c); return `<details><summary>Proč je věrný(á) – směřuje k ${lb.val}</summary>${tbl(["Vliv", "#"], lb.rows.map(r => tr([esc(r[0]), `<td class="n ${r[1] < 0 ? "bad" : "good"}">${sg(r[1])}</td>`])))}</details>`; })()}
-  ${nx ? meter("Zásluhy do hodnosti " + nx.n, Math.round(c.merit), nx.merit, "#7a5ea8") : ""}
-  <div class="kv"><span>Kde</span><span>${c.army ? "s vojskem v poli" : esc(S.provs[c.loc] ? S.provs[c.loc].n : "?")}</span><span>Purkrabí v</span><span>${esc(lordOf) || "—"}</span><span>Velí až</span><span>${fmt(RANKS[c.rank].cmd)} mužům</span><span>Plat</span><span>${c.dyn || lead ? "—" : RANKS[c.rank].pay + " zl/měs."}</span></div>
-  ${c.dyn || lead ? "" : `<div class="row">${btn("Povýšit", "promote", [c.id], nx && c.merit >= nx.merit ? null : "Málo zásluh")} <input type="number" id="rw_${c.id}" value="50" min="10" step="10"> ${btn("Odměnit", "reward", [c.id])} ${!lordOf && S.provs[c.loc] && S.provs[c.loc].owner === me() && !c.army ? btn("Jmenovat purkrabím", "lord", [c.loc, c.id]) : ""} ${btn("Propustit", "dismiss", [c.id], null, "danger")}</div>`}`;
-}
-function tVazalove() {
-  const all = officers(S, me()); const k = SEL.sortOff;
-  if (!all.some(c => c.id === SEL.off)) SEL.off = all[0] && all[0].id;
-  const sorted = all.slice().sort((a, b) => k === "rank" ? b.rank - a.rank || b.merit - a.merit : k === "loy" ? a.loy - b.loy : st(b, k) - st(a, k));
-  const rows = sorted.map(c => `<tr class="click${c.id === SEL.off ? " sel" : ""}" data-a="selOff" data-x='["${c.id}"]'><td><b>${esc(c.n)}</b>${c.dyn ? ' <span class="tag">rod</span>' : ""}${Object.values(S.provs).some(p => p.lord === c.id) ? ' <span class="tag">purkrabí</span>' : ""}</td>${tdn(age(S, c))}${STAT_IDS.map(x => statBar(st(c, x))).join("")}<td>${RANKS[c.rank].n}</td>${statBar(c.loy, c.loy < 35 ? "low" : "")}<td>${c.army ? '<span class="warn">v poli</span>' : esc(S.provs[c.loc] ? S.provs[c.loc].n : "?")}</td></tr>`);
-  const caps = Object.values(S.chars).filter(c => c.st === "cap" && c.capBy === me()).map(c => tr([esc(c.n), c.cl && S.clans[c.cl] ? chip(c.cl) : "—", ...STAT_IDS.map(x => statBar(st(c, x))), RANKS[c.rank].n, `${btn("Propustit", "captive", [c.id, "propustit"])} ${btn("Výkupné", "captive", [c.id, "vykupne"])} ${btn("Naverbovat", "captive", [c.id, "naverbovat"])} ${btn("Popravit", "captive", [c.id, "popravit"], null, "danger")}`]));
-  const mineCap = Object.values(S.chars).filter(c => c.st === "cap" && c.cl === me()).map(c => tr([esc(c.n), chip(c.capBy), RANKS[c.rank].n]));
-  const wand = Object.values(S.chars).filter(c => c.st === "wand" && S.provs[c.loc] && S.provs[c.loc].owner === me()).length;
-  const sel_ = chr(S, SEL.off);
-  return `<div class="grid split">${card(`Vazalové (${all.length})`, `<div class="row">Řadit: ${[["rank", "hodnost"], ["ved", "vůdcovství"], ["uda", "udatnost"], ["roz", "rozum"], ["spr", "správa"], ["loy", "nejméně věrní"]].map(([x, n]) => btn(k === x ? `<b>${n}</b>` : n, "sortOff", [x])).join("")}</div>` +
-    tbl(["Jméno", "#Věk", "#Vůdc.", "#Udat.", "#Rozum", "#Správa", "Hodnost", "#Věrnost", "Kde"], rows) + `<p class="small muted">Klikni na vazala pro podrobnosti a odměny. V tvých krajích se potuluje ${wand} schopných mužů – najdeš je rozkazem „Hledat schopné muže“.</p>`)}
-    ${sel_ ? card("Vazal", offCard(sel_), "sticky") : ""}
-    ${officesCard()}
-    ${card("Zajatci v tvém žaláři", tbl(["Jméno", "Rod", "#Vůdc.", "#Udat.", "#Rozum", "#Správa", "Hodnost", ""], caps), "wide")}
-    ${mineCap.length ? card("Tvoji lidé v zajetí", tbl(["Jméno", "Drží je", "Hodnost"], mineCap)) : ""}</div>`;
-}
 
 // ---------- Vojsko ----------
 function tVojsko() {
@@ -231,26 +191,6 @@ function relStatus(c) {
     c.vassalOf === me() ? '<span class="pill good">tvůj vazal</span>' : c.vassalOf ? `<span class="pill">vazal: ${esc(S.clans[c.vassalOf].house.split(" (")[0])}</span>` : "", P(S).vassalOf === c.id ? '<span class="pill">tvůj lenní pán</span>' : "", c.excom > S.turn ? '<span class="pill bad">klatba</span>' : "", (c.ban || 0) > S.turn ? '<span class="pill bad">říšská klatba</span>' : ""].join("");
 }
 function relBar(r) { const f = (r + 100) / 2; return `<span class="relbar" title="vztah ${Math.round(r)}"><i style="left:${Math.min(50, f)}%;width:${Math.abs(f - 50)}%;background:${r < 0 ? "var(--bad)" : "var(--good)"}"></i><b style="left:50%"></b></span>`; }
-function tDiplo() {
-  const others = aliveClans(S).filter(c => c.id !== me()).sort((a, b) => clanProvs(S, b.id).length - clanProvs(S, a.id).length);
-  if (!others.some(c => c.id === SEL.dip)) SEL.dip = others[0] && others[0].id;
-  const rows = others.map(c => `<tr class="click${c.id === SEL.dip ? " sel" : ""}" data-a="selDip" data-x='["${c.id}"]'><td class="shc">${shield(c.id, 20)}</td><td><b>${esc(c.house)}</b><div class="small muted">${esc(c.n)}</div></td>${tdn(clanProvs(S, c.id).length)}${tdn("~" + fmt(Math.round(clanMen(S, c.id) / 500) * 500))}<td class="n">${Math.round(rel(S, me(), c.id))} ${relBar(rel(S, me(), c.id))}</td><td>${relStatus(c)}</td></tr>`);
-  const T = S.clans[SEL.dip]; let dossier = "";
-  if (T) {
-    const L = leaderOf(S, T.id), envoys = officers(S, me()).filter(c => c.acted !== S.turn && !c.army && S.provs[c.loc] && S.provs[c.loc].owner === me()).sort((a, b) => st(b, "roz") - st(a, "roz"));
-    const foes = enemiesOf(S, T.id), friends = aliveClans(S).filter(o => o.id !== T.id && allied(S, T.id, o.id)), kin = aliveClans(S).filter(o => o.id !== T.id && married(S, T.id, o.id));
-    const best = aliveClans(S).filter(o => o.id !== T.id).sort((a, b) => rel(S, T.id, b.id) - rel(S, T.id, a.id));
-    dossier = card("Rod", `<div class="crest">${shield(T.id, 64)}<div><div class="big">${esc(T.house)}</div><div>${esc(T.n)}</div><div class="muted">${esc(cap(T.t))} ${esc(L ? L.n : "—")}${L ? ` (${age(S, L)} let)${L.st === "cap" ? ", v zajetí" : ""}` : ""}</div><div class="muted">${T.hre ? "říšské knížectví" : "mimo říši"}${T.titles.length ? " · " + T.titles.join(", ") : ""}</div></div></div>
-      <div>${relStatus(T) || '<span class="muted small">žádné smlouvy</span>'}</div>
-      ${meter("Vztah k tobě", Math.round(rel(S, me(), T.id)) + 100, 200, rel(S, me(), T.id) < 0 ? "var(--bad)" : "var(--good)")}
-      <div class="kv"><span>Kraje</span><span>${clanProvs(S, T.id).map(p => esc(p.n)).join(", ")}</span><span>Vojsko</span><span>asi ${fmt(Math.round(clanMen(S, T.id) / 500) * 500)} mužů</span><span>Prestiž</span><span>${fmt(T.prestige)}</span><span>Válčí s</span><span>${foes.map(f => chip(f)).join(" ") || "—"}</span><span>Spojenci</span><span>${friends.map(f => chip(f.id)).join(" ") || "—"}</span><span>Spřízněni s</span><span>${kin.map(f => chip(f.id)).join(" ") || "—"}</span><span>Přátelé</span><span>${best.slice(0, 2).map(f => chip(f.id)).join(" ")}</span><span>Nepřátelé</span><span>${best.slice(-2).map(f => chip(f.id)).join(" ")}</span></div>
-      ${warPeaceBlock(T)}
-      <h4>Poselstvo</h4><div class="kv"><span>Vyslanec</span>${sel("env_" + T.id, [["", "— vyber —"]].concat(envoys.map(c => [c.id, `${c.n} (rozum ${st(c, "roz")})`])), envoys[0] ? envoys[0].id : "")}<span>Jednání</span>${sel("dt_" + T.id, Object.entries(DIPLO).map(([k, d]) => [k, d.n]), atWar(S, me(), T.id) ? "mir" : "dar")}</div>
-      <div class="row">${btn("Vyslat poselstvo", "dip", [T.id], envoys.length ? null : "Žádný volný vazal", "go")} ${atWar(S, me(), T.id) ? "" : btn(SEL.warConfirm === T.id ? "<b>Opravdu vyhlásit válku?</b>" : "Vyhlásit válku", "war", [T.id], null, "danger")}</div>
-      <p class="small muted">Poselstvo spotřebuje měsíční rozkaz vyslance; jeho rozum zvyšuje šanci. Porušení příměří či spojenectví stojí prestiž a přízeň papeže, útok na církevní zemi papeže rozzlobí. Vymře-li spřízněný rod, zdědíš jeho země.</p>`, "sticky");
-  }
-  return `<div class="grid split">${card("Rody střední Evropy", tbl(["", "Rod", "#Kraje", "#Vojsko", "#Vztah", "Smlouvy"], rows))}${dossier}</div>`;
-}
 
 // ---------- Říše a církev ----------
 function tRise() {
@@ -275,17 +215,6 @@ function tRise() {
 // ---------- Hospodářství ----------
 const INC_N = { obchod: "Obchodní cesty a clo", domeny: "Panské dvory a regálie", kraje: "Daně a dávky z krajů", doly: "Doly a solivary", dan_vazalu: "Poplatky vazalů / lennímu pánovi", rise: "Říšské příjmy", cirkev: "Církevní statky (investitura)" };
 const EXP_N = { platy: "Platy vazalů", vojsko: "Vydržování vojska", dvur: "Dvůr", uroky: "Úroky" };
-function tHosp() {
-  const C = P(S), b = clanBudget(S, me());
-  const rows = clanProvs(S, me()).sort((a, c) => provGold(S, c) - provGold(S, a)).map(p => tr([btn(esc(p.n), "prov", [p.id]), r1(provGold(S, p)), r1(provMines(S, p).gold), Math.round(provHarvest(S, p)), r1(garrisonGrain(p)), p.agri, p.com, Math.round(p.loy), p.deleg ? "purkrabí" : "<b>ty</b>"]));
-  return `<div class="grid">${card("Měsíční příjmy", tbl(["Zdroj", "#Zlatých"], Object.entries(b.inc).map(([k, v]) => tr([INC_N[k], v]))) + `<p><b>Celkem ${fmt(sum(Object.values(b.inc)))} zl</b></p>`)}
-  ${card("Měsíční výdaje", tbl(["Položka", "#Zlatých"], Object.entries(b.ex).map(([k, v]) => tr([EXP_N[k], v]))) + `<p><b>Celkem ${fmt(sum(Object.values(b.ex)))} zl</b> · bilance <b class="${b.net < 0 ? "bad" : "good"}">${sg(b.net)}</b></p>`)}
-  ${card("Daně a obilí", `<div class="kv"><span>Daňová zátěž</span>${sel("taxs", TAX_LEVELS.map((t, i) => [i, t]), C.tax, `data-a="tax" data-x='[]'`)}<span>Obilí</span><span>${fmt(C.grain)} (spotřeba posádek a vojsk ${r1(clanGrainUse(S, me()))} měsíčně)</span><span>Poslední žně</span><span>${fmt(C.last.harvest || 0)} (v září)</span><span>Koně / zbroj</span><span>${fmt(C.kone)} / ${fmt(C.zbroj)}</span><span>Inflace</span><span>${Math.round(S.inflation * 100)} %</span></div><p class="small muted">Vyšší daně = víc zlata, ale nižší spokojenost lidu (a tím i výnos a sklizeň).</p>`)}
-  ${card("Trh", tbl(["Zboží", "#Máš", "#Nákup", "#Prodej", ""], Object.entries(GOODS).map(([g, G]) => tr([G.n, Math.floor(C[g === "obili" ? "grain" : g] || 0), r1(price(S, g) * 1.15), r1(price(S, g) * 0.85), `<input type="number" id="q_${g}" value="100" min="1" step="50"> ${btn("Koupit", "buy", [g])} ${btn("Prodat", "sell", [g])}`]))) + '<p class="small muted">Koně a zbroj potřebuješ k verbování jízdy a střelců. Hřebčíny a železné doly je vyrábějí.</p>')}
-  ${routesCard()}
-  ${card("Lombardští bankéři", tbl(["#Jistina", "#Úrok/měs.", ""], (C.debts || []).map((d, i) => tr([d.amount, r1(d.amount * d.rate), btn("Splatit", "repay", [i])]))) + `<div class="row"><input type="number" id="loan" value="200" step="100"> ${btn("Půjčit si", "borrow")} <span class="small muted">strop ${maxLoan(S, me())} zl</span></div>`)}
-  ${card("Kraje", tbl(["Kraj", "#Zlato/měs.", "#Doly", "#Sklizeň", "#Obilí/měs.", "#Pole", "#Obchod", "#Spokoj.", "Správa"], rows), "wide")}</div>`;
-}
 
 // ---------- Stavy a zákony ----------
 function tStavy() {
@@ -297,14 +226,6 @@ function tStavy() {
 }
 
 // ---------- Rod ----------
-function famCard(c, role) {
-  if (!c) return "";
-  const H = heirsOf(S, me())[0];
-  return `<div class="fam ${c.sex === "f" ? "f" : "m"}${c.st === "dead" ? " dead" : ""}"><div class="fn">${esc(c.n)}${c.id === P(S).leader ? " ♛" : ""}</div><div class="small muted">${role || (c.sex === "m" ? "syn" : "dcera")}, ${age(S, c)} let${H && H.id === c.id ? ", <b>dědic</b>" : ""}${c.st === "cap" ? ", v zajetí" : ""}${c.c ? ", duchovní" : ""}</div>
-    <div class="minis">${STAT_IDS.map(k => `<span title="${STATS[k]}"><i style="height:${st(c, k) * 0.28}px"></i></span>`).join("")}</div>
-    ${c.spouse && chr(S, c.spouse) && role !== "choť" ? `<div class="small">∞ ${esc(chr(S, c.spouse).n)}</div>` : ""}
-    ${c.st === "kid" ? sel("fo_" + c.id, [["", "výchova: volná"], ["ved", "vojevůdce"], ["uda", "rytířská"], ["roz", "učená"], ["spr", "správní"]], c.focus || "", `data-a="focus" data-x='["${c.id}"]'`) : ""}</div>`;
-}
 function tRod() {
   const C = P(S), L = leaderOf(S, me()), sp = L && chr(S, L.spouse), H = heirsOf(S, me());
   const kids = L ? L.kids.map(id => chr(S, id)).filter(c => c && c.st !== "dead") : [];
@@ -319,11 +240,6 @@ function tRod() {
 }
 
 // ---------- Objevy ----------
-function tObjevy() {
-  const C = P(S), cats = [...new Set(TECH_IDS.map(t => TECHS[t].cat))];
-  return `<div class="grid">${card("Učenost", `<p>Zkoumá se: <b>${C.res.cur ? TECHS[C.res.cur].n + ` (${Math.round(C.res.pts)}/${TECHS[C.res.cur].cost})` : "nic"}</b>. Body přinášejí rozkazy „Podporovat učence“ a kláštery.</p>`)}
-  ${cats.map(cat => card(cat, tbl(["Objev", "Účinek", "#Cena", ""], TECH_IDS.filter(t => TECHS[t].cat === cat).map(t => { const T = TECHS[t]; return tr([C.techs[t] ? `<span class="good">✔ ${T.n}</span>` : C.res.cur === t ? `<b>▶ ${T.n}</b>` : T.n, `<span class="small">${T.d}${T.req ? " · vyžaduje: " + T.req.map(r => TECHS[r].n).join(", ") : ""}</span>`, T.cost, C.techs[t] || C.res.cur === t ? "" : btn("Zkoumat", "research", [t], techAvail(S, me(), t) ? null : "Chybí předpoklady")]); })))).join("")}</div>`;
-}
 
 // ---------- Kronika ----------
 function tKronika() {
@@ -339,7 +255,7 @@ function tHra() {
   if (!SCEN_CACHE[sc].some(c => c.id === SEL.ng)) SEL.ng = "premysl";
   return `<div class="grid">${card("Uložené hry", tbl(["#", "Obsah", ""], slots) + `<p class="small muted">Hra se sama ukládá po každém kroku.</p><div class="row">${btn("Stáhnout do souboru", "exportSave")} ${btn("Nahrát ze souboru", "importSave")}</div>`)}
   ${card("Nová hra", `<div class="kv"><span>Scénář</span>${sel("ngScen", Object.entries(SCENARIOS).map(([k, x]) => [k, x.n]), sc, `data-a="ngScen" data-x='[]'`)}<span></span><span class="small muted">${esc(SCENARIOS[sc].d)}</span><span>Rod</span>${sel("ngClan", clansSel, SEL.ng, `data-a="ngClan" data-x='[]'`)}<span>Obtížnost</span>${sel("ngDiff", DIFFS.map((d, i) => [i, d]), SEL.ngDiff != null ? SEL.ngDiff : 1, `data-a="ngDiff" data-x='[]'`)}<span>Mlha války</span><label><input type="checkbox" id="ngFog" ${SEL.ngFog === false ? "" : "checked"} data-a="ngFog" data-x='[]'> o vzdálených krajích víš jen odhady</label><span>Semínko náhody</span><input id="ngSeed" type="number" placeholder="náhodné"></div><div class="row">${btn(SEL.ngConfirm ? "<b>Ano, začít</b>" : "Začít novou hru", "newgame")}</div><p class="small muted">Velké rody (Přemyslovci, Arpádovci) jsou nejsnazší. Habsburkové, Wittelsbachové nebo slezští Piastovci začínají malí – to je výzva.</p>`)}
-  ${card("Vzhled", btn("Přepnout světlý / tmavý vzhled", "theme"))}
+  ${card("Vzhled", btn("Přepnout světlý / tmavý vzhled", "theme") + " " + btn("Úvodní obrazovka", "openTitle"))}
   <section class="card wide help"><h3>Jak hrát</h3>
   <p>Jsi hlavou panovnického rodu ve střední Evropě po pádu Štaufů (od ledna 1256). Kolo je jeden měsíc. <b>Cíl:</b> ovládnout polovinu krajů (sám nebo skrze vazaly), nebo se stát císařem a vládnout třetině krajů. Prohraješ, když přijdeš o všechny kraje.</p>
   <h4>Mapa</h4><p>Hlavní obrazovkou je mapa. Kolečkem myši přibližuješ, tažením posouváš. Dole přepínáš mapové režimy (terén, rozvoj, spokojenost, vztahy, kultura, víra, obchod, začlenění). Klikni na kraj – vpravo se ukáže jeho panel. Klikni na žeton svého vojska a pak na kraj: vojsko tam potáhne. Mezerník spustí a zastaví běh času, Esc zavře okno.</p>
@@ -357,7 +273,7 @@ function tHra() {
 function boot() {
   try { const t = localStorage.getItem("panovnik_theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
   try { const t = localStorage.getItem("panovnik2_auto"); if (t) S = JSON.parse(t); } catch (e) { S = null; }
-  if (!S || !S.provs || S.v !== 2) S = newGame();
+  if (!S || !S.provs || S.v !== 2 || !S.clans[S.player].mp) { S = newGame(); SEL.title = { step: 1 }; }
   const f = document.createElement("input"); f.type = "file"; f.id = "impFile"; f.accept = ".json,application/json"; f.style.display = "none"; f.onchange = () => f.files[0] && importFile(f.files[0]); document.body.appendChild(f);
   render();
 }

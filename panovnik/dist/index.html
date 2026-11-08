@@ -264,6 +264,84 @@ svg.map.eu .atok .mor { fill: #6fdc6f; } svg.map.eu .atok text { fill: #fff; fon
   main#main.haswin #mapwrap, main#main.haswin #side, main#main.haswin #outl { display: none; }
   .mmodes { max-width: calc(100% - 110px); }
 }
+
+/* ===== Portréty, karty a ilustrace ===== */
+svg.portrait { border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,.35); flex: none; background: #3a2d20; vertical-align: middle; }
+svg.portrait.dead { filter: grayscale(1) opacity(.7); }
+.portrait.empty { display: inline-block; border-radius: 8px; background: var(--line); }
+header#top .realm svg.portrait { border: 1px solid var(--gold2); }
+.smini { display: grid; grid-template-columns: 1fr 1fr; gap: 1px 8px; margin: 3px 0; }
+.smini span { display: flex; align-items: center; gap: 3px; font-size: 10px; }
+.smini em { font-style: normal; color: var(--muted); width: 8px; flex: none; }
+.smini i { display: block; height: 5px; border-radius: 3px; flex: none; max-width: 100%; }
+.loy { font-weight: bold; font-size: 12px; } .loy.good { color: var(--good); } .loy.warn { color: var(--warn); } .loy.bad { color: var(--bad); }
+.otiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 8px; }
+.otile { display: flex; gap: 8px; padding: 6px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); cursor: pointer; transition: transform .1s, box-shadow .1s; min-width: 0; }
+.otile:hover { transform: translateY(-1px); box-shadow: 0 2px 6px rgba(0,0,0,.15); }
+.otile.sel { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent) inset; }
+.otile.acted { opacity: .8; }
+.oti { min-width: 0; flex: 1; } .oti b { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bigport { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 8px; flex-wrap: wrap; }
+.bigport .big { font-size: 18px; font-weight: bold; color: var(--accent); }
+.why { display: flex; justify-content: space-between; font-size: 12px; border-bottom: 1px dotted var(--line); }
+.ccards { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 8px; }
+.ccard { display: flex; gap: 10px; padding: 8px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); min-width: 0; }
+.ccard.acted { opacity: .65; } .cci { flex: 1; min-width: 0; } .cci .row select { max-width: 100%; }
+.donebadge { color: var(--good); font-size: 12px; margin-top: 4px; }
+.dtiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 8px; }
+.dtile { display: flex; gap: 6px; padding: 6px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); cursor: pointer; align-items: flex-start; min-width: 0; }
+.dtile.sel { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent) inset; }
+.dtile.war { border-left: 4px solid var(--bad); } .dti { min-width: 0; }
+.envoys { display: flex; gap: 6px; flex-wrap: wrap; }
+.envoy { display: flex; gap: 4px; align-items: center; border: 1px solid var(--line); border-radius: 6px; padding: 3px 6px 3px 3px; cursor: pointer; }
+.envoy input { display: none; } .envoy:has(input:checked) { border-color: var(--accent2); box-shadow: 0 0 0 2px var(--accent2) inset; }
+.fam { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 2px; min-width: 150px; }
+.fam svg.portrait { margin-bottom: 4px; }
+.curtech { position: relative; border-radius: 10px; overflow: hidden; margin-bottom: 10px; }
+.curtech svg.scene { display: block; width: 100%; height: auto; max-height: 150px; }
+.curtech .ct { position: absolute; left: 12px; right: 12px; bottom: 8px; background: rgba(246,238,220,.92); color: #2b2118; border-radius: 6px; padding: 6px 10px; }
+.cath { display: flex; gap: 6px; align-items: center; color: var(--accent); margin: 12px 0 6px; } .cath .ico { width: 18px; height: 18px; }
+.ttiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; }
+.ttile { border: 1px solid var(--line); border-radius: 8px; padding: 8px; background: var(--panel); border-top: 4px solid var(--line); }
+.ttile.done { border-top-color: var(--good); } .ttile.cur { border-top-color: var(--accent2); box-shadow: 0 0 0 2px var(--accent2) inset; }
+.ttile.av { border-top-color: var(--warn); } .ttile.lock { opacity: .6; }
+.mbar { display: grid; grid-template-columns: 170px 1fr 56px; gap: 8px; align-items: center; font-size: 13px; margin: 3px 0; }
+.mbar i { height: 12px; border-radius: 6px; display: block; } .mbar b { text-align: right; font-variant-numeric: tabular-nums; }
+.gcards { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+.gcard { border: 1px solid var(--line); border-radius: 8px; padding: 8px; text-align: center; }
+.gcard .ico { width: 22px; height: 22px; stroke: var(--gold2); } .gcard .big { font-size: 22px; font-weight: bold; } .gcard input { width: 60px; }
+.provart { display: block; width: 100%; height: auto; border-radius: 8px; margin-bottom: 8px; border: 1px solid var(--line); }
+.armyart { display: flex; gap: 6px; margin-bottom: 6px; }
+#modal .box.evbox { padding: 0; overflow: hidden; max-width: 620px; }
+.evart { position: relative; } .evart svg.scene { display: block; width: 100%; height: auto; }
+.evport { position: absolute; left: 14px; bottom: -30px; } .evport svg.portrait { border: 3px solid var(--panel); }
+.evbody { padding: 12px 18px 16px; }
+.evart:has(.evport) + .evbody { padding-left: 110px; min-height: 60px; }
+@media (max-width: 600px) { .evart:has(.evport) + .evbody { padding-left: 18px; padding-top: 38px; } }
+.battlebox { padding: 0 !important; overflow: hidden; } .battlebox svg.scene.battle { display: block; width: 100%; height: auto; }
+.bcmd { display: flex; gap: 4px; align-items: center; margin-bottom: 4px; }
+.orders .oi { font-size: 18px; margin-right: 4px; }
+#title { position: fixed; inset: 0; z-index: 50; background: #1c140c; color: #efe3c5; overflow-y: auto; }
+#title.hidden { display: none; }
+.tbg { position: absolute; inset: 0; opacity: .55; } .tbg svg { width: 100%; height: 100%; }
+.tcontent { position: relative; max-width: 760px; margin: 8vh auto 0; padding: 20px max(16px, env(safe-area-inset-left, 0px)); text-align: center; }
+.tcontent.wide { max-width: 1100px; margin-top: 2vh; text-align: left; } .tcontent.wide .row h2 { margin: 0; color: var(--gold); }
+#title h1 { font-size: clamp(48px, 9vw, 96px); margin: 0; color: var(--gold); letter-spacing: .12em; text-shadow: 0 3px 0 #000, 0 0 30px rgba(226,194,122,.4); font-family: Georgia, serif; }
+.tsub { font-size: 20px; color: #e8d8b0; margin: 0 0 30px; font-style: italic; }
+.tbtns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.b.big { font-size: 18px; padding: 10px 26px; border-radius: 8px; }
+#title .b { background: rgba(0,0,0,.4); color: #efe3c5; border-color: var(--gold2); } #title .b.go { background: #8c2f1f; }
+.tnote { max-width: 520px; margin: 26px auto; color: #d8c8a0; }
+.scards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; margin: 10px 0; }
+.scard { border: 2px solid rgba(226,194,122,.3); border-radius: 10px; overflow: hidden; cursor: pointer; background: rgba(0,0,0,.35); }
+.scard b, .scard .small { display: block; padding: 4px 10px; } .scard .small { padding-bottom: 10px; color: #d8c8a0; }
+.scard.sel { border-color: var(--gold); box-shadow: 0 0 14px rgba(226,194,122,.4); } .scard svg.scene { display: block; width: 100%; height: auto; }
+#title h3 { color: var(--gold); }
+.ctiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 8px; }
+.ctile { display: flex; gap: 8px; align-items: center; padding: 6px; border: 2px solid rgba(226,194,122,.25); border-radius: 8px; cursor: pointer; background: rgba(0,0,0,.35); }
+.ctile.sel { border-color: var(--gold); background: rgba(226,194,122,.15); }
+.ctile .muted { color: #bfae88; } .ctile .good { color: #9fe39f; } .ctile .warn { color: #f3c46b; } .ctile .bad { color: #ff9a8a; }
+.tstart { margin: 16px 0 30px; color: #e8d8b0; } #title select { background: #2a2017; color: #efe3c5; }
 </style>
 </head>
 <body>
@@ -2627,18 +2705,6 @@ function exportSave() { const blob = new Blob([JSON.stringify(S)], { type: "appl
 function importFile(f) { const r = new FileReader(); r.onload = () => { try { const x = JSON.parse(r.result); if (!x.provs || !x.clans) throw 0; S = x; toast("Hra načtena."); autosave(); render(); } catch (e) { toast("Soubor není uložená hra."); } }; r.readAsText(f); }
 
 // ---------- hlavička ----------
-function renderModal() {
-  const m = $("#modal");
-  if (S.events.length && S.events[0].id === "_battle" && battleModal(S.events[0])) { m.innerHTML = battleModal(S.events[0]); m.classList.remove("hidden"); return; }
-  if (S.events.length) {
-    const v = eventView(S, S.events[0]);
-    m.innerHTML = `<div class="box"><div class="muted small">${dateStr(S)}${S.events.length > 1 ? ` · čeká ${S.events.length} zpráv` : ""}</div><h2>${esc(v.t)}</h2><p>${esc(v.txt)}</p>${v.ch.map(c => `<button class="b ch" data-a="event" data-x="[0,${c.i}]" ${c.ok ? "" : "disabled"}>${esc(c.t)}</button>`).join("")}</div>`;
-    m.classList.remove("hidden");
-  } else if (S.over && !S.overSeen) {
-    m.innerHTML = `<div class="box"><h2>${S.over.win ? "Vítězství" : "Konec"}</h2><p>${esc(S.over.txt)}</p><button class="b ch" onclick="S.overSeen=true;render()">${S.over.cont ? "Hrát dál" : "Zavřít"}</button></div>`;
-    m.classList.remove("hidden");
-  } else m.classList.add("hidden");
-}
 
 // ---------- Přehled ----------
 function alerts() {
@@ -2680,7 +2746,7 @@ function tPrehled() {
     ${tile("Papež", Math.round(S.pope.op[me()] || 0), C.excom > S.turn ? '<span class="bad">klatba</span>' : "přízeň")}
   </div>
   <div class="grid">
-  ${card("Rod", `<div class="crest">${shield(me(), 64)}<div><div class="big">${esc(C.house)}</div><div>${esc(C.n)}</div><div class="muted">${esc(cap(C.t))} ${esc(L ? L.n : "—")}${L ? `, ${age(S, L)} let, zdraví ${Math.round(L.hp)}` : ""}</div><div class="muted">Dědic: ${heir ? esc(heir.n) + " (" + age(S, heir) + ")" : '<b class="bad">žádný</b>'}</div><div class="muted">Římský král: ${hreKingTxt()}</div></div></div>`)}
+  ${card("Rod", `<div class="crest">${portrait(L, 80)}${shield(me(), 48)}<div><div class="big">${esc(C.house)}</div><div>${esc(C.n)}</div><div class="muted">${esc(cap(C.t))} ${esc(L ? L.n : "—")}${L ? `, ${age(S, L)} let, zdraví ${Math.round(L.hp)}` : ""}</div><div class="muted">Dědic: ${heir ? esc(heir.n) + " (" + age(S, heir) + ")" : '<b class="bad">žádný</b>'}</div><div class="muted">Římský král: ${hreKingTxt()}</div></div></div>`)}
   ${card("Hlášení rádců", al.map(([c, t]) => `<div class="alert ${c}">${t}</div>`).join("") || '<div class="alert good">Klid. Nic naléhavého.</div>')}
   ${card("Mocnosti", tbl(["Rod", "#Kraje", "#Vojsko", "#Vztah"], top.map(([c, n, m]) => tr([chip(c.id), n, `~${fmt(Math.round(m / 500) * 500)}`, c.id === me() ? "<td></td>" : `<td class="n ${cls(rel(S, me(), c.id), -20, 30)}">${Math.round(rel(S, me(), c.id))}</td>`]))))}
   ${card("Moc rodů (počet krajů)", powerChart(), "wide")}
@@ -2722,19 +2788,17 @@ function tKraj() {
   let p = S.provs[SEL.prov]; if (p.owner !== me()) { p = S.provs[P(S).capital] || clanProvs(S, me())[0]; if (!p) return card("Kraj", "Nemáš žádný kraj."); SEL.prov = p.id; }
   const offs = officersIn(S, p.id).filter(c => !c.army);
   const cmdOpts = Object.entries(CMDS).map(([k, K]) => [k, K.n + (K.cost ? ` (${K.cost} zl)` : "")]);
-  const rows = offs.map(c => { const k = SEL.cmd[c.id] || (c.id === P(S).leader ? "poselstvo" : "zemedelstvi"); SEL.cmd[c.id] = k; const done = c.acted === S.turn;
-    return tr([`<b>${esc(c.n)}</b>${c.id === p.lord ? " <span class='tag'>purkrabí</span>" : ""}${c.id === P(S).leader ? " <span class='tag'>hlava rodu</span>" : ""}<div class="small muted">${RANKS[c.rank].n}, věrnost ${Math.round(c.loy)}${traitsTxt(c) ? ", " + traitsTxt(c) : ""}</div>`, statsTd(c),
-      done ? '<td colspan="2" class="muted">tento měsíc už jedná</td>' : `<td>${sel("cs_" + c.id, cmdOpts, k, `data-a="cmdSel" data-x='["${c.id}"]'`)}<div class="small muted">${CMDS[k].d}</div></td><td>${cmdParams(c, k, p)} ${btn("Provést", "cmd", [c.id], null, "go")}</td>`]); });
+  const rows = offs.map(c => cmdCard(c, p, false));
   const myProv = clanProvs(S, me()).sort((a, b) => b.v - a.v);
   const reach = Object.values(S.provs).filter(q => q.id !== p.id && (q.owner === me() || atWar(S, me(), q.owner))).sort((a, b) => dist(p, a) - dist(p, b)).slice(0, 25);
   const cmOpts = [["", "—"]].concat(offs.filter(c => c.acted !== S.turn).map(c => [c.id, `${c.n} (vůd. ${st(c, "ved")}, ${RANKS[c.rank].cmd} mužů)`]));
   return `<div class="row provpick">Kraj: ${sel("pk", myProv.map(q => [q.id, `${q.n}${q.siege ? " (obléhán)" : ""}${officersIn(S, q.id).some(c => c.acted !== S.turn && !c.army) ? " •" : ""}`]), p.id, `data-a="provOnly" data-x='[]'`)}
     <label><input type="checkbox" data-a="deleg" data-x='["${p.id}"]' ${p.deleg ? "checked" : ""}> svěřit správu purkrabímu (rozkazy zadá sám)</label></div>
   <div class="grid">
-  ${card(`${shield(me(), 22)} ${esc(p.n)}`, provDetail(p) + `<div class="kv"><span>Měsíční výnos</span><span>${r1(provGold(S, p) + provMines(S, p).gold)} zl</span><span>Sklizeň (září)</span><span>asi ${Math.round(provHarvest(S, p))} obilí</span><span>Výcvik</span><span>${Math.round(p.train)}</span><span>Strop posádky</span><span>${fmt(troopCap(p))}</span><span>Stavba</span><span>${p.build ? BUILD[p.build.b].n + `, zbývá ${p.build.left} měs.` : "—"}</span></div>`)}
+  ${card(`${shield(me(), 22)} ${esc(p.n)}`, provArt(p) + provDetail(p) + `<div class="kv"><span>Měsíční výnos</span><span>${r1(provGold(S, p) + provMines(S, p).gold)} zl</span><span>Sklizeň (září)</span><span>asi ${Math.round(provHarvest(S, p))} obilí</span><span>Výcvik</span><span>${Math.round(p.train)}</span><span>Strop posádky</span><span>${fmt(troopCap(p))}</span><span>Stavba</span><span>${p.build ? BUILD[p.build.b].n + `, zbývá ${p.build.left} měs.` : "—"}</span></div>`)}
   ${card("Spokojenost lidu a obchod", (() => { const lb = loyBreakdown(S, p); return meter("Spokojenost", Math.round(p.loy), 100, p.loy < 30 ? "var(--bad)" : "var(--accent2)") + `<p class="small">Směřuje k <b>${lb.val}</b> (mění se pozvolna).</p>` + tbl(["Proč", "#"], lb.rows.map(r => tr([esc(r[0]), `<td class="n ${r[1] < 0 ? "bad" : "good"}">${sg(r[1])}</td>`]))); })() + `<h4>Obchodní cesty</h4>${provRoutes(p).map(R => `<div><span class="rdot" style="background:${R.col}"></span>${R.n} – průchodnost ${Math.round(routeState(S, R) * 100)} %</div>`).join("") || '<span class="muted small">Kraj neleží na žádné obchodní cestě.</span>'}<div class="small">Zisk z cest: ${r1(routeIncomeProv(S, p))} zl/měs.${p.hanza ? " · člen Hanzy" : ""}</div>`)}
   ${card("Posádka", troopBar(p.troops) + troopLegend() + tbl(["Druh", "#Mužů"], TROOP_IDS.map(k => tr([TROOPS[k].n, p.troops[k] || 0]))) + meter("Výcvik", Math.round(p.train), 100, "#a3332b") + `<p class="small">Celkem ${fmt(men(p.troops))} mužů, obranná síla ${r1(provDefense(S, p))}.</p>`)}
-  ${card(`Vazalové v kraji – rozkazy (${offs.filter(c => c.acted !== S.turn).length} volných)`, tbl(["Vazal", "#Vůd", "#Uda", "#Roz", "#Spr", "Rozkaz", ""], rows) + `<p class="small muted">Každý vazal vykoná jeden rozkaz za měsíc. Výsledek závisí na jeho schopnostech (správa: rozvoj, vůdcovství: nábor a výcvik, rozum: zvědové, intriky a diplomacie).</p>`, "wide")}
+  ${card(`Vazalové v kraji – rozkazy (${offs.filter(c => c.acted !== S.turn).length} volných)`, `<div class="ccards">${rows.join("") || '<p class="muted">V kraji není žádný volný vazal.</p>'}</div>` + `<p class="small muted">Každý vazal vykoná jeden rozkaz za měsíc. Výsledek závisí na jeho schopnostech (správa: rozvoj, vůdcovství: nábor a výcvik, rozum: zvědové, intriky a diplomacie).</p>`, "wide")}
   ${card("Vyslat vojsko", `<div class="kv"><span>Cíl</span>${sel("dto", reach.map(q => [q.id, `${q.n} (${q.owner === me() ? "vlastní" : S.clans[q.owner].house}, ${Math.round(dist(p, q))} km)`]), "")}<span>Druh</span>${sel("dmode", [["utok", "tažení (dobýt kraj)"], ["presun", "přesun posádky do vlastního kraje"]], "utok")}
     ${TROOP_IDS.map(k => `<span>${TROOPS[k].n}</span><span><input type="number" id="dt_${k}" value="${Math.floor((p.troops[k] || 0) * 0.7)}" min="0" max="${p.troops[k] || 0}"> / ${fmt(p.troops[k] || 0)}</span>`).join("")}
     <span>Velitel</span>${sel("dc1", cmOpts, cmOpts[1] ? cmOpts[1][0] : "")}<span>Druhý velitel</span>${sel("dc2", cmOpts, "")}<span>Třetí velitel</span>${sel("dc3", cmOpts, "")}
@@ -2744,32 +2808,6 @@ function tKraj() {
 }
 
 // ---------- Vazalové ----------
-function offCard(c) {
-  const nx = RANKS[c.rank + 1], lordOf = Object.values(S.provs).filter(p => p.lord === c.id).map(p => p.n).join(", "), lead = c.id === P(S).leader;
-  return `<div class="crest">${shield(me(), 44)}<div><div class="big">${esc(c.n)}</div><div class="muted">${RANKS[c.rank].n}, ${age(S, c)} let${c.hist ? ", historická postava" : ""}${c.dyn ? ", člen rodu" : ""}</div><div class="muted">${traitsTxt(c) || "bez zvláštních vlastností"}${c.burgher ? " · měšťan" : ""}${Object.entries(P(S).offices || {}).filter(([, v]) => v === c.id).map(([k]) => " · " + OFFICES[k].n).join("")}</div></div></div>
-  ${STAT_IDS.map(k => meter(STATS[k], st(c, k), 100, { ved: "#a3332b", uda: "#b06a2e", roz: "#3f6fa8", spr: "#4f7f4f" }[k])).join("")}
-  ${meter("Věrnost", Math.round(c.loy), 100, c.loy < 35 ? "var(--bad)" : "var(--accent2)")}
-  ${c.dyn || lead ? "" : (() => { const lb = offLoyBreakdown(S, c); return `<details><summary>Proč je věrný(á) – směřuje k ${lb.val}</summary>${tbl(["Vliv", "#"], lb.rows.map(r => tr([esc(r[0]), `<td class="n ${r[1] < 0 ? "bad" : "good"}">${sg(r[1])}</td>`])))}</details>`; })()}
-  ${nx ? meter("Zásluhy do hodnosti " + nx.n, Math.round(c.merit), nx.merit, "#7a5ea8") : ""}
-  <div class="kv"><span>Kde</span><span>${c.army ? "s vojskem v poli" : esc(S.provs[c.loc] ? S.provs[c.loc].n : "?")}</span><span>Purkrabí v</span><span>${esc(lordOf) || "—"}</span><span>Velí až</span><span>${fmt(RANKS[c.rank].cmd)} mužům</span><span>Plat</span><span>${c.dyn || lead ? "—" : RANKS[c.rank].pay + " zl/měs."}</span></div>
-  ${c.dyn || lead ? "" : `<div class="row">${btn("Povýšit", "promote", [c.id], nx && c.merit >= nx.merit ? null : "Málo zásluh")} <input type="number" id="rw_${c.id}" value="50" min="10" step="10"> ${btn("Odměnit", "reward", [c.id])} ${!lordOf && S.provs[c.loc] && S.provs[c.loc].owner === me() && !c.army ? btn("Jmenovat purkrabím", "lord", [c.loc, c.id]) : ""} ${btn("Propustit", "dismiss", [c.id], null, "danger")}</div>`}`;
-}
-function tVazalove() {
-  const all = officers(S, me()); const k = SEL.sortOff;
-  if (!all.some(c => c.id === SEL.off)) SEL.off = all[0] && all[0].id;
-  const sorted = all.slice().sort((a, b) => k === "rank" ? b.rank - a.rank || b.merit - a.merit : k === "loy" ? a.loy - b.loy : st(b, k) - st(a, k));
-  const rows = sorted.map(c => `<tr class="click${c.id === SEL.off ? " sel" : ""}" data-a="selOff" data-x='["${c.id}"]'><td><b>${esc(c.n)}</b>${c.dyn ? ' <span class="tag">rod</span>' : ""}${Object.values(S.provs).some(p => p.lord === c.id) ? ' <span class="tag">purkrabí</span>' : ""}</td>${tdn(age(S, c))}${STAT_IDS.map(x => statBar(st(c, x))).join("")}<td>${RANKS[c.rank].n}</td>${statBar(c.loy, c.loy < 35 ? "low" : "")}<td>${c.army ? '<span class="warn">v poli</span>' : esc(S.provs[c.loc] ? S.provs[c.loc].n : "?")}</td></tr>`);
-  const caps = Object.values(S.chars).filter(c => c.st === "cap" && c.capBy === me()).map(c => tr([esc(c.n), c.cl && S.clans[c.cl] ? chip(c.cl) : "—", ...STAT_IDS.map(x => statBar(st(c, x))), RANKS[c.rank].n, `${btn("Propustit", "captive", [c.id, "propustit"])} ${btn("Výkupné", "captive", [c.id, "vykupne"])} ${btn("Naverbovat", "captive", [c.id, "naverbovat"])} ${btn("Popravit", "captive", [c.id, "popravit"], null, "danger")}`]));
-  const mineCap = Object.values(S.chars).filter(c => c.st === "cap" && c.cl === me()).map(c => tr([esc(c.n), chip(c.capBy), RANKS[c.rank].n]));
-  const wand = Object.values(S.chars).filter(c => c.st === "wand" && S.provs[c.loc] && S.provs[c.loc].owner === me()).length;
-  const sel_ = chr(S, SEL.off);
-  return `<div class="grid split">${card(`Vazalové (${all.length})`, `<div class="row">Řadit: ${[["rank", "hodnost"], ["ved", "vůdcovství"], ["uda", "udatnost"], ["roz", "rozum"], ["spr", "správa"], ["loy", "nejméně věrní"]].map(([x, n]) => btn(k === x ? `<b>${n}</b>` : n, "sortOff", [x])).join("")}</div>` +
-    tbl(["Jméno", "#Věk", "#Vůdc.", "#Udat.", "#Rozum", "#Správa", "Hodnost", "#Věrnost", "Kde"], rows) + `<p class="small muted">Klikni na vazala pro podrobnosti a odměny. V tvých krajích se potuluje ${wand} schopných mužů – najdeš je rozkazem „Hledat schopné muže“.</p>`)}
-    ${sel_ ? card("Vazal", offCard(sel_), "sticky") : ""}
-    ${officesCard()}
-    ${card("Zajatci v tvém žaláři", tbl(["Jméno", "Rod", "#Vůdc.", "#Udat.", "#Rozum", "#Správa", "Hodnost", ""], caps), "wide")}
-    ${mineCap.length ? card("Tvoji lidé v zajetí", tbl(["Jméno", "Drží je", "Hodnost"], mineCap)) : ""}</div>`;
-}
 
 // ---------- Vojsko ----------
 function tVojsko() {
@@ -2796,26 +2834,6 @@ function relStatus(c) {
     c.vassalOf === me() ? '<span class="pill good">tvůj vazal</span>' : c.vassalOf ? `<span class="pill">vazal: ${esc(S.clans[c.vassalOf].house.split(" (")[0])}</span>` : "", P(S).vassalOf === c.id ? '<span class="pill">tvůj lenní pán</span>' : "", c.excom > S.turn ? '<span class="pill bad">klatba</span>' : "", (c.ban || 0) > S.turn ? '<span class="pill bad">říšská klatba</span>' : ""].join("");
 }
 function relBar(r) { const f = (r + 100) / 2; return `<span class="relbar" title="vztah ${Math.round(r)}"><i style="left:${Math.min(50, f)}%;width:${Math.abs(f - 50)}%;background:${r < 0 ? "var(--bad)" : "var(--good)"}"></i><b style="left:50%"></b></span>`; }
-function tDiplo() {
-  const others = aliveClans(S).filter(c => c.id !== me()).sort((a, b) => clanProvs(S, b.id).length - clanProvs(S, a.id).length);
-  if (!others.some(c => c.id === SEL.dip)) SEL.dip = others[0] && others[0].id;
-  const rows = others.map(c => `<tr class="click${c.id === SEL.dip ? " sel" : ""}" data-a="selDip" data-x='["${c.id}"]'><td class="shc">${shield(c.id, 20)}</td><td><b>${esc(c.house)}</b><div class="small muted">${esc(c.n)}</div></td>${tdn(clanProvs(S, c.id).length)}${tdn("~" + fmt(Math.round(clanMen(S, c.id) / 500) * 500))}<td class="n">${Math.round(rel(S, me(), c.id))} ${relBar(rel(S, me(), c.id))}</td><td>${relStatus(c)}</td></tr>`);
-  const T = S.clans[SEL.dip]; let dossier = "";
-  if (T) {
-    const L = leaderOf(S, T.id), envoys = officers(S, me()).filter(c => c.acted !== S.turn && !c.army && S.provs[c.loc] && S.provs[c.loc].owner === me()).sort((a, b) => st(b, "roz") - st(a, "roz"));
-    const foes = enemiesOf(S, T.id), friends = aliveClans(S).filter(o => o.id !== T.id && allied(S, T.id, o.id)), kin = aliveClans(S).filter(o => o.id !== T.id && married(S, T.id, o.id));
-    const best = aliveClans(S).filter(o => o.id !== T.id).sort((a, b) => rel(S, T.id, b.id) - rel(S, T.id, a.id));
-    dossier = card("Rod", `<div class="crest">${shield(T.id, 64)}<div><div class="big">${esc(T.house)}</div><div>${esc(T.n)}</div><div class="muted">${esc(cap(T.t))} ${esc(L ? L.n : "—")}${L ? ` (${age(S, L)} let)${L.st === "cap" ? ", v zajetí" : ""}` : ""}</div><div class="muted">${T.hre ? "říšské knížectví" : "mimo říši"}${T.titles.length ? " · " + T.titles.join(", ") : ""}</div></div></div>
-      <div>${relStatus(T) || '<span class="muted small">žádné smlouvy</span>'}</div>
-      ${meter("Vztah k tobě", Math.round(rel(S, me(), T.id)) + 100, 200, rel(S, me(), T.id) < 0 ? "var(--bad)" : "var(--good)")}
-      <div class="kv"><span>Kraje</span><span>${clanProvs(S, T.id).map(p => esc(p.n)).join(", ")}</span><span>Vojsko</span><span>asi ${fmt(Math.round(clanMen(S, T.id) / 500) * 500)} mužů</span><span>Prestiž</span><span>${fmt(T.prestige)}</span><span>Válčí s</span><span>${foes.map(f => chip(f)).join(" ") || "—"}</span><span>Spojenci</span><span>${friends.map(f => chip(f.id)).join(" ") || "—"}</span><span>Spřízněni s</span><span>${kin.map(f => chip(f.id)).join(" ") || "—"}</span><span>Přátelé</span><span>${best.slice(0, 2).map(f => chip(f.id)).join(" ")}</span><span>Nepřátelé</span><span>${best.slice(-2).map(f => chip(f.id)).join(" ")}</span></div>
-      ${warPeaceBlock(T)}
-      <h4>Poselstvo</h4><div class="kv"><span>Vyslanec</span>${sel("env_" + T.id, [["", "— vyber —"]].concat(envoys.map(c => [c.id, `${c.n} (rozum ${st(c, "roz")})`])), envoys[0] ? envoys[0].id : "")}<span>Jednání</span>${sel("dt_" + T.id, Object.entries(DIPLO).map(([k, d]) => [k, d.n]), atWar(S, me(), T.id) ? "mir" : "dar")}</div>
-      <div class="row">${btn("Vyslat poselstvo", "dip", [T.id], envoys.length ? null : "Žádný volný vazal", "go")} ${atWar(S, me(), T.id) ? "" : btn(SEL.warConfirm === T.id ? "<b>Opravdu vyhlásit válku?</b>" : "Vyhlásit válku", "war", [T.id], null, "danger")}</div>
-      <p class="small muted">Poselstvo spotřebuje měsíční rozkaz vyslance; jeho rozum zvyšuje šanci. Porušení příměří či spojenectví stojí prestiž a přízeň papeže, útok na církevní zemi papeže rozzlobí. Vymře-li spřízněný rod, zdědíš jeho země.</p>`, "sticky");
-  }
-  return `<div class="grid split">${card("Rody střední Evropy", tbl(["", "Rod", "#Kraje", "#Vojsko", "#Vztah", "Smlouvy"], rows))}${dossier}</div>`;
-}
 
 // ---------- Říše a církev ----------
 function tRise() {
@@ -2840,17 +2858,6 @@ function tRise() {
 // ---------- Hospodářství ----------
 const INC_N = { obchod: "Obchodní cesty a clo", domeny: "Panské dvory a regálie", kraje: "Daně a dávky z krajů", doly: "Doly a solivary", dan_vazalu: "Poplatky vazalů / lennímu pánovi", rise: "Říšské příjmy", cirkev: "Církevní statky (investitura)" };
 const EXP_N = { platy: "Platy vazalů", vojsko: "Vydržování vojska", dvur: "Dvůr", uroky: "Úroky" };
-function tHosp() {
-  const C = P(S), b = clanBudget(S, me());
-  const rows = clanProvs(S, me()).sort((a, c) => provGold(S, c) - provGold(S, a)).map(p => tr([btn(esc(p.n), "prov", [p.id]), r1(provGold(S, p)), r1(provMines(S, p).gold), Math.round(provHarvest(S, p)), r1(garrisonGrain(p)), p.agri, p.com, Math.round(p.loy), p.deleg ? "purkrabí" : "<b>ty</b>"]));
-  return `<div class="grid">${card("Měsíční příjmy", tbl(["Zdroj", "#Zlatých"], Object.entries(b.inc).map(([k, v]) => tr([INC_N[k], v]))) + `<p><b>Celkem ${fmt(sum(Object.values(b.inc)))} zl</b></p>`)}
-  ${card("Měsíční výdaje", tbl(["Položka", "#Zlatých"], Object.entries(b.ex).map(([k, v]) => tr([EXP_N[k], v]))) + `<p><b>Celkem ${fmt(sum(Object.values(b.ex)))} zl</b> · bilance <b class="${b.net < 0 ? "bad" : "good"}">${sg(b.net)}</b></p>`)}
-  ${card("Daně a obilí", `<div class="kv"><span>Daňová zátěž</span>${sel("taxs", TAX_LEVELS.map((t, i) => [i, t]), C.tax, `data-a="tax" data-x='[]'`)}<span>Obilí</span><span>${fmt(C.grain)} (spotřeba posádek a vojsk ${r1(clanGrainUse(S, me()))} měsíčně)</span><span>Poslední žně</span><span>${fmt(C.last.harvest || 0)} (v září)</span><span>Koně / zbroj</span><span>${fmt(C.kone)} / ${fmt(C.zbroj)}</span><span>Inflace</span><span>${Math.round(S.inflation * 100)} %</span></div><p class="small muted">Vyšší daně = víc zlata, ale nižší spokojenost lidu (a tím i výnos a sklizeň).</p>`)}
-  ${card("Trh", tbl(["Zboží", "#Máš", "#Nákup", "#Prodej", ""], Object.entries(GOODS).map(([g, G]) => tr([G.n, Math.floor(C[g === "obili" ? "grain" : g] || 0), r1(price(S, g) * 1.15), r1(price(S, g) * 0.85), `<input type="number" id="q_${g}" value="100" min="1" step="50"> ${btn("Koupit", "buy", [g])} ${btn("Prodat", "sell", [g])}`]))) + '<p class="small muted">Koně a zbroj potřebuješ k verbování jízdy a střelců. Hřebčíny a železné doly je vyrábějí.</p>')}
-  ${routesCard()}
-  ${card("Lombardští bankéři", tbl(["#Jistina", "#Úrok/měs.", ""], (C.debts || []).map((d, i) => tr([d.amount, r1(d.amount * d.rate), btn("Splatit", "repay", [i])]))) + `<div class="row"><input type="number" id="loan" value="200" step="100"> ${btn("Půjčit si", "borrow")} <span class="small muted">strop ${maxLoan(S, me())} zl</span></div>`)}
-  ${card("Kraje", tbl(["Kraj", "#Zlato/měs.", "#Doly", "#Sklizeň", "#Obilí/měs.", "#Pole", "#Obchod", "#Spokoj.", "Správa"], rows), "wide")}</div>`;
-}
 
 // ---------- Stavy a zákony ----------
 function tStavy() {
@@ -2862,14 +2869,6 @@ function tStavy() {
 }
 
 // ---------- Rod ----------
-function famCard(c, role) {
-  if (!c) return "";
-  const H = heirsOf(S, me())[0];
-  return `<div class="fam ${c.sex === "f" ? "f" : "m"}${c.st === "dead" ? " dead" : ""}"><div class="fn">${esc(c.n)}${c.id === P(S).leader ? " ♛" : ""}</div><div class="small muted">${role || (c.sex === "m" ? "syn" : "dcera")}, ${age(S, c)} let${H && H.id === c.id ? ", <b>dědic</b>" : ""}${c.st === "cap" ? ", v zajetí" : ""}${c.c ? ", duchovní" : ""}</div>
-    <div class="minis">${STAT_IDS.map(k => `<span title="${STATS[k]}"><i style="height:${st(c, k) * 0.28}px"></i></span>`).join("")}</div>
-    ${c.spouse && chr(S, c.spouse) && role !== "choť" ? `<div class="small">∞ ${esc(chr(S, c.spouse).n)}</div>` : ""}
-    ${c.st === "kid" ? sel("fo_" + c.id, [["", "výchova: volná"], ["ved", "vojevůdce"], ["uda", "rytířská"], ["roz", "učená"], ["spr", "správní"]], c.focus || "", `data-a="focus" data-x='["${c.id}"]'`) : ""}</div>`;
-}
 function tRod() {
   const C = P(S), L = leaderOf(S, me()), sp = L && chr(S, L.spouse), H = heirsOf(S, me());
   const kids = L ? L.kids.map(id => chr(S, id)).filter(c => c && c.st !== "dead") : [];
@@ -2884,11 +2883,6 @@ function tRod() {
 }
 
 // ---------- Objevy ----------
-function tObjevy() {
-  const C = P(S), cats = [...new Set(TECH_IDS.map(t => TECHS[t].cat))];
-  return `<div class="grid">${card("Učenost", `<p>Zkoumá se: <b>${C.res.cur ? TECHS[C.res.cur].n + ` (${Math.round(C.res.pts)}/${TECHS[C.res.cur].cost})` : "nic"}</b>. Body přinášejí rozkazy „Podporovat učence“ a kláštery.</p>`)}
-  ${cats.map(cat => card(cat, tbl(["Objev", "Účinek", "#Cena", ""], TECH_IDS.filter(t => TECHS[t].cat === cat).map(t => { const T = TECHS[t]; return tr([C.techs[t] ? `<span class="good">✔ ${T.n}</span>` : C.res.cur === t ? `<b>▶ ${T.n}</b>` : T.n, `<span class="small">${T.d}${T.req ? " · vyžaduje: " + T.req.map(r => TECHS[r].n).join(", ") : ""}</span>`, T.cost, C.techs[t] || C.res.cur === t ? "" : btn("Zkoumat", "research", [t], techAvail(S, me(), t) ? null : "Chybí předpoklady")]); })))).join("")}</div>`;
-}
 
 // ---------- Kronika ----------
 function tKronika() {
@@ -2904,7 +2898,7 @@ function tHra() {
   if (!SCEN_CACHE[sc].some(c => c.id === SEL.ng)) SEL.ng = "premysl";
   return `<div class="grid">${card("Uložené hry", tbl(["#", "Obsah", ""], slots) + `<p class="small muted">Hra se sama ukládá po každém kroku.</p><div class="row">${btn("Stáhnout do souboru", "exportSave")} ${btn("Nahrát ze souboru", "importSave")}</div>`)}
   ${card("Nová hra", `<div class="kv"><span>Scénář</span>${sel("ngScen", Object.entries(SCENARIOS).map(([k, x]) => [k, x.n]), sc, `data-a="ngScen" data-x='[]'`)}<span></span><span class="small muted">${esc(SCENARIOS[sc].d)}</span><span>Rod</span>${sel("ngClan", clansSel, SEL.ng, `data-a="ngClan" data-x='[]'`)}<span>Obtížnost</span>${sel("ngDiff", DIFFS.map((d, i) => [i, d]), SEL.ngDiff != null ? SEL.ngDiff : 1, `data-a="ngDiff" data-x='[]'`)}<span>Mlha války</span><label><input type="checkbox" id="ngFog" ${SEL.ngFog === false ? "" : "checked"} data-a="ngFog" data-x='[]'> o vzdálených krajích víš jen odhady</label><span>Semínko náhody</span><input id="ngSeed" type="number" placeholder="náhodné"></div><div class="row">${btn(SEL.ngConfirm ? "<b>Ano, začít</b>" : "Začít novou hru", "newgame")}</div><p class="small muted">Velké rody (Přemyslovci, Arpádovci) jsou nejsnazší. Habsburkové, Wittelsbachové nebo slezští Piastovci začínají malí – to je výzva.</p>`)}
-  ${card("Vzhled", btn("Přepnout světlý / tmavý vzhled", "theme"))}
+  ${card("Vzhled", btn("Přepnout světlý / tmavý vzhled", "theme") + " " + btn("Úvodní obrazovka", "openTitle"))}
   <section class="card wide help"><h3>Jak hrát</h3>
   <p>Jsi hlavou panovnického rodu ve střední Evropě po pádu Štaufů (od ledna 1256). Kolo je jeden měsíc. <b>Cíl:</b> ovládnout polovinu krajů (sám nebo skrze vazaly), nebo se stát císařem a vládnout třetině krajů. Prohraješ, když přijdeš o všechny kraje.</p>
   <h4>Mapa</h4><p>Hlavní obrazovkou je mapa. Kolečkem myši přibližuješ, tažením posouváš. Dole přepínáš mapové režimy (terén, rozvoj, spokojenost, vztahy, kultura, víra, obchod, začlenění). Klikni na kraj – vpravo se ukáže jeho panel. Klikni na žeton svého vojska a pak na kraj: vojsko tam potáhne. Mezerník spustí a zastaví běh času, Esc zavře okno.</p>
@@ -2922,7 +2916,7 @@ function tHra() {
 function boot() {
   try { const t = localStorage.getItem("panovnik_theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
   try { const t = localStorage.getItem("panovnik2_auto"); if (t) S = JSON.parse(t); } catch (e) { S = null; }
-  if (!S || !S.provs || S.v !== 2) S = newGame();
+  if (!S || !S.provs || S.v !== 2 || !S.clans[S.player].mp) { S = newGame(); SEL.title = { step: 1 }; }
   const f = document.createElement("input"); f.type = "file"; f.id = "impFile"; f.accept = ".json,application/json"; f.style.display = "none"; f.onchange = () => f.files[0] && importFile(f.files[0]); document.body.appendChild(f);
   render();
 }
@@ -3061,40 +3055,11 @@ function suggestCmd(c, p) {
   if (p.dur < durMax(S, p) * 0.8) return "hradby";
   return provRoutes(p).length ? "obchodovat" : "studium";
 }
-function tPlan() {
-  const cmdOpts = Object.entries(CMDS).map(([k, K]) => [k, K.n + (K.cost ? ` (${K.cost} zl)` : "")]);
-  const ps = clanProvs(S, me()).filter(p => !p.siege).sort((a, b) => (b.id === P(S).capital) - (a.id === P(S).capital) || b.v - a.v);
-  let idle = 0; const rows = [];
-  for (const p of ps) for (const c of officersIn(S, p.id).filter(x => !x.army)) {
-    const done = c.acted === S.turn; if (done && !SEL.planDone) continue; if (!done) idle++;
-    const k = SEL.cmd[c.id] || suggestCmd(c, p); SEL.cmd[c.id] = k;
-    rows.push(tr([`<b>${esc(c.n)}</b>${c.burgher ? ' <span class="tag">měšťan</span>' : ""}<div class="small muted">${RANKS[c.rank].n}, věrnost ${Math.round(c.loy)}</div>`, `${btn(esc(p.n), "provOnly", [p.id])}${p.deleg ? '<div class="small muted">svěřený kraj</div>' : ""}`, statsTd(c),
-      done ? '<td colspan="2" class="muted">tento měsíc už jedná</td>' : `<td>${sel("cs_" + c.id, cmdOpts, k, `data-a="cmdSel" data-x='["${c.id}"]'`)}<div class="small muted">${CMDS[k].d}</div></td><td>${cmdParams(c, k, p)} ${btn("Provést", "cmd", [c.id], null, "go")} ${btn("Nechat na rádci", "advise", [c.id])}</td>`], done ? "muted" : ""));
-  }
-  const C = P(S), b = clanBudget(S, me());
-  return `<div class="tiles">${tile("Volní vazalové", idle, "čekají na rozkaz")}${tile("Zlato", fmt(C.gold), `<span class="${b.net < 0 ? "bad" : "good"}">${sg(b.net)} za měsíc</span>`)}${tile("Obilí", fmt(C.grain), "do žní " + ((8 - S.month + 12) % 12) + " měs.")}${tile("Kraje", clanProvs(S, me()).length, `${clanProvs(S, me()).filter(p => p.deleg).length} svěřených purkrabím`)}</div>
-  ${card("Plán měsíce – všichni vazalové na jednom místě", `<div class="row">${btn("Rádce rozhodne za všechny volné", "adviseAll", [], idle ? null : "Nikdo nečeká", "go")} ${btn(SEL.planDone ? "Skrýt ty, kdo už jednají" : "Ukázat i ty, kdo už jednají", "planDone")} <span class="small muted">Předvybraný rozkaz je doporučení podle stavu kraje. „Nechat na rádci“ provede, co by udělal purkrabí.</span></div>` +
-    tbl(["Vazal", "Kraj", "#Vůdc.", "#Udat.", "#Rozum", "#Správa", "Rozkaz", ""], rows), "wide")}`;
-}
 ACT.advise = id => { const c = chr(S, id); if (!c || c.acted === S.turn) return "Vazal už jedná."; aiDomestic(S, me(), c, true); if (c.acted !== S.turn) return "Rádce nic rozumného nenašel (málo zlata?)."; };
 ACT.adviseAll = () => { let n = 0; for (const c of officers(S, me())) if (c.acted !== S.turn && !c.army && c.id !== P(S).leader && S.provs[c.loc] && S.provs[c.loc].owner === me()) { aiDomestic(S, me(), c, true); if (c.acted === S.turn) n++; } toast(`Rádce zadal ${n} rozkazů.`); };
 ACT.planDone = () => { SEL.planDone = !SEL.planDone; };
 
 // ---------- osobně vedená bitva ----------
-function battleModal(ev) {
-  const x = S.pend && S.pend[ev.bid]; if (!x) return null;
-  const b = x.b, my = b.ps === "A" ? b.A : b.B, foe = b.ps === "A" ? b.B : b.A, myStart = b.ps === "A" ? b.start.a : b.start.b, foeStart = b.ps === "A" ? b.start.b : b.start.a;
-  const side = (sd, start, title) => `<div class="bside"><div class="crest">${shield(sd.cl, 40)}<div><b>${esc(S.clans[sd.cl].house)}</b><div class="small muted">${title}${sd.cmds.length ? " · " + esc(sd.cmds.map(id => chr(S, id).n).join(", ")) : ""}</div></div></div>
-    ${meter("Muži", men(sd.t), start, S.clans[sd.cl].col)}${meter("Morálka", Math.max(0, Math.round(sd.morale)), 100, sd.morale < 40 ? "var(--bad)" : "var(--accent2)")}${troopBar(sd.t)}<div class="small muted">Sestava: ${TACTICS[sd.tac || "vyvazena"].n}${sd.castle ? `, hrad ${sd.castle}, hradby ${Math.round(sd.dur)}` : ""}</div></div>`;
-  const last = b.rounds[b.rounds.length - 1];
-  const lastTxt = last ? (() => { const mi = b.ps === "A" ? 0 : 1, fo = 1 - mi; return `${b.rounds.length}. kolo: ty – ${ORDERS[last[4 + mi]].n}, nepřítel – ${ORDERS[last[4 + fo]].n}. Tvé ztráty ${fmt(last[mi])}, nepřítele ${fmt(last[fo])}.`; })() : "Vojska stojí proti sobě. Vydej první rozkaz.";
-  const v = eventView(S, ev);
-  return `<div class="box wide"><div class="muted small">${dateStr(S)} · ${TERRAIN[S.provs[b.place].ter].n} · ${b.r + 1}. kolo z nejvýš 6</div><h2>${esc(v.t)}</h2>
-    <div class="bgrid">${side(my, myStart, "tvé vojsko")}${side(foe, foeStart, "nepřítel")}</div>
-    <p class="alert info">${lastTxt}</p>
-    <div class="orders">${v.ch.map(c => `<button class="b ch" data-a="event" data-x="[0,${c.i}]"><b>${esc(c.t)}</b><br><span class="small muted">${esc(c.d || "")}</span></button>`).join("")}</div>
-    <p class="small muted">Úder jízdy rozbije střelce, ale narazí na držící šik. Salva střelců zdrtí stojící nepřítele, jízda ji ale převálcuje. Záloha jednou za bitvu od 3. kola. Ústupem bitvu prohraješ, ale zachráníš muže.</p></div>`;
-}
 
 // ---------- úřady ----------
 function officesCard() {
@@ -3135,7 +3100,7 @@ function chipTop(ic, label, val, sub, cls_ = "", title = "") { return `<span cla
 function mpChip(k) { const C = P(S), g = mpGain(S, me())[k]; return `<span class="res mp" title="${MP[k].n}: ${Math.round(C.mp[k])} bodů, +${g} měsíčně"><i class="mpdot" style="background:${MP[k].col}">${MP[k].n[0]}</i><b>${Math.round(C.mp[k])}</b><small>+${g}</small></span>`; }
 function renderTop() {
   const C = P(S), L = leaderOf(S, me()), b = clanBudget(S, me());
-  $("#top").innerHTML = `<span class="realm">${shield(me(), 30)}<span><b>${esc(C.house)}</b><small>${esc(cap(C.t))} ${esc(L ? L.n : "—")}${L ? ` (${age(S, L)})` : ""}</small></span></span>
+  $("#top").innerHTML = `<span class="realm">${shield(me(), 30)}${portrait(L, 34)}<span><b>${esc(C.house)}</b><small>${esc(cap(C.t))} ${esc(L ? L.n : "—")}${L ? ` (${age(S, L)})` : ""}</small></span></span>
   <span class="resbar">${chipTop("gold", "Zlato", fmt(C.gold), `<span class="${b.net < 0 ? "bad" : "good"}">${sg(b.net)}</span>`, "", "Zlato a čistý měsíční příjem")}${chipTop("grain", "Obilí", fmt(C.grain))}${chipTop("men", "Vojsko", fmt(Math.round(clanMen(S, me()) / 100) / 10) + "k", "", "", "Muži ve zbrani")}${chipTop("crown", "Prestiž", fmt(C.prestige))}
   ${chipTop("scale", "Stabilita", sg(C.stab), "", C.stab < 0 ? "bad" : C.stab > 0 ? "good" : "", "Stabilita země (−3 až +3)")}${MP_IDS.map(mpChip).join("")}${C.we >= 1 ? chipTop("fire", "Vyčerpání", r1(C.we), "", C.we > 8 ? "bad" : "warn", "Válečné vyčerpání") : ""}${overext(S, me()) > 0 ? chipTop("scale", "Přetížení", overext(S, me()) + " %", "", overext(S, me()) > 50 ? "bad" : "warn", "Podíl nezačleněných krajů na rozvoji říše") : ""}</span>
   <span class="sp"></span>
@@ -3163,7 +3128,7 @@ function render() {
     w.classList.remove("hidden");
     w.innerHTML = `<div class="winbar">${icon(TAB)}<b>${title}</b><span class="sp"></span><button class="b" data-a="tab" data-x='["mapa"]'>✕ Zpět na mapu</button></div><div class="winbody">${f ? f() : ""}</div>`;
   }
-  renderModal();
+  renderModal(); renderTitle();
 }
 
 // ---------- mapa ----------
@@ -3279,7 +3244,7 @@ function sidePanel() {
 }
 function armyPanel(a) {
   const p = S.provs[a.loc], here = p.siege && p.siege.army === a.id;
-  return `<div class="sph">${shield(me(), 34)}<div><b>Vojsko</b><div class="small muted">${esc(a.cmds.map(id => chr(S, id).n).join(", ") || "bez velitele")}</div></div>${btn("✕", "deselect")}</div>
+  return `<div class="armyart">${a.cmds.map(id => portrait(chr(S, id), 56)).join("")}</div><div class="sph">${shield(me(), 34)}<div><b>Vojsko</b><div class="small muted">${esc(a.cmds.map(id => chr(S, id).n).join(", ") || "bez velitele")}</div></div>${btn("✕", "deselect")}</div>
   ${meter("Muži", men(a.t), Math.max(men(a.t), armyLimit(S, a.cmds)), P(S).col)}${troopBar(a.t)}${meter("Morálka", Math.round(a.morale), 100, a.morale < 40 ? "var(--bad)" : "var(--accent2)")}
   <div class="kv"><span>Poloha</span><span>${esc(p.n)}</span><span>Cíl</span><span>${a.path && a.path.length ? `${esc(S.provs[a.to].n)} (${marchTime(S, a.path) - (a.slow ? 1 : 0)} měs.)` : "stojí"}</span><span>Zásoby</span><span>${Math.round(a.grain)} obilí (${Math.floor(a.grain / Math.max(1, men(a.t) / 1000 * 12))} měs.)</span>${here ? `<span>Obléhání</span><span>${p.siege.months}. měs., hradby ${Math.round(p.dur)}</span>` : ""}</div>
   <div class="hint">Klikni na mapě na kraj, kam má vojsko táhnout.</div>
@@ -3289,7 +3254,7 @@ function armyPanel(a) {
 function provPanel(p) {
   const C = S.clans[p.owner], mine = p.owner === me(), k = knows(S, p), cb = !mine ? cbAgainst(S, me(), p.owner) : null;
   const tags = [TERRAIN[p.ter].n, CULTURES[p.cul].n + " kultura", RELIGIONS[p.rel].n + " víra"].concat(mine && !p.cores.includes(me()) ? ['<b class="warn">nezačleněný</b>'] : []).concat(p.occ ? [`<b class="bad">obsadili ${esc(S.clans[p.occ].house.split(" (")[0])}</b>`] : []).concat(claimValid(S, me(), p.id) ? ['<b class="warn">tvůj nárok</b>'] : []);
-  let html = `<div class="sph">${shield(p.owner, 34)}<div><b>${esc(p.n)}</b><div class="small muted">${esc(C.house)}${C.capital === p.id ? " · sídlo" : ""}</div></div></div><div class="tags">${tags.map(t => `<span class="pill">${t}</span>`).join("")}</div>`;
+  let html = provArt(p) + `<div class="sph">${shield(p.owner, 34)}<div><b>${esc(p.n)}</b><div class="small muted">${esc(C.house)}${C.capital === p.id ? " · sídlo" : ""}</div></div></div><div class="tags">${tags.map(t => `<span class="pill">${t}</span>`).join("")}</div>`;
   if (k) html += `${meter("Pole", p.agri, agriCap(S, p), "#7f9a3c")}${meter("Obchod", p.com, comCap(S, p), "#b08a2e")}${meter("Hradby", Math.round(p.dur), durMax(S, p), "#777")}${meter("Spokojenost", Math.round(p.loy), 100, p.loy < 30 ? "var(--bad)" : "var(--accent2)")}<div class="kv"><span>Obyvatel</span><span>${fmt(p.pop * 1000)}</span><span>Posádka</span><span>${estimate(S, p, men(p.troops))}</span><span>Rozvoj</span><span>${dev(p)}</span></div>`;
   else html += `<p class="small muted">Vzdálený kraj – víš jen to, co vyprávějí kupci. Pošli zvědy.</p>`;
   if (mine && !p.occ) {
@@ -3323,7 +3288,7 @@ function tVlada() {
   const ideas = Object.entries(IDEAS).map(([gid, G]) => { const nx = nextIdea(S, me(), gid); return `<div class="idea"><div class="ih"><i class="mpdot" style="background:${MP[G.mp].col}">${MP[G.mp].n[0]}</i><b>${G.n}</b></div>${G.list.map(([id, n, d]) => `<div class="il ${hasIdea(S, me(), id) ? "done" : nx && nx[0] === id ? "next" : ""}"><b>${hasIdea(S, me(), id) ? "✔ " : ""}${n}</b><div class="small muted">${d}</div></div>`).join("")}${nx ? btn(`Přijmout ideu (${IDEA_COST})`, "idea", [gid], C.mp[G.mp] >= IDEA_COST ? null : "Málo bodů", "mpb " + G.mp) : '<span class="good small">Skupina hotová</span>'}</div>`; }).join("");
   const miss = missionsFor(S, me()).map(m => `<div class="mis ${C.missions[m.id] ? "done" : ""}"><b>${C.missions[m.id] ? "✔ " : ""}${m.n}</b><div class="small">${m.d}</div><div class="small muted">Odměna: ${m.r}</div></div>`).join("");
   return `<div class="grid">
-  ${card("Panovník", `<div class="crest">${shield(me(), 56)}<div><div class="big">${esc(L ? L.n : "—")}</div><div class="muted">${esc(cap(C.t))}, ${L ? age(S, L) + " let" : ""} · ${esc(C.house)}</div><div class="muted">${traitsTxt(L || { traits: [] })}</div></div></div>${L ? STAT_IDS.map(k2 => meter(STATS[k2], st(L, k2), 100)).join("") : ""}`)}
+  ${card("Panovník", `<div class="crest">${portrait(L, 110)}${shield(me(), 56)}<div><div class="big">${esc(L ? L.n : "—")}</div><div class="muted">${esc(cap(C.t))}, ${L ? age(S, L) + " let" : ""} · ${esc(C.house)}</div><div class="muted">${traitsTxt(L || { traits: [] })}</div></div></div>${L ? STAT_IDS.map(k2 => meter(STATS[k2], st(L, k2), 100)).join("") : ""}`)}
   ${card("Body vlády", mpRows + `<p class="small muted">Body se utrácejí za rozvoj krajů (boční panel kraje), stabilitu, začleňování krajů, ideje a snižování válečného vyčerpání. Přibývají podle schopností panovníka a rádců v úřadech (Vazalové → Dvůr a úřady). Strop je 999.</p>`)}
   ${card("Stabilita a vyčerpání", `<div class="stab">${stabScale}</div><p class="small">Stabilita zvyšuje příjmy (+5 % za bod), spokojenost lidu i věrnost vazalů. Klesá při válce bez záminky, nástupu nového vládce, klatbě a přetížení říše.</p><div class="row">${btn(`Zvýšit stabilitu (${stabCost(S, me())} správy)`, "stab", [], C.stab < 3 && C.mp.adm >= stabCost(S, me()) ? null : "Nelze", "mpb adm")}</div>
     ${meter("Válečné vyčerpání", r1(C.we), 20, C.we > 8 ? "var(--bad)" : "var(--warn)")}<p class="small">Vyčerpání roste ve válce a s ztrátami, snižuje spokojenost lidu a ochotu bojovat dál.</p><div class="row">${btn("Snížit vyčerpání o 2 (75 diplomacie)", "reduceWE", [], C.we >= 0.5 && C.mp.dip >= 75 ? null : "Nelze", "mpb dip")}</div>`)}
@@ -3361,6 +3326,360 @@ function warPeaceBlock(T) {
     <p class="small muted">Válečné skóre: vítězné bitvy a obsazené kraje (sídlo se počítá dvojnásob). Jejich vyčerpání ${r1(T.we)}, tvoje ${r1(P(S).we)}.</p>
     ${items.length ? `<h4>Mírové požadavky</h4>${items.map((it, i) => `<label class="pitem"><input type="checkbox" id="pi_${i}"> ${esc(it.n)} <span class="muted">(${Math.round(it.cost)})</span></label>`).join("")}` : '<p class="small muted">Zatím nemáš co požadovat – obsaď jejich kraje.</p>'}
     <div class="row">${items.length ? btn("Požadovat mír", "peaceDemand", [T.id], null, "go") : ""}${btn("Nabídnout bílý mír", "peaceWhite", [T.id])}${ws < 0 ? btn(`Přijmout jejich podmínky: ${enemyWants.map(i => i.n).join(", ") || "bílý mír"}`, "peaceAccept", [T.id], null, "danger") : ""}</div>`;
+}
+
+// Kresby: generované portréty postav, ilustrace událostí, kresba kraje a bitevní scéna.
+
+function hashStr(t) { let h = 2166136261; for (let i = 0; i < t.length; i++) { h ^= t.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+function prng(seed) { let t = seed | 0; return () => { t = (t + 0x6D2B79F5) | 0; let r = Math.imul(t ^ (t >>> 15), t | 1); r ^= r + Math.imul(r ^ (r >>> 7), r | 61); return ((r ^ (r >>> 14)) >>> 0) / 4294967296; }; }
+function shade(hex, k) { const [r, g, b] = hexRgb(hex); const f = v => Math.round(clamp(k < 0 ? v * (1 + k) : v + (255 - v) * k, 0, 255)); return `rgb(${f(r)},${f(g)},${f(b)})`; }
+let ART_N = 0;
+
+// ---------- portréty ----------
+const SKIN = ["#f1d3b8", "#e9c4a2", "#ddb08b", "#f5ddc6", "#d6a780", "#e4bb98"];
+const HAIR = ["#2b1d14", "#3f2a1c", "#5a3a22", "#7a4e28", "#a77431", "#c9a35a", "#8a3a1c", "#161412"];
+const EYES = ["#4a6b8a", "#5a4632", "#3d5a3a", "#6d7f8f", "#2f2a26"];
+function roleOf(c) {
+  if (!S || !c) return "pan";
+  const C = c.cl && S.clans[c.cl], a = age(S, c);
+  if (C && C.leader === c.id) return C.type !== "dyn" ? "biskup" : C.t === "král" || C.titles.some(t => CROWNS[t]) ? "kral" : "vevoda";
+  if (c.sex === "f") { const sp = chr(S, c.spouse); if (sp && C && C.leader === sp.id && (C.t === "král")) return "kralovna"; return a < 15 ? "divka" : c.spouse ? "zena" : "pana"; }
+  if (a < 15) return "chlapec";
+  if (c.c) return "klerik"; if (c.burgher) return "mestan";
+  if (st(c, "uda") >= 58 && st(c, "uda") >= st(c, "spr")) return "rytir";
+  return "pan";
+}
+function portrait(c, size = 64, o = {}) {
+  if (!c) return `<span class="portrait empty" style="width:${size}px;height:${Math.round(size * 1.2)}px"></span>`;
+  const R = prng(hashStr(c.id + c.n)), rp = a => a[Math.floor(R() * a.length)];
+  const year = o.year || (S ? S.year : 1256), a = year - c.by, fem = c.sex === "f", role = o.role || roleOf(c), kid = a < 15;
+  const col = o.col || (c.cl && S && S.clans[c.cl] ? S.clans[c.cl].col : "#7a6a58"), id = "pt" + (ART_N++);
+  const skin = rp(SKIN), baseHair = rp(HAIR), eye = rp(EYES), grey = a >= 62 ? "#e6e1d8" : a >= 48 ? "#8f8a84" : null, hair = grey && !fem ? (R() < 0.5 ? grey : baseHair) : baseHair;
+  const hairC = a >= 62 ? "#e6e1d8" : a >= 50 && R() < 0.6 ? "#9a948c" : hair;
+  const s = kid ? 0.82 : 1, fy = kid ? 66 : 60; // posun obličeje
+  let g = `<defs><radialGradient id="${id}b" cx="50%" cy="38%" r="75%"><stop offset="0" stop-color="${shade(col, 0.45)}"/><stop offset="1" stop-color="${shade(col, -0.45)}"/></radialGradient></defs><rect width="100" height="120" fill="url(#${id}b)"/>`;
+  g += `<path d="M0 120 L0 104 Q8 96 0 88 M100 120 L100 104 Q92 96 100 88" stroke="rgba(255,255,255,.12)" stroke-width="2" fill="none"/>`;
+  // oděv
+  const cloth = role === "klerik" || role === "biskup" ? (role === "biskup" ? "#5b2a6e" : "#2b2622") : role === "mestan" ? rp(["#5b4a32", "#3f5a3a", "#6b3a2a"]) : col;
+  g += `<path d="M6 120 C8 98 28 ${88 + (kid ? 6 : 0)} 50 ${88 + (kid ? 6 : 0)} C72 ${88 + (kid ? 6 : 0)} 92 98 94 120 Z" fill="${cloth}"/>`;
+  if (role === "rytir") { g += `<path d="M14 120 C16 100 32 92 50 92 C68 92 84 100 86 120 Z" fill="#8a8d91"/>`; for (let y = 96; y < 120; y += 4) for (let x = 18 + (y % 8 ? 2 : 0); x < 84; x += 4) g += `<path d="M${x} ${y} q2 2 4 0" stroke="#5f6266" stroke-width=".7" fill="none"/>`; g += `<path d="M38 120 L40 98 L60 98 L62 120 Z" fill="${col}"/><path d="M47 102 h6 M50 99 v8" stroke="#fff" stroke-width="2"/>`; }
+  if (role === "kral" || role === "kralovna" || role === "vevoda") { g += `<path d="M8 120 C10 102 24 94 34 92 L40 104 L50 96 L60 104 L66 92 C76 94 90 102 92 120 L80 120 L76 108 L24 108 L20 120 Z" fill="#f4f1ea"/>`; for (const [x, y] of [[22, 112], [32, 104], [68, 104], [78, 112], [50, 102], [42, 112], [58, 112]]) g += `<path d="M${x} ${y} l1.2 2.5 l-1.2 1 l-1.2 -1z" fill="#111"/>`; g += `<circle cx="50" cy="104" r="3" fill="#e2b13c" stroke="#7a5a1a" stroke-width=".6"/>`; }
+  if (role === "klerik" || role === "biskup") g += `<path d="M40 92 L50 104 L60 92" fill="none" stroke="#f4f1ea" stroke-width="3"/>${role === "biskup" ? `<path d="M50 104 v14 M45 109 h10" stroke="#e2b13c" stroke-width="2.4"/>` : ""}`;
+  // vlasy vzadu (ženy dlouhé)
+  if (fem && role !== "zena" && role !== "kralovna") g += `<path d="M${50 - 25 * s} ${fy - 2} C${50 - 30 * s} ${fy + 30} ${50 - 22 * s} ${fy + 36} ${50 - 16 * s} ${fy + 34} L${50 + 16 * s} ${fy + 34} C${50 + 22 * s} ${fy + 36} ${50 + 30 * s} ${fy + 30} ${50 + 25 * s} ${fy - 2} Z" fill="${hair}"/>`;
+  // krk a obličej
+  g += `<rect x="${50 - 7 * s}" y="${fy + 14 * s}" width="${14 * s}" height="${16 * s}" fill="${shade(skin, -0.08)}"/>`;
+  if (role === "rytir" && !kid) g += `<ellipse cx="50" cy="${fy}" rx="27" ry="30" fill="#8a8d91"/>${Array.from({ length: 6 }, (_, i) => `<path d="M${30 + i * 8} ${fy - 24} v48" stroke="#6f7276" stroke-width=".6" stroke-dasharray="2 2"/>`).join("")}`;
+  if (role === "zena" || role === "kralovna") g += `<path d="M${50 - 25 * s} ${fy + 26} C${50 - 30 * s} ${fy - 10} ${50 - 20 * s} ${fy - 28} 50 ${fy - 28} C${50 + 20 * s} ${fy - 28} ${50 + 30 * s} ${fy - 10} ${50 + 25 * s} ${fy + 26} Z" fill="#f2efe6"/><path d="M${50 - 17 * s} ${fy + 18} Q50 ${fy + 34} ${50 + 17 * s} ${fy + 18}" fill="#f2efe6" stroke="#d9d4c8"/>`;
+  g += `<ellipse cx="${50 - 19 * s}" cy="${fy + 2}" rx="${3 * s}" ry="${5 * s}" fill="${shade(skin, -0.1)}"/><ellipse cx="${50 + 19 * s}" cy="${fy + 2}" rx="${3 * s}" ry="${5 * s}" fill="${shade(skin, -0.1)}"/>`;
+  const jaw = R() < 0.5 ? 0 : 3;
+  g += `<path d="M${50 - 18 * s} ${fy - 6 * s} C${50 - 19 * s} ${fy - 26 * s} ${50 + 19 * s} ${fy - 26 * s} ${50 + 18 * s} ${fy - 6 * s} C${50 + 18 * s} ${fy + (12 + jaw) * s} ${50 + 9 * s} ${fy + 22 * s} 50 ${fy + 22 * s} C${50 - 9 * s} ${fy + 22 * s} ${50 - 18 * s} ${fy + (12 + jaw) * s} ${50 - 18 * s} ${fy - 6 * s} Z" fill="${skin}"/>`;
+  // vlasy nahoře
+  if (!(role === "zena" || role === "kralovna" || role === "rytir" && !kid)) {
+    const bald = !fem && a > 45 && R() < 0.35;
+    if (role === "klerik" && !kid) g += `<path d="M${50 - 19 * s} ${fy - 4 * s} C${50 - 21 * s} ${fy - 24 * s} ${50 + 21 * s} ${fy - 24 * s} ${50 + 19 * s} ${fy - 4 * s} L${50 + 16 * s} ${fy - 12 * s} C${50 + 10 * s} ${fy - 18 * s} ${50 - 10 * s} ${fy - 18 * s} ${50 - 16 * s} ${fy - 12 * s} Z" fill="${hairC}"/>`;
+    else if (bald) g += `<path d="M${50 - 19 * s} ${fy + 2 * s} C${50 - 21 * s} ${fy - 10 * s} ${50 - 16 * s} ${fy - 14 * s} ${50 - 14 * s} ${fy - 10 * s} L${50 - 15 * s} ${fy + 4 * s} Z M${50 + 19 * s} ${fy + 2 * s} C${50 + 21 * s} ${fy - 10 * s} ${50 + 16 * s} ${fy - 14 * s} ${50 + 14 * s} ${fy - 10 * s} L${50 + 15 * s} ${fy + 4 * s} Z" fill="${hairC}"/>`;
+    else g += `<path d="M${50 - 21 * s} ${fy + (fem ? 10 : 4) * s} C${50 - 24 * s} ${fy - 30 * s} ${50 + 24 * s} ${fy - 30 * s} ${50 + 21 * s} ${fy + (fem ? 10 : 4) * s} L${50 + 18 * s} ${fy - 6 * s} C${50 + 12 * s} ${fy - 13 * s} ${50 - 2 * s} ${fy - 12 * s} ${50 - 8 * s} ${fy - 16 * s} C${50 - 12 * s} ${fy - 10 * s} ${50 - 16 * s} ${fy - 9 * s} ${50 - 18 * s} ${fy - 6 * s} Z" fill="${hairC}"/>`;
+  }
+  // oči, obočí, nos, ústa
+  const ey = fy - 1 * s;
+  for (const dx of [-7.5, 7.5]) g += `<ellipse cx="${50 + dx * s}" cy="${ey}" rx="${3.2 * s}" ry="${2 * s}" fill="#fbf7ee"/><circle cx="${50 + dx * s}" cy="${ey}" r="${1.5 * s}" fill="${eye}"/><circle cx="${50 + dx * s}" cy="${ey}" r="${.6 * s}" fill="#111"/><path d="M${50 + (dx - 4) * s} ${ey - (4 + (c.traits.includes("kruty") || c.traits.includes("prchlivy") ? (dx < 0 ? -1 : 1) * -1 : 0)) * s} q${4 * s} ${-2 * s} ${8 * s} 0" stroke="${shade(hairC, -0.3)}" stroke-width="${1.4 * s}" fill="none" stroke-linecap="round"/>`;
+  g += `<path d="M50 ${ey + 2 * s} Q${47.5} ${ey + 9 * s} 49 ${ey + 10 * s} Q51 ${ey + 11 * s} 53 ${ey + 9.5 * s}" stroke="${shade(skin, -0.3)}" stroke-width="1" fill="none"/>`;
+  const smile = c.traits.includes("laskavy") || c.traits.includes("stedry") ? 2 : c.traits.includes("kruty") || c.traits.includes("lakomy") ? -1.2 : 0.5;
+  g += `<path d="M${50 - 5 * s} ${ey + 15 * s} Q50 ${ey + (15 + smile) * s} ${50 + 5 * s} ${ey + 15 * s}" stroke="#8a4a3a" stroke-width="1.3" fill="none" stroke-linecap="round"/>`;
+  if (fem || kid) g += `<circle cx="${50 - 11 * s}" cy="${ey + 9 * s}" r="${3 * s}" fill="#e88a7a" opacity=".25"/><circle cx="${50 + 11 * s}" cy="${ey + 9 * s}" r="${3 * s}" fill="#e88a7a" opacity=".25"/>`;
+  if (a >= 45) g += `<path d="M${50 - 9 * s} ${fy - 15 * s} q9 -2 18 0 M${50 - 7 * s} ${fy - 12 * s} q7 -1.5 14 0" stroke="${shade(skin, -0.25)}" stroke-width=".7" fill="none"/>`;
+  if (c.traits.includes("stateny") && !fem) g += `<path d="M${50 + 10 * s} ${ey + 3 * s} l4 6" stroke="#a5604f" stroke-width="1.2"/>`;
+  // vousy
+  if (!fem && !kid && a >= 19 && (role !== "klerik" && role !== "biskup") && R() < 0.75) {
+    const full = R() < 0.6;
+    if (full) g += `<path d="M${50 - 18 * s} ${fy + 2 * s} C${50 - 18 * s} ${fy + 26 * s} ${50 - 6 * s} ${fy + 32 * s} 50 ${fy + 32 * s} C${50 + 6 * s} ${fy + 32 * s} ${50 + 18 * s} ${fy + 26 * s} ${50 + 18 * s} ${fy + 2 * s} C${50 + 14 * s} ${fy + 14 * s} ${50 + 6 * s} ${fy + 12 * s} 50 ${fy + 14 * s} C${50 - 6 * s} ${fy + 12 * s} ${50 - 14 * s} ${fy + 14 * s} ${50 - 18 * s} ${fy + 2 * s} Z" fill="${hairC}"/><path d="M${50 - 4 * s} ${ey + 15 * s} q4 1.5 8 0" stroke="#7a3a2a" stroke-width="1.2" fill="none"/>`;
+    else g += `<path d="M${50 - 8 * s} ${ey + 13 * s} q8 -4 16 0 q-8 1 -16 0z" fill="${hairC}"/>`;
+  }
+  // pokrývka hlavy
+  const top = fy - 22 * s;
+  if (role === "kral" || role === "kralovna") g += `<path d="M${50 - 20 * s} ${top + 2} L${50 - 22 * s} ${top - 12} L${50 - 12 * s} ${top - 4} L50 ${top - 16} L${50 + 12 * s} ${top - 4} L${50 + 22 * s} ${top - 12} L${50 + 20 * s} ${top + 2} Z" fill="#e2b13c" stroke="#7a5a1a" stroke-width="1"/><circle cx="50" cy="${top - 2}" r="2.2" fill="#c0392b"/><circle cx="${50 - 12 * s}" cy="${top - 1}" r="1.6" fill="#2471a3"/><circle cx="${50 + 12 * s}" cy="${top - 1}" r="1.6" fill="#2471a3"/>`;
+  else if (role === "vevoda") g += `<path d="M${50 - 20 * s} ${top + 3} C${50 - 22 * s} ${top - 16} ${50 + 22 * s} ${top - 16} ${50 + 20 * s} ${top + 3} Z" fill="${shade(col, -0.2)}"/><rect x="${50 - 21 * s}" y="${top - 1}" width="${42 * s}" height="6" rx="3" fill="#f4f1ea"/><circle cx="50" cy="${top - 10}" r="2" fill="#e2b13c"/>`;
+  else if (role === "biskup") g += `<path d="M${50 - 16 * s} ${top + 4} L${50 - 14 * s} ${top - 20} L50 ${top - 30} L${50 + 14 * s} ${top - 20} L${50 + 16 * s} ${top + 4} Z" fill="#f4f1ea" stroke="#c9a35a" stroke-width="1.5"/><path d="M50 ${top - 22} v18 M45 ${top - 15} h10" stroke="#e2b13c" stroke-width="2"/>`;
+  else if (role === "pan" && !kid && R() < 0.4) g += `<path d="M${50 - 21 * s} ${top + 4} C${50 - 22 * s} ${top - 10} ${50 + 22 * s} ${top - 10} ${50 + 21 * s} ${top + 4} C${50 + 26 * s} ${top + 2} ${50 + 26 * s} ${top - 4} ${50 + 18 * s} ${top - 6} Z" fill="${shade(col, -0.35)}"/>`;
+  else if (role === "mestan") g += `<path d="M${50 - 20 * s} ${top + 4} Q50 ${top - 14} ${50 + 20 * s} ${top + 4} Z" fill="#3a2f26"/>`;
+  else if (role === "pana" || role === "divka") g += `<path d="M${50 - 18 * s} ${top + 5} Q50 ${top - 4} ${50 + 18 * s} ${top + 5}" stroke="#e2b13c" stroke-width="1.6" fill="none"/>`;
+  const cls_ = `portrait${c.st === "dead" ? " dead" : ""}${c.st === "cap" ? " cap" : ""}`;
+  return `<svg class="${cls_}" width="${size}" height="${Math.round(size * 1.2)}" viewBox="0 0 100 120" role="img" aria-label="${esc(c.n)}"><title>${esc(c.n)}${a >= 0 ? ", " + a + " let" : ""}</title><clipPath id="${id}c"><rect width="100" height="120" rx="8"/></clipPath><g clip-path="url(#${id}c)">${g}</g>${c.st === "cap" ? `<path d="M10 20 L90 100 M90 20 L10 100" stroke="rgba(60,40,30,.55)" stroke-width="5"/>` : ""}</svg>`;
+}
+
+// ---------- ilustrace událostí ----------
+const EVENT_ART = { neuroda: "neuroda", uroda: "uroda", mor: "mor", kacir: "cirkev", lapkove: "les", kometa: "kometa", rytir: "dvur", kupci: "obchod", spor: "dvur", stavitel: "stavba", ucenec: "uceni", legat: "cirkev", prusko: "valka", pozar: "pozar", zila: "dul", nemoc: "mor", zrada: "dvur",
+  babenberk: "dvur", rozvod: "rod", kutnahora: "dul", konradin: "valka", kresenbrunn: "valka", _tatari: "tatari", _war: "valka", _lost: "pozar", _succ: "rod", _victory: "rod", _callToArms: "valka", _proposal: "dvur", _ransom: "dvur", _vote: "volba",
+  krize_slechta: "dvur", krize_duchovni: "cirkev", krize_mestane: "obchod", krize_sedlaci: "pozar", _mission: "rod", _peaceOffer: "mir", _battle: "bitva" };
+function scene(kind, w = 640, h = 170) {
+  const id = "sc" + (ART_N++), night = kind === "kometa" || kind === "mor", storm = kind === "neuroda" || kind === "pozar" || kind === "tatari";
+  const sky = night ? ["#0e1530", "#2b3557"] : storm ? ["#4a4a52", "#8a7a6a"] : kind === "rod" || kind === "dvur" || kind === "volba" || kind === "uceni" ? ["#3a2416", "#6a4428"] : ["#7fa8c9", "#e9d9b0"];
+  let g = `<defs><linearGradient id="${id}s" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="${sky[0]}"/><stop offset="1" stop-color="${sky[1]}"/></linearGradient></defs><rect width="${w}" height="${h}" fill="url(#${id}s)"/>`;
+  const R = prng(hashStr(kind)), hills = (y, col) => { let d = `M0 ${h} L0 ${y}`; for (let x = 0; x <= w; x += 40) d += ` Q${x + 20} ${y - 10 - R() * 25} ${x + 40} ${y + (R() - 0.5) * 10}`; return `<path d="${d} L${w} ${h} Z" fill="${col}"/>`; };
+  const indoor = ["rod", "dvur", "volba", "uceni"].includes(kind);
+  if (indoor) {
+    g += `<rect y="${h - 30}" width="${w}" height="30" fill="#2a1a10"/>`; for (let x = 20; x < w; x += 120) g += `<path d="M${x} ${h - 30} V40 Q${x + 40} 0 ${x + 80} 40 V${h - 30}" fill="none" stroke="#7a5a3a" stroke-width="6"/><rect x="${x + 25}" y="50" width="30" height="60" fill="#c9a35a" opacity=".25"/>`;
+    for (let x = 60; x < w; x += 160) g += `<path d="M${x} 30 h26 v60 l-13 -10 l-13 10 z" fill="#8c2f1f"/><path d="M${x + 13} 45 l4 8 h-8z" fill="#e2b13c"/>`;
+  } else {
+    if (night) for (let i = 0; i < 40; i++) g += `<circle cx="${R() * w}" cy="${R() * h * 0.6}" r="${R() * 1.2 + 0.3}" fill="#fff" opacity="${0.4 + R() * 0.6}"/>`;
+    else if (!storm) g += `<circle cx="${w * 0.82}" cy="40" r="20" fill="#f6e3a1" opacity=".9"/>`;
+    if (storm) for (let i = 0; i < 5; i++) g += `<ellipse cx="${R() * w}" cy="${20 + R() * 30}" rx="${60 + R() * 60}" ry="18" fill="#3a3a40" opacity=".7"/>`;
+    g += hills(h * 0.55, kind === "tatari" ? "#9a9a6a" : "#7f8f6a") + hills(h * 0.72, kind === "uroda" ? "#c9a64a" : kind === "zima" ? "#e8edf0" : "#5f7a4a");
+  }
+  const soldier = (x, y, col, sp = 1) => `<g transform="translate(${x} ${y}) scale(${sp})"><circle cx="0" cy="-14" r="3" fill="#3a2e22"/><rect x="-3" y="-11" width="6" height="11" fill="${col}"/><path d="M4 -24 V2" stroke="#3a2e22" stroke-width="1"/></g>`;
+  const banner = (x, y, col) => `<path d="M${x} ${y} V${y - 40}" stroke="#3a2e22" stroke-width="2"/><path d="M${x} ${y - 40} h22 v14 l-6 -3 l-6 3 l-10 -3z" fill="${col}"/>`;
+  const castle = (x, y, k = 1) => `<g transform="translate(${x} ${y}) scale(${k})" fill="#6a5a4a"><rect x="-30" y="-30" width="60" height="30"/><rect x="-36" y="-50" width="14" height="50"/><rect x="22" y="-50" width="14" height="50"/><rect x="-8" y="-62" width="16" height="32"/>${[-36, -29, 22, 29, -8, 1].map(xx => `<rect x="${xx}" y="${xx === -8 || xx === 1 ? -66 : -54}" width="5" height="4"/>`).join("")}<path d="M-6 0 v-12 a6 6 0 0 1 12 0 v12z" fill="#2a2018"/></g>`;
+  switch (kind) {
+    case "valka": case "bitva": g += banner(w * 0.2, h - 30, "#b3261e") + banner(w * 0.78, h - 30, "#1f4e8c"); for (let i = 0; i < 14; i++) g += soldier(w * 0.22 + i * 14 + (i % 2) * 4, h - 22 + (i % 3) * 4, "#b3261e"); for (let i = 0; i < 14; i++) g += soldier(w * 0.55 + i * 14 + (i % 2) * 4, h - 22 + (i % 3) * 4, "#1f4e8c"); if (kind === "valka") g += `<g transform="translate(${w / 2} 60)"><path d="M-30 30 L30 -30 M30 30 L-30 -30" stroke="#ddd" stroke-width="6" stroke-linecap="round"/><path d="M-30 30 L30 -30 M30 30 L-30 -30" stroke="#666" stroke-width="2"/></g>`; break;
+    case "mor": for (let i = 0; i < 7; i++) { const x = 60 + i * 80; g += `<path d="M${x} ${h - 20} v-26 M${x - 9} ${h - 38} h18" stroke="#c9c2b0" stroke-width="4"/>`; } g += `<rect x="${w * 0.8}" y="${h - 60}" width="10" height="30" fill="#f4efe0"/><path d="M${w * 0.8 + 5} ${h - 64} q-4 -8 0 -12 q4 4 0 12" fill="#f3b33d"/>`; break;
+    case "uroda": for (let x = 0; x < w; x += 8) g += `<path d="M${x} ${h} V${h - 40 + (x % 16)}" stroke="#a8862e" stroke-width="2"/>`; for (let i = 0; i < 4; i++) g += `<path d="M${120 + i * 130} ${h - 20} l-12 -32 h24 z" fill="#d9b34a" stroke="#8a6a1e"/>`; break;
+    case "neuroda": for (let i = 0; i < 60; i++) { const x = R() * w; g += `<path d="M${x} ${40 + R() * 40} l-6 18" stroke="#9fb3c9" stroke-width="1.2"/>`; } for (let x = 0; x < w; x += 10) g += `<path d="M${x} ${h} l14 -10" stroke="#7a6a3a" stroke-width="2"/>`; g += `<path d="M${w * 0.6} 30 l-14 30 h12 l-10 26" stroke="#ffe680" stroke-width="3" fill="none"/>`; break;
+    case "cirkev": g += `<g fill="#8a7a6a" transform="translate(${w / 2} ${h - 18})"><rect x="-60" y="-50" width="120" height="50"/><path d="M-60 -50 L0 -80 L60 -50z"/><rect x="-80" y="-110" width="26" height="110"/><rect x="54" y="-110" width="26" height="110"/><path d="M-80 -110 l13 -26 l13 26z M54 -110 l13 -26 l13 26z"/><circle cx="0" cy="-34" r="12" fill="#c9a35a"/><path d="M-10 0 v-22 a10 10 0 0 1 20 0 v22z" fill="#3a2e22"/></g>`; for (let i = 0; i < 6; i++) g += `<path d="M${w / 2} 10 L${w / 2 - 200 + i * 80} ${h}" stroke="#fff3c0" stroke-width="10" opacity=".08"/>`; break;
+    case "obchod": g += `<path d="M0 ${h - 18} L${w} ${h - 30}" stroke="#b39b70" stroke-width="16"/><g transform="translate(${w * 0.35} ${h - 34})"><rect x="0" y="-22" width="70" height="22" fill="#8a5a2b"/>${[8, 30, 52].map(x => `<ellipse cx="${x + 6}" cy="-28" rx="8" ry="10" fill="#6a4423"/>`).join("")}<circle cx="12" cy="2" r="9" fill="none" stroke="#3a2e22" stroke-width="3"/><circle cx="58" cy="2" r="9" fill="none" stroke="#3a2e22" stroke-width="3"/><path d="M-30 -10 h30" stroke="#3a2e22" stroke-width="2"/><ellipse cx="-42" cy="-12" rx="14" ry="9" fill="#5a4a3a"/></g>` + castle(w * 0.82, h - 26, 0.9); break;
+    case "tatari": for (let i = 0; i < 9; i++) { const x = 40 + i * 64, y = h - 24 - (i % 2) * 8; g += `<g transform="translate(${x} ${y})"><ellipse cx="0" cy="0" rx="16" ry="7" fill="#3a2a1a"/><path d="M-12 4 v10 M10 4 v10 M14 -2 l8 -8" stroke="#3a2a1a" stroke-width="3"/><circle cx="0" cy="-14" r="4" fill="#3a2a1a"/><path d="M-4 -12 q-8 -6 -2 -14" stroke="#5a3a1a" stroke-width="1.5" fill="none"/></g>`; } for (let i = 0; i < 3; i++) g += `<path d="M${w * 0.15 + i * 200} ${h * 0.55} q-10 -30 6 -60 q10 -20 -4 -40" stroke="#555" stroke-width="14" opacity=".35" fill="none"/>`; break;
+    case "pozar": for (let i = 0; i < 9; i++) { const x = 40 + i * 66; g += `<path d="M${x} ${h - 16} v-30 l16 -14 l16 14 v30z" fill="#4a3a2a"/><path d="M${x + 6} ${h - 46} q6 -24 14 -6 q8 -20 10 4 q-12 10 -24 2z" fill="#e8742a" opacity=".85"/>`; } break;
+    case "kometa": g += `<path d="M${w * 0.2} 30 L${w * 0.7} 70" stroke="#fff" stroke-width="10" opacity=".12"/><path d="M${w * 0.3} 38 L${w * 0.7} 70" stroke="#fff6d0" stroke-width="3" opacity=".5"/><circle cx="${w * 0.7}" cy="70" r="7" fill="#fffbe8"/>`; break;
+    case "les": for (let i = 0; i < 18; i++) { const x = R() * w, y = h - 10 - R() * 30; g += `<path d="M${x} ${y} l12 -36 l12 36z" fill="#2f5a2a"/><path d="M${x + 12} ${y} v8" stroke="#3a2a1a" stroke-width="3"/>`; } g += castle(w * 0.7, h * 0.58, 0.6); break;
+    case "stavba": g += `<g transform="translate(${w / 2} ${h - 18})" fill="#9a8a7a"><rect x="-70" y="-60" width="140" height="60"/><rect x="-90" y="-100" width="30" height="100"/><path d="M60 -100 h30 v100 h-30z" fill="none" stroke="#6a4a2a" stroke-width="3"/>${[-90, -70, -50].map(y => `<path d="M58 ${y} h36" stroke="#6a4a2a" stroke-width="2"/>`).join("")}<circle cx="150" cy="-40" r="26" fill="none" stroke="#6a4a2a" stroke-width="4"/><path d="M150 -66 V0 M124 -40 H176" stroke="#6a4a2a" stroke-width="2"/></g>`; break;
+    case "dul": g += `<path d="M0 ${h} L${w * 0.3} 40 L${w * 0.6} 90 L${w} 50 L${w} ${h}z" fill="#7a6a5a"/><path d="M${w * 0.4} ${h - 10} v-40 h50 v40" fill="#2a2018" stroke="#5a3a1a" stroke-width="6"/><path d="M${w * 0.4 - 30} ${h - 6} h110" stroke="#5a4a3a" stroke-width="4"/>${[0, 1, 2].map(i => `<circle cx="${w * 0.6 + i * 30}" cy="${h - 20}" r="7" fill="#d9d9e0"/>`).join("")}`; break;
+    case "mir": g += `<g transform="translate(${w / 2} ${h / 2 + 10})"><rect x="-90" y="-46" width="180" height="92" rx="6" fill="#efe3c5" stroke="#a88a4a" stroke-width="2"/>${[-26, -12, 2, 16].map(y => `<path d="M-70 ${y} h140" stroke="#8a7a5a" stroke-width="2"/>`).join("")}<circle cx="60" cy="34" r="16" fill="#9a2a1a"/><path d="M52 34 h16 M60 26 v16" stroke="#e8c070" stroke-width="2"/></g>`; break;
+    case "rod": g += `<g transform="translate(${w / 2} ${h - 34})"><ellipse cx="0" cy="10" rx="60" ry="12" fill="#8c2f1f"/><path d="M-34 0 L-38 -36 L-18 -18 L0 -44 L18 -18 L38 -36 L34 0z" fill="#e2b13c" stroke="#7a5a1a" stroke-width="2"/><circle cx="0" cy="-22" r="5" fill="#c0392b"/></g>`; break;
+    case "dvur": g += `<g transform="translate(${w / 2} ${h - 30})"><rect x="-30" y="-70" width="60" height="70" fill="#5a3a22"/><rect x="-24" y="-90" width="48" height="24" fill="#8c2f1f"/><path d="M-24 -90 l24 -12 l24 12" fill="#e2b13c"/></g>`; for (let i = 0; i < 6; i++) g += soldier(80 + i * 90, h - 30, ["#5a3a6a", "#2f5d50", "#8a5a2b"][i % 3], 1.3); break;
+    case "volba": for (let i = 0; i < 7; i++) g += `<g transform="translate(${60 + i * 84} ${h - 30})"><rect x="-14" y="-40" width="28" height="40" fill="#5a3a22"/><rect x="-16" y="-50" width="32" height="12" fill="${["#c0392b", "#1f4e8c", "#e2b13c", "#2c3e50", "#8e44ad", "#c0392b", "#16a085"][i]}"/></g>`; break;
+    case "uceni": g += `<rect x="${w * 0.25}" y="${h - 60}" width="${w * 0.5}" height="12" fill="#5a3a22"/><path d="M${w * 0.45} ${h - 62} q20 -14 40 0 q20 -14 40 0 v-4 q-20 -14 -40 0 q-20 -14 -40 0z" fill="#efe3c5" stroke="#8a7a5a"/><rect x="${w * 0.3}" y="${h - 86}" width="8" height="24" fill="#f4efe0"/><path d="M${w * 0.3 + 4} ${h - 90} q-4 -8 0 -12 q4 4 0 12" fill="#f3b33d"/>`; break;
+    case "zima": for (let i = 0; i < 60; i++) g += `<circle cx="${R() * w}" cy="${R() * h}" r="1.5" fill="#fff"/>`; break;
+  }
+  return `<svg class="scene" viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${g}</svg>`;
+}
+
+// ---------- kresba kraje ----------
+function provArt(p) {
+  const w = 300, h = 110, id = "pa" + (ART_N++), C = S.clans[p.occ || p.owner], R = prng(hashStr(p.id));
+  let g = `<defs><linearGradient id="${id}" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#9fc0d9"/><stop offset="1" stop-color="#efe3c5"/></linearGradient></defs><rect width="${w}" height="${h}" fill="url(#${id})"/>`;
+  if (p.ter === "h") g += `<path d="M0 80 L40 30 L70 60 L110 18 L150 62 L190 26 L230 58 L270 22 L300 50 V${h} H0Z" fill="#8d8478"/><path d="M110 18 l10 12 l-8 -2 l-6 6 z M190 26 l9 10 l-9 -2z M270 22 l8 9 l-8 -2z" fill="#f4f4f4"/>`;
+  else if (p.ter === "k") g += `<path d="M0 78 Q50 50 100 70 T200 62 T300 70 V${h} H0Z" fill="#a7a27a"/>`;
+  else if (p.ter === "p") g += `<rect x="200" y="70" width="100" height="40" fill="#6f9ab8"/><path d="M200 70 Q220 64 240 72 T300 70" fill="none" stroke="#fff" opacity=".6"/>`;
+  g += `<path d="M0 86 Q80 76 160 84 T${w} 82 V${h} H0Z" fill="${{ n: "#a9b56a", k: "#8f9a5a", h: "#7a8a5a", l: "#5f7a45", b: "#6f8a6a", p: "#a9a56a" }[p.ter]}"/>`;
+  if (p.ter === "l") for (let i = 0; i < 14; i++) { const x = R() * w, y = 92 + R() * 12; g += `<path d="M${x} ${y} l7 -20 l7 20z" fill="#2f5a2a"/>`; }
+  if (p.ter === "b") for (let i = 0; i < 24; i++) { const x = R() * w; g += `<path d="M${x} ${h} v-12" stroke="#4d6a4a" stroke-width="1.5"/>`; }
+  if (p.ter === "n" || p.ter === "k") for (let x = 10; x < 120; x += 7) g += `<path d="M${x} ${h} l5 -16" stroke="#c9a64a" stroke-width="2" opacity=".7"/>`;
+  if (p.b.vinice) for (let x = 210; x < 290; x += 8) g += `<path d="M${x} ${h - 4} v-12" stroke="#5a7a2a" stroke-width="3" stroke-dasharray="2 2"/>`;
+  // hrad
+  const cx = 150, cy = 80, k = 0.7 + p.castle * 0.12, stone = "#7a6c5c";
+  g += `<path d="M${cx - 50} ${cy + 6} Q${cx} ${cy - 18} ${cx + 50} ${cy + 6}" fill="#8a7a5a"/>`;
+  g += `<g transform="translate(${cx} ${cy - 6}) scale(${k})" fill="${stone}">`;
+  if (p.castle >= 2) g += `<rect x="-38" y="-22" width="76" height="22"/>${Array.from({ length: 8 }, (_, i) => `<rect x="${-38 + i * 10}" y="-26" width="5" height="4"/>`).join("")}`;
+  if (p.castle >= 3) g += `<rect x="-46" y="-40" width="14" height="40"/><rect x="32" y="-40" width="14" height="40"/><path d="M-48 -40 l9 -10 l9 10z M30 -40 l9 -10 l9 10z" fill="#8c2f1f"/>`;
+  if (p.castle >= 4) g += `<rect x="-62" y="-28" width="12" height="28"/><rect x="50" y="-28" width="12" height="28"/>`;
+  g += `<rect x="-10" y="-56" width="20" height="56"/><path d="M-12 -56 l12 -12 l12 12z" fill="#8c2f1f"/><rect x="-3" y="-44" width="6" height="8" fill="#2a2018"/><path d="M0 -68 V-84" stroke="#3a2e22" stroke-width="1.5"/><path d="M0 -84 h16 v10 h-16z" fill="${C.col}"/></g>`;
+  // město
+  const houses = (p.b.mesto || 0) * 4 + (p.city ? 3 : 0);
+  for (let i = 0; i < houses; i++) { const x = 30 + (i % 7) * 15 + (i > 6 ? 230 - 30 : 0) - (i > 6 ? 0 : 0), y = h - 14 - (i > 13 ? 8 : 0), xx = i < 7 ? x : 205 + (i - 7) * 12; g += `<rect x="${xx}" y="${y}" width="11" height="10" fill="#e8dcc2" stroke="#7a6a58" stroke-width=".5"/><path d="M${xx - 1} ${y} l6.5 -7 l6.5 7z" fill="#a8432a"/>`; }
+  if (p.b.klaster) g += `<g transform="translate(60 ${h - 14})" fill="#c9bba0"><rect x="-10" y="-16" width="20" height="16"/><rect x="-4" y="-30" width="8" height="14"/><path d="M-5 -30 l5 -8 l5 8z" fill="#5a3a22"/><path d="M0 -40 v-5 M-2 -43 h4" stroke="#3a2e22"/></g>`;
+  if (p.b.dul) g += `<g transform="translate(250 ${h - 10})"><path d="M-14 0 v-16 h28 v16" fill="#2a2018" stroke="#6a4a2a" stroke-width="3"/><circle cx="20" cy="-4" r="4" fill="#ccc"/></g>`;
+  if (p.b.pristav) g += `<g transform="translate(260 82)"><path d="M-18 0 h36 l-6 8 h-24z" fill="#6a4423"/><path d="M0 0 v-26" stroke="#3a2e22" stroke-width="1.5"/><path d="M1 -24 q12 10 0 20z" fill="#f4efe0"/></g>`;
+  if (p.b.hrebcin) g += `<g transform="translate(95 ${h - 8})" fill="#5a3a22"><ellipse cx="0" cy="-6" rx="8" ry="4"/><path d="M-6 -3 v6 M5 -3 v6 M7 -8 l4 -5" stroke="#5a3a22" stroke-width="2"/></g>`;
+  if (p.siege) { for (let i = 0; i < 4; i++) g += `<path d="M${20 + i * 22} ${h - 4} l8 -14 l8 14z" fill="#d9cfb5" stroke="#7a6a58"/>`; g += `<path d="M180 30 q6 -18 12 0 q4 -10 8 2" fill="#e8742a" opacity=".8"/>`; }
+  if (p.occ) g += `<g transform="translate(220 40)"><path d="M0 0 V30" stroke="#3a2e22" stroke-width="1.5"/><path d="M0 0 h20 v12 h-20z" fill="${S.clans[p.occ].col}"/></g>`;
+  return `<svg class="provart" viewBox="0 0 ${w} ${h}" aria-hidden="true">${g}</svg>`;
+}
+
+// ---------- bitevní scéna ----------
+function battleScene(b) {
+  const w = 640, h = 150, my = b.ps === "A" ? b.A : b.B, foe = b.ps === "A" ? b.B : b.A, ter = S.provs[b.place].ter;
+  let g = `<rect width="${w}" height="${h}" fill="${{ n: "#b8c27a", k: "#a2a46a", h: "#9a9278", l: "#6f8a55", b: "#7f9a7a", p: "#b0aa7a" }[ter]}"/><rect width="${w}" height="40" fill="#a9c4d9"/><path d="M0 40 Q160 26 320 38 T640 34 V44 H0Z" fill="${ter === "h" ? "#8d8478" : "#7f8f6a"}"/>`;
+  const R2 = prng(hashStr(b.place));
+  if (ter === "l") for (let i = 0; i < 16; i++) { const x = R2() * w, y = 44 + R2() * 10; g += `<path d="M${x} ${y} l7 -18 l7 18z" fill="#2f5a2a"/>`; }
+  if (ter === "h") g += `<path d="M0 44 L60 12 L120 40 L200 6 L280 40 L360 14 L440 40 L520 10 L640 42 V46 H0Z" fill="#8d8478"/>`;
+  for (let i = 0; i < 30; i++) g += `<path d="M${R2() * w} ${60 + R2() * 85} q2 -4 4 0" stroke="rgba(60,80,30,.35)" fill="none"/>`;
+  if (foe.castle) g += `<g transform="translate(${w - 70} 70) scale(1.2)" fill="#7a6c5c"><rect x="-30" y="-30" width="60" height="30"/><rect x="-36" y="-46" width="14" height="46"/><rect x="22" y="-46" width="14" height="46"/></g>`;
+  const draw = (side, left, col) => {
+    let o = "", colIdx = 0; const t = side.t, dir = left ? 1 : -1, x0 = left ? 30 : w - 30 - (foe.castle && !left ? 90 : 0);
+    // jízda vzadu, pěchota uprostřed, střelci vpředu (směrem ke středu bojiště)
+    for (const k of ["jizda", "pesi", "zoldneri", "strelci"]) {
+      const n = Math.min(k === "pesi" ? 30 : 18, Math.ceil((t[k] || 0) / 100)); if (!n) continue;
+      for (let j = 0; j < n; j++) { const cIdx = colIdx + Math.floor(j / 5), row = j % 5, x = x0 + dir * cIdx * 27, y = 66 + row * 18 + (cIdx % 2) * 5;
+        if (k === "jizda") o += `<g transform="translate(${x} ${y}) scale(${dir * 1.5} 1.5)"><ellipse cx="0" cy="4" rx="9" ry="4" fill="#5a3a22"/><path d="M-6 7 v6 M6 7 v6 M8 1 l5 -5" stroke="#3a2a1a" stroke-width="1.6"/><rect x="-3" y="-8" width="6" height="9" fill="${col}"/><circle cx="0" cy="-11" r="2.6" fill="#8a8d91"/><path d="M4 -6 L18 -10" stroke="#3a2e22" stroke-width="1.2"/></g>`;
+        else if (k === "strelci") o += `<g transform="translate(${x} ${y}) scale(${dir * 1.5} 1.5)"><rect x="-2.5" y="-6" width="5" height="10" fill="${col}"/><circle cx="0" cy="-9" r="2.4" fill="#e1bf9a"/><path d="M3 -8 q5 5 0 10" stroke="#5a3a22" stroke-width="1.2" fill="none"/></g>`;
+        else o += `<g transform="translate(${x} ${y}) scale(${dir * 1.5} 1.5)"><rect x="-3" y="-6" width="6" height="11" fill="${k === "zoldneri" ? "#5d5d8c" : col}"/><circle cx="0" cy="-9" r="2.6" fill="#8a8d91"/><path d="M4 -16 V6" stroke="#3a2e22" stroke-width="1.2"/><path d="M-6 -2 h4 v6 h-4z" fill="${shade(col, -0.3)}"/></g>`; }
+      colIdx += Math.ceil(n / 5);
+    }
+    o += `<g transform="translate(${x0 - dir * 16} 50)"><path d="M0 70 V0" stroke="#3a2e22" stroke-width="2"/><path d="M0 0 h${dir * 22} v14 l${-dir * 6} -3 l${-dir * 6} 3 l${-dir * 10} -3z" fill="${col}"/></g>`;
+    return o; };
+  g += draw(my, true, S.clans[my.cl].col) + draw(foe, false, S.clans[foe.cl].col);
+  g += `<path d="M${w / 2} 50 V${h - 6}" stroke="rgba(0,0,0,.15)" stroke-width="2" stroke-dasharray="4 4"/>`;
+  return `<svg class="scene battle" viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid meet" aria-hidden="true">${g}</svg>`;
+}
+
+// Karty s portréty místo tabulek, ilustrované události, bitevní scéna a úvodní obrazovka.
+
+const statMini = c => `<div class="smini">${STAT_IDS.map(k => `<span title="${STATS[k]} ${st(c, k)}"><em>${STATS[k][0]}</em><i style="width:${st(c, k)}%;background:${{ ved: "#a3332b", uda: "#b06a2e", roz: "#3f6fa8", spr: "#4f7f4f" }[k]}"></i></span>`).join("")}</div>`;
+const loyIcon = v => `<span class="loy ${v < 35 ? "bad" : v < 60 ? "warn" : "good"}" title="Věrnost ${Math.round(v)}">♥ ${Math.round(v)}</span>`;
+
+// ---------- vazalové ----------
+function offTile(c, selected) {
+  const lordOf = Object.values(S.provs).filter(p => p.lord === c.id).map(p => p.n);
+  return `<div class="otile${selected ? " sel" : ""}${c.acted === S.turn ? " acted" : ""}" data-a="selOff" data-x='["${c.id}"]'>${portrait(c, 58)}<div class="oti"><b>${esc(c.n)}</b><div class="small muted">${RANKS[c.rank].n}${c.dyn ? " · rod" : ""}${c.burgher ? " · měšťan" : ""}${lordOf.length ? " · purkrabí" : ""}</div>${statMini(c)}<div class="small">${loyIcon(c.loy)} <span class="muted">${c.army ? "v poli" : esc(S.provs[c.loc] ? S.provs[c.loc].n : "?")}</span></div></div></div>`;
+}
+function offCard(c) {
+  const nx = RANKS[c.rank + 1], lordOf = Object.values(S.provs).filter(p => p.lord === c.id).map(p => p.n).join(", "), lead = c.id === P(S).leader;
+  const lb = c.dyn || lead ? null : offLoyBreakdown(S, c);
+  return `<div class="bigport">${portrait(c, 120)}<div><div class="big">${esc(c.n)}</div><div class="muted">${RANKS[c.rank].n}, ${age(S, c)} let${c.hist ? ", historická postava" : ""}${c.dyn ? ", člen rodu" : ""}</div><div class="muted">${traitsTxt(c) || "bez zvláštních vlastností"}${c.burgher ? " · měšťan" : ""}${Object.entries(P(S).offices || {}).filter(([, v]) => v === c.id).map(([k]) => " · " + OFFICES[k].n).join("")}</div>
+    <div class="kv small"><span>Kde</span><span>${c.army ? "s vojskem v poli" : esc(S.provs[c.loc] ? S.provs[c.loc].n : "?")}</span><span>Purkrabí</span><span>${esc(lordOf) || "—"}</span><span>Velí až</span><span>${fmt(RANKS[c.rank].cmd)} mužům</span></div></div></div>
+  ${STAT_IDS.map(k => meter(STATS[k], st(c, k), 100, { ved: "#a3332b", uda: "#b06a2e", roz: "#3f6fa8", spr: "#4f7f4f" }[k])).join("")}
+  ${meter("Věrnost", Math.round(c.loy), 100, c.loy < 35 ? "var(--bad)" : "var(--accent2)")}
+  ${lb ? `<details><summary>Proč je věrný(á) – směřuje k ${lb.val}</summary>${lb.rows.map(r => `<div class="why"><span>${esc(r[0])}</span><b class="${r[1] < 0 ? "bad" : "good"}">${sg(r[1])}</b></div>`).join("")}</details>` : ""}
+  ${nx ? meter("Zásluhy do hodnosti " + nx.n, Math.round(c.merit), nx.merit, "#7a5ea8") : ""}
+  ${c.dyn || lead ? "" : `<div class="row">${btn("Povýšit", "promote", [c.id], nx && c.merit >= nx.merit ? null : "Málo zásluh")} <input type="number" id="rw_${c.id}" value="50" min="10" step="10"> ${btn("Odměnit", "reward", [c.id])} ${!lordOf && S.provs[c.loc] && S.provs[c.loc].owner === me() && !c.army ? btn("Jmenovat purkrabím", "lord", [c.loc, c.id]) : ""} ${btn("Propustit", "dismiss", [c.id], null, "danger")}</div>`}`;
+}
+function tVazalove() {
+  const all = officers(S, me()); const k = SEL.sortOff;
+  if (!all.some(c => c.id === SEL.off)) SEL.off = all[0] && all[0].id;
+  const sorted = all.slice().sort((a, b) => k === "rank" ? b.rank - a.rank || b.merit - a.merit : k === "loy" ? a.loy - b.loy : st(b, k) - st(a, k));
+  const caps = Object.values(S.chars).filter(c => c.st === "cap" && c.capBy === me());
+  const mineCap = Object.values(S.chars).filter(c => c.st === "cap" && c.cl === me());
+  const sel_ = chr(S, SEL.off);
+  return `<div class="grid split">${card(`Vazalové (${all.length} z ${offCap(S, me())})`, `<div class="row">Řadit: ${[["rank", "hodnost"], ["ved", "vůdcovství"], ["uda", "udatnost"], ["roz", "rozum"], ["spr", "správa"], ["loy", "nejméně věrní"]].map(([x, n]) => btn(k === x ? `<b>${n}</b>` : n, "sortOff", [x])).join("")}</div><div class="otiles">${sorted.map(c => offTile(c, c.id === SEL.off)).join("")}</div>`)}
+    ${sel_ ? card("Vazal", offCard(sel_), "sticky") : ""}
+    ${officesCard()}
+    ${card("Zajatci v tvém žaláři", caps.length ? `<div class="otiles">${caps.map(c => `<div class="otile">${portrait(c, 58)}<div class="oti"><b>${esc(c.n)}</b><div class="small muted">${c.cl && S.clans[c.cl] ? esc(S.clans[c.cl].house) : "bez pána"} · ${RANKS[c.rank].n}</div>${statMini(c)}<div class="row">${btn("Propustit", "captive", [c.id, "propustit"])}${btn("Výkupné", "captive", [c.id, "vykupne"])}${btn("Naverbovat", "captive", [c.id, "naverbovat"])}${btn("Popravit", "captive", [c.id, "popravit"], null, "danger")}</div></div></div>`).join("")}</div>` : '<p class="muted">Žalář je prázdný.</p>')}
+    ${mineCap.length ? card("Tvoji lidé v zajetí", `<div class="otiles">${mineCap.map(c => `<div class="otile">${portrait(c, 58)}<div class="oti"><b>${esc(c.n)}</b><div class="small muted">drží je ${esc(S.clans[c.capBy].house)}</div></div></div>`).join("")}</div>`) : ""}</div>`;
+}
+
+// ---------- rozkazy (plán měsíce a kraj) ----------
+function cmdCard(c, p, showProv) {
+  const cmdOpts = Object.entries(CMDS).map(([k, K]) => [k, K.n + (K.cost ? ` (${K.cost} zl)` : "")]);
+  const done = c.acted === S.turn, k = SEL.cmd[c.id] || (c.id === P(S).leader ? "poselstvo" : suggestCmd(c, p)); SEL.cmd[c.id] = k;
+  return `<div class="ccard${done ? " acted" : ""}">${portrait(c, 64)}<div class="cci"><div><b>${esc(c.n)}</b> <span class="small muted">${RANKS[c.rank].n}${c.id === p.lord ? " · purkrabí" : ""}${c.id === P(S).leader ? " · hlava rodu" : ""}${showProv ? " · " + esc(p.n) : ""}</span> ${loyIcon(c.loy)}</div>${statMini(c)}
+    ${done ? '<div class="donebadge">✔ tento měsíc už jedná</div>' : `<div class="row">${sel("cs_" + c.id, cmdOpts, k, `data-a="cmdSel" data-x='["${c.id}"]'`)} ${cmdParams(c, k, p)}</div><div class="row"><span class="small muted">${CMDS[k].d}</span><span class="sp"></span>${btn("Provést", "cmd", [c.id], null, "go")}${showProv ? btn("Nechat na rádci", "advise", [c.id]) : ""}</div>`}</div></div>`;
+}
+function tPlan() {
+  const ps = clanProvs(S, me()).filter(p => !p.siege && !p.occ).sort((a, b) => (b.id === P(S).capital) - (a.id === P(S).capital) || b.v - a.v);
+  let idle = 0; const cards = [];
+  for (const p of ps) for (const c of officersIn(S, p.id).filter(x => !x.army)) { const done = c.acted === S.turn; if (done && !SEL.planDone) continue; if (!done) idle++; cards.push(cmdCard(c, p, true)); }
+  const C = P(S), b = clanBudget(S, me());
+  return `<div class="tiles">${tile("Volní vazalové", idle, "čekají na rozkaz")}${tile("Zlato", fmt(C.gold), `<span class="${b.net < 0 ? "bad" : "good"}">${sg(b.net)} za měsíc</span>`)}${tile("Obilí", fmt(C.grain), "do žní " + ((8 - S.month + 12) % 12) + " měs.")}${tile("Kraje", clanProvs(S, me()).length, `${clanProvs(S, me()).filter(p => p.deleg).length} svěřených purkrabím`)}</div>
+  <div class="row">${btn("Rádce rozhodne za všechny volné", "adviseAll", [], idle ? null : "Nikdo nečeká", "go")} ${btn(SEL.planDone ? "Skrýt ty, kdo už jednají" : "Ukázat i ty, kdo už jednají", "planDone")} <span class="small muted">Předvybraný rozkaz je doporučení podle stavu kraje.</span></div>
+  <div class="ccards">${cards.join("") || '<p class="muted">Všichni vazalové už mají rozkaz. Ukonči měsíc.</p>'}</div>`;
+}
+
+// ---------- diplomacie ----------
+function tDiplo() {
+  const others = aliveClans(S).filter(c => c.id !== me()).sort((a, b) => clanProvs(S, b.id).length - clanProvs(S, a.id).length);
+  if (!others.some(c => c.id === SEL.dip)) SEL.dip = others[0] && others[0].id;
+  const tiles = others.map(c => { const L = leaderOf(S, c.id), r = rel(S, me(), c.id); return `<div class="dtile${c.id === SEL.dip ? " sel" : ""}${atWar(S, me(), c.id) ? " war" : ""}" data-a="selDip" data-x='["${c.id}"]'>${shield(c.id, 30)}${portrait(L, 40)}<div class="dti"><b>${esc(c.house.split(" (")[0])}</b><div class="small muted">${esc(c.n)}</div><div class="small">${clanProvs(S, c.id).length} krajů · ~${fmt(Math.round(clanMen(S, c.id) / 500) * 500)} mužů</div><div class="small">vztah <b class="${cls(r, -20, 30)}">${Math.round(r)}</b> ${relBar(r)}</div><div>${relStatus(c)}</div></div></div>`; });
+  const T = S.clans[SEL.dip]; let dossier = "";
+  if (T) {
+    const L = leaderOf(S, T.id), envoys = officers(S, me()).filter(c => c.acted !== S.turn && !c.army && S.provs[c.loc] && S.provs[c.loc].owner === me() && !S.provs[c.loc].occ).sort((a, b) => st(b, "roz") - st(a, "roz"));
+    const foes = enemiesOf(S, T.id), friends = aliveClans(S).filter(o => o.id !== T.id && allied(S, T.id, o.id)), kin = aliveClans(S).filter(o => o.id !== T.id && married(S, T.id, o.id));
+    dossier = card("Rod", `<div class="bigport">${shield(T.id, 56)}${portrait(L, 96)}<div><div class="big">${esc(T.house)}</div><div>${esc(T.n)}</div><div class="muted">${esc(cap(T.t))} ${esc(L ? L.n : "—")}${L ? ` (${age(S, L)} let)${L.st === "cap" ? ", v zajetí" : ""}` : ""}</div><div class="muted">${T.hre ? "říšské knížectví" : "mimo říši"}${T.titles.length ? " · " + T.titles.join(", ") : ""} · ${RELIGIONS[relig(S, T.id)].n} víra</div></div></div>
+      <div>${relStatus(T) || '<span class="muted small">žádné smlouvy</span>'}</div>
+      ${meter("Vztah k tobě", Math.round(rel(S, me(), T.id)) + 100, 200, rel(S, me(), T.id) < 0 ? "var(--bad)" : "var(--good)")}
+      <div class="kv small"><span>Kraje</span><span>${clanProvs(S, T.id).map(p => esc(p.n)).join(", ")}</span><span>Válčí s</span><span>${foes.map(f => chip(f)).join(" ") || "—"}</span><span>Spojenci</span><span>${friends.map(f => chip(f.id)).join(" ") || "—"}</span><span>Spřízněni</span><span>${kin.map(f => chip(f.id)).join(" ") || "—"}</span></div>
+      ${warPeaceBlock(T)}
+      <h4>Poselstvo</h4><div class="envoys">${envoys.slice(0, 6).map((c, i) => `<label class="envoy"><input type="radio" name="env" value="${c.id}" ${i === 0 ? "checked" : ""} onchange="document.getElementById('env_${T.id}').value=this.value">${portrait(c, 34)}<span class="small">${esc(c.n.split(" ")[0])}<br>rozum ${st(c, "roz")}</span></label>`).join("") || '<span class="muted small">Žádný volný vazal – poselstvo můžeš vyslat příští měsíc.</span>'}</div>
+      <input type="hidden" id="env_${T.id}" value="${envoys[0] ? envoys[0].id : ""}">
+      <div class="row">${sel("dt_" + T.id, Object.entries(DIPLO).map(([k, d]) => [k, d.n]), atWar(S, me(), T.id) ? "mir" : "dar")} ${btn("Vyslat poselstvo", "dip", [T.id], envoys.length ? null : "Žádný volný vazal", "go")} ${atWar(S, me(), T.id) ? "" : btn(SEL.warConfirm === T.id ? "<b>Opravdu vyhlásit válku?</b>" : "Vyhlásit válku", "war", [T.id], null, "danger")}</div>`, "sticky");
+  }
+  return `<div class="grid split">${card("Rody střední Evropy", `<div class="dtiles">${tiles.join("")}</div>`)}${dossier}</div>`;
+}
+
+// ---------- rod ----------
+function famCard(c, role) {
+  if (!c) return "";
+  const H = heirsOf(S, me())[0];
+  return `<div class="fam ${c.sex === "f" ? "f" : "m"}${c.st === "dead" ? " dead" : ""}">${portrait(c, 76)}<div class="fn">${esc(c.n)}${c.id === P(S).leader ? " ♛" : ""}</div><div class="small muted">${role || (c.sex === "m" ? "syn" : "dcera")}, ${age(S, c)} let${H && H.id === c.id ? ", <b>dědic</b>" : ""}${c.st === "cap" ? ", v zajetí" : ""}${c.c ? ", duchovní" : ""}</div>
+    ${statMini(c)}${c.spouse && chr(S, c.spouse) && role !== "choť" ? `<div class="small">∞ ${esc(chr(S, c.spouse).n)}</div>` : ""}
+    ${c.st === "kid" ? sel("fo_" + c.id, [["", "výchova: volná"], ["ved", "vojevůdce"], ["uda", "rytířská"], ["roz", "učená"], ["spr", "správní"]], c.focus || "", `data-a="focus" data-x='["${c.id}"]'`) : ""}</div>`;
+}
+
+// ---------- objevy ----------
+const TECH_ICON = { "Zemědělství": "grain", "Řemesla": "kraj", "Správa": "scale", "Učenost": "objevy", "Válečnictví": "vojsko" };
+function tObjevy() {
+  const C = P(S), cats = [...new Set(TECH_IDS.map(t => TECHS[t].cat))], cur = C.res.cur;
+  return `${cur ? `<div class="curtech">${scene("uceni", 640, 120)}<div class="ct"><b>Zkoumá se: ${TECHS[cur].n}</b>${meter("Učenost", Math.round(C.res.pts), TECHS[cur].cost, "#3f6fa8")}<span class="small">Body přinášejí rozkazy „Podporovat učence“, kláštery a kancléř.</span></div></div>` : '<p class="alert warn">Učenci nemají zadaný objev – vyber některý níže.</p>'}
+  ${cats.map(cat => `<h3 class="cath">${icon(TECH_ICON[cat] || "objevy")} ${cat}</h3><div class="ttiles">${TECH_IDS.filter(t => TECHS[t].cat === cat).map(t => { const T = TECHS[t], done = C.techs[t], av = techAvail(S, me(), t); return `<div class="ttile ${done ? "done" : cur === t ? "cur" : av ? "av" : "lock"}"><b>${done ? "✔ " : cur === t ? "▶ " : av ? "" : "🔒 "}${T.n}</b><div class="small">${T.d}</div>${T.req ? `<div class="small muted">vyžaduje: ${T.req.map(r => TECHS[r].n).join(", ")}</div>` : ""}<div class="row"><span class="small muted">${T.cost} bodů</span><span class="sp"></span>${done || cur === t ? "" : btn("Zkoumat", "research", [t], av ? null : "Chybí předpoklady")}</div></div>`; }).join("")}</div>`).join("")}`;
+}
+
+// ---------- hospodářství ----------
+function moneyBars(obj, names, col) { const tot = Math.max(1, sum(Object.values(obj).filter(v => v > 0))); return Object.entries(obj).filter(([, v]) => Math.abs(v) >= 0.1).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<div class="mbar"><span>${names[k] || k}</span><i style="width:${clamp(Math.abs(v) / tot * 100, 1, 100)}%;background:${v < 0 ? "var(--bad)" : col}"></i><b>${r1(v)}</b></div>`).join(""); }
+function tHosp() {
+  const C = P(S), b = clanBudget(S, me()), ti = sum(Object.values(b.inc)), te = sum(Object.values(b.ex));
+  const goods = Object.entries(GOODS).map(([g, G]) => `<div class="gcard">${icon(g === "obili" ? "grain" : g === "kone" ? "men" : "vojsko")}<b>${G.n}</b><div class="big">${fmt(Math.floor(C[g === "obili" ? "grain" : g] || 0))}</div><div class="small muted">nákup ${r1(price(S, g) * 1.15)} · prodej ${r1(price(S, g) * 0.85)} zl</div><div class="row"><input type="number" id="q_${g}" value="100" min="1" step="50">${btn("Koupit", "buy", [g])}${btn("Prodat", "sell", [g])}</div></div>`).join("");
+  const provRows = clanProvs(S, me()).sort((a, c) => provGold(S, c) + routeIncomeProv(S, c) - provGold(S, a) - routeIncomeProv(S, a));
+  const mx = Math.max(1, ...provRows.map(p => provGold(S, p) + provMines(S, p).gold + routeIncomeProv(S, p)));
+  return `<div class="tiles">${tile("Příjem", fmt(ti), "zlatých měsíčně")}${tile("Výdaje", fmt(te), "zlatých měsíčně")}${tile("Bilance", `<span class="${b.net < 0 ? "bad" : "good"}">${sg(b.net)}</span>`, "za měsíc")}${tile("Obilí", fmt(C.grain), `spotřeba ${r1(clanGrainUse(S, me()))}/měs., žně v září`)}</div>
+  <div class="grid">${card("Odkud plyne zlato", moneyBars(b.inc, INC_N, "#b08a2e"))}${card("Kam odtéká", moneyBars(b.ex, EXP_N, "#a3332b"))}
+  ${card("Daně a trh", `<div class="kv"><span>Daňová zátěž</span>${sel("taxs", TAX_LEVELS.map((t, i) => [i, t]), C.tax, `data-a="tax" data-x='[]'`)}<span>Inflace</span><span>${Math.round(S.inflation * 100)} %</span></div><p class="small muted">Vyšší daně = víc zlata, ale nižší spokojenost lidu.</p><div class="gcards">${goods}</div>`)}
+  ${routesCard()}
+  ${card("Lombardští bankéři", `${(C.debts || []).map((d, i) => `<div class="row">Dluh ${fmt(d.amount)} zl, úrok ${r1(d.amount * d.rate)} zl/měs. ${btn("Splatit", "repay", [i])}</div>`).join("") || '<p class="muted small">Nemáš dluhy.</p>'}<div class="row"><input type="number" id="loan" value="200" step="100"> ${btn("Půjčit si", "borrow")} <span class="small muted">strop ${maxLoan(S, me())} zl</span></div>`)}
+  ${card("Výnos krajů", provRows.map(p => { const v = provGold(S, p) + provMines(S, p).gold + routeIncomeProv(S, p); return `<div class="mbar"><span>${btn(esc(p.n), "prov", [p.id])}</span><i style="width:${v / mx * 100}%;background:${p.cores.includes(me()) ? "#b08a2e" : "#e68c28"}"></i><b>${r1(v)}</b></div>`; }).join(""), "wide")}</div>`;
+}
+
+// ---------- ilustrované události a bitva ----------
+function eventPerson(ev) {
+  if (ev.cid && chr(S, ev.cid)) return chr(S, ev.cid);
+  if (ev.a && chr(S, ev.a)) return chr(S, ev.a);
+  const cl = ev.from || ev.by || ev.ally; if (cl && S.clans[cl]) return leaderOf(S, cl);
+  if (["_succ", "nemoc", "rozvod", "_mission", "vdovec"].includes(ev.id)) return leaderOf(S, me());
+  return null;
+}
+function renderModal() {
+  const m = $("#modal");
+  if (S.events.length && S.events[0].id === "_battle" && battleModal(S.events[0])) { m.innerHTML = battleModal(S.events[0]); m.classList.remove("hidden"); return; }
+  if (S.events.length) {
+    const ev = S.events[0], v = eventView(S, ev), who = eventPerson(ev);
+    m.innerHTML = `<div class="box evbox"><div class="evart">${scene(EVENT_ART[ev.id] || "dvur")}${who ? `<div class="evport">${portrait(who, 78)}</div>` : ""}</div><div class="evbody"><div class="muted small">${dateStr(S)}${S.events.length > 1 ? ` · čeká ${S.events.length} zpráv` : ""}</div><h2>${esc(v.t)}</h2><p>${esc(v.txt)}</p>${v.ch.map(c => `<button class="b ch" data-a="event" data-x="[0,${c.i}]" ${c.ok ? "" : "disabled"}>${esc(c.t)}</button>`).join("")}</div></div>`;
+    m.classList.remove("hidden");
+  } else if (S.over && !S.overSeen) {
+    m.innerHTML = `<div class="box evbox"><div class="evart">${scene(S.over.win ? "rod" : "pozar")}</div><div class="evbody"><h2>${S.over.win ? "Vítězství" : "Konec"}</h2><p>${esc(S.over.txt)}</p><button class="b ch" onclick="S.overSeen=true;render()">${S.over.cont ? "Hrát dál" : "Zavřít"}</button></div></div>`;
+    m.classList.remove("hidden");
+  } else m.classList.add("hidden");
+}
+function battleModal(ev) {
+  const x = S.pend && S.pend[ev.bid]; if (!x) return null;
+  const b = x.b, my = b.ps === "A" ? b.A : b.B, foe = b.ps === "A" ? b.B : b.A, myStart = b.ps === "A" ? b.start.a : b.start.b, foeStart = b.ps === "A" ? b.start.b : b.start.a;
+  const side = (sd, start, title) => `<div class="bside"><div class="bcmd">${shield(sd.cl, 34)}${sd.cmds.slice(0, 3).map(id => portrait(chr(S, id), 40)).join("")}<div><b>${esc(S.clans[sd.cl].house.split(" (")[0])}</b><div class="small muted">${title}</div></div></div>
+    ${meter("Muži", men(sd.t), start, S.clans[sd.cl].col)}${meter("Morálka", Math.max(0, Math.round(sd.morale)), 100, sd.morale < 40 ? "var(--bad)" : "var(--accent2)")}<div class="small muted">Sestava: ${TACTICS[sd.tac || "vyvazena"].n}${sd.castle ? `, hrad ${sd.castle}` : ""}</div></div>`;
+  const last = b.rounds[b.rounds.length - 1];
+  const lastTxt = last ? (() => { const mi = b.ps === "A" ? 0 : 1, fo = 1 - mi; return `${b.rounds.length}. kolo: ty – ${ORDERS[last[4 + mi]].n}, nepřítel – ${ORDERS[last[4 + fo]].n}. Tvé ztráty ${fmt(last[mi])}, nepřítele ${fmt(last[fo])}.`; })() : "Vojska stojí proti sobě. Vydej první rozkaz.";
+  const v = eventView(S, ev), OI = { utok: "⚔", drzet: "🛡", jizda: "🐎", salva: "🏹", zaloha: "⚑", ustup: "↩" };
+  return `<div class="box wide battlebox">${battleScene(b)}<div class="evbody"><div class="muted small">${dateStr(S)} · ${TERRAIN[S.provs[b.place].ter].n} · ${b.r + 1}. kolo z nejvýš 6</div><h2>${esc(v.t)}</h2>
+    <div class="bgrid">${side(my, myStart, "tvé vojsko")}${side(foe, foeStart, "nepřítel")}</div>
+    <p class="alert info">${lastTxt}</p>
+    <div class="orders">${v.ch.map(c => { const k = Object.keys(ORDERS).find(o => ORDERS[o].n === c.t); return `<button class="b ch" data-a="event" data-x="[0,${c.i}]"><span class="oi">${OI[k] || ""}</span><b>${esc(c.t)}</b><br><span class="small muted">${esc(c.d || "")}</span></button>`; }).join("")}</div></div></div>`;
+}
+
+// ---------- úvodní obrazovka ----------
+const SCEN_INFO = {};
+function scenInfo(sc) {
+  if (SCEN_INFO[sc]) return SCEN_INFO[sc];
+  const s = newGame({ seed: 1, scen: sc, clan: "premysl" });
+  return (SCEN_INFO[sc] = CLANS.filter(c => s.clans[c.id].alive && s.clans[c.id].type === "dyn").map(c => { const C = s.clans[c.id], L = s.chars[C.leader]; return { id: c.id, n: C.n, house: C.house, col: C.col, provs: clanProvs(s, c.id).length, L: L ? Object.assign({}, L) : null, role: C.t === "král" ? "kral" : "vevoda", year: s.year }; }).sort((a, b) => b.provs - a.provs));
+}
+function titleScreen() {
+  const T = SEL.title; if (!T) return "";
+  const sc = T.scen || 1256, list = T.step >= 2 ? scenInfo(sc) : [];
+  const hard = n => n >= 10 ? ["snadné", "good"] : n >= 4 ? ["střední", "warn"] : ["těžké", "bad"];
+  if (T.step === 1) return `<div class="tbg">${scene("valka", 1200, 340)}</div><div class="tcontent"><h1>Panovník</h1><p class="tsub">Koruny a meče střední Evropy · 1256–1400</p>
+    <div class="tbtns">${btn("Pokračovat ve hře", "titleClose", [], null, "big go")}${btn("Nová hra", "titleStep", [2], null, "big")}</div>
+    <p class="small tnote">Vládni rodu Přemyslovců, Habsburků, Arpádovců či Piastovců. Rozšiřuj panství, uzavírej sňatky, veď vojska a usiluj o královskou nebo císařskou korunu.</p></div>`;
+  return `<div class="tcontent wide"><div class="row"><h2>Nová hra</h2><span class="sp"></span>${btn("Zpět", "titleStep", [1])}</div>
+    <div class="scards">${Object.entries(SCENARIOS).map(([k, x]) => `<div class="scard${+k === sc ? " sel" : ""}" data-a="titleScen" data-x='[${k}]'>${scene(k == 1256 ? "volba" : k == 1260 ? "valka" : "rod", 320, 110)}<b>${x.n}</b><div class="small">${esc(x.d)}</div></div>`).join("")}</div>
+    <h3>Zvol rod</h3><div class="ctiles">${list.map(c => `<div class="ctile${c.id === (T.clan || "premysl") ? " sel" : ""}" data-a="titleClan" data-x='["${c.id}"]'>${shield(c.id, 34)}${c.L ? portrait(c.L, 52, { role: c.role, col: c.col, year: c.year }) : ""}<div><b>${esc(c.house.split(" (")[0])}</b><div class="small">${esc(c.n)}</div><div class="small muted">${c.L ? esc(c.L.n) : ""}</div><div class="small">${c.provs} krajů · <span class="${hard(c.provs)[1]}">${hard(c.provs)[0]}</span></div></div></div>`).join("")}</div>
+    <div class="row tstart">Obtížnost ${sel("tDiff", DIFFS.map((d, i) => [i, d]), T.diff != null ? T.diff : 1, `data-a="titleDiff" data-x='[]'`)} <label><input type="checkbox" ${T.fog === false ? "" : "checked"} data-a="titleFog" data-x='[]'> mlha války</label><span class="sp"></span>${btn("Začít hru ▶", "titleStart", [], null, "big go")}</div></div>`;
+}
+Object.assign(ACT, {
+  titleClose: () => { SEL.title = null; }, titleStep: n => { SEL.title.step = n; }, titleScen: k => { SEL.title.scen = +k; SEL.title.clan = "premysl"; }, titleClan: id => { SEL.title.clan = id; },
+  titleDiff: v => { SEL.title.diff = +v; }, titleFog: v => { SEL.title.fog = !!v; }, openTitle: () => { SEL.title = { step: 1 }; },
+  titleStart: () => { const T = SEL.title; S = newGame({ clan: T.clan || "premysl", scen: T.scen || 1256, diff: T.diff != null ? T.diff : 1, fog: T.fog !== false }); TAB = "mapa"; SEL.prov = P(S).capital; SEL.view = null; centerOnStart(); SEL.title = null; EUTERR.key = null; },
+});
+function centerOnStart() { SEL.view = { x: 0, y: 0, w: 430, h: 430 * MH / MW }; centerOn(P(S).capital); }
+function renderTitle() {
+  let el = $("#title"); if (!el) { el = document.createElement("div"); el.id = "title"; document.body.appendChild(el); }
+  if (!SEL.title) { el.className = "hidden"; el.innerHTML = ""; return; }
+  el.className = ""; el.innerHTML = titleScreen();
 }
 </script>
 </body>

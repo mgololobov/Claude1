@@ -23,6 +23,15 @@ Je to samostatný projekt, s Herní dílnou (`herni-dilna/`) nesdílí žádný 
 - **Objevy:** 16 objevů v pěti oborech. **Události:** přes 25 událostí s volbami a historické zprávy.
 - **Cíl:** ovládnout polovinu krajů, nebo být císařem a vládnout třetině krajů.
 
+## Grafika a portréty
+
+- **Generované portréty všech postav** – podle věku, pohlaví a role: koruna u králů a královen, vévodská čapka, biskupská mitra, kroužková kapuce u rytířů, závoj u vdaných žen, šediny, vrásky, vousy, oděv v barvách rodu.
+- **Úvodní obrazovka** s výběrem scénáře a rodu na kartách s erby a portréty vládců.
+- **Ilustrované události** (válka, mor, žně, neúroda, církev, obchod, tatarský vpád, požár, kometa, dvůr, volba krále…) s portrétem zúčastněné postavy.
+- **Kresba kraje** – hrad podle úrovně, lokované město, klášter, důl, přístav, vinice, hřebčín, obléhání a okupace.
+- **Scéna bitvy** s vojsky obou stran a portréty velitelů.
+- **Karty místo tabulek** – vazalové, plán měsíce, rozkazy v kraji, diplomacie, rodokmen, objevy, hospodářství (sloupcové grafy příjmů a výdajů).
+
 ## Ve stylu Europa Universalis
 
 - **Mapa jako hlavní obrazovka:** přiblížení kolečkem, posun tažením, moře a pobřeží, řeky (Dunaj, Labe, Vltava, Odra, Visla, Rýn, Mohan, Morava, Tisa, Dráva, Sáva, Inn, Varta, Dněstr, Bug), pohoří a lesy, jména zemí, žetony vojsk s počtem mužů a morálkou, šipky pochodů, obléhání a pruhovaně okupované kraje.
@@ -75,6 +84,8 @@ src/js/09-events.js    události
 src/js/10-ui.js        rozhraní (záložky, ukládání)
 src/js/11-gfx.js       grafika: erby, politická mapa, grafy, pruhy, ikony
 src/js/12-ui-ext.js    plán měsíce, bojová obrazovka, úřady, obchodní cesty
+src/js/14-art.js       portréty, ilustrace událostí, kresba kraje, scéna bitvy
+src/js/15-ui-cards.js  karty s portréty, ilustrované události, úvodní obrazovka
 src/js/13-eu-ui.js     mapa jako hlavní obrazovka, mapové režimy, boční panel, lišta, okno Vláda
 ```
 
