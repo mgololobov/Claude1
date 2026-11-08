@@ -216,7 +216,7 @@ function setLaw(s, cid, law, v) {
 function setTax(s, cid, v) { const C = s.clans[cid]; v = clamp(+v, 0, 4); if (C.tax === v) return null; if ((C.lawCd.tax || 0) > s.turn) return `Daň lze znovu změnit až za ${C.lawCd.tax - s.turn} měsíců.`; C.tax = v; C.lawCd.tax = s.turn + 6; log(s, `Daň ze sklizně stanovena na ${TAX_LEVELS[v].toLowerCase()} úrody.`, "zakony", [cid]); return null; }
 
 // ---------- hrobka panovníka ----------
-function tombCost(s, cid) { const C = s.clans[cid], k = (C.tomb.stage + 1) * costMult(s, cid) * (C.type === "kmen" ? 0.5 : C.t === "král" ? 1 : 0.6); return { deben: Math.round(4000 * k), grain: Math.round(25000 * k), months: 6 }; }
+function tombCost(s, cid) { const C = s.clans[cid], k = (C.tomb.stage + 1) * costMult(s, cid) * (C.type === "kmen" ? 0.5 : C.t === "král" ? 1 : 0.6) * (hasTech(s, cid, "obelisky") ? 0.8 : 1); return { deben: Math.round(4000 * k), grain: Math.round(25000 * k), months: 6 }; }
 function startTomb(s, cid) {
   const C = s.clans[cid]; if (C.tomb.active) return "Na hrobce se už pracuje."; if (C.tomb.stage >= TOMB_STAGES.length) return "Hrobka je dokončena.";
   const t = tombCost(s, cid); let d = t.deben; if (C.cedar > 0) { C.cedar--; d = Math.round(d * 0.8); }

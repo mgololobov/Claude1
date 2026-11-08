@@ -132,8 +132,22 @@ const TECHS = {
   zbroj: { n: "Kožená zbroj", cat: "Válečnictví", cost: 110, req: ["bronz"], d: "kabátce z kůže a velké štíty z volské kůže (kovová šupinová zbroj je až z Nové říše): +15 % obrany vojska" },
   flotila: { n: "Válečné lodě na Nilu", cat: "Válečnictví", cost: 80, d: "přeprava vojska po řece, jak ji líčí Anchtifi i Kamose: dva nomy za měsíc, +10 % útoku v údolí" },
   namorni: { n: "Námořní lodě (kebenit)", cat: "Válečnictví", cost: 120, req: ["flotila"], d: "„byblské lodě“ pro plavbu po moři: výpravy do Byblu a do Puntu" },
+  vcelarstvi: { n: "Včelařství", cat: "Zemědělství", cost: 50, d: "úly z hliněných válců, jak je zobrazuje reliéf ze slunečního chrámu krále Neuserrea (5. dynastie); med pro obětiny a léky: +4 % debenů" },
+  vinarstvi: { n: "Vinné lisy a sklepy", cat: "Zemědělství", cost: 60, d: "lisování v pytlovém lisu a zrání v pečetěných džbánech s údajem o vinici: dvojnásobný výnos vína a datlí" },
+  pekarny: { n: "Velkopekárny a pivovary", cat: "Zemědělství", cost: 80, req: ["pisari"], d: "společné pekárny a pivovary pro vojsko a robotníky, jak je ukazují dřevěné modely z hrobky Meketrea (11. dynastie): příděly vojákům o 10 % menší" },
+  fajans: { n: "Modrá fajáns", cat: "Řemesla", cost: 60, d: "glazovaná keramika z drceného křemene (známí modří hroši Střední říše): +5 stropu obchodu ve městech" },
+  tkalci: { n: "Tkalcovny lnu", cat: "Řemesla", cost: 70, d: "jemné lněné plátno z vodorovných stavů v chrámových a palácových dílnách: +5 % debenů" },
+  pecete: { n: "Skarabové pečetě", cat: "Správa", cost: 80, req: ["pisari"], d: "pečetě v podobě skarabea se jménem úředníka, ve Střední říši a za Hyksósů velmi rozšířené: zpronevěry se neodhalí pozdě, +3 % debenů" },
+  zpravy: { n: "Vojenské zprávy", cat: "Správa", cost: 90, req: ["pisari"], d: "pravidelná hlášení posádek o pohybu cizinců, jaká se dochovala z pevnosti Semna (12. dynastie): vidíš nomy do vzdálenosti dvou přechodů" },
+  hlidky: { n: "Pouštní hlídky", cat: "Válečnictví", cost: 80, d: "hlídky Médžajů a stopařů na pouštních cestách: polovina nájezdů kmenů se nepodaří" },
+  obleh: { n: "Obléhací žebříky a štíty", cat: "Válečnictví", cost: 100, d: "žebříky na kolech a kryté beranidlo, jaké ukazují malby obléhání v Beni Hasanu: obléhání o 30 % rychlejší" },
+  klenba: { n: "Klenuté sýpky", cat: "Stavitelství", cost: 70, d: "cihlové klenby a kopule sýpek chrání obilí před vlhkostí a myšmi: menší ztráty, obecní zásoby o 30 % větší" },
+  obelisky: { n: "Lodě na kámen", cat: "Stavitelství", cost: 120, req: ["flotila"], d: "nákladní lodě a vlečné čluny pro obelisky a sochy z asuánské žuly (obelisky Senusreta I.): velké stavby a hrobky o 20 % levnější" },
+  usirkult: { n: "Mystéria pro všechny", cat: "Náboženství a učenost", cost: 90, req: ["texty"], d: "každý může postavit stélu u „Terasy velkého boha“ a mít podíl na Usirově vzkříšení: Usirovy mystéria dávají maat +3 navíc, lid +3" },
 };
 const TECH_IDS = Object.keys(TECHS);
+// Dovednosti známé od Staré říše mají egyptské rody od počátku; nově je musí objevit jen ostatní.
+const OLD_TECHS = ["vcelarstvi", "vinarstvi", "fajans", "tkalci", "klenba"];
 
 const LAWS = {
   robota: { n: "Robota", opts: ["Mírná", "Obvyklá", "Těžká"], d: "Těžší robota zlevní a urychlí stavby a kanály, ale lid reptá." },

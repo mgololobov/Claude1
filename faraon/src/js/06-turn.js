@@ -40,7 +40,7 @@ function succession(s, cid, old) {
   const tombOk = C.tomb.stage >= 3, tombBad = C.tomb.stage <= 1;
   C.maat = clamp(C.maat + (tombOk ? 5 : tombBad ? -6 : 0) - (coreg ? 0 : 4) - (queen ? 8 : 0) - (child ? 3 : 0), 0, 100);
   for (const c of officers(s, cid)) if (!c.dyn) c.loy = Math.max(0, c.loy - (coreg ? 2 : 8) - (C.laws.nastupnictvi === 2 ? -3 : 0));
-  C.reign = s.turn; C.tomb = { stage: 0, left: 0, active: false }; C.hebsed = 0;
+  C.reign = s.turn; C.tomb = { stage: 0, left: 0, active: false }; C.hebsed = 0; C.horus = null;
   log(s, `${C.n}: na trůn nastupuje ${h.n}${queen ? " – žena na trůnu je vzácnost (jako kdysi Sobekneferu)" : ""}${child ? " – zatím dítě, vládne poručnická rada" : ""}${coreg ? " (hladce, po letech spoluvlády)" : ""}. ${old ? (tombOk ? "Zesnulý byl pohřben v dokončené hrobce." : tombBad ? "Zesnulý neměl hotovou hrobku – pohřeb byl nouzový." : "") : ""}`, "rod", [cid]);
   if (isPlayer(s, cid)) queueEvent(s, "pohreb", { old: old ? old.n : "" });
   assignLords(s, cid);
@@ -87,6 +87,7 @@ function offLoyTarget(s, c) {
   let t = 50 + c.rank * 4 + (C.maat - 50) / 3 + Math.min(15, C.prestige / 60) + (c.dyn ? 35 : 0);
   for (const k of c.traits) t += (TRAITS[k] && TRAITS[k].loy) || 0;
   if (Object.values(C.offices || {}).includes(c.id)) t += 8;
+  if (stateGod(s, c.cl) === "re") t += 3; if (C.horus === "sehertaui") t += 4; if (C.horus === "sema") t += 6;
   t += [10, 0, -12][C.laws.nomarchove] + (hasTech(s, c.cl, "vezir") ? 5 : 0) + officeVal(s, c.cl, "vezir") / 12;
   if (isPlayer(s, c.cl) && C.estates) t += (C.estates.nomarchove - 50) / 5;
   if (C.deben < 0 || C.grain < 0) t -= 15;
@@ -98,6 +99,8 @@ function provLoyTarget(s, p) {
   t -= p.hunger * 60; if (s.turn - p.conq < 24) t -= 20 * (1 - (s.turn - p.conq) / 24);
   if (isPlayer(s, p.owner) && C.estates) t += (C.estates.lid - 50) / 5;
   const L = chr(s, p.lord); t += L ? st(L, "spr") / 10 - 5 : -6;
+  t += distLoy(s, p); const g = stateGod(s, p.owner); if (g === "usir") t += 3; if (g === "amon" && p.id === "u4") t += 5;
+  if (hasHorus(s, p.owner, "seanch")) t += 4; if (hasTech(s, p.owner, "usirkult")) t += 3;
   if (C.type === "kmen") t = 65;
   return clamp(t, 0, 100);
 }
@@ -178,7 +181,7 @@ function harvestTick(s) {
     const H = provHarvest(s, p), food = provFood(s, p), tax = C.type === "kmen" ? 0 : provTax(s, p);
     C.grain += tax;
     const left = food - tax - provNeed(p);
-    if (left >= 0) { p.stock = Math.min(Math.round(p.pop * 1000 * (1.5 + (p.b.sypka || 0) * 0.7)), p.stock + Math.round(left * 0.6)); p.hunger = Math.max(0, p.hunger - 0.2); p.pop = r1(p.pop * (p.loy > 35 ? 1.015 : 1.005)); }
+    if (left >= 0) { p.stock = Math.min(Math.round(p.pop * 1000 * (1.5 + (p.b.sypka || 0) * 0.7) * (hasTech(s, p.owner, "klenba") ? 1.3 : 1)), p.stock + Math.round(left * 0.6)); p.hunger = Math.max(0, p.hunger - 0.2); p.pop = r1(p.pop * (p.loy > 35 ? 1.015 : 1.005)); }
     else {
       const def = -left, fromStock = Math.min(p.stock, def); p.stock -= fromStock; const rest = def - fromStock;
       if (rest >= 1) { let d = rest / provNeed(p); if (hasTech(s, p.owner, "nilometr")) d *= 0.67; p.hunger = clamp(p.hunger + d * 1.5, 0, 1); p.pop = r1(Math.max(0.5, p.pop * (1 - d * 0.22))); p.loy = Math.max(0, p.loy - d * 50); (hungry[p.owner] = hungry[p.owner] || []).push([p.id, Math.round(rest)]); }
@@ -248,7 +251,7 @@ const EVENTS = {
     ch: [{ t: "Rozdat obilí chudým (10 000 charů)", d: "lid +10, maat +3", f: () => { if (!pay(s, s.player, 0, 10000)) return "Obilí nestačí."; C.estates.lid = Math.min(100, C.estates.lid + 10); C.maat = Math.min(100, C.maat + 3); return null; } },
       { t: "Dát mudrce vyhnat", d: "maat −2", f: () => { C.maat = Math.max(0, C.maat - 2); return null; } }] }; } },
   usir: { view: (s, d) => { const C = P(s); return { t: "Usirovy mystéria v Abydu", tx: "V Abydu se slaví Usirovy mystéria: průvod s bohem Upuautem v čele, boj s jeho nepřáteli a návrat Usira do chrámu. Za Střední říše je popisuje stéla Ichernofreta; poutníci stavějí u „Terasy velkého boha“ stély a kaple.",
-    ch: [{ t: "Financovat slavnost (800 debenů)", d: monDone(s, "abydos") ? "maat +8 (Usirův chrám stojí), kněží +4, lid +2" : "maat +4, kněží +4, lid +2", f: () => { if (!pay(s, s.player, 800)) return "Nedostatek debenů."; C.maat = Math.min(100, C.maat + (monDone(s, "abydos") ? 8 : 4)); C.estates.knezi = Math.min(100, C.estates.knezi + 4); C.estates.lid = Math.min(100, C.estates.lid + 2); return null; } },
+    ch: [{ t: "Financovat slavnost (800 debenů)", d: monDone(s, "abydos") ? "maat +8 (Usirův chrám stojí), kněží +4, lid +2" : "maat +4, kněží +4, lid +2", f: () => { if (!pay(s, s.player, 800)) return "Nedostatek debenů."; C.maat = Math.min(100, C.maat + (monDone(s, "abydos") ? 8 : 4) + (hasTech(s, s.player, "usirkult") ? 3 : 0)); C.estates.knezi = Math.min(100, C.estates.knezi + 4); C.estates.lid = Math.min(100, C.estates.lid + 2); return null; } },
       { t: "Nechat kněžím", d: "maat +1", f: () => { C.maat = Math.min(100, C.maat + 1); return null; } }] }; } },
   hebsed: { view: (s, d) => { const C = P(s), L = leaderOf(s, s.player); return { t: "Svátek sed", tx: `${L.n} vládne už ${regYear(s, s.player) - 1} let. Podle prastaré tradice má panovník po třiceti letech slavit svátek sed: běží kolem posvátných mezníků a znovu přijímá korunu Horního i Dolního Egypta.`,
     ch: [{ t: "Slavit svátek sed (5 000 debenů, 20 000 charů)", d: "maat +15, sláva +60, úředníci +10", f: () => { if (!pay(s, s.player, 5000, 20000)) return "Na slavnost nebylo."; C.maat = Math.min(100, C.maat + 15); C.prestige += 60; for (const c of officers(s, s.player)) c.loy = Math.min(100, c.loy + 10); C.hebsed = s.turn; return "Svátek sed se slavil v celé zemi."; } },
@@ -303,7 +306,7 @@ function randomEvents(s) {
   opts.push(["pisar", { n: genName(s, C.cul, "m") }]);
   const np = someOwnProv(s, p => p.pop > 15); if (np) opts.push(["nakaza", { pid: np.id }]);
   if (!C.medjay && clanProvs(s, s.player).some(p => p.nb.some(n => s.provs[n].flags.includes("m")) || p.flags.includes("m"))) opts.push(["medzaj", {}]);
-  const zc = officers(s, s.player).filter(c => !c.dyn && c.traits.includes("chamtivy")); if (zc.length && C.grain > 30000) { const g = Math.round(C.grain * 0.05); C.grain -= g; opts.push(["zpronevera", { cid: pick(s, zc).id, g }]); }
+  const zc = officers(s, s.player).filter(c => !c.dyn && c.traits.includes("chamtivy")); if (zc.length && C.grain > 30000 && !hasTech(s, s.player, "pecete")) { const g = Math.round(C.grain * 0.05); C.grain -= g; opts.push(["zpronevera", { cid: pick(s, zc).id, g }]); }
   if (s.scen !== "sip") opts.push(["ipuver", {}]);
   if (C.cul === "eg" && !s.flags.vymluvny) opts.push(["vymluvny", {}]);
   const groom = Object.values(s.chars).filter(c => c.cl === s.player && c.dyn && c.sex === "m" && !c.spouse && c.st === "off" && age(s, c) >= 16 && age(s, c) < 45);
@@ -438,7 +441,7 @@ function endTurn(s) {
   delegated(s);
   for (const C of aliveClans(s)) if (!isPlayer(s, C.id)) aiClan(s, C.id);
   moveArmies(s); siegeTick(s); raids(s);
-  economyTick(s); monTick(s);
+  economyTick(s); monTick(s); mechTick(s);
   if (s.month === 0) { s.flood.next = rollFlood(s); }
   if (s.month === FLOOD_MONTH) floodTick(s);
   if (s.month === HARVEST_MONTH) harvestTick(s);

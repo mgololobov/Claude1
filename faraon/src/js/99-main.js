@@ -31,6 +31,9 @@ ACT.trade = dir => { const q = Math.abs(+val("mktQ") || 0); if (!q) return "Zade
 ACT.law = (k, v) => setLaw(S, me(), k, v);
 ACT.tomb = () => startTomb(S, me());
 ACT.mon = id => startMon(S, me(), id);
+ACT.god = g => setGod(S, me(), g);
+ACT.horus = h => setHorus(S, me(), h);
+ACT.capital = pid => { const r = moveCapital(S, me(), pid); TERR.key = null; return r; };
 ACT.copySave = () => { const t = JSON.stringify(S); SEL.saveTxt = t; try { navigator.clipboard.writeText(t).then(() => toast("Hra zkopírována do schránky."), () => toast("Text je v poli – zkopíruj ho ručně.")); } catch (e) { toast("Text je v poli – zkopíruj ho ručně."); } return null; };
 ACT.pasteSave = () => { const el = document.getElementById("saveTxt"); try { const x = JSON.parse(el.value); if (!x.provs || !x.clans || x.v !== 1) throw 0; S = x; TERR.key = null; SEL.saveTxt = ""; toast("Hra načtena."); } catch (e) { return "Text není uložená hra."; } };
 ACT.focus = (id, v) => { const c = chr(S, id); if (c) c.focus = v || null; };

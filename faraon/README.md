@@ -22,6 +22,11 @@ Hra je jeden soubor `dist/index.html`: stačí ho otevřít v prohlížeči, fun
 - Události podle pramenů: Výmluvný rolník, Ponaučení pro Merikarea, Nářky Ipuverovy, Krásný svátek údolí, proklínací obřady (Mirgissa), pád Nefrusy a Avaridu, příběh o ztroskotaném námořníkovi.
 - Velké stavby panovníků: zádušní chrám v Dér el-Bahrí, chrám Amona v Karnaku, Usirův chrám v Abydu, hráze Fajjúmu, pevnosti 2. kataraktu, Zdi vládcovy, obelisk v Heliopoli.
 - Události ze života Egypta: lov na hrocha, myši a kobylky, Asiaté žádající o pastviny (jako karavana Abiši z Beni Hasanu), požár sýpky, spiknutí v ženském domě (Veni, Amenemhat I.), narození býka Apis, nemoc panovníka, žádost spojence o pomoc, zběhové, karavana z jihu (Harchuf), životopisné stély v Abydu, vdova u soudu, mor dobytka, asijští řemeslníci, posel z Kuše, odměna za statečnost.
+- Státní bůh (Montu, Amon, Ptah, Re, Usir, Sobek, Sutech, Herišef): každý má kultovní centrum, které musíš držet, a vlastní účinek.
+- Horovo jméno krále jako program vlády podle skutečných jmen Intefů a Montuhotepa II. (Sehertaui, Wahanch, Nachtnebtepnefer, Seanchibtaui, Necerihedžet, Semataui).
+- Přenesení sídla (jako Amenemhat I. do Itj-taui); spokojenost nomů klesá se vzdáleností od sídla.
+- Kořist po dobytí nomu: vydrancovat, odvést zajatce na práci, nebo ušetřit.
+- 33 objevů včetně včelařství, vinných lisů, velkopekáren (modely Meketrea), modré fajánse, skarabových pečetí, vojenských zpráv ze Semny, pouštních hlídek, obléhacích žebříků (Beni Hasan), klenutých sýpek a lodí na kámen.
 - Odkaz rodu: bodové hodnocení vlády pro porovnání her.
 - Rod, sňatky, nástupnictví (i spoluvláda), vědění od nilometru po válečný vůz a námořní lodě.
 

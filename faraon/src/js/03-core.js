@@ -77,6 +77,8 @@ function newGame(opts = {}) {
   for (const c of Sc.clans) s.clans[c.id] = Object.assign({}, c, { provs: undefined, techs: Object.fromEntries((c.techs || []).map(t => [t, 1])), alive: true, leader: null, capital: c.cap, deben: 0, grain: 0, kone: 0, cedar: 0,
     tombN: c.tomb || "hrobka", tax: 2, rel: {}, res: { cur: null, pts: 0 }, vassalOf: c.vassalOf || null, tributeTo: null, reign: 0, tomb: { stage: 0, left: 0, active: false }, laws: { robota: 1, nomarchove: 1, chramy: 1, vojsko: 1, nastupnictvi: 0 }, lawCd: {},
     offices: {}, last: {}, medjay: !!c.medjay, census: 0, hebsed: 0, mods: [] });
+  for (const C of Object.values(s.clans)) if (C.cul === "eg" || C.cul === "hyk") for (const t of OLD_TECHS) C.techs[t] = 1;
+  if (scen === "sip") { for (const id of ["thebes", "hyksos"]) for (const t of ["pekarny", "pecete", "obleh", "obelisky"]) s.clans[id].techs[t] = 1; for (const t of ["zpravy", "hlidky", "usirkult"]) s.clans.thebes.techs[t] = 1; }
   const owner = {}; for (const c of Sc.clans) for (const p of c.provs) owner[p] = c.id;
   const POP_T = { udoli: 1, delta: 1, fajjum: 0.9, nubie: 0.6, katarakt: 0.5, oaza: 0.35, poust: 0.12 };
   for (const [id, n, eg, lat, lon, ter, v0, fl, res] of PROVINCES) {
@@ -168,8 +170,8 @@ function floodFactor(h) {
 function floodWord(h) { if (h == null) return "neznámá"; return h < 12 ? "hladová" : h < 13 ? "nouzová" : h < 14 ? "slabá" : h < 15 ? "dobrá" : h < 17 ? "hojná" : h < 18 ? "vysoká" : "ničivá"; }
 const PASTORAL = { udoli: 0.2, delta: 0.45, fajjum: 0.35, nubie: 1.6, katarakt: 1.4, oaza: 1.4, poust: 3.0 };
 const NEED_PER_PERSON = 3.2; // charů obilí na osobu a rok
-function agriCap(s, p) { let m = 60; const o = p.owner; if (hasTech(s, o, "hraze") && (p.ter === "udoli" || p.ter === "delta")) m += 10; if (hasTech(s, o, "fajjum")) m += p.ter === "fajjum" ? 30 : 5; return m + (typeof monAgri === "function" ? monAgri(s, p) : 0); }
-function comCap(s, p) { let m = p.comMax + (p.b.dilny || 0) * 20 + (p.b.pristav || 0) * 15; return m; }
+function agriCap(s, p) { let m = 60; const o = p.owner; if (hasTech(s, o, "hraze") && (p.ter === "udoli" || p.ter === "delta")) m += 10; if (hasTech(s, o, "fajjum")) m += p.ter === "fajjum" ? 30 : 5; return m + (typeof monAgri === "function" ? monAgri(s, p) : 0) + (o && s.clans[o] && stateGod(s, o) === "sobek" && (p.ter === "fajjum" || p.ter === "delta") ? 5 : 0); }
+function comCap(s, p) { let m = p.comMax + (p.b.dilny || 0) * 20 + (p.b.pristav || 0) * 15; if (hasTech(s, p.owner, "fajans") && p.flags.includes("c")) m += 5; if (p.owner && s.clans[p.owner] && stateGod(s, p.owner) === "ptah") m += 4; return m; }
 function provHarvest(s, p, h) {
   const T = TERRAIN[p.ter], f = T.nile ? floodFactor(h != null ? h : s.flood.h) : (p.ter === "oaza" ? 0.95 : 0.7);
   return p.pop * 1000 * 5 * (p.agri / 50) * T.agri * f * (0.75 + p.loy / 400) * (p.siege ? 0.3 : 1);
@@ -182,6 +184,7 @@ function taxMult(s, cid) {
   if (C.census > s.turn) m *= 1.12;
   m *= 1 + officeVal(s, cid, "sypky") / 1200 + officeVal(s, cid, "vezir") / 2500;
   m *= [0.95, 1, 1.08][C.laws.nomarchove];
+  if (stateGod(s, cid) === "herisef") m *= 1.04;
   if (isPlayer(s, cid)) m *= diffIncome(s);
   return m;
 }
@@ -194,6 +197,7 @@ function provDeben(s, p) {
   const L = chr(s, p.lord), spr = L ? st(L, "spr") : 30;
   let g = (40 + p.com * 4 + p.pop * 1.5) * (0.55 + p.loy / 220) * (0.85 + spr / 400);
   if (hasTech(s, p.owner, "pisari")) g *= 1.1;
+  if (hasTech(s, p.owner, "vcelarstvi")) g *= 1.04; if (hasTech(s, p.owner, "tkalci")) g *= 1.05; if (hasTech(s, p.owner, "pecete")) g *= 1.03;
   g *= 1 + officeVal(s, p.owner, "pokladnik") / 800;
   g *= [0.92, 1, 1.1][C.laws.nomarchove];
   if (isPlayer(s, p.owner)) g *= diffIncome(s) * (0.9 + (C.estates ? C.estates.pisari : 50) / 500);
@@ -202,7 +206,7 @@ function provDeben(s, p) {
 }
 function provRes(s, p) {
   let g = 0;
-  for (const r of p.res) { const R = RES[r]; if (!R) continue; g += R.mine ? R.deben * (p.b.lom || 0) : R.deben; }
+  for (const r of p.res) { const R = RES[r]; if (!R) continue; g += (R.mine ? R.deben * (p.b.lom || 0) : R.deben) * (r === "vino" && hasTech(s, p.owner, "vinarstvi") ? 2 : 1); }
   return p.siege ? 0 : g;
 }
 function clanBudget(s, cid) {
@@ -223,10 +227,10 @@ function clanBudget(s, cid) {
   const net = sum(Object.values(inc)) - sum(Object.values(ex));
   // obilí za měsíc
   const soldiers = sum(allT.map(men));
-  const gex = { vojsko: Math.round(soldiers * RATION_SOLDIER * (C.cul === "eg" || C.cul === "hyk" ? 1 : 0.5)), urednici: sum(offs.map(c => (c.id === C.leader ? 0 : RANKS[c.rank].pay))), dvur: 300 + ps.length * 100 + (C.t === "král" ? Math.min(1000, ps.length * 250) : 0), ztraty: Math.round(C.grain * spoilRate(s, cid)) };
+  const gex = { vojsko: Math.round(soldiers * RATION_SOLDIER * (C.cul === "eg" || C.cul === "hyk" ? 1 : 0.5) * (hasTech(s, cid, "pekarny") ? 0.9 : 1)), urednici: sum(offs.map(c => (c.id === C.leader ? 0 : RANKS[c.rank].pay))), dvur: 300 + ps.length * 100 + (C.t === "král" ? Math.min(1000, ps.length * 250) : 0), ztraty: Math.round(C.grain * spoilRate(s, cid)) };
   return { inc, ex, net, gex, gnet: -sum(Object.values(gex)) };
 }
-function spoilRate(s, cid) { const lv = sum(clanProvs(s, cid).map(p => p.b.sypka || 0)); return Math.max(0.003, 0.012 - lv * 0.0012 - officeVal(s, cid, "sypky") / 10000); }
+function spoilRate(s, cid) { const lv = sum(clanProvs(s, cid).map(p => p.b.sypka || 0)); return Math.max(0.003, 0.012 - lv * 0.0012 - officeVal(s, cid, "sypky") / 10000 - (hasTech(s, cid, "klenba") ? 0.002 : 0)); }
 function yearTaxEstimate(s, cid, h) { return sum(clanProvs(s, cid).map(p => provTax(s, p, h))); }
 
 // ---------- úřady ----------
@@ -297,7 +301,7 @@ function realmPower(s, cid) { return clanPower(s, cid) + sum(vassalsOf(s, cid).m
 function clanMen(s, cid) { return sum(clanProvs(s, cid).map(p => men(p.troops))) + sum(s.armies.filter(a => a.cl === cid).map(a => men(a.t))); }
 
 // co hráč o cizí nomu ví
-function knows(s, p) { return s.opts.fog === false || p.owner === s.player || (p.spy[s.player] || 0) > s.turn || p.nb.some(n => s.provs[n].owner === s.player) || s.clans[p.owner].vassalOf === s.player || allied(s, s.player, p.owner); }
+function knows(s, p) { return s.opts.fog === false || p.owner === s.player || (p.spy[s.player] || 0) > s.turn || p.nb.some(n => s.provs[n].owner === s.player) || s.clans[p.owner].vassalOf === s.player || allied(s, s.player, p.owner) || (hasTech(s, s.player, "zpravy") && p.nb.some(n => s.provs[n].nb.some(m => s.provs[m].owner === s.player))); }
 function estimate(s, p, v) { if (s.opts.fog === false || p.owner === s.player || (p.spy[s.player] || 0) > s.turn) return String(Math.round(v)); const lo = Math.round(v * 0.75 / 100) * 100, hi = Math.round(v * 1.3 / 100) * 100; return `${lo}–${hi}`; }
 
 function snapshot(s) {

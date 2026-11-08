@@ -19,7 +19,7 @@ const MONUMENTS = {
 const MON_IDS = Object.keys(MONUMENTS);
 function monState(s, id) { const p = s.provs[MONUMENTS[id].at]; return (p.mons && p.mons[id]) || { stage: 0, left: 0, active: false, by: null }; }
 function monDone(s, id) { return monState(s, id).stage >= MONUMENTS[id].stages; }
-function monCost(s, cid, id) { const M = MONUMENTS[id], k = costMult(s, cid) * (1 + monState(s, id).stage * 0.15); return { deben: Math.round(M.deben * k), grain: Math.round(M.grain * k) }; }
+function monCost(s, cid, id) { const M = MONUMENTS[id], k = costMult(s, cid) * (1 + monState(s, id).stage * 0.15) * (hasTech(s, cid, "obelisky") ? 0.8 : 1); return { deben: Math.round(M.deben * k), grain: Math.round(M.grain * k) }; }
 function monCheck(s, cid, id) {
   const M = MONUMENTS[id], st_ = monState(s, id);
   if (st_.stage >= M.stages) return "Stavba je dokončena.";

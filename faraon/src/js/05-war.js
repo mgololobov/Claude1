@@ -40,8 +40,8 @@ function battle(s, A, D, pid, o = {}) {
   const aStart = men(A.t), dStart = men(D.t); let mA = 100, mD = 100; const rounds = [];
   const flot = hasTech(s, A.cl, "flotila") && ter.nile ? 1.1 : 1;
   for (let r = 0; r < 6; r++) {
-    const pa = troopPower(s, A.cl, A.t, { ter: p.ter, train: A.train }) * (A.cmd || 1) * flot * rrange(s, 0.85, 1.15) * (0.6 + mA / 250);
-    const pd = troopPower(s, D.cl, D.t, { def: true, ter: p.ter, train: D.train }) * (D.cmd || 1) * ter.def * (D.fort || 1) * rrange(s, 0.85, 1.15) * (0.6 + mD / 250);
+    const pa = troopPower(s, A.cl, A.t, { ter: p.ter, train: A.train }) * (A.cmd || 1) * (stateGod(s, A.cl) === "montu" ? 1.08 : 1) * flot * rrange(s, 0.85, 1.15) * (0.6 + mA / 250);
+    const pd = troopPower(s, D.cl, D.t, { def: true, ter: p.ter, train: D.train }) * (D.cmd || 1) * (stateGod(s, D.cl) === "sutech" ? 1.08 : 1) * ter.def * (D.fort || 1) * rrange(s, 0.85, 1.15) * (0.6 + mD / 250);
     const nA = men(A.t), nD = men(D.t); if (!nA || !nD) break;
     const lA = Math.round(Math.min(nA * 0.3, nA * 0.06 * Math.pow(pd / Math.max(1, pa), 0.75))), lD = Math.round(Math.min(nD * 0.3, nD * 0.06 * Math.pow(pa / Math.max(1, pd), 0.75)));
     lossApply(A.t, lA); lossApply(D.t, lD); rounds.push([lA, lD]);
@@ -94,6 +94,7 @@ function conquer(s, p, cid) {
   const old = p.owner; transferProv(s, p.id, cid, "dobytí"); p.siege = null;
   log(s, `${s.clans[cid].house} dobyl nom ${p.n}${s.clans[old] ? " (dříve " + s.clans[old].house + ")" : ""}.`, "valka", [cid, old]);
   if (p.flags.includes("h")) desecration(s, cid, p);
+  else if (isPlayer(s, cid) && !s.events.some(e => e.k === "korist")) queueEvent(s, "korist", { pid: p.id });
   if (p.id === "u15" && old === "teti") log(s, `Tak jako Kamose, který se na své stéle chlubí, že zpustošil Nefrusy Tetiho, syna Pepiho, protože z ní Teti „udělal hnízdo Asiatů“.`, "valka", [cid]);
   if (p.id === "lav" && s.scen === "sip" && old === "hyksos" && s.clans[cid].cul === "eg") { const C = s.clans[cid]; C.prestige += 100; C.maat = Math.min(100, C.maat + 5); log(s, `Avaris, sídlo Hyksósů, padl! Podle životopisu Ahmose, syna Ebany, se po pádu Avaridu Hyksósové stáhli do Šaruhenu v jižní Palestině, který Egypťané obléhali tři roky. ${qText(Q("ebana_avaris"))}`, "valka", [cid, old]); }
 }
@@ -147,7 +148,7 @@ function siegeTick(s) {
     if (!a || a.loc !== p.id || !atWar(s, a.cl, p.owner)) { p.siege = null; continue; }
     p.siege.m++;
     const pw = troopPower(s, a.cl, a.t, { train: a.train });
-    p.dur = Math.max(0, Math.round(p.dur - (12 + pw / 25 * (hasTech(s, a.cl, "pevnosti") ? 1.2 : 1))));
+    p.dur = Math.max(0, Math.round(p.dur - (12 + pw / 25 * (hasTech(s, a.cl, "pevnosti") ? 1.2 : 1)) * (hasTech(s, a.cl, "obleh") ? 1.3 : 1)));
     const starve = p.siege.m >= p.castle * 2 + 2;
     if (p.dur <= 0 || starve) { log(s, `Pevnost v nomu ${p.n} padla${starve && p.dur > 0 ? " – posádka vyhladověla" : ""}.`, "valka", [a.cl, p.owner]); conquer(s, p, a.cl); }
   }
@@ -160,6 +161,7 @@ function raids(s) {
     const targets = []; for (const p of clanProvs(s, T.id)) for (const n of p.nb) { const q = s.provs[n]; if (!isKmen(s, q.owner) && !friendly(s, T.id, q.owner) && rel(s, T.id, q.owner) < 40) targets.push([p, q]); }
     if (!targets.length) continue;
     const [from, q] = pick(s, targets); const n = Math.round(men(from.troops) * 0.45); if (n < 150) continue;
+    if (hasTech(s, q.owner, "hlidky") && chance(s, 0.5)) { if (isPlayer(s, q.owner)) log(s, `Pouštní hlídky včas zahlédly nájezdníky (${T.n}) a ti se stáhli.`, "valka", [q.owner]); continue; }
     const t = {}; for (const k of TROOP_IDS) if (from.troops[k]) { t[k] = Math.round(from.troops[k] * 0.45); from.troops[k] -= t[k]; }
     const b = battle(s, { cl: T.id, t, train: from.train, cmd: 1 }, { cl: q.owner, t: q.troops, train: q.train, cmd: 1, fort: (1 + q.castle * 0.08) * monRaidWall(s, q) }, q.id, { kind: "nájezd" });
     for (const k of TROOP_IDS) if (t[k]) from.troops[k] = (from.troops[k] || 0) + t[k];
