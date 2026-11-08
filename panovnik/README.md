@@ -82,6 +82,15 @@ Je to samostatný projekt, s Herní dílnou (`herni-dilna/`) nesdílí žádný 
 - **Asi 25 nových událostí** (vlčí zima, povodeň, sucho, výroční trh, penezokaz, alchymista, dračí kosti, vyoraný poklad, cisterciáci, zatmění, loupeživý rytíř, kupec z Orientu, brýle, mechanické hodiny…) a **historické mezníky**: kometa 1264, cesta Polů 1271, pád Akkonu 1291, svatý rok 1300, zatčení templářů 1307, papež v Avignonu 1309, Kresčak 1346, zemětřesení v Korutanech 1348 a flagelanti 1349.
 - **17 nových kreseb scén** (např. noční les s vlky, povodeň, trh, alchymistická dílna, loď, karavana, hvězdárna, zemětřesení, relikviář).
 
+## Komplexní říše
+- **12 zákonů** zobrazených jako karty s obrázky; nově lesní právo, soudní souboj, cla a mýta, trestní právo, osadníci a školy. U každé volby je vidět vliv na stavy.
+- **44 vynálezů** včetně pozdních (podvojné účetnictví, vysoká pec, kompas, námořní pojištění, brigantina, ruční palné zbraně, bombardy, plavební komora). Výzkum se s každým objevem prodražuje o 6 %, aby vydržel na celou hru.
+- **Počasí roku** (mírný, požehnaný, deštivý, suchý rok, krutá zima) ovlivňuje sklizeň, nemoci a vojska; na mapě je vidět padající sníh, déšť, mraky a letní výheň.
+- **Spiknutí**: nespokojení vazalové se tajně spolčují (atentát, vyloupení komory, vzpoura). Zvědové, zemský sudí a tvrdé trestní právo je mohou odhalit; pak je lze zatknout, popravit, uplatit nebo sledovat.
+- **Hra v kostky** s vazaly, mimořádná berně a amnestie jako nové činy panovníka.
+- **Řetězové události** (průzkum stříbra s výsledkem za čtyři měsíce, nemoc dědice) a další náhodné příhody: padělaná listina dávající nárok na sousední kraj, samozvanec, cizí šampion, kámen z nebe, valdenští, obvinění z čarodějnictví, kolo Štěstěny, bouře ve městě…
+- **Další historické mezníky**: sjezd ve Visegrádu 1335, začátek války Anglie s Francií 1337, povodeň 1342, zemětřesení v Basileji 1356 a velké schizma 1378.
+
 ## Struktura
 
 ```

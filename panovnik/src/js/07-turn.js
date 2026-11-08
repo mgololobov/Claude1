@@ -11,6 +11,7 @@ function endTurn(s) {
   euTick(s);
   funTick(s);
   discoverTick(s);
+  realmTick(s);
   for (const C of aliveClans(s)) economy(s, C);
   provincesTurn(s);
   officersTurn(s);
@@ -22,7 +23,7 @@ function endTurn(s) {
   if (pc.laws) s.inflation = r1((s.inflation + [0, 0.002, 0.006][pc.laws.mince] - (pc.laws.mince === 0 ? Math.max(0, s.inflation - 1) * 0.01 : 0)) * 1000) / 1000;
   scripted(s);
   purgeChars(s);
-  rollEvents(s);
+  rollEvents(s); pruneEvents(s);
   // posun času
   s.turn++; s.month = (s.month + 1) % 12; if (s.month === 0) s.year++;
   s.flags.harvest = 1;
@@ -60,7 +61,7 @@ function provincesTurn(s) {
     const t = loyBreakdown(s, p).val;
     p.loy = r1(clamp(p.loy + (t - p.loy) * 0.06, 0, 100));
     // obyvatelé
-    const g = 0.0009 + (p.loy - 50) * 0.00002 + (hasTech(s, p.owner, "kolonizace") ? 0.0004 : 0) - (p.siege ? 0.004 : 0);
+    const g = 0.0009 + (p.loy - 50) * 0.00002 + (hasTech(s, p.owner, "kolonizace") ? 0.0004 : 0) + [0, 0.0003, 0.0006][lawOf(s, p.owner, "osadnici")] - (p.siege ? 0.004 : 0);
     p.pop = r1(Math.max(2, Math.min(p.v * 18 + (p.b.mesto || 0) * 4, p.pop * (1 + g))));
     // výcvik pomalu klesá, hradby se drolí jen při obléhání
     p.train = Math.max(10, p.train - (officeVal(s, p.owner, "marsal") > 60 ? 0.1 : 0.3));
@@ -210,7 +211,7 @@ function researchTurn(s) {
     if (!isPlayer(s, C.id)) { C.res.pts += clanProvs(s, C.id).length * 0.35 + rnd(s); if (!C.res.cur || C.techs[C.res.cur]) C.res.cur = TECH_IDS.find(t => techAvail(s, C.id, t)) || null; }
     C.res.pts += sum(clanProvs(s, C.id).map(p => (p.b.klaster || 0) * 0.4)) + officeVal(s, C.id, "kancler") / 40;
     if (!isPlayer(s, C.id) && s.month === 0) aiOffices(s, C.id);
-    const t = C.res.cur; if (t && C.res.pts >= TECHS[t].cost) { C.res.pts -= TECHS[t].cost; C.techs[t] = true; if (t === "gotika") for (const p of clanProvs(s, C.id)) p.dur = Math.min(durMax(s, p), p.dur); if (isPlayer(s, C.id)) { log(s, `Objev: ${TECHS[t].n}! (${TECHS[t].d})`, "objevy", [C.id]); C.res.cur = TECH_IDS.find(x => techAvail(s, C.id, x)) || null; s.events.push({ id: "_objev", t }); } else C.res.cur = null; }
+    const t = C.res.cur, tc = t ? techCost(s, C.id, t) : 0; if (t && C.res.pts >= tc) { C.res.pts -= tc; C.techs[t] = true; if (t === "gotika") for (const p of clanProvs(s, C.id)) p.dur = Math.min(durMax(s, p), p.dur); if (isPlayer(s, C.id)) { log(s, `Objev: ${TECHS[t].n}! (${TECHS[t].d})`, "objevy", [C.id]); C.res.cur = TECH_IDS.find(x => techAvail(s, C.id, x)) || null; s.events.push({ id: "_objev", t }); } else C.res.cur = null; }
   }
 }
 

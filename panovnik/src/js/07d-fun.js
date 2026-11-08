@@ -22,7 +22,7 @@ function doDeed(s, k) {
   const offs = officers(s, s.player).filter(c => c.id !== C.leader);
   switch (k) {
     case "hostina": for (const c of offs) c.loy = Math.min(100, c.loy + 4); C.prestige += 5; if (chance(s, 0.4)) { const f = offs.find(c => c.feud); if (f) { endFeud(s, f, "usmířili se u poháru"); msg = " Dva znesváření páni se u poháru usmířili."; } } msg = "Hodovalo se do rána." + msg; break;
-    case "hon": C.prestige += 3; for (const c of officersIn(s, C.capital)) c.loy = Math.min(100, c.loy + 3); msg = "Úlovek byl bohatý.";
+    case "hon": C.prestige += 3 + lawOf(s, s.player, "lesy") * 2; for (const c of officersIn(s, C.capital)) c.loy = Math.min(100, c.loy + 3); msg = "Úlovek byl bohatý.";
       if (chance(s, 0.07)) { L.hp -= rint(s, 12, 28); msg += ` ${L.n} byl zraněn kancem!`; }
       if (chance(s, 0.15)) { const x = genOfficer(s, null, C.cul, C.capital, { st: "wand", rank: 0, loy: 0 }); x.uda = Math.max(x.uda, 60); msg += ` V lesích jste potkali zdatného lovce ${x.n} – můžeš ho najít rozkazem „Hledat schopné muže“.`; } break;
     case "turnaj": C.prestige += 10; for (const c of offs) if (st(c, "uda") > 50) c.loy = Math.min(100, c.loy + 3);
@@ -33,6 +33,9 @@ function doDeed(s, k) {
     case "soud": { const f = offs.find(c => c.feud); if (f) { endFeud(s, f, "spor rozsoudil panovník"); msg = `Spor ${f.n} rozsouzen. `; } if (C.mods) mod(s, "sedlaci", 5, 6, "Soudní den"); if (C.stab < 1 && chance(s, 0.3)) changeStab(s, s.player, 1, "spravedlivé soudy"); msg += "Spravedlnosti bylo učiněno zadost."; break; }
     case "audience": { let n = 0; for (const c of offs) if (c.loy < 50) { c.loy += 8; n++; } msg = `Panovník vyslechl ${n} nespokojených vazalů.`; break; }
     case "studium": { const g = Math.round(8 + st(L, "roz") / 6); C.res.pts += g; msg = `Učenci přinesli nové myšlenky (+${g} učenosti).`; break; }
+    case "kostky": { const foe = offs.length ? pick(s, offs) : null; s.events.push({ id: "_kostky", cid: foe ? foe.id : null, round: 0, won: 0 }); msg = foe ? `Ke stolu přisedl ${foe.n}.` : "Hraje se s kupci."; break; }
+    case "vyber": { const ps = clanProvs(s, s.player).filter(p => !p.occ); let g = 0; for (const p of ps) { g += Math.round(provGold(s, p) * 0.8); p.loy = Math.max(0, p.loy - 6); } C.gold += g; msg = `Mimořádná berně vynesla ${g} zl, lid však reptá.`; break; }
+    case "milost": { for (const p of clanProvs(s, s.player)) p.loy = Math.min(100, p.loy + 3); C.prestige += 2; if (chance(s, 0.2) && s.plots && s.plots.length) { const pl = s.plots[0]; pl.str = Math.max(0, pl.str - 20); msg = "Amnestie oslabila nespokojence. "; } msg += "Vězni propuštěni, lid žehná milostivému pánu."; break; }
   }
   log(s, `${D.n}: ${msg}`, "panovnik", [s.player]); return null;
 }
@@ -77,7 +80,7 @@ function ambitionTick(s) {
   }
   // spory
   if (chance(s, 0.03)) { const o = officers(s, s.player).filter(c => !c.dyn && !c.feud && c.id !== C.leader); if (o.length >= 2) { const a = pick(s, o), b = pick(s, o.filter(x => x !== a)); a.feud = b.id; b.feud = a.id; a.feudSince = s.turn; log(s, `Mezi ${a.n} a ${b.n} vypukl spor o hranice panství.`, "vazalove", [s.player]); } }
-  for (const c of officers(s, s.player)) if (c.feud && c.feudSince != null && s.turn - c.feudSince >= 6 && !s.events.some(e => e.id === "_duel")) { const o = chr(s, c.feud); if (o && o.st === "off") s.events.push({ id: "_duel", a: c.id, b: o.id }); else c.feud = null; }
+  for (const c of officers(s, s.player)) if (c.feud && c.feudSince != null && s.turn - c.feudSince >= [4, 6, 10][lawOf(s, s.player, "souboje")] && !s.events.some(e => e.id === "_duel")) { const o = chr(s, c.feud); if (o && o.st === "off") s.events.push({ id: "_duel", a: c.id, b: o.id }); else c.feud = null; }
   for (const c of officers(s, s.player)) if (c.feud) c.loy -= 0.3;
 }
 function endFeud(s, c, why) { const o = chr(s, c.feud); c.feud = null; c.feudSince = null; if (o) { o.feud = null; o.feudSince = null; } if (why) log(s, `Spor ${c.n}${o ? " a " + o.n : ""}: ${why}.`, "vazalove", [s.player]); }
@@ -102,11 +105,11 @@ function plagueTick(s) {
   const black = s.flags.blackDeath && s.flags.blackDeath > s.turn;
   for (const p of Object.values(s.provs)) {
     if (!p.plague) continue;
-    p.pop = r1(Math.max(2, p.pop * (black ? 0.965 : 0.985))); loseMen(p.troops, Math.round(men(p.troops) * 0.02)); p.loy = Math.max(0, p.loy - 1);
+    p.pop = r1(Math.max(2, p.pop * (1 - (black ? 0.035 : 0.015) * (hasTechSafe(s, p.owner, "spital") ? 0.75 : 1)))); loseMen(p.troops, Math.round(men(p.troops) * 0.02)); p.loy = Math.max(0, p.loy - 1);
     if (!((p.quar || 0) > s.turn)) for (const n of p.nb) { const q = s.provs[n]; if (!q.plague && !((q.immune || 0) > s.turn) && !((q.quar || 0) > s.turn) && chance(s, (black ? 0.2 : 0.05) * (hasTechSafe(s, q.owner, "karantena") ? 0.5 : 1))) { q.plague = black ? rint(s, 8, 14) : rint(s, 4, 9); if (q.owner === s.player) log(s, `Mor se rozšířil do kraje ${q.n}!`, "svet", [s.player]); } }
     if (--p.plague <= 0) { p.plague = 0; p.immune = s.turn + (black ? 120 : 60); if (p.owner === s.player) log(s, `Mor v kraji ${p.n} ustal.`, "svet", [s.player]); }
   }
-  if (chance(s, 0.008)) { const p = pick(s, Object.values(s.provs)); p.plague = rint(s, 4, 8); news(s, `V kraji ${p.n} propukl mor.`, "svet", [p.owner]); }
+  if (chance(s, 0.008 * WEATHER[(s.weather || {}).t || "mirny"].plague)) { const p = pick(s, Object.values(s.provs)); p.plague = rint(s, 4, 8); news(s, `V kraji ${p.n} propukl mor.`, "svet", [p.owner]); }
   if (s.year === 1348 && s.month === 2 && !s.flags.bd) { s.flags.bd = 1; s.flags.blackDeath = s.turn + 30; for (const id of ["gorice", "viden", "kransko"]) s.provs[id].plague = 14; news(s, "Černá smrt! Z Itálie se do střední Evropy valí morová rána, jaká nemá pamětníka.", "svet"); if (P(s).alive) s.events.push({ id: "_cernasmrt" }); }
 }
 function quarantine(s, cid, pid) { const p = s.provs[pid]; if (!p || p.owner !== cid) return "Není tvůj kraj."; if ((p.quar || 0) > s.turn) return "Kraj už je v karanténě."; if (!pay(s, cid, 60)) return "Karanténa stojí 60 zl."; p.quar = s.turn + 12; p.com = Math.max(0, p.com - 4); log(s, `Kraj ${p.n} uzavřen do karantény na rok.`, "svet", [cid]); return null; }
@@ -128,7 +131,7 @@ function startWork(s, cid, wid, pid) {
   const C = s.clans[cid], W = WORKS[wid], p = s.provs[pid]; C.works = C.works || {};
   if (C.works[wid]) return "Toto dílo už stavíš nebo stojí."; if (!p || p.owner !== cid || p.occ) return "Vyber vlastní kraj."; if (!W.ok(s, cid, p)) return "Podmínka: " + W.req + ".";
   const first = Math.round(W.cost / 3); if (!pay(s, cid, first)) return `Zahájení stojí ${first} zl.`;
-  C.works[wid] = { pid, left: W.months, pay: Math.round((W.cost - first) / W.months), done: false };
+  C.works[wid] = { pid, left: W.months, pay: Math.round((W.cost - first) / W.months * (hasTechSafe(s, cid, "most_stavba") ? 0.75 : 1)), done: false };
   news(s, `${C.house} zahájili stavbu: ${W.n} (${p.n}).`, "stavby", [cid]); return null;
 }
 function worksTick(s) {

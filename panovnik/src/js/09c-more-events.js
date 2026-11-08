@@ -76,7 +76,7 @@ function S_inflate(s, v) { s.inflation = (s.inflation || 0) + v; }
 // Události, které přináší objev a návrat výpravy.
 Object.assign(SPECIAL, {
   _objev: { t: (s, e) => "Objev: " + TECHS[e.t].n, txt: (s, e) => `Učenci tvého dvora dokončili práci: ${TECHS[e.t].n}. Účinek: ${TECHS[e.t].d}. Co se bude zkoumat dál?`,
-    ch: (s, e) => { const o = nextTechChoices(s, s.player); return (o.length ? o : [null]).map(t => t ? { t: `Zkoumat: ${TECHS[t].n} (${TECHS[t].cost} b.)`, e: s2 => { setResearch(s2, s2.player, t); return ""; } } : { t: "Pokračovat", e: () => "" }); } },
+    ch: (s, e) => { const o = nextTechChoices(s, s.player); return (o.length ? o : [null]).map(t => t ? { t: `Zkoumat: ${TECHS[t].n} (${techCost(s, s.player, t)} b.)`, e: s2 => { setResearch(s2, s2.player, t); return ""; } } : { t: "Pokračovat", e: () => "" }); } },
   _exp: { t: (s, e) => (e.lost ? "Výprava se nezdařila: " : "Návrat výpravy: ") + DESTS[e.d].n, txt: (s, e) => e.txt, ch: [{ t: "Pokračovat", e: () => "" }] },
   _hist: { t: (s, e) => HIST2[e.k].t, txt: (s, e) => HIST2[e.k].txt, ch: (s, e) => HIST2[e.k].ch },
 });

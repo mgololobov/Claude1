@@ -28,11 +28,11 @@ function techGoldMult(s, p) {
   if (T_(s, o, "urbar")) m += 0.05;
   if (T_(s, o, "chmelnice") && (p.city || p.b.mesto)) m += 0.05;
   if (T_(s, o, "sklo") && (p.ter === "h" || p.ter === "l")) m += 0.05;
-  return m;
+  return m * realmGoldMult(s, p);
 }
-function techGoldFlat(s, p) { return T_(s, p.owner, "rybnikarstvi") && (p.ter === "n" || p.ter === "b") ? 1 : 0; }
-function techHarvestMult(s, p) { return 1 + (T_(s, p.owner, "rybnikarstvi") ? 0.05 : 0) + (T_(s, p.owner, "vetrny_mlyn") ? 0.05 : 0); }
-function techBattleMult(s, side) { const c = side.cl; let m = 1; if (T_(s, c, "paveza")) m += side.def ? 0.08 : 0.03; if (T_(s, c, "destrier")) m += 0.05; const tr = (s.clans[c] && s.clans[c].trea) || []; if (tr.includes("luk")) m += 0.03; return m; }
+function techGoldFlat(s, p) { return realmGoldFlat(s, p) + ( T_(s, p.owner, "rybnikarstvi") && (p.ter === "n" || p.ter === "b") ? 1 : 0); }
+function techHarvestMult(s, p) { return realmHarvestMult(s, p) * (1 + (T_(s, p.owner, "rybnikarstvi") ? 0.05 : 0) + (T_(s, p.owner, "vetrny_mlyn") ? 0.05 : 0)); }
+function techBattleMult(s, side) { const c = side.cl; let m = 1; if (T_(s, c, "paveza")) m += side.def ? 0.08 : 0.03; if (T_(s, c, "destrier")) m += 0.05; const tr = (s.clans[c] && s.clans[c].trea) || []; if (tr.includes("luk")) m += 0.03; return m * realmBattleMult(s, side); }
 function resBonus(s, C) {
   let b = 0; const tr = C.trea || [], ct = C.court || {};
   if (C.techs.papir) b += 1; if (C.techs.astronomie) b += 1;
@@ -88,8 +88,8 @@ const DESTS = {
   island: { n: "Bergen a severní moře", lon: 5.32, lat: 60.39, m: 9, cost: 250, risk: 0.16, ic: "lod", d: "Norské přístavy, treska a ságy o zemích za mořem.", loot: ["kosti", "kozesiny", "mapa", "kartograf", "gold"] },
 };
 const LOOT_N = { gold: "zlato", uceni: "poznatky", pres: "sláva", papez: "papežovo požehnání", hanza: "obchodní styky", tatari: "mír s Tatary", smenka: "znalost směnek", zakonik: "právní spisy" };
-function expMonths(s, cid, d) { let m = DESTS[d].m; if (T_(s, cid, "kartografie")) m *= 0.75; if (hasCourt(s, cid, "kartograf")) m *= 0.85; return Math.max(2, Math.round(m)); }
-function expRisk(s, cid, d, c) { let r = DESTS[d].risk; if (T_(s, cid, "astronomie")) r *= 0.85; if (T_(s, cid, "kartografie")) r *= 0.75; if (hasTrea(s, cid, "mapa")) r *= 0.7; if (hasCourt(s, cid, "kartograf")) r *= 0.8; if (c) r *= 1.3 - st(c, "roz") / 200 - st(c, "uda") / 400; return Math.max(0.02, r); }
+function expMonths(s, cid, d) { let m = DESTS[d].m; if (T_(s, cid, "kartografie")) m *= 0.75; if (hasCourt(s, cid, "kartograf")) m *= 0.85; if (T_(s, cid, "kompas")) m -= 1; return Math.max(2, Math.round(m)); }
+function expRisk(s, cid, d, c) { let r = DESTS[d].risk; if (T_(s, cid, "astronomie")) r *= 0.85; if (T_(s, cid, "kartografie")) r *= 0.75; if (hasTrea(s, cid, "mapa")) r *= 0.7; if (hasCourt(s, cid, "kartograf")) r *= 0.8; if (T_(s, cid, "kompas")) r *= 0.85; if (c) r *= 1.3 - st(c, "roz") / 200 - st(c, "uda") / 400; return Math.max(0.02, r); }
 function expCandidates(s, cid) { const C = s.clans[cid], offs = new Set(Object.values(C.offices || {})); return officers(s, cid).filter(c => c.id !== C.leader && !c.army && !offs.has(c.id) && age(s, c) >= 16); }
 function startExpedition(s, cid, d, chid) {
   const C = s.clans[cid], D = DESTS[d], c = chr(s, chid); C.exps = C.exps || [];
@@ -110,7 +110,7 @@ function lootRoll(s, cid, d, c) {
   else if (k === "pres") { C.prestige += 40; out.push("Zprávy o odvážné cestě se šíří Evropou (prestiž +40)."); }
   else if (k === "hanza") { C.tradeBonus = (C.tradeBonus || 0) + 0.05; out.push("Kupci uzavřeli trvalé obchodní styky (obchodní cesty +5 %)."); }
   else if (k === "tatari") { C.tatarPeace = s.turn + 120; out.push("Chán přijal dary – tatarské nájezdy tvé kraje deset let minou."); }
-  else { const g = rint(s, 200, 500); C.gold += g; out.push(`Výprava přivezla zboží v hodnotě ${g} zl.`); }
+  else { const g = Math.round(rint(s, 200, 500) * (T_(s, cid, "pojisteni") ? 1.3 : 1)); C.gold += g; out.push(`Výprava přivezla zboží v hodnotě ${g} zl.`); }
   if (chance(s, 0.35)) { const v = 20 + rint(s, 0, 30); C.res.pts += v; out.push(`Poznatky z cesty: +${v} bodů učenosti.`); }
   return out.join(" ");
 }
@@ -144,7 +144,7 @@ function discoverTick(s) {
   for (const C of aliveClans(s)) {
     C.res.pts += resBonus(s, C);
     const tr = C.trea || [], ct = C.court || {};
-    let pr = 0; if (tr.includes("sklo")) pr += 0.2; if (tr.includes("hedvabi")) pr += 0.3; if (tr.includes("kosti")) pr += 0.2; if (ct.kronikar) pr += 0.4; if (C.techs.sklo) pr += 0.1; C.prestige += pr;
+    let pr = 0; if (tr.includes("sklo")) pr += 0.2; if (tr.includes("hedvabi")) pr += 0.3; if (tr.includes("kosti")) pr += 0.2; if (tr.includes("meteorit")) pr += 0.2; if (ct.kronikar) pr += 0.4; if (C.techs.sklo) pr += 0.1; C.prestige += pr;
     if (tr.includes("ikona")) s.pope.op[C.id] = Math.min(100, (s.pope.op[C.id] || 0) + 0.2);
     if (tr.includes("ostatky")) { s.pope.op[C.id] = Math.min(100, (s.pope.op[C.id] || 0) + 0.1); const p = s.provs[C.capital]; if (p && p.owner === C.id && s.month === 0) p.loy = Math.min(100, p.loy + 5); }
     if (ct.alchymista && isPlayer(s, C.id) && chance(s, 0.1)) {
@@ -154,7 +154,7 @@ function discoverTick(s) {
     if (ct.astrolog && isPlayer(s, C.id) && s.month === 5 && s.flags.harvest && s.flags.harvest < 1) log(s, "Astrolog varuje: hvězdy věští slabou úrodu. Zásob se obilím.", "objevy", [C.id]);
   }
 }
-function discoverMpBonus(s, cid, out) { if (T_(s, cid, "urbar")) out.adm++; if (T_(s, cid, "kuryri")) out.dip++; if (T_(s, cid, "papir")) out.dip++; if (hasTrea(s, cid, "hodiny")) out.adm++; return out; }
+function discoverMpBonus(s, cid, out) { if (T_(s, cid, "urbar")) out.adm++; if (T_(s, cid, "kuryri")) out.dip++; if (T_(s, cid, "papir")) out.dip++; if (hasTrea(s, cid, "hodiny")) out.adm++; if (T_(s, cid, "notariat")) out.dip++; return out; }
 
 // ---------- zpráva o objevu s volbou dalšího zkoumání ----------
 function nextTechChoices(s, cid) { return TECH_IDS.filter(t => techAvail(s, cid, t) && techYearOk(s, t)).sort((a, b) => TECHS[a].cost - TECHS[b].cost).slice(0, 4); }

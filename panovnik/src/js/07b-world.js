@@ -16,7 +16,7 @@ function routeState(s, R) { let open = 0; for (let i = 1; i < R.provs.length; i+
 function routeIncomeProv(s, p) {
   let g = 0;
   for (const R of ROUTES) if (R.provs.includes(p.id)) g += R.v * 0.5 * routeState(s, R) * (1 + (p.b.mesto || 0) * 0.3) * (R.hanza && p.hanza ? 1.6 : 1);
-  const C = s.clans[p.owner]; return g * (1 + (hasTechSafe(s, p.owner, "smenka") ? 0.15 : 0) + ((C && C.tradeBonus) || 0));
+  const C = s.clans[p.owner]; return g * (1 + (hasTechSafe(s, p.owner, "smenka") ? 0.15 : 0) + ((C && C.tradeBonus) || 0)) * realmTradeMult(s, p.owner);
 }
 const provRoutes = p => ROUTES.filter(R => R.provs.includes(p.id));
 function joinHanza(s, cid, pid) {
@@ -76,6 +76,8 @@ function loyBreakdown(s, p) {
   if (p.siege) rows.push(["Obléhání", -20]);
   const sudi = officeVal(s, p.owner, "sudi"); if (sudi) rows.push(["Zemský sudí", Math.round(sudi / 20)]);
   if (hasTech(s, p.owner, "chmelnice")) rows.push(["Pivovary a chmelnice", 2]);
+  if (hasTech(s, p.owner, "spital")) rows.push(["Špitály", 2]);
+  if (C.laws && lawOf(s, p.owner, "trest") !== 1) rows.push(["Trestní právo: " + LAWS.trest.opts[lawOf(s, p.owner, "trest")], [2, 0, -3][lawOf(s, p.owner, "trest")]]);
   if (isPlayer(s, p.owner) && C.estates) { rows.push(["Nálada sedláků", Math.round((C.estates.sedlaci - 50) / 5)]); const rb = [4, 0, -6][C.laws.robota]; if (rb) rows.push(["Robota: " + LAWS.robota.opts[C.laws.robota], rb]); }
   return { rows, val: clamp(sum(rows.map(r => r[1])), 0, 100) };
 }

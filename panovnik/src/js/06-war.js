@@ -268,7 +268,7 @@ function siegeTurn(s, a, p) {
     if (!aWins) { p.siege = null; armyHome(s, a); return; }
   }
   p.siege.months++;
-  p.dur = Math.max(0, p.dur - (hasTech(s, a.cl, "trebuchet") ? 25 : 8) * (hasTechSafe(s, a.cl, "prach") ? 1.6 : 1) - men(a.t) / 1000 * 2);
+  p.dur = Math.max(0, p.dur - (hasTech(s, a.cl, "trebuchet") ? 25 : 8) * (hasTechSafe(s, a.cl, "prach") ? 1.6 : 1) * (hasTechSafe(s, a.cl, "bombarda") ? 1.5 : 1) - men(a.t) / 1000 * 2);
   if (a.siegeMode === "ztec" || (p.dur <= 0 && men(a.t) > men(p.troops) * 1.5)) {
     const Aside = sideOf(s, a), Dside = garrisonSide(s, p, true);
     if (manualOf(s, a)) { startManual(s, Aside, Dside, p.id, "zteč", { type: "assault", aid: a.id, pid: p.id, aSide: "A" }); return; }

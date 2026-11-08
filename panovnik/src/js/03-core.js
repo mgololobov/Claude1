@@ -171,7 +171,7 @@ function provMines(s, p) {
   let gold = 0, zbroj = 0; const m = (hasTech(s, p.owner, "hornictvi") ? 1.5 : 1) * (hasTechSafe(s, p.owner, "alchymie") ? 1.15 : 1);
   if (p.res.includes("stribro")) gold += 14 * p.b.dul * m * (hasTech(s, p.owner, "mince") ? 1.5 : 1);
   if (p.res.includes("sul")) gold += 7 * p.b.dul * m;
-  if (p.res.includes("zelezo")) zbroj += 3 * p.b.dul * m;
+  if (p.res.includes("zelezo")) zbroj += 3 * p.b.dul * m * (hasTechSafe(s, p.owner, "vysoka_pec") ? 1.4 : 1);
   return { gold, zbroj };
 }
 function provHarvest(s, p) {
@@ -192,6 +192,7 @@ function clanBudget(s, cid) {
   const offs = officers(s, cid);
   const allT = clanProvs(s, cid).map(p => p.troops).concat(s.armies.filter(a => a.cl === cid).map(a => a.t));
   const ex = { platy: sum(offs.map(c => (c.id === C.leader || c.dyn ? 0 : RANKS[c.rank].pay))), vojsko: sum(allT.map(t => sum(TROOP_IDS.map(k => (t[k] || 0) / 100 * TROOPS[k].up)))), dvur: 5 + (C.t === "král" ? 10 : 0), uroky: C.debts ? sum(C.debts.map(d => d.amount * d.rate)) : 0 };
+  if (C.laws) ex.skoly = [0, 10, 25][lawOf(s, cid, "skoly")]; if (ex.uroky && hasTechSafe(s, cid, "dvojite_ucetnictvi")) ex.uroky *= 0.67;
   for (const k in inc) inc[k] = r1(inc[k]); for (const k in ex) ex[k] = r1(ex[k]);
   return { inc, ex, net: r1(sum(Object.values(inc)) - sum(Object.values(ex))) };
 }

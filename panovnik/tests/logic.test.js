@@ -192,3 +192,19 @@ test("Objevy, výpravy, pokladnice a historické události", () => {
   s.events = []; s.year = 1291; s.month = 4; E.discoverTick(s); assert.ok(s.events.some(e => e.id === "_hist" && e.k === "akkon"));
   for (const [id, D] of Object.entries(E.EVENTS)) { if (D.c && !D.c(s)) continue; const ev = Object.assign({ id }, D.init ? D.init(s) : {}); if ("pid" in ev && !ev.pid) continue; const v = E.eventView(s, ev); assert.ok(v.ch.length && typeof v.txt === "string", id); }
 });
+
+test("Zákony, cena výzkumu, počasí, spiknutí, kostky a řetězové události", () => {
+  const s = E.newGame({ seed: 51 }); const C = s.clans.premysl; s.events = []; C.gold = 5000; C.prestige = 500;
+  assert.ok(Object.keys(E.LAWS).length >= 12); E.realmTick(s); assert.equal(C.laws.skoly, 0);
+  assert.equal(E.setLaw(s, "skoly", 2), null); assert.equal(E.clanBudget(s, "premysl").ex.skoly, 25);
+  assert.ok(E.estateTarget(s, "duchovni").rows.some(r => /Školy/.test(r[0])));
+  const c0 = E.techCost(s, "premysl", "pluh"); C.techs.cechy = true; C.techs.kuse = true; assert.ok(E.techCost(s, "premysl", "pluh") > c0, "výzkum zdražuje");
+  s.weather = null; E.rollWeather(s); assert.ok(E.WEATHER[s.weather.t]);
+  const v = E.officers(s, "premysl").find(c => c.id !== C.leader && !c.dyn); v.loy = 20;
+  s.plots = [{ id: "plX", lead: v.id, m: [v.id], str: 10, goal: "kradez", known: true }];
+  assert.equal(E.crushPlot(s, "plX", "sledovat").length > 0, true); assert.ok(s.plots[0].str < 10);
+  assert.ok(E.crushPlot(s, "plX", "zatknout")); assert.equal(v.st, "wand"); assert.equal(s.plots.length, 0);
+  const ev = { id: "_kostky", cid: null, round: 0, won: 0 }; const g0 = C.gold; E.dicePlay(s, ev, 60); assert.equal(ev.me.length, 3); assert.ok([g0 - 60, g0, g0 + 60].includes(C.gold));
+  assert.ok(E.diceScore([6, 6, 6]) > E.diceScore([6, 6, 5]) && E.diceScore([1, 1, 2]) > E.diceScore([6, 5, 4]));
+  E.later(s, s.turn + 2 - s.turn, { id: "_dedic2", ok: true }); let got = false; for (let i = 0; i < 3 && !got; i++) { s.events = []; E.endTurn(s); got = s.events.some(e => e.id === "_dedic2"); } assert.ok(got, "odložená událost přišla");
+});

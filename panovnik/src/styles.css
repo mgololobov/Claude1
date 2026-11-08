@@ -362,3 +362,26 @@ header#top .realm svg.portrait { border: 1px solid var(--gold2); }
 .ttile .tg { float: right; margin: 0 0 4px 6px; }
 .ttile.lock .tg { filter: grayscale(1); opacity: .5; }
 .glyphport { background: var(--panel); border-radius: 50%; padding: 4px; border: 3px solid var(--panel); box-shadow: 0 1px 4px rgba(0,0,0,.3); }
+
+/* zákony jako karty, počasí, spiknutí, kostky */
+.laws { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; }
+.law { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; }
+.law svg.scene { width: 100%; height: auto; display: block; }
+.law .dd { padding: 8px 10px; display: flex; flex-direction: column; gap: 5px; }
+.lopts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+.lopt { display: flex; flex-direction: column; align-items: flex-start; text-align: left; gap: 2px; padding: 5px 6px; border: 1px solid var(--line); border-radius: 6px; background: var(--btn); color: var(--ink); cursor: pointer; font: inherit; font-size: 12px; }
+.lopt small { color: var(--muted); font-size: 10.5px; line-height: 1.2; }
+.lopt.on { background: var(--accent2); color: #fff; border-color: var(--accent2); } .lopt.on small { color: #dfeee8; }
+.lopt:disabled:not(.on) { opacity: .5; cursor: default; }
+.lopt:not(:disabled):hover { background: var(--btnh); }
+.res.wx { gap: 4px; } .res.wx .wxi { font-size: 15px; line-height: 1; } .res.wx small { font-size: 11px; }
+.res.wx { color: #f3ead2; } .res.wx small { color: #f3ead2; } .wx-desty { background: #3a4a5a !important; } .wx-zima { background: #4a5a6a !important; } .wx-sucho { background: #6a4a22 !important; } .wx-pozehnany { background: #3a5a2a !important; }
+@media (max-width: 700px) { .res.wx small { display: none; } }
+.wx-fall { animation: wxfall .7s linear infinite; } .wx-snow { animation: wxfall 4s linear infinite; }
+@keyframes wxfall { from { transform: translate(0, 0); } to { transform: translate(-8px, 30px); } }
+.wx-clouds { animation: wxcloud 90s linear infinite alternate; } @keyframes wxcloud { from { transform: translateX(-60px); } to { transform: translateX(60px); } }
+.wx-heat { animation: wxheat 3s ease-in-out infinite alternate; } @keyframes wxheat { from { opacity: .04; } to { opacity: .14; } }
+@media (prefers-reduced-motion: reduce) { .wx-fall, .wx-snow, .wx-clouds, .wx-heat { animation: none; } }
+.plot { display: flex; gap: 6px; align-items: flex-start; border: 1px solid #b07a7a; background: rgba(122, 29, 29, .06); border-radius: 8px; padding: 8px; margin-bottom: 6px; flex-wrap: wrap; } .plot .dd { flex: 1; min-width: 200px; }
+.dicebox { display: flex; gap: 18px; justify-content: center; margin: 6px 0 10px; flex-wrap: wrap; } .dicebox > div { display: flex; align-items: center; gap: 4px; } .dicebox b { font-size: 20px; margin-left: 6px; } .dicebox small { width: 60px; }
+.die { animation: dieroll .45s ease-out; } @keyframes dieroll { from { transform: rotate(-200deg) scale(.4); } to { transform: none; } }

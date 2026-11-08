@@ -222,7 +222,7 @@ function tStavy() {
   const est = ESTATE_IDS.map(e => { const t = estateTarget(S, e); return tr([`<b>${ESTATES[e]}</b>`, `<td class="n ${cls(C.estates[e], 30, 60)}">${Math.round(C.estates[e])}</td>`, bar(C.estates[e]), t.val, `<details><summary>proč</summary>${tbl(["Vliv", "#"], t.rows.map(r => tr([esc(r[0]), `<td class="n ${r[1] < 0 ? "bad" : "good"}">${sg(r[1])}</td>`])))}</details>`]); });
   const laws = Object.entries(LAWS).map(([l, L]) => tr([`<b>${L.n}</b><div class="small muted">${L.d}</div>`, sel("law_" + l, L.opts.map((o, i) => [i, o]), C.laws[l], `data-a="law" data-x='["${l}"]' ${(C.lawCd[l] || 0) > S.turn ? "disabled" : ""}`), (C.lawCd[l] || 0) > S.turn ? `za ${C.lawCd[l] - S.turn} měs.` : "lze měnit"]));
   return `<div class="grid">${card("Stavy", tbl(["Stav", "#Věrnost", "", "#Směřuje k", "Rozpis"], est) + '<p class="small muted">Šlechta ovlivňuje věrnost vazalů, duchovenstvo vztah s církví, měšťané výnos obchodu, sedláci spokojenost lidu. Stav pod 25 hrozí krizí.</p>', "wide")}
-  ${card("Zákony země", tbl(["Zákon", "Platí", "Změna"], laws) + '<p class="small muted">Změna zákona stojí 20 prestiže a další změna je možná po dvou letech.</p>', "wide")}</div>`;
+  ${lawCards()}</div>`;
 }
 
 // ---------- Rod ----------

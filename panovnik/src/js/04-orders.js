@@ -214,7 +214,7 @@ const LAW_EST = {
 };
 const TAX_EST = [10, 5, 0, -8, -18];
 function estateTarget(s, e) {
-  const C = P(s), rows = [["Základ", 50]];
+  const C = P(s); ensureLaws(C); const rows = [["Základ", 50]];
   if (e === "sedlaci" || e === "mestane") rows.push(["Daně: " + TAX_LEVELS[C.tax], TAX_EST[C.tax]]);
   for (const [l, opts] of Object.entries(LAW_EST)) { const v = opts[C.laws[l]][e]; if (v) rows.push([LAWS[l].n + ": " + LAWS[l].opts[C.laws[l]], v]); }
   if (e === "slechta") { rows.push(["Prestiž rodu", clamp(Math.round((C.prestige - 200) / 40), -10, 12)]); const avg = officers(s, s.player).length ? sum(officers(s, s.player).map(c => c.rank)) / officers(s, s.player).length : 0; rows.push(["Hodnosti a léna", Math.round(avg * 3 - 4)]); }

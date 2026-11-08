@@ -144,7 +144,7 @@ function resolveEvent(s, idx, ci) {
   if (c.ok && !c.ok(s, ev)) return "Tuto možnost nelze zvolit.";
   if (E.pre && SPECIAL[ev.id] && !ev._pre) { E.pre(s, ev); ev._pre = 1; }
   const title = typeof E.t === "function" ? E.t(s, ev) : E.t, ct = typeof c.t === "function" ? c.t(s, ev) : c.t;
-  const msg = c.e(s, ev); if (ev.keep) ev.keep = false; else s.events.splice(idx, 1);
+  const msg = c.e(s, ev); if (ev.keep) ev.keep = false; else s.events.splice(idx, 1); pruneEvents(s);
   if (!ev.id.startsWith("_") || ev.id === "_proposal" || ev.id === "_callToArms" || ev.id === "_ransom") log(s, `${title}: ${ct}. ${msg || ""}`, "udalosti", [s.player]);
   return null;
 }
