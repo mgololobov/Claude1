@@ -5,8 +5,12 @@ const val = id => { const el = document.getElementById(id); return el ? el.value
 
 ACT.tab = k => { SEL.tab = k; SEL.saveTxt = ""; window.scrollTo(0, 0); };
 ACT.end = () => { if (S.events.length) return "Nejdřív rozhodni o události."; endTurn(S); };
-ACT.selProv = id => { SEL.prov = id; if (SEL.tab !== "mapa") SEL.tab = "mapa"; };
-ACT.zoom = k => { SEL.zoom = k; };
+ACT.selProv = id => { if (MAPDRAG.until > Date.now()) return; SEL.prov = id; if (SEL.tab !== "mapa") SEL.tab = "mapa"; };
+ACT.closeProv = () => { SEL.prov = null; };
+ACT.mapMode = k => { SEL.mapMode = k; };
+ACT.play = () => { AUTO.on = !AUTO.on; clearTimeout(AUTO.timer); if (AUTO.on) AUTO.timer = setTimeout(autoTick, 300); };
+ACT.speed = v => { AUTO.ms = +v || 1600; };
+ACT.zoom = k => { setZoom(k); };
 ACT.cmdSel = (id, v) => { SEL.cmd[id] = v; };
 ACT.cmd = id => { const k = SEL.cmd[id] || val("cs_" + id); const a1 = val("p1_" + id), a2 = val("p2_" + id); if (a1 != null) SEL["p1_" + id] = a1; return doCmd(S, me(), id, k, a1, a2); };
 ACT.advise = id => { const c = chr(S, id); if (!c || c.acted === S.turn) return "Úředník už jedná."; aiDomestic(S, me(), c, true); if (c.acted !== S.turn) return "Rádce nic rozumného nenašel (málo debenů nebo obilí?)."; };
@@ -55,7 +59,9 @@ function render() {
   document.getElementById("top").innerHTML = renderTop();
   document.getElementById("tabs").innerHTML = renderTabs();
   let html; try { html = TAB_FN[SEL.tab](); } catch (e) { console.error(e); html = `<p class="bad">Chyba při vykreslení záložky: ${esc(e.message)}</p>`; }
-  document.getElementById("main").innerHTML = html;
+  const mainEl = document.getElementById("main"); mainEl.innerHTML = html; mainEl.className = SEL.tab === "mapa" ? "full" : "";
+  const hh = (document.getElementById("top").offsetHeight || 0) + (document.getElementById("tabs").offsetHeight || 0); document.documentElement.style.setProperty("--hdr", hh + "px");
+  if (SEL.tab === "mapa") initMap(); else hideTip();
   renderModal();
   try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) {}
 }
@@ -72,6 +78,7 @@ function boot() {
   try { const t = localStorage.getItem(SAVE_KEY); if (t) S = JSON.parse(t); } catch (e) { S = null; }
   if (!S || !S.provs || S.v !== 1) S = newGame({ scen: "sip", clan: "thebes" });
   SEL.prov = P(S).capital; SEL.ngScen = S.scen; SEL.ngClan = S.player;
+  const tip = document.createElement("div"); tip.id = "tip"; document.body.appendChild(tip);
   const f = document.createElement("input"); f.type = "file"; f.id = "impFile"; f.accept = ".json,application/json"; f.style.display = "none"; f.onchange = () => f.files[0] && importFile(f.files[0]); document.body.appendChild(f);
   document.addEventListener("click", ev => { const el = ev.target.closest("[data-a]"); if (!el || el.tagName === "SELECT" || (el.tagName === "INPUT")) return; ev.preventDefault(); handle(el, ev); });
   document.addEventListener("change", ev => { const el = ev.target.closest("[data-a]"); if (!el || (el.tagName !== "SELECT" && el.tagName !== "INPUT")) return; handle(el, ev); });

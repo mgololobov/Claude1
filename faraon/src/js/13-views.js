@@ -19,7 +19,7 @@ function renderTop() {
     ${resPill("nil", h ? dec(h) : "?", "loktů", "Výška poslední záplavy na nilometru")}
   </div>
   <span class="sp"></span>
-  ${S.over && !S.over.cont ? '<b class="bad">Hra skončila</b>' : `<button class="main" data-a="end" data-x="[]">${ricon("nil", 18)} Konec měsíce</button>`}`;
+  ${S.over && !S.over.cont ? '<b class="bad">Hra skončila</b>' : `<span class="endgrp"><span class="timectl"><button class="b play${AUTO.on ? " on" : ""}" data-a="play" data-x="[]" title="${AUTO.on ? "Zastavit čas" : "Nechat čas plynout – zastaví se u každé události"}">${AUTO.on ? "❚❚" : "▶"}</button>${sel("speedSel", [[2600, "pomalu"], [1600, "středně"], [800, "rychle"]], AUTO.ms, `data-a="speed" data-x='[]' title="rychlost plynutí času"`)}</span><button class="main" data-a="end" data-x="[]">${ricon("nil", 18)} Konec měsíce</button></span>`}`;
 }
 function renderTabs() {
   const idle = freeOffs().length;
@@ -144,6 +144,6 @@ function renderModal() {
   const m = document.getElementById("modal"); const ev = S.events[0];
   if (!ev) { m.classList.add("hidden"); m.innerHTML = ""; return; }
   const v = eventView(S, ev), who = eventPerson(ev);
-  m.innerHTML = `<div class="box" role="dialog" aria-modal="true"><div class="ehead">${who ? portrait(who, 72) : ""}<div><div class="muted small">${esc(dateStr(S))}</div><h2>${esc(v.t)}</h2></div></div><p class="etx">${esc(v.tx)}</p>${v.ch.map((c, i) => `<button class="b ch" data-a="event" data-x="[${i}]"><b>${esc(c.t)}</b>${c.d ? `<br><span class="small muted">${esc(c.d)}</span>` : ""}</button>`).join("")}${S.events.length > 1 ? `<p class="small muted">Další zprávy čekají: ${S.events.length - 1}</p>` : ""}</div>`;
+  m.innerHTML = `<div class="box" role="dialog" aria-modal="true"><div class="ehead">${who ? portrait(who, 72) : ""}<div><div class="muted small">${esc(dateStr(S))}</div><h2>${esc(v.t)}</h2></div></div><p class="etx">${esc(v.tx)}</p>${v.q ? `<blockquote class="papyr">„${esc(v.q.t)}“<cite>${esc(v.q.src)}</cite></blockquote>` : ""}${v.ch.map((c, i) => `<button class="b ch" data-a="event" data-x="[${i}]"><b>${esc(c.t)}</b>${c.d ? `<br><span class="small muted">${esc(c.d)}</span>` : ""}</button>`).join("")}${S.events.length > 1 ? `<p class="small muted">Další zprávy čekají: ${S.events.length - 1}</p>` : ""}</div>`;
   m.classList.remove("hidden");
 }

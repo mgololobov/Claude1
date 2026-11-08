@@ -50,7 +50,7 @@ function monTick(s) {
     if (id === "fajjum") p.pop = r1(p.pop + 10);
     if (id === "katarakt") for (const q of ["n_buhen", "n_semna"]) { const x = s.provs[q]; x.castle = Math.min(6, x.castle + 2); x.dur = durMax(s, x); }
     if (id === "zdi") for (const q of ["l14", "l20"]) { const x = s.provs[q]; x.castle = Math.min(6, x.castle + 2); x.dur = durMax(s, x); }
-    log(s, `${C.house} dokončil velkou stavbu: ${M.n}.`, "stavby", [st_.by]);
+    log(s, `${C.house} dokončil velkou stavbu: ${M.n}.${MON_QUOTE[id] ? " " + qText(Q(MON_QUOTE[id])) : ""}`, "stavby", [st_.by]);
   }
 }
 // trvalé účinky na nomy

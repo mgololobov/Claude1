@@ -200,3 +200,50 @@ svg.chart .ax { font-size: 10px; fill: var(--muted); font-family: Georgia, serif
   .grid { grid-template-columns: 1fr; } header { position: static; padding: 6px 12px 10px; } nav { padding: 8px 12px 0; } nav button { padding: 4px 9px 4px 6px; font-size: 13px; }
   .bgrid { grid-template-columns: 1fr; } .meter { grid-template-columns: 95px 1fr auto; } main { padding: 10px 12px 24px; } .res b { font-size: 14px; } .people, .realms { grid-template-columns: 1fr; }
 }
+
+/* ---------- hlavní obrazovka s mapou (styl velkých strategií) ---------- */
+main.full { max-width: none; padding: 0; }
+.stage { position: relative; height: calc(100vh - var(--hdr, 140px)); min-height: 560px; overflow: hidden; background: #c99a5a; }
+.stage svg.map { width: 100%; height: 100%; max-height: none; border-radius: 0; cursor: grab; touch-action: none; user-select: none; }
+.stage svg.map:active { cursor: grabbing; }
+.ov { position: absolute; z-index: 3; background: color-mix(in srgb, var(--panel) 94%, transparent); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 4px 14px rgba(40, 20, 5, .35); padding: 10px 12px; overflow-y: auto; }
+.ov::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 4px; background: var(--frieze); border-radius: 8px 8px 0 0; }
+.ov-left { left: 12px; top: 12px; width: 360px; max-height: calc(100% - 200px); }
+.ov-left .close { position: absolute; right: 8px; top: 10px; z-index: 2; }
+.ov-right { right: 12px; top: 12px; width: 260px; max-height: calc(100% - 200px); font-size: 13px; }
+.ov-alerts { right: 284px; top: 12px; width: 300px; max-height: 50%; padding: 8px 10px; }
+.ov-alerts summary { cursor: pointer; color: var(--accent); font-weight: bold; display: flex; align-items: center; gap: 6px; }
+.ov-alerts summary b { background: var(--accent); color: #fff; border-radius: 9px; padding: 0 6px; font-size: 12px; }
+.ov-bl { left: 12px; bottom: 56px; padding: 8px 10px; }
+.ov-modes { right: 12px; bottom: 56px; width: 340px; padding: 8px 10px; }
+.ov-modes .mm { display: flex; flex-wrap: wrap; gap: 3px; margin-bottom: 4px; }
+.ov-modes .mm button.on { background: var(--accent2); color: #fff; border-color: transparent; }
+.ov-quote { left: 50%; transform: translateX(-50%); bottom: 10px; width: min(760px, calc(100% - 24px)); padding: 8px 16px; text-align: center; font-size: 13px; overflow: hidden; max-height: 64px; }
+.ov-quote .qt { font-style: italic; } .ov-quote .qs { color: var(--muted); font-size: 12px; }
+.ol-title { font-variant: small-caps; letter-spacing: .05em; color: var(--accent); font-weight: bold; margin: 2px 0 4px; }
+.ol-h { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 8px 0 2px; border-bottom: 1px solid var(--line); }
+.ol-i { padding: 3px 4px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+.ol-i:hover { background: var(--panel2); } .ol-i.bad { color: var(--bad); } .ol-i.warn { color: var(--warn); font-weight: bold; }
+.olbar { flex-basis: 100%; height: 5px; background: var(--line); border-radius: 3px; overflow: hidden; } .olbar b { display: block; height: 100%; background: var(--accent2); }
+.rb { display: flex; gap: 10px; align-items: center; cursor: pointer; }
+.rbn { font-weight: bold; font-variant: small-caps; letter-spacing: .03em; }
+.rbm { display: flex; align-items: center; gap: 5px; font-size: 12px; } .rbm .hg { font-size: 16px; } .rbm i { width: 90px; height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; } .rbm i b { display: block; height: 100%; background: var(--gold); }
+#tip { position: fixed; z-index: 40; display: none; pointer-events: none; background: var(--panel); border: 1px solid var(--gold); border-radius: 6px; padding: 7px 10px; box-shadow: 0 4px 14px rgba(0,0,0,.35); max-width: 280px; font-size: 13px; }
+#tip .tt-h { display: flex; align-items: center; gap: 5px; }
+.timectl { display: inline-flex; align-items: center; gap: 4px; }
+.timectl .play { min-width: 34px; font-weight: bold; }
+.timectl .play.on { background: var(--accent2); color: #fff; }
+blockquote.papyr { margin: 10px 0 6px; padding: 8px 14px; border-left: 4px solid var(--gold); background: color-mix(in srgb, var(--gold) 10%, transparent); font-style: italic; }
+blockquote.papyr cite { display: block; font-style: normal; font-size: 12px; color: var(--muted); margin-top: 4px; }
+svg.map .army { cursor: pointer; }
+@media (max-width: 900px) {
+  .stage { height: auto; min-height: 0; overflow: visible; display: flex; flex-direction: column; }
+  .stage svg.map { height: 70vh; order: 0; }
+  .ov { position: relative; inset: auto !important; width: auto !important; max-height: none !important; transform: none !important; margin: 8px 12px 0; }
+  .ov-left { order: 1; } .ov-alerts { order: 2; } .ov-right { order: 3; } .ov-bl { order: 4; } .ov-modes { order: 5; } .ov-quote { order: 6; margin-bottom: 12px; text-align: left; max-height: none; }
+}
+
+.endgrp { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
+header { gap: 6px 10px; }
+.res { padding: 2px 8px 2px 3px; } .res b { font-size: 14px; }
+@media (max-width: 1450px) { header .realm .rk { display: none; } .season .sd { display: none; } }

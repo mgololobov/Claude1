@@ -94,7 +94,7 @@ function conquer(s, p, cid) {
   log(s, `${s.clans[cid].house} dobyl nom ${p.n}${s.clans[old] ? " (dříve " + s.clans[old].house + ")" : ""}.`, "valka", [cid, old]);
   if (p.flags.includes("h")) desecration(s, cid, p);
   if (p.id === "u15" && old === "teti") log(s, `Tak jako Kamose, který se na své stéle chlubí, že zpustošil Nefrusy Tetiho, syna Pepiho, protože z ní Teti „udělal hnízdo Asiatů“.`, "valka", [cid]);
-  if (p.id === "lav" && s.scen === "sip" && old === "hyksos" && s.clans[cid].cul === "eg") { const C = s.clans[cid]; C.prestige += 100; C.maat = Math.min(100, C.maat + 5); log(s, `Avaris, sídlo Hyksósů, padl! Podle životopisu Ahmose, syna Ebany, se po pádu Avaridu Hyksósové stáhli do Šaruhenu v jižní Palestině, který Egypťané obléhali tři roky.`, "valka", [cid, old]); }
+  if (p.id === "lav" && s.scen === "sip" && old === "hyksos" && s.clans[cid].cul === "eg") { const C = s.clans[cid]; C.prestige += 100; C.maat = Math.min(100, C.maat + 5); log(s, `Avaris, sídlo Hyksósů, padl! Podle životopisu Ahmose, syna Ebany, se po pádu Avaridu Hyksósové stáhli do Šaruhenu v jižní Palestině, který Egypťané obléhali tři roky. ${qText(Q("ebana_avaris"))}`, "valka", [cid, old]); }
 }
 // Instructions for Merikare litují zpustošení hrobů v Thinidě; dobytí pohřebiště poškozuje maat.
 function desecration(s, cid, p) { if (isPlayer(s, cid)) queueEvent(s, "pohrebiste", { pid: p.id }); else s.clans[cid].maat = Math.max(0, s.clans[cid].maat - 3); }
@@ -232,7 +232,7 @@ function diplo(s, a, b, act, arg) {
       if (!pay(s, a, 500)) return "Obřad stojí 500 debenů."; A.last["p_" + b] = s.turn;
       B.prestige = Math.max(0, B.prestige - 15); A.maat = Math.min(100, A.maat + 1); if (A.estates) A.estates.knezi = Math.min(100, A.estates.knezi + 2); addRel(s, a, b, -10);
       for (const p of clanProvs(s, b)) if (p.nb.some(n => s.provs[n].owner === a)) p.loy = Math.max(0, p.loy - 3);
-      log(s, `Kněží rodu ${A.house} napsali jména vládců rodu ${B.house} na hliněné nádoby a sošky spoutaných zajatců, rituálně je rozbili a pohřbili (proklínací obřad, jaký dokládá nález z Mirgissy).`, "diplomacie", [a, b]); return null;
+      log(s, `Kněží rodu ${A.house} napsali jména vládců rodu ${B.house} na hliněné nádoby a sošky spoutaných zajatců, rituálně je rozbili a pohřbili (proklínací obřad, jaký dokládá nález z Mirgissy). ${qText(Q("kletba"))}`, "diplomacie", [a, b]); return null;
     }
     case "propustit": { if (B.vassalOf !== a) return "Není tvým poddaným."; B.vassalOf = null; addRel(s, a, b, 20); done(); log(s, `${A.house} propustil rod ${B.house} z poddanství.`, "diplomacie", [a, b]); return null; }
     case "tribut_stop": { if (A.tributeTo !== b) return "Neplatíš mu tribut."; A.tributeTo = null; addRel(s, a, b, -35); A.prestige += 20; done(); log(s, `${A.house} přestal odvádět tribut rodu ${B.house}!`, "diplomacie", [a, b]); return null; }

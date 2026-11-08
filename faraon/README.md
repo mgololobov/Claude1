@@ -30,6 +30,12 @@ Jména vládců a doložených hodnostářů odpovídají pramenům; roky naroze
 
 Vzhled vychází z egyptského umění: barvy egyptských pigmentů, blokový vlys z hrobek, postavy z profilu s konvencemi egyptské malby (muži červenohnědí, ženy žlutookrové, Asiaté podle malby z Beni Hasanu, král v šátku nemes), mapa s černou zemí Kemet a červenou zemí Dešret. Hieroglyfy (písmo Noto Sans Egyptian Hieroglyphs, licence OFL, zmenšené na použité znaky) mají skutečný význam: nb tꜣwj „Pán Obou zemí“, nswt-bjtj „král Horního a Dolního Egypta“, ꜥnḫ wḏꜣ snb „živ, zdráv, silen“, sepat „nom“, sema „sjednocení“.
 
+## Ovládání
+
+Hlavní obrazovkou je mapa přes celé okno: kolečkem přibližuješ, tažením posouváš, najetím na nom vidíš jeho údaje. Režimy mapy: politická, terén, úroda, spokojenost, rozvoj, vojsko. Vpravo je přehled dění (války, vojska, obléhání, stavby, výpravy, vědění), vlevo dole panovník. Tlačítkem ▶ necháš čas plynout; zastaví se u každé události.
+
+Citáty z dochovaných textů (Ponaučení pro Merikarea, Ptahhotep, Výmluvný rolník, Nářky Ipuverovy, Proroctví Neferetiho, hrobka Anchtifiho, dopis Hekanachta, stély Kamoseho, životopis Ahmose, syna Ebany, Satira na povolání, Hymnus na Nil, Texty rakví, Píseň harfeníka, stéla ze Semny, proklínací texty, Smithův a Rhindův papyrus) jsou volné české převody podle běžných překladů, vždy s uvedeným pramenem.
+
 ## Vývoj
 
 - `src/js/0*.js` – pravidla (data, scénáře, hospodářství, rozkazy, válka, běh měsíce), bez prohlížeče

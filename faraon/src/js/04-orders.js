@@ -150,7 +150,7 @@ function tryDefect(s, x, to) {
   const lordOf = Object.values(s.provs).find(q => q.lord === x.id && q.owner === old);
   if (lordOf && x.loy < 20 && lordOf.nb.some(n => s.provs[n].owner === to) && !lordOf.siege && lordOf.id !== s.clans[old].capital) {
     transferProv(s, lordOf.id, to, "zrada"); x.cl = to; x.loy = 60; x.tempt = null; addRel(s, to, old, -25);
-    log(s, `${x.n} zradil svého pána (${clanName(s, old)}) a přešel s nomem ${lordOf.n} k rodu ${T.house}!`, "intriky", [to, old]);
+    log(s, `${x.n} zradil svého pána (${clanName(s, old)}) a přešel s nomem ${lordOf.n} k rodu ${T.house}!${isPlayer(s, old) ? " " + qText(Q("amenemhat")) : ""}`, "intriky", [to, old]);
     return true;
   }
   if (x.army) return false;
@@ -189,7 +189,7 @@ function researchTick(s, cid) {
   const cost = techCost(s, cid, C.res.cur);
   if (C.res.pts >= cost) {
     C.res.pts -= cost; C.techs[C.res.cur] = 1;
-    if (isPlayer(s, cid)) log(s, `Písaři a kněží si osvojili nové vědění: ${TECHS[C.res.cur].n}.`, "vedeni", [cid]);
+    if (isPlayer(s, cid)) log(s, `Písaři a kněží si osvojili nové vědění: ${TECHS[C.res.cur].n}.${TECH_QUOTE[C.res.cur] ? " " + qText(Q(TECH_QUOTE[C.res.cur])) : ""}`, "vedeni", [cid]);
     if (C.res.cur === "pevnosti") for (const p of clanProvs(s, cid)) p.dur = Math.min(durMax(s, p), p.dur + 25);
     C.res.cur = null;
   }

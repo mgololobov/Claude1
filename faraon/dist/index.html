@@ -207,6 +207,53 @@ svg.chart .ax { font-size: 10px; fill: var(--muted); font-family: Georgia, serif
   .grid { grid-template-columns: 1fr; } header { position: static; padding: 6px 12px 10px; } nav { padding: 8px 12px 0; } nav button { padding: 4px 9px 4px 6px; font-size: 13px; }
   .bgrid { grid-template-columns: 1fr; } .meter { grid-template-columns: 95px 1fr auto; } main { padding: 10px 12px 24px; } .res b { font-size: 14px; } .people, .realms { grid-template-columns: 1fr; }
 }
+
+/* ---------- hlavní obrazovka s mapou (styl velkých strategií) ---------- */
+main.full { max-width: none; padding: 0; }
+.stage { position: relative; height: calc(100vh - var(--hdr, 140px)); min-height: 560px; overflow: hidden; background: #c99a5a; }
+.stage svg.map { width: 100%; height: 100%; max-height: none; border-radius: 0; cursor: grab; touch-action: none; user-select: none; }
+.stage svg.map:active { cursor: grabbing; }
+.ov { position: absolute; z-index: 3; background: color-mix(in srgb, var(--panel) 94%, transparent); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 4px 14px rgba(40, 20, 5, .35); padding: 10px 12px; overflow-y: auto; }
+.ov::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 4px; background: var(--frieze); border-radius: 8px 8px 0 0; }
+.ov-left { left: 12px; top: 12px; width: 360px; max-height: calc(100% - 200px); }
+.ov-left .close { position: absolute; right: 8px; top: 10px; z-index: 2; }
+.ov-right { right: 12px; top: 12px; width: 260px; max-height: calc(100% - 200px); font-size: 13px; }
+.ov-alerts { right: 284px; top: 12px; width: 300px; max-height: 50%; padding: 8px 10px; }
+.ov-alerts summary { cursor: pointer; color: var(--accent); font-weight: bold; display: flex; align-items: center; gap: 6px; }
+.ov-alerts summary b { background: var(--accent); color: #fff; border-radius: 9px; padding: 0 6px; font-size: 12px; }
+.ov-bl { left: 12px; bottom: 56px; padding: 8px 10px; }
+.ov-modes { right: 12px; bottom: 56px; width: 340px; padding: 8px 10px; }
+.ov-modes .mm { display: flex; flex-wrap: wrap; gap: 3px; margin-bottom: 4px; }
+.ov-modes .mm button.on { background: var(--accent2); color: #fff; border-color: transparent; }
+.ov-quote { left: 50%; transform: translateX(-50%); bottom: 10px; width: min(760px, calc(100% - 24px)); padding: 8px 16px; text-align: center; font-size: 13px; overflow: hidden; max-height: 64px; }
+.ov-quote .qt { font-style: italic; } .ov-quote .qs { color: var(--muted); font-size: 12px; }
+.ol-title { font-variant: small-caps; letter-spacing: .05em; color: var(--accent); font-weight: bold; margin: 2px 0 4px; }
+.ol-h { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 8px 0 2px; border-bottom: 1px solid var(--line); }
+.ol-i { padding: 3px 4px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+.ol-i:hover { background: var(--panel2); } .ol-i.bad { color: var(--bad); } .ol-i.warn { color: var(--warn); font-weight: bold; }
+.olbar { flex-basis: 100%; height: 5px; background: var(--line); border-radius: 3px; overflow: hidden; } .olbar b { display: block; height: 100%; background: var(--accent2); }
+.rb { display: flex; gap: 10px; align-items: center; cursor: pointer; }
+.rbn { font-weight: bold; font-variant: small-caps; letter-spacing: .03em; }
+.rbm { display: flex; align-items: center; gap: 5px; font-size: 12px; } .rbm .hg { font-size: 16px; } .rbm i { width: 90px; height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; } .rbm i b { display: block; height: 100%; background: var(--gold); }
+#tip { position: fixed; z-index: 40; display: none; pointer-events: none; background: var(--panel); border: 1px solid var(--gold); border-radius: 6px; padding: 7px 10px; box-shadow: 0 4px 14px rgba(0,0,0,.35); max-width: 280px; font-size: 13px; }
+#tip .tt-h { display: flex; align-items: center; gap: 5px; }
+.timectl { display: inline-flex; align-items: center; gap: 4px; }
+.timectl .play { min-width: 34px; font-weight: bold; }
+.timectl .play.on { background: var(--accent2); color: #fff; }
+blockquote.papyr { margin: 10px 0 6px; padding: 8px 14px; border-left: 4px solid var(--gold); background: color-mix(in srgb, var(--gold) 10%, transparent); font-style: italic; }
+blockquote.papyr cite { display: block; font-style: normal; font-size: 12px; color: var(--muted); margin-top: 4px; }
+svg.map .army { cursor: pointer; }
+@media (max-width: 900px) {
+  .stage { height: auto; min-height: 0; overflow: visible; display: flex; flex-direction: column; }
+  .stage svg.map { height: 70vh; order: 0; }
+  .ov { position: relative; inset: auto !important; width: auto !important; max-height: none !important; transform: none !important; margin: 8px 12px 0; }
+  .ov-left { order: 1; } .ov-alerts { order: 2; } .ov-right { order: 3; } .ov-bl { order: 4; } .ov-modes { order: 5; } .ov-quote { order: 6; margin-bottom: 12px; text-align: left; max-height: none; }
+}
+
+.endgrp { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
+header { gap: 6px 10px; }
+.res { padding: 2px 8px 2px 3px; } .res b { font-size: 14px; }
+@media (max-width: 1450px) { header .realm .rk { display: none; } .season .sd { display: none; } }
 </style>
 </head>
 <body>
@@ -1058,7 +1105,7 @@ function tryDefect(s, x, to) {
   const lordOf = Object.values(s.provs).find(q => q.lord === x.id && q.owner === old);
   if (lordOf && x.loy < 20 && lordOf.nb.some(n => s.provs[n].owner === to) && !lordOf.siege && lordOf.id !== s.clans[old].capital) {
     transferProv(s, lordOf.id, to, "zrada"); x.cl = to; x.loy = 60; x.tempt = null; addRel(s, to, old, -25);
-    log(s, `${x.n} zradil svého pána (${clanName(s, old)}) a přešel s nomem ${lordOf.n} k rodu ${T.house}!`, "intriky", [to, old]);
+    log(s, `${x.n} zradil svého pána (${clanName(s, old)}) a přešel s nomem ${lordOf.n} k rodu ${T.house}!${isPlayer(s, old) ? " " + qText(Q("amenemhat")) : ""}`, "intriky", [to, old]);
     return true;
   }
   if (x.army) return false;
@@ -1097,7 +1144,7 @@ function researchTick(s, cid) {
   const cost = techCost(s, cid, C.res.cur);
   if (C.res.pts >= cost) {
     C.res.pts -= cost; C.techs[C.res.cur] = 1;
-    if (isPlayer(s, cid)) log(s, `Písaři a kněží si osvojili nové vědění: ${TECHS[C.res.cur].n}.`, "vedeni", [cid]);
+    if (isPlayer(s, cid)) log(s, `Písaři a kněží si osvojili nové vědění: ${TECHS[C.res.cur].n}.${TECH_QUOTE[C.res.cur] ? " " + qText(Q(TECH_QUOTE[C.res.cur])) : ""}`, "vedeni", [cid]);
     if (C.res.cur === "pevnosti") for (const p of clanProvs(s, cid)) p.dur = Math.min(durMax(s, p), p.dur + 25);
     C.res.cur = null;
   }
@@ -1253,7 +1300,7 @@ function conquer(s, p, cid) {
   log(s, `${s.clans[cid].house} dobyl nom ${p.n}${s.clans[old] ? " (dříve " + s.clans[old].house + ")" : ""}.`, "valka", [cid, old]);
   if (p.flags.includes("h")) desecration(s, cid, p);
   if (p.id === "u15" && old === "teti") log(s, `Tak jako Kamose, který se na své stéle chlubí, že zpustošil Nefrusy Tetiho, syna Pepiho, protože z ní Teti „udělal hnízdo Asiatů“.`, "valka", [cid]);
-  if (p.id === "lav" && s.scen === "sip" && old === "hyksos" && s.clans[cid].cul === "eg") { const C = s.clans[cid]; C.prestige += 100; C.maat = Math.min(100, C.maat + 5); log(s, `Avaris, sídlo Hyksósů, padl! Podle životopisu Ahmose, syna Ebany, se po pádu Avaridu Hyksósové stáhli do Šaruhenu v jižní Palestině, který Egypťané obléhali tři roky.`, "valka", [cid, old]); }
+  if (p.id === "lav" && s.scen === "sip" && old === "hyksos" && s.clans[cid].cul === "eg") { const C = s.clans[cid]; C.prestige += 100; C.maat = Math.min(100, C.maat + 5); log(s, `Avaris, sídlo Hyksósů, padl! Podle životopisu Ahmose, syna Ebany, se po pádu Avaridu Hyksósové stáhli do Šaruhenu v jižní Palestině, který Egypťané obléhali tři roky. ${qText(Q("ebana_avaris"))}`, "valka", [cid, old]); }
 }
 // Instructions for Merikare litují zpustošení hrobů v Thinidě; dobytí pohřebiště poškozuje maat.
 function desecration(s, cid, p) { if (isPlayer(s, cid)) queueEvent(s, "pohrebiste", { pid: p.id }); else s.clans[cid].maat = Math.max(0, s.clans[cid].maat - 3); }
@@ -1391,7 +1438,7 @@ function diplo(s, a, b, act, arg) {
       if (!pay(s, a, 500)) return "Obřad stojí 500 debenů."; A.last["p_" + b] = s.turn;
       B.prestige = Math.max(0, B.prestige - 15); A.maat = Math.min(100, A.maat + 1); if (A.estates) A.estates.knezi = Math.min(100, A.estates.knezi + 2); addRel(s, a, b, -10);
       for (const p of clanProvs(s, b)) if (p.nb.some(n => s.provs[n].owner === a)) p.loy = Math.max(0, p.loy - 3);
-      log(s, `Kněží rodu ${A.house} napsali jména vládců rodu ${B.house} na hliněné nádoby a sošky spoutaných zajatců, rituálně je rozbili a pohřbili (proklínací obřad, jaký dokládá nález z Mirgissy).`, "diplomacie", [a, b]); return null;
+      log(s, `Kněží rodu ${A.house} napsali jména vládců rodu ${B.house} na hliněné nádoby a sošky spoutaných zajatců, rituálně je rozbili a pohřbili (proklínací obřad, jaký dokládá nález z Mirgissy). ${qText(Q("kletba"))}`, "diplomacie", [a, b]); return null;
     }
     case "propustit": { if (B.vassalOf !== a) return "Není tvým poddaným."; B.vassalOf = null; addRel(s, a, b, 20); done(); log(s, `${A.house} propustil rod ${B.house} z poddanství.`, "diplomacie", [a, b]); return null; }
     case "tribut_stop": { if (A.tributeTo !== b) return "Neplatíš mu tribut."; A.tributeTo = null; addRel(s, a, b, -35); A.prestige += 20; done(); log(s, `${A.house} přestal odvádět tribut rodu ${B.house}!`, "diplomacie", [a, b]); return null; }
@@ -1616,7 +1663,8 @@ function harvestTick(s) {
 
 // ---------- události ----------
 function queueEvent(s, k, data) { if (!EVENTS[k]) return; s.events.push({ k, data: data || {}, t: s.turn }); }
-function eventView(s, ev) { return EVENTS[ev.k].view(s, ev.data); }
+const EVENT_Q = { nizka: "hapi_opozdi", vysoka: "hapi_zdrav", hlad: s => (s.scen === "sip" ? "hekanacht" : "anchtifi_hlad"), pohreb: "harfenik", pohrebiste: "merikare_thinis", pisar: "satira_pisar", nepokoje: "ipuver_sandaly", vymluvny: "rolnik", merikare: "merikare_slovo", edfu: "anchtifi_hrdina", lupici: "ptahhotep_maat", zpronevera: "rolnik", dedicnost: "amenemhat" };
+function eventView(s, ev) { const v = EVENTS[ev.k].view(s, ev.data), q = EVENT_Q[ev.k]; if (!v.q && q) v.q = Q(typeof q === "function" ? q(s) : q); return v; }
 function resolveEvent(s, i) { const ev = s.events[0]; if (!ev) return; const v = eventView(s, ev); const ch = v.ch[i]; if (!ch) return; s.events.shift(); const r = ch.f ? ch.f() : null; if (r) log(s, r, "udalosti", [s.player]); }
 const someOwnProv = (s, f) => { const L = clanProvs(s, s.player).filter(f || (() => true)); return L.length ? pick(s, L) : null; };
 const EVENTS = {
@@ -1706,7 +1754,7 @@ const EVENTS = {
   udoli: { view: (s, d) => { const C = P(s); return { t: "Krásný svátek údolí", tx: "Socha Amona se plaví z Karnaku na západní břeh Théb k chrámům a hrobkám předků. Rodiny hodují u hrobů svých mrtvých. (Svátek je doložen od Střední říše, od doby Montuhotepa II.)",
     ch: [{ t: "Vystrojit slavnost (600 debenů, 3 000 charů)", d: "maat +3, lid +3, kněží +2", f: () => { if (!pay(s, s.player, 600, 3000)) return "Nedostatek prostředků."; C.maat = Math.min(100, C.maat + 3); C.estates.lid = Math.min(100, C.estates.lid + 3); C.estates.knezi = Math.min(100, C.estates.knezi + 2); return null; } },
       { t: "Nechat slavit kněze", d: "maat +1", f: () => { C.maat = Math.min(100, C.maat + 1); return null; } }] }; } },
-  vitezstvi: { view: (s, d) => ({ t: d.win ? "Pán Obou zemí" : "Konec", tx: d.txt, ch: [{ t: d.win ? "Vládnout dál" : "Rozumím", d: d.win ? "hra pokračuje" : "můžeš začít novou hru v záložce Hra", f: () => null }] }) },
+  vitezstvi: { view: (s, d) => ({ t: d.win ? "Pán Obou zemí" : "Konec", tx: d.txt, q: d.win ? Q(s.scen === "sip" ? "kamose_vino" : "merikare_lide") : Q("harfenik"), ch: [{ t: d.win ? "Vládnout dál" : "Rozumím", d: d.win ? "hra pokračuje" : "můžeš začít novou hru v záložce Hra", f: () => null }] }) },
 };
 
 function randomEvents(s) {
@@ -1935,7 +1983,7 @@ function monTick(s) {
     if (id === "fajjum") p.pop = r1(p.pop + 10);
     if (id === "katarakt") for (const q of ["n_buhen", "n_semna"]) { const x = s.provs[q]; x.castle = Math.min(6, x.castle + 2); x.dur = durMax(s, x); }
     if (id === "zdi") for (const q of ["l14", "l20"]) { const x = s.provs[q]; x.castle = Math.min(6, x.castle + 2); x.dur = durMax(s, x); }
-    log(s, `${C.house} dokončil velkou stavbu: ${M.n}.`, "stavby", [st_.by]);
+    log(s, `${C.house} dokončil velkou stavbu: ${M.n}.${MON_QUOTE[id] ? " " + qText(Q(MON_QUOTE[id])) : ""}`, "stavby", [st_.by]);
   }
 }
 // trvalé účinky na nomy
@@ -1947,6 +1995,47 @@ function aiMonuments(s, cid) {
   const C = s.clans[cid]; if (C.t !== "král" || C.deben < 15000) return;
   for (const id of MON_IDS) if (!monCheck(s, cid, id)) { const c = monCost(s, cid, id); if (C.deben > c.deben * 3 && C.grain > c.grain * 4) { startMon(s, cid, id); return; } }
 }
+
+// Citáty z dochovaných egyptských textů (volné české převody podle běžných překladů). Každý má uvedený pramen.
+const QUOTES = {
+  merikare_slovo: { t: "Buď mistrem slova, abys byl silný. Síla krále je jazyk; slovo je mocnější než každý boj.", src: "Ponaučení pro Merikarea", tags: ["obecne"] },
+  merikare_lide: { t: "Dobře opatřeni jsou lidé, stádo boží. Pro ně stvořil nebe i zemi.", src: "Ponaučení pro Merikarea", tags: ["obecne", "maat"] },
+  merikare_asiat: { t: "Hle, bídný Asiat… nesídlí na jednom místě, jeho nohy bloudí. Bojuje od dob Hora.", src: "Ponaučení pro Merikarea", tags: ["valka", "aamu"] },
+  merikare_maat: { t: "Konej maat, dokud jsi na zemi. Utěšuj plačícího, neutiskuj vdovu.", src: "Ponaučení pro Merikarea", tags: ["maat", "obecne"] },
+  merikare_thinis: { t: "Hle, za mé doby se stal hanebný čin: thinidský nom byl zpustošen. Nestalo se to mým činem; dozvěděl jsem se to, až když bylo hotovo.", src: "Ponaučení pro Merikarea", tags: ["pohrebiste"] },
+  ptahhotep_umeni: { t: "Nebuď pyšný na své vědění, raď se s nevědomým jako s moudrým. Hranic umění nelze dosáhnout.", src: "Ponaučení Ptahhotepovo", tags: ["vedeni", "obecne"] },
+  ptahhotep_maat: { t: "Velká je maat, trvalá je její účinnost; nebyla porušena od časů Usirových.", src: "Ponaučení Ptahhotepovo", tags: ["maat"] },
+  rolnik: { t: "Konej maat pro pána maat… Nelži – ty jsi váhy.", src: "Příběh výmluvného rolníka", tags: ["maat", "obecne"] },
+  ipuver_nil: { t: "Hle, Nil se rozvodnil, a přece nikdo neorá.", src: "Nářky Ipuverovy", tags: ["nepokoje", "obecne"] },
+  ipuver_sandaly: { t: "Hle, kdo neměl ani sandály, je pánem bohatství.", src: "Nářky Ipuverovy", tags: ["nepokoje"] },
+  neferti_reka: { t: "Řeka Egypta je vyschlá, lze ji přejít pěšky.", src: "Proroctví Neferetiho", tags: ["nizka"] },
+  neferti_zdi: { t: "Postaví se Zdi vládcovy, aby Asiatům nebylo dovoleno sestoupit do Egypta.", src: "Proroctví Neferetiho", tags: ["zdi"] },
+  anchtifi_hlad: { t: "Celý Horní Egypt umíral hladem… Nedopustil jsem, aby kdokoli v tomto nomu zemřel hladem.", src: "nápisy v hrobce Anchtifiho v Moalle", tags: ["hlad"] },
+  anchtifi_hrdina: { t: "Jsem předvoj lidí i jejich zadní voj, hrdina, který nemá sobě rovného.", src: "nápisy v hrobce Anchtifiho v Moalle", tags: ["valka"] },
+  hekanacht: { t: "Celá země zemřela, a vy jste nehladověli.", src: "dopis Hekanachta (počátek 12. dynastie)", tags: ["hlad"] },
+  kamose_sila: { t: "K čemu je mi má síla, když jeden vládce sedí v Avaridu a druhý v Kuši, a já sedím spojen s Asiatem a Núbijcem, každý drží svůj kus Egypta?", src: "první stéla krále Kamoseho", tags: ["valka", "sip"] },
+  kamose_prani: { t: "Mým přáním je zachránit Egypt a bít Asiaty.", src: "první stéla krále Kamoseho", tags: ["valka", "sip"] },
+  kamose_vino: { t: "Piji víno z tvých vinic, které mi lisovali Asiaté, jež jsem zajal.", src: "druhá stéla krále Kamoseho", tags: ["vitezstvi", "sip"] },
+  ebana_avaris: { t: "Pak byl Avaris vypleněn. Odnesl jsem odtud kořist: jednoho muže a tři ženy.", src: "životopis Ahmose, syna Ebany (hrobka v Elkabu)", tags: ["avaris"] },
+  ebana_zlato: { t: "Byl jsem odměněn zlatem sedmkrát před celou zemí.", src: "životopis Ahmose, syna Ebany (hrobka v Elkabu)", tags: ["odmena"] },
+  satira_pisar: { t: "Staň se písařem! Ušetří tě to dřiny… Je to lepší než všechna povolání.", src: "Satira na povolání", tags: ["pisari"] },
+  satira_kovar: { t: "Viděl jsem kováře při práci u ústí jeho pece; prsty má jako krokodýlí kůži.", src: "Satira na povolání", tags: ["remesla"] },
+  namornik: { t: "Jak šťastný je ten, kdo vypráví, co zažil, když strasti pominuly.", src: "Příběh o ztroskotaném námořníkovi", tags: ["vyprava"] },
+  hapi_zdrav: { t: "Zdráv buď, Hapi, jenž vycházíš ze země a přicházíš, abys oživil Egypt.", src: "Hymnus na Nil", tags: ["zaplava"] },
+  hapi_opozdi: { t: "Když se opozdí, ustane dech a všichni lidé zchudnou.", src: "Hymnus na Nil", tags: ["nizka"] },
+  ct1130: { t: "Učinil jsem velkou záplavu, aby chudý měl na ni právo jako mocný. Učinil jsem každého člověka rovného jeho bližnímu.", src: "Texty rakví, zaříkání 1130", tags: ["texty"] },
+  amenemhat: { t: "Nedůvěřuj bratru, neznej přítele, nečiň si důvěrníky – nic to nepřináší.", src: "Ponaučení krále Amenemhata I.", tags: ["zrada"] },
+  harfenik: { t: "Těla pomíjejí… Slav šťastný den a neochabuj v něm! Hle, nikdo si nevezme své statky s sebou.", src: "Píseň harfeníka z hrobky krále Intefa", tags: ["pohreb"] },
+  semna: { t: "Posunul jsem svou hranici dál, než dosáhli moji otcové… Kdo ji udrží, je můj syn.", src: "hraniční stéla Senusreta III. ze Semny", tags: ["katarakt"] },
+  kletba: { t: "Každý vzbouřenec, každý, kdo spřádá zlé plány, každé zlé slovo a každý zlý sen… ať zemře.", src: "proklínací texty (Střední říše)", tags: ["proklinani"] },
+  lekar: { t: "Jestliže vyšetřuješ muže s ránou na hlavě, která sahá až ke kosti… řekneš o něm: nemoc, kterou budu léčit.", src: "Smithův chirurgický papyrus", tags: ["lekarstvi"] },
+  rhind: { t: "Přesný návod k poznání všech věcí, všeho temného a všech tajemství.", src: "Rhindův matematický papyrus", tags: ["matematika"] },
+};
+const Q = id => QUOTES[id] || null;
+function quoteFor(s, tag) { const L = Object.values(QUOTES).filter(q => q.tags.includes(tag) && (!q.tags.includes("sip") || s.scen === "sip")); return L.length ? L[(s.turn * 7 + tag.length) % L.length] : null; }
+const qText = q => q ? `„${q.t}“ (${q.src})` : "";
+const TECH_QUOTE = { pisari: "satira_pisar", texty: "ct1130", lekarstvi: "lekar", matematika: "rhind", pevnosti: "semna" };
+const MON_QUOTE = { katarakt: "semna", zdi: "neferti_zdi" };
 
 // Rozhraní: pomocné funkce, znaky rodů, pruhy, grafy a mapa Egypta.
 let S = null;
@@ -2046,67 +2135,6 @@ const RED = [[29.97, 32.55], [29.3, 32.65], [28.35, 33.08], [27.25, 33.8], [26.7
 const pts = L => L.map(([la, lo]) => `${MX(lo).toFixed(1)},${MY(la).toFixed(1)}`).join(" ");
 let TERR = { key: null, url: null };
 function hexRgb(h) { const m = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(h || ""); return m ? [parseInt(m[1], 16), parseInt(m[2], 16), parseInt(m[3], 16)] : [136, 136, 136]; }
-function territoryImage() {
-  const key = Object.values(S.provs).map(p => p.owner).join(",") + "|" + S.player;
-  if (TERR.key === key && TERR.url) return TERR.url;
-  if (typeof document === "undefined") return "";
-  const sc = 2, w = Math.floor(MW / sc), h = Math.floor(MH / sc), ps = Object.values(S.provs), n = ps.length;
-  const px = ps.map(p => MX(p.lon) / sc), py = ps.map(p => MY(p.lat) / sc), rad = ps.map(p => (p.ter === "poust" || p.ter === "oaza" ? 44 : p.ter === "delta" ? 26 : 18) / sc), idx = new Int16Array(w * h);
-  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
-    let best = -1, bd = 1; const jx = x + Math.sin(y * 0.4) * 0.8, jy = y + Math.cos(x * 0.37) * 0.8;
-    for (let i = 0; i < n; i++) { const dx = px[i] - jx, dy = py[i] - jy, d = Math.sqrt(dx * dx + dy * dy) / rad[i]; if (d < bd) { bd = d; best = i; } }
-    idx[y * w + x] = best;
-  }
-  const cv = document.createElement("canvas"); cv.width = w; cv.height = h; const ctx = cv.getContext("2d"), img = ctx.createImageData(w, h), D = img.data;
-  const cols = ps.map(p => hexRgb(S.clans[p.owner].col)), own = ps.map(p => p.owner), mine = ps.map(p => p.owner === S.player);
-  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
-    const k = y * w + x, i = idx[k], o = k * 4; if (i < 0) { D[o + 3] = 0; continue; }
-    const nb = [x > 0 ? idx[k - 1] : -1, x < w - 1 ? idx[k + 1] : -1, y > 0 ? idx[k - w] : -1, y < h - 1 ? idx[k + w] : -1];
-    const realm = nb.some(j => j !== i && (j < 0 || own[j] !== own[i])), prov = nb.some(j => j >= 0 && j !== i);
-    const [r, g, b] = cols[i];
-    if (realm) { D[o] = r * 0.4; D[o + 1] = g * 0.4; D[o + 2] = b * 0.4; D[o + 3] = 200; }
-    else if (prov) { D[o] = r * 0.8; D[o + 1] = g * 0.8; D[o + 2] = b * 0.8; D[o + 3] = 90; }
-    else { D[o] = r; D[o + 1] = g; D[o + 2] = b; D[o + 3] = mine[i] ? 105 : 60; }
-  }
-  ctx.putImageData(img, 0, 0); TERR = { key, url: cv.toDataURL() }; return TERR.url;
-}
-function mapSvg() {
-  const Z = ZOOMS[SEL.zoom] || ZOOMS.cele, [lo0, lo1, la0, la1] = Z.b, vx = MX(lo0), vy = MY(la1), vw = MX(lo1) - vx, vh = MY(la0) - vy, k = vw / MW;
-  const f = Math.max(0.42, k), R = 5.2 * f;
-  // Dešret (červená země, poušť) a Kemet (černá země, úrodná niva)
-  let g = `<defs><radialGradient id="dsr" cx="50%" cy="45%" r="75%"><stop offset="0" stop-color="#e2c48a"/><stop offset="1" stop-color="#c99a5a"/></radialGradient>
-    <pattern id="dun" width="22" height="9" patternUnits="userSpaceOnUse"><path d="M0 7 Q5.5 2 11 7 T22 7" fill="none" stroke="#a87a3e" stroke-width=".6" opacity=".45"/></pattern></defs>
-    <rect x="0" y="0" width="${MW}" height="${MH}" fill="url(#dsr)"/><rect x="0" y="0" width="${MW}" height="${MH}" fill="url(#dun)"/>`;
-
-  g += `<polygon class="sea" points="${pts(MED)} ${MX(34.75)},${MY(32.3)} ${MX(25)},${MY(32.3)}"/><polygon class="sea" points="${pts(RED)}"/>`;
-  g += `<polyline class="coast" points="${pts(MED)}"/>`;
-  g += `<ellipse cx="${MX(30.62)}" cy="${MY(29.47)}" rx="${10}" ry="${3.5}" fill="var(--sea)"/>`;
-  const tu = territoryImage(); if (tu) g += `<image href="${tu}" x="0" y="0" width="${MW}" height="${MH}" preserveAspectRatio="none"/>`;
-  g += `<polygon fill="var(--kemet)" opacity=".7" points="${pts(DELTA_FAN)}"/>`;
-  for (const L of [NILE, BAHR]) g += `<polyline class="kemet" points="${pts(L)}" stroke-width="${(L === NILE ? 8 : 5) * f}" opacity=".75"/>`;
-  g += `<ellipse cx="${MX(30.8)}" cy="${MY(29.35)}" rx="${13}" ry="${8}" fill="var(--kemet)" opacity=".65"/>`;
-  for (const [la, lo, rx, ry] of [[28.35, 28.86, 9, 5], [25.55, 29.2, 12, 4], [25.44, 30.55, 5, 11]]) g += `<ellipse cx="${MX(lo)}" cy="${MY(la)}" rx="${rx}" ry="${ry}" fill="var(--kemet)" opacity=".6"/>`;
-  for (const L of [NILE, NILE_W, NILE_E, NILE_M]) g += `<polyline class="nile" points="${pts(L)}" stroke-width="${L === NILE ? 2.6 * f : 1.6 * f}"/>`;
-  g += `<polyline class="nile" points="${pts(BAHR)}" stroke-width="${0.9 * f}" opacity=".7"/>`;
-  const reg = [["Středozemní moře", 31.75, 28.0], ["Rudé moře", 25.6, 34.9], ["Libyjská poušť", 27.0, 27.4], ["Východní poušť", 24.6, 33.8], ["SINAJ", 29.6, 33.9], ["NÚBIE", 21.0, 32.6], ["DELTA", 31.25, 31.45], ["HORNÍ EGYPT", 26.6, 33.7], ["DOLNÍ EGYPT", 30.0, 32.4]];
-  for (const [t, la, lo] of reg) g += `<text class="region${/moře/.test(t) ? " sea2" : ""}" x="${MX(lo)}" y="${MY(la)}" font-size="${10 * f}" text-anchor="middle">${t}</text>`;
-  const done = new Set();
-  for (const p of Object.values(S.provs)) for (const n of p.nb) { const key = p.id < n ? p.id + n : n + p.id; if (done.has(key)) continue; done.add(key); const q = S.provs[n]; if (p.ter === "poust" || q.ter === "poust" || p.ter === "oaza" || q.ter === "oaza") g += `<line class="edge" x1="${MX(p.lon)}" y1="${MY(p.lat)}" x2="${MX(q.lon)}" y2="${MY(q.lat)}" stroke-width="${0.8 * f}"/>`; }
-  // pochody
-  for (const a of S.armies) { if (!a.path || !a.path.length) continue; const own = a.cl === me(), vis = own || knows(S, S.provs[a.loc]); if (!vis) continue; const L = [a.loc].concat(a.path).map(id => S.provs[id]); g += `<polyline class="march ${own ? "own" : "foe"}" stroke-width="${1.6 * f}" stroke-dasharray="${own ? "" : 4 * f + " " + 2 * f}" points="${L.map(p => MX(p.lon) + "," + MY(p.lat)).join(" ")}"/>`; }
-  for (const p of Object.values(S.provs)) {
-    const x = MX(p.lon), y = MY(p.lat), C = S.clans[p.owner], mine = p.owner === me(), war = atWar(S, me(), p.owner), capf = C && C.capital === p.id;
-    g += `<g class="pv${mine ? " mine" : ""}${war ? " war" : ""}" data-a="selProv" data-x='["${p.id}"]'><title>${esc(p.n)} – ${esc(C.n)}</title><circle cx="${x}" cy="${y}" r="${R * 2.2}" fill="transparent"/>`;
-    if (capf) g += `<path d="M${x} ${y - R * 1.9} l${R * 0.55} ${R * 1.1} l${R * 1.2} ${R * 0.15} l-${R * 0.9} ${R * 0.8} l${R * 0.25} ${R * 1.2} l-${R * 1.1} -${R * 0.6} l-${R * 1.1} ${R * 0.6} l${R * 0.25} -${R * 1.2} l-${R * 0.9} -${R * 0.8} l${R * 1.2} -${R * 0.15}z" fill="${C.col}" stroke="rgba(0,0,0,.7)" stroke-width="${0.8 * f}"/>`;
-    else g += `<circle class="dot" cx="${x}" cy="${y}" r="${R * (0.7 + p.v * 0.12)}" fill="${C.col}" stroke-width="${(mine || war ? 1.8 : 0.9) * f}"/>`;
-    if (p.siege) g += `<circle class="siege" cx="${x}" cy="${y}" r="${R * 1.9}" stroke-width="${1.4 * f}"/>`;
-    if (SEL.prov === p.id) g += `<circle class="selring" cx="${x}" cy="${y}" r="${R * 2.3}" stroke-width="${2.2 * f}"/>`;
-    const left = ["u2", "u4", "u6", "u8", "u10", "u12", "u14", "u16", "u18", "u20", "u22", "l2", "l3", "l5", "l6", "lx", "fa", "o_bah", "n_sai", "n_semna", "n_wawat"].includes(p.id);
-    g += `<text class="lbl${capf ? " cap" : ""}" x="${x + (left ? -1 : 1) * R * 1.7}" y="${y + R * 0.6}" font-size="${8.5 * f}" stroke-width="${2.4 * f}" text-anchor="${left ? "end" : "start"}">${esc(p.n)}</text></g>`;
-  }
-  for (const a of S.armies) { const p = S.provs[a.loc], own = a.cl === me(); if (!own && !knows(S, p)) continue; const x = MX(p.lon) + R * 1.2, y = MY(p.lat) - R * 1.6, s2 = R * (0.9 + Math.min(1.2, men(a.t) / 4000)); g += `<g class="army"><path d="M${x} ${y - s2} L${x + s2} ${y + s2 * 0.8} L${x - s2} ${y + s2 * 0.8}Z" fill="${S.clans[a.cl].col}" stroke-width="${0.8 * f}"><title>${esc(S.clans[a.cl].house)}: ${fmt(men(a.t))} mužů</title></path></g>`; }
-  return `<svg class="map" viewBox="${vx.toFixed(0)} ${vy.toFixed(0)} ${vw.toFixed(0)} ${vh.toFixed(0)}" role="img" aria-label="Mapa Egypta"><clipPath id="mapclip"><rect x="${vx.toFixed(0)}" y="${vy.toFixed(0)}" width="${vw.toFixed(0)}" height="${vh.toFixed(0)}"/></clipPath><g clip-path="url(#mapclip)">${g}</g></svg>`;
-}
 
 // Záložky hry.
 const TABS = [["mapa", "Mapa"], ["plan", "Plán měsíce"], ["prehled", "Palác"], ["zupy", "Nomy"], ["urednici", "Úředníci"], ["vojsko", "Vojsko"], ["diplo", "Diplomacie"], ["hosp", "Hospodářství"], ["chramy", "Chrámy a stavy"], ["rod", "Rod"], ["vedeni", "Vědění"], ["kronika", "Kronika"], ["hra", "Hra"]];
@@ -2188,12 +2216,6 @@ function provPanel(p) {
   } else if (atWar(S, me(), p.owner)) h += `<p class="small">Jste ve válce. Vojsko pošli ze sousedního vlastního nomu.</p>`;
   else h += `<div class="row">${btn("Diplomacie s tímto rodem", "dipl", [p.owner])}</div>`;
   return h;
-}
-function tMapa() {
-  if (!SEL.prov || !S.provs[SEL.prov]) SEL.prov = P(S).capital;
-  return `<div class="grid map2"><section class="card mapcard"><div class="zoom">${Object.entries(ZOOMS).map(([k, Z]) => btn(SEL.zoom === k ? `<b>${Z.n}</b>` : Z.n, "zoom", [k])).join("")}</div>${mapSvg()}
-    <div class="tleg">${aliveClans(S).map(c => `<span>${emblem(c.id, 14)} ${esc(c.n)}</span>`).join("")}</div><p class="small muted">Hvězda = sídlo rodu, tečkovaný kruh = obléhání, trojúhelník = vojsko v poli. Zelená je Kemet, „černá země“ zúrodněná nilským bahnem; okrová je Dešret, „červená země“ pouště. Barvy území ukazují vládu nad nomy; Nil a jeho ramena v Deltě odpovídají skutečnému toku.</p></section>
-    <section class="card sticky">${provPanel(S.provs[SEL.prov])}<details style="margin-top:10px" ${alerts().some(a => a[0] === "bad") ? "open" : ""}><summary>${ricon("urednici", 16)} Rádci hlásí (${alerts().length})</summary>${alertsHtml(6)}</details></section></div>`;
 }
 function tZupy() {
   const rows = myProvs().sort((a, b) => b.v - a.v).map(p => { const L = chr(S, p.lord); return tr([`${provLink(p)}${p.id === P(S).capital ? " ★" : ""}<div class="small muted">${TERRAIN[p.ter].n}</div>`, L ? esc(L.n) : '<span class="muted">—</span>', tdn(fmt(p.pop * 1000)), tdn(`${p.agri}/${agriCap(S, p)}`), tdn(`${p.com}/${comCap(S, p)}`), tdn(Math.round(p.loy)), tdn(fmt(men(p.troops))), tdn(`${p.castle} (${Math.round(p.dur)})`), tdn(fmtK(provTax(S, p, S.flood.h || 15.5))), tdn(fmt(provDeben(S, p) + provRes(S, p))), p.build ? `${BUILD[p.build.b].n.split(" (")[0]} (${Math.ceil(p.build.left)})` : "", p.hunger > 0.05 ? '<span class="pill bad">hlad</span>' : ""]); });
@@ -2478,7 +2500,7 @@ function renderTop() {
     ${resPill("nil", h ? dec(h) : "?", "loktů", "Výška poslední záplavy na nilometru")}
   </div>
   <span class="sp"></span>
-  ${S.over && !S.over.cont ? '<b class="bad">Hra skončila</b>' : `<button class="main" data-a="end" data-x="[]">${ricon("nil", 18)} Konec měsíce</button>`}`;
+  ${S.over && !S.over.cont ? '<b class="bad">Hra skončila</b>' : `<span class="endgrp"><span class="timectl"><button class="b play${AUTO.on ? " on" : ""}" data-a="play" data-x="[]" title="${AUTO.on ? "Zastavit čas" : "Nechat čas plynout – zastaví se u každé události"}">${AUTO.on ? "❚❚" : "▶"}</button>${sel("speedSel", [[2600, "pomalu"], [1600, "středně"], [800, "rychle"]], AUTO.ms, `data-a="speed" data-x='[]' title="rychlost plynutí času"`)}</span><button class="main" data-a="end" data-x="[]">${ricon("nil", 18)} Konec měsíce</button></span>`}`;
 }
 function renderTabs() {
   const idle = freeOffs().length;
@@ -2603,8 +2625,184 @@ function renderModal() {
   const m = document.getElementById("modal"); const ev = S.events[0];
   if (!ev) { m.classList.add("hidden"); m.innerHTML = ""; return; }
   const v = eventView(S, ev), who = eventPerson(ev);
-  m.innerHTML = `<div class="box" role="dialog" aria-modal="true"><div class="ehead">${who ? portrait(who, 72) : ""}<div><div class="muted small">${esc(dateStr(S))}</div><h2>${esc(v.t)}</h2></div></div><p class="etx">${esc(v.tx)}</p>${v.ch.map((c, i) => `<button class="b ch" data-a="event" data-x="[${i}]"><b>${esc(c.t)}</b>${c.d ? `<br><span class="small muted">${esc(c.d)}</span>` : ""}</button>`).join("")}${S.events.length > 1 ? `<p class="small muted">Další zprávy čekají: ${S.events.length - 1}</p>` : ""}</div>`;
+  m.innerHTML = `<div class="box" role="dialog" aria-modal="true"><div class="ehead">${who ? portrait(who, 72) : ""}<div><div class="muted small">${esc(dateStr(S))}</div><h2>${esc(v.t)}</h2></div></div><p class="etx">${esc(v.tx)}</p>${v.q ? `<blockquote class="papyr">„${esc(v.q.t)}“<cite>${esc(v.q.src)}</cite></blockquote>` : ""}${v.ch.map((c, i) => `<button class="b ch" data-a="event" data-x="[${i}]"><b>${esc(c.t)}</b>${c.d ? `<br><span class="small muted">${esc(c.d)}</span>` : ""}</button>`).join("")}${S.events.length > 1 ? `<p class="small muted">Další zprávy čekají: ${S.events.length - 1}</p>` : ""}</div>`;
   m.classList.remove("hidden");
+}
+
+// Hlavní obrazovka: mapa přes celé okno s plovoucími panely, režimy mapy, posun a přiblížení, bublina s údaji,
+// přehled dění (vojska, obléhání, stavby), panovník a hlas papyrů. Plynulý běh času s pauzou při událostech.
+
+const MAP_MODES = {
+  polit: { n: "Politická", d: "kdo vládne kterému nomu" },
+  teren: { n: "Terén", d: "Kemet – úrodná niva, Dešret – poušť" },
+  uroda: { n: "Úroda", d: "obilí pro lid po odvedení daně při poslední záplavě: červená hlad, zelená přebytek" },
+  loy: { n: "Spokojenost", d: "spokojenost lidu: červená vzpoura, zelená klid" },
+  rozvoj: { n: "Rozvoj", d: "pole a řemesla vůči stropu" },
+  vojsko: { n: "Vojsko", d: "síla posádek: čím tmavší, tím víc mužů" },
+};
+const lerp = (a, b, t) => a + (b - a) * t;
+function scale3(t, c0, c1, c2) { t = clamp(t, 0, 1); const [a, b, u] = t < 0.5 ? [c0, c1, t * 2] : [c1, c2, (t - 0.5) * 2]; return [0, 1, 2].map(i => Math.round(lerp(a[i], b[i], u))); }
+const C_RED = [190, 50, 30], C_YEL = [225, 190, 70], C_GRN = [50, 140, 70];
+function modeColor(p, mode) {
+  const C = S.clans[p.owner], kn = knows(S, p);
+  if (mode === "polit") return [...hexRgb(C.col), p.owner === me() ? 120 : 75];
+  if (mode === "teren") return null;
+  if (!kn) return [140, 130, 115, 70];
+  if (mode === "uroda") { const h = S.flood.h || 15.5, r = (provFood(S, p, h) - (C.type === "kmen" ? 0 : provTax(S, p, h))) / Math.max(1, provNeed(p)); return [...scale3((r - 0.75) / 0.6 - p.hunger, C_RED, C_YEL, C_GRN), 150]; }
+  if (mode === "loy") return [...scale3(p.loy / 100, C_RED, C_YEL, C_GRN), 150];
+  if (mode === "rozvoj") return [...scale3((p.agri / agriCap(S, p) + p.com / comCap(S, p)) / 2, [230, 220, 180], C_YEL, C_GRN), 150];
+  if (mode === "vojsko") { const t = clamp(men(p.troops) / 3000, 0, 1); return [Math.round(lerp(240, 120, t)), Math.round(lerp(210, 20, t)), Math.round(lerp(190, 20, t)), 160]; }
+  return null;
+}
+let GEO = null;
+function geoIdx() {
+  if (GEO) return GEO;
+  const sc = 2, w = Math.floor(MW / sc), h = Math.floor(MH / sc), ps = Object.values(S.provs), n = ps.length;
+  const px = ps.map(p => MX(p.lon) / sc), py = ps.map(p => MY(p.lat) / sc), rad = ps.map(p => (p.ter === "poust" || p.ter === "oaza" ? 44 : p.ter === "delta" ? 26 : 18) / sc), idx = new Int16Array(w * h);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    let best = -1, bd = 1; const jx = x + Math.sin(y * 0.4) * 0.8, jy = y + Math.cos(x * 0.37) * 0.8;
+    for (let i = 0; i < n; i++) { const dx = px[i] - jx, dy = py[i] - jy, d = Math.sqrt(dx * dx + dy * dy) / rad[i]; if (d < bd) { bd = d; best = i; } }
+    idx[y * w + x] = best;
+  }
+  GEO = { w, h, idx, ids: ps.map(p => p.id) }; return GEO;
+}
+function territoryImage(mode) {
+  if (typeof document === "undefined") return "";
+  const G = geoIdx(), ps = G.ids.map(id => S.provs[id]), cols = ps.map(p => modeColor(p, mode)), own = ps.map(p => p.owner);
+  const key = mode + "|" + cols.map(c => c ? c.join(".") : "-").join(",") + "|" + own.join(",");
+  if (TERR.key === key && TERR.url) return TERR.url;
+  const { w, h, idx } = G, cv = document.createElement("canvas"); cv.width = w; cv.height = h; const ctx = cv.getContext("2d"), img = ctx.createImageData(w, h), D = img.data;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const k = y * w + x, i = idx[k], o = k * 4; if (i < 0) continue;
+    const nb = [x > 0 ? idx[k - 1] : -1, x < w - 1 ? idx[k + 1] : -1, y > 0 ? idx[k - w] : -1, y < h - 1 ? idx[k + w] : -1];
+    const realm = nb.some(j => j !== i && (j < 0 || own[j] !== own[i])), prov = nb.some(j => j >= 0 && j !== i), c = cols[i];
+    if (realm && mode === "polit") { const [r, g, b] = hexRgb(S.clans[own[i]].col); D[o] = r * 0.45; D[o + 1] = g * 0.45; D[o + 2] = b * 0.45; D[o + 3] = 220; }
+    else if (realm || prov) { D[o] = 60; D[o + 1] = 40; D[o + 2] = 20; D[o + 3] = realm ? 130 : 70; }
+    else if (c) { D[o] = c[0]; D[o + 1] = c[1]; D[o + 2] = c[2]; D[o + 3] = c[3]; }
+  }
+  ctx.putImageData(img, 0, 0); TERR = { key, url: cv.toDataURL() }; return TERR.url;
+}
+function mapVB() { if (!SEL.vb) SEL.vb = [0, 0, MW, MH]; return SEL.vb; }
+function setZoom(k) { const Z = ZOOMS[k] || ZOOMS.cele, [lo0, lo1, la0, la1] = Z.b; SEL.vb = [MX(lo0), MY(la1), MX(lo1) - MX(lo0), MY(la0) - MY(la1)]; SEL.zoom = k; }
+function mapSvg() {
+  const [vx, vy, vw, vh] = mapVB(), k = vw / MW, f = Math.max(0.3, k), R = 5.2 * f, mode = SEL.mapMode || "polit";
+  let g = `<defs><radialGradient id="dsr" cx="50%" cy="45%" r="75%"><stop offset="0" stop-color="#e2c48a"/><stop offset="1" stop-color="#c99a5a"/></radialGradient>
+    <pattern id="dun" width="22" height="9" patternUnits="userSpaceOnUse"><path d="M0 7 Q5.5 2 11 7 T22 7" fill="none" stroke="#a87a3e" stroke-width=".6" opacity=".45"/></pattern></defs>
+    <rect x="-400" y="-400" width="${MW + 800}" height="${MH + 800}" fill="url(#dsr)"/><rect x="-400" y="-400" width="${MW + 800}" height="${MH + 800}" fill="url(#dun)"/>`;
+  g += `<polygon class="sea" points="${pts(MED)} ${MX(36)},${MY(32.8)} ${MX(24)},${MY(32.8)} ${MX(24)},${MY(31.9)}"/><polygon class="sea" points="${pts(RED)}"/><polyline class="coast" points="${pts(MED)}"/>`;
+  const tu = territoryImage(mode); if (tu) g += `<image href="${tu}" x="0" y="0" width="${MW}" height="${MH}" preserveAspectRatio="none" pointer-events="none"/>`;
+  const kemOp = mode === "teren" ? 0.95 : mode === "polit" ? 0.7 : 0.35;
+  g += `<polygon fill="var(--kemet)" opacity="${kemOp}" points="${pts(DELTA_FAN)}"/>`;
+  for (const L of [NILE, BAHR]) g += `<polyline class="kemet" points="${pts(L)}" stroke-width="${(L === NILE ? 8 : 5) * f}" opacity="${kemOp}"/>`;
+  g += `<ellipse cx="${MX(30.8)}" cy="${MY(29.35)}" rx="13" ry="8" fill="var(--kemet)" opacity="${kemOp * 0.9}"/>`;
+  for (const [la, lo, rx, ry] of [[28.35, 28.86, 9, 5], [25.55, 29.2, 12, 4], [25.44, 30.55, 5, 11]]) g += `<ellipse cx="${MX(lo)}" cy="${MY(la)}" rx="${rx}" ry="${ry}" fill="var(--kemet)" opacity="${kemOp * 0.8}"/>`;
+  g += `<ellipse cx="${MX(30.62)}" cy="${MY(29.47)}" rx="10" ry="3.5" fill="var(--sea)"/>`;
+  for (const L of [NILE, NILE_W, NILE_E, NILE_M]) g += `<polyline class="nile" points="${pts(L)}" stroke-width="${L === NILE ? 2.6 * f : 1.6 * f}"/>`;
+  g += `<polyline class="nile" points="${pts(BAHR)}" stroke-width="${0.9 * f}" opacity=".7"/>`;
+  const reg = [["Středozemní moře", 31.75, 28.0], ["Rudé moře", 25.6, 34.9], ["Libyjská poušť", 27.0, 27.4], ["Východní poušť", 24.6, 33.8], ["SINAJ", 29.6, 33.9], ["NÚBIE", 21.0, 32.6], ["DELTA", 31.25, 31.45], ["HORNÍ EGYPT", 26.6, 33.7], ["DOLNÍ EGYPT", 30.0, 32.4]];
+  for (const [t, la, lo] of reg) g += `<text class="region${/moře/.test(t) ? " sea2" : ""}" x="${MX(lo)}" y="${MY(la)}" font-size="${11 * f}" text-anchor="middle">${t}</text>`;
+  const done = new Set();
+  for (const p of Object.values(S.provs)) for (const n of p.nb) { const key = p.id < n ? p.id + n : n + p.id; if (done.has(key)) continue; done.add(key); const q = S.provs[n]; if (p.ter === "poust" || q.ter === "poust" || p.ter === "oaza" || q.ter === "oaza") g += `<line class="edge" x1="${MX(p.lon)}" y1="${MY(p.lat)}" x2="${MX(q.lon)}" y2="${MY(q.lat)}" stroke-width="${0.8 * f}"/>`; }
+  for (const a of S.armies) { if (!a.path || !a.path.length) continue; const own = a.cl === me(); if (!own && !knows(S, S.provs[a.loc])) continue; const L = [a.loc].concat(a.path).map(id => S.provs[id]); g += `<polyline class="march ${own ? "own" : "foe"}" stroke-width="${1.8 * f}" stroke-dasharray="${own ? "" : 4 * f + " " + 2 * f}" points="${L.map(p => MX(p.lon) + "," + MY(p.lat)).join(" ")}"/>`; }
+  const LEFT = new Set(["u2", "u4", "u6", "u8", "u10", "u12", "u14", "u16", "u18", "u20", "u22", "l2", "l3", "l5", "l6", "lx", "fa", "o_bah", "n_sai", "n_semna", "n_wawat"]);
+  for (const p of Object.values(S.provs)) {
+    const x = MX(p.lon), y = MY(p.lat), C = S.clans[p.owner], mine = p.owner === me(), war = atWar(S, me(), p.owner), capf = C && C.capital === p.id;
+    g += `<g class="pv${mine ? " mine" : ""}${war ? " war" : ""}" data-a="selProv" data-x='["${p.id}"]' data-pid="${p.id}"><circle cx="${x}" cy="${y}" r="${R * 2.4}" fill="transparent"/>`;
+    // standarta nomu: tyč se znakem rodu
+    g += `<line x1="${x}" y1="${y + R * 0.9}" x2="${x}" y2="${y - R * (capf ? 2.1 : 1.6)}" stroke="#2b1d12" stroke-width="${0.9 * f}"/>`;
+    g += `<rect class="std" x="${x - R * (capf ? 0.95 : 0.75)}" y="${y - R * (capf ? 2.6 : 2.0)}" width="${R * (capf ? 1.9 : 1.5)}" height="${R * (capf ? 1.4 : 1.1)}" rx="${R * 0.25}" fill="${C.col}" stroke="${war ? "#c4361c" : mine ? "#fff6d8" : "#2b1d12"}" stroke-width="${(war || mine ? 1.4 : 0.7) * f}"/>`;
+    if (capf) g += `<circle cx="${x}" cy="${y - R * 1.9}" r="${R * 0.35}" fill="#f2d27a"/>`;
+    g += `<circle class="dot" cx="${x}" cy="${y + R * 0.9}" r="${R * 0.35}" fill="#2b1d12"/>`;
+    if (p.siege) g += `<circle class="siege" cx="${x}" cy="${y}" r="${R * 2}" stroke-width="${1.6 * f}"/>`;
+    if (p.hunger > 0.15 && (mine || knows(S, p))) g += `<text x="${x + R * 1.2}" y="${y - R * 1.2}" font-size="${9 * f}" fill="#c4361c" font-weight="bold">!</text>`;
+    if (SEL.prov === p.id) g += `<circle class="selring" cx="${x}" cy="${y - R * 0.6}" r="${R * 2.4}" stroke-width="${2.4 * f}"/>`;
+    const left = LEFT.has(p.id);
+    if (k < 0.75 || capf || p.v >= 3 || p.ter === "poust" || p.ter === "oaza") g += `<text class="lbl${capf ? " cap" : ""}" x="${x + (left ? -1 : 1) * R * 1.5}" y="${y + R * 0.4}" font-size="${9 * f}" stroke-width="${2.6 * f}" text-anchor="${left ? "end" : "start"}">${esc(p.n)}</text>`;
+    g += `</g>`;
+  }
+  for (const a of S.armies) { const p = S.provs[a.loc], own = a.cl === me(); if (!own && !knows(S, p)) continue; const x = MX(p.lon) + R * 1.6, y = MY(p.lat) + R * 0.6, s2 = R * (0.9 + Math.min(1.2, men(a.t) / 4000));
+    g += `<g class="army" data-a="selProv" data-x='["${p.id}"]' data-pid="${p.id}"><rect x="${x - s2}" y="${y - s2 * 0.7}" width="${s2 * 2.4}" height="${s2 * 1.4}" rx="${s2 * 0.3}" fill="${S.clans[a.cl].col}" stroke-width="${0.8 * f}"/><text x="${x + s2 * 0.2}" y="${y + s2 * 0.35}" font-size="${7 * f}" fill="#fff" text-anchor="middle" font-weight="bold">${Math.round(men(a.t) / 100) / 10}k</text></g>`; }
+  return `<svg class="map" id="mapsvg" viewBox="${vx.toFixed(1)} ${vy.toFixed(1)} ${vw.toFixed(1)} ${vh.toFixed(1)}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Mapa Egypta">${g}</svg>`;
+}
+
+// ---------- panely nad mapou ----------
+function outliner() {
+  const C = P(S), out = [];
+  const wars = enemiesOf(S, me()); if (wars.length) out.push(`<div class="ol-h">Války</div>${wars.map(e => `<div class="ol-i" data-a="dipl" data-x='["${e}"]'>${emblem(e, 14)} ${esc(S.clans[e].n)}</div>`).join("")}`);
+  const ar = S.armies.filter(a => a.cl === me()); if (ar.length) out.push(`<div class="ol-h">Vojska v poli</div>${ar.map(a => `<div class="ol-i" data-a="selProv" data-x='["${a.loc}"]'>${ricon("vojsko", 14)} ${fmtK(men(a.t))} · ${esc(S.provs[a.loc].n)}${a.path.length ? " → " + esc(S.provs[a.goal].n) : ""}</div>`).join("")}`);
+  const sg_ = Object.values(S.provs).filter(p => p.siege && (p.owner === me() || p.siege.cl === me())); if (sg_.length) out.push(`<div class="ol-h">Obléhání</div>${sg_.map(p => `<div class="ol-i ${p.owner === me() ? "bad" : ""}" data-a="selProv" data-x='["${p.id}"]'>${esc(p.n)} · hradby ${Math.round(p.dur)} · ${p.siege.m}. měs.</div>`).join("")}`);
+  const bl = myProvs().filter(p => p.build).map(p => `<div class="ol-i" data-a="selProv" data-x='["${p.id}"]'>${esc(BUILD[p.build.b].n.split(" (")[0])} · ${esc(p.n)} (${Math.ceil(p.build.left)} m.)</div>`);
+  if (C.tomb.active) bl.push(`<div class="ol-i" data-a="tab" data-x='["chramy"]'>Hrobka: ${esc(TOMB_STAGES[C.tomb.stage])}</div>`);
+  for (const id of MON_IDS) { const st_ = monState(S, id); if (st_.active && st_.by === me()) bl.push(`<div class="ol-i" data-a="tab" data-x='["chramy"]'>${esc(MONUMENTS[id].n)} (${st_.stage + 1}/${MONUMENTS[id].stages})</div>`); }
+  if (bl.length) out.push(`<div class="ol-h">Stavby</div>${bl.join("")}`);
+  const ex = officers(S, me()).filter(c => c.away); if (ex.length) out.push(`<div class="ol-h">Výpravy</div>${ex.map(c => `<div class="ol-i">${esc(EXPED[c.away.exp].n.split(" –")[0])} · ${c.away.until - S.turn} m.</div>`).join("")}`);
+  out.push(`<div class="ol-h">Vědění</div><div class="ol-i" data-a="tab" data-x='["vedeni"]'>${C.res.cur ? `${esc(TECHS[C.res.cur].n)}<div class="olbar"><b style="width:${clamp(C.res.pts / techCost(S, me(), C.res.cur) * 100, 0, 100)}%"></b></div>` : '<span class="bad">nic se nezkoumá</span>'}</div>`);
+  const idle = freeOffs().length; out.push(`<div class="ol-i ${idle ? "warn" : ""}" data-a="tab" data-x='["plan"]'>${ricon("urednici", 14)} ${idle ? nPlural(idle, "úředník čeká", "úředníci čekají", "úředníků čeká") + " na rozkaz" : "všichni úředníci jednají"}</div>`);
+  return out.join("");
+}
+function rulerBox() {
+  const C = P(S), L = ruler(), heir = heirsOf(S, me())[0];
+  return `<div class="rb" data-a="tab" data-x='["prehled"]'>${L ? portrait(L, 64) : ""}<div><div class="rbn">${L ? esc(L.n) : "—"}</div><div class="small muted">${esc(C.t)} · ${regYear(S, me())}. rok vlády · ${L ? age(S, L) : "?"} let</div>
+    <div class="rbm" title="maat">${hg("maat")}<i><b style="width:${Math.round(C.maat)}%"></b></i>${Math.round(C.maat)}</div><div class="small">${heir ? "dědic: " + esc(heir.n) : '<span class="bad">bez dědice</span>'}</div></div></div>`;
+}
+function quoteBar() { const all = Object.values(QUOTES).filter(q => !q.tags.includes("sip") || S.scen === "sip"), q = all[(S.turn * 5 + 3) % all.length]; return `<span class="qt">„${esc(q.t)}“</span> <span class="qs">— ${esc(q.src)}</span>`; }
+function alertIcons() { const al = alerts(); if (!al.length) return ""; return `<details class="ov ov-alerts"><summary>${ricon("urednici", 18)} Rádci hlásí <b>${al.length}</b></summary>${alertsHtml(10)}</details>`; }
+function tMapa() {
+  if (!SEL.vb) setZoom(SEL.zoom || "cele");
+  const p = SEL.prov && S.provs[SEL.prov];
+  const mode = SEL.mapMode || "polit";
+  return `<div class="stage" id="stage">${mapSvg()}
+    ${p ? `<section class="ov ov-left">${btn("✕", "closeProv", [], null, "close")}${provPanel(p)}</section>` : ""}
+    <section class="ov ov-right"><div class="ol-title">Přehled dění</div>${outliner()}</section>
+    ${alertIcons()}
+    <section class="ov ov-bl">${rulerBox()}</section>
+    <section class="ov ov-modes"><div class="mm">${Object.entries(MAP_MODES).map(([k, M]) => `<button class="b${mode === k ? " on" : ""}" data-a="mapMode" data-x='["${k}"]' title="${esc(M.d)}">${M.n}</button>`).join("")}</div>
+      <div class="mm">${Object.entries(ZOOMS).map(([k, Z]) => btn(Z.n, "zoom", [k])).join("")}</div><div class="small muted">${esc(MAP_MODES[mode].d)} · kolečkem přibližuješ, tažením posouváš</div></section>
+    <section class="ov ov-quote">${quoteBar()}</section>
+  </div>`;
+}
+
+// ---------- ovládání mapy myší a dotykem ----------
+let MAPDRAG = { on: false, moved: 0, x: 0, y: 0, until: 0 }, ZOOM_T = null;
+function svgPt(svg, cx, cy) { const r = svg.getBoundingClientRect(), [vx, vy, vw, vh] = mapVB(), s = Math.max(vw / r.width, vh / r.height), ox = (r.width * s - vw) / 2, oy = (r.height * s - vh) / 2; return [vx - ox + (cx - r.left) * s, vy - oy + (cy - r.top) * s, s]; }
+function applyVB() { const svg = document.getElementById("mapsvg"); if (svg) svg.setAttribute("viewBox", mapVB().map(v => v.toFixed(1)).join(" ")); }
+function clampVB() { const v = mapVB(); v[2] = clamp(v[2], MW * 0.12, MW * 1.6); v[3] = v[2] * MH / MW; v[0] = clamp(v[0], -MW * 0.4, MW * 1.4 - v[2]); v[1] = clamp(v[1], -MH * 0.3, MH * 1.3 - v[3]); }
+function initMap() {
+  const svg = document.getElementById("mapsvg"); if (!svg || svg._init) return; svg._init = true;
+  SEL.vb = SEL.vb || [0, 0, MW, MH]; if (SEL.vb.length === 4 && Math.abs(SEL.vb[3] - SEL.vb[2] * MH / MW) > 1) { const c = SEL.vb[1] + SEL.vb[3] / 2; SEL.vb[3] = SEL.vb[2] * MH / MW; SEL.vb[1] = c - SEL.vb[3] / 2; }
+  svg.addEventListener("wheel", ev => { ev.preventDefault(); const [px, py] = svgPt(svg, ev.clientX, ev.clientY), v = mapVB(), f = ev.deltaY > 0 ? 1.18 : 1 / 1.18, nw = clamp(v[2] * f, MW * 0.12, MW * 1.6), k = nw / v[2];
+    v[0] = px - (px - v[0]) * k; v[1] = py - (py - v[1]) * k; v[2] = nw; v[3] = nw * MH / MW; clampVB(); applyVB(); clearTimeout(ZOOM_T); ZOOM_T = setTimeout(() => render(), 160); }, { passive: false });
+  svg.addEventListener("pointerdown", ev => { MAPDRAG = { on: true, moved: 0, x: ev.clientX, y: ev.clientY, until: 0 }; });
+  window.onpointermove = ev => {
+    if (MAPDRAG.on) { const dx = ev.clientX - MAPDRAG.x, dy = ev.clientY - MAPDRAG.y; MAPDRAG.moved += Math.abs(dx) + Math.abs(dy); if (MAPDRAG.moved > 5) { const [, , s] = svgPt(svg, ev.clientX, ev.clientY), v = mapVB(); v[0] -= dx * s; v[1] -= dy * s; clampVB(); applyVB(); hideTip(); } MAPDRAG.x = ev.clientX; MAPDRAG.y = ev.clientY; return; }
+    const g = ev.target.closest && ev.target.closest("[data-pid]"); if (g && document.getElementById("mapsvg") && document.getElementById("mapsvg").contains(g)) showTip(g.dataset.pid, ev.clientX, ev.clientY); else hideTip();
+  };
+  window.onpointerup = () => { if (MAPDRAG.on && MAPDRAG.moved > 5) MAPDRAG.until = Date.now() + 250; MAPDRAG.on = false; };
+}
+function tipHtml(pid) {
+  const p = S.provs[pid], C = S.clans[p.owner], kn = knows(S, p), mode = SEL.mapMode || "polit";
+  let h = `<div class="tt-h">${emblem(p.owner, 16)} <b>${esc(p.n)}</b></div><div class="small muted">${esc(p.eg)}</div><div class="small">${esc(C.n)} · ${esc(TERRAIN[p.ter].n)}</div>`;
+  if (kn) {
+    h += `<div class="small">obyvatel ≈ ${fmtK(p.pop * 1000)} · vojáků ${p.owner === me() ? fmt(men(p.troops)) : estimate(S, p, men(p.troops))} · spokojenost ${Math.round(p.loy)}</div>`;
+    if (mode === "uroda") { const hh = S.flood.h || 15.5; h += `<div class="small">obilí pro lid ≈ ${fmtK(provFood(S, p, hh) - provTax(S, p, hh))} / potřeba ${fmtK(provNeed(p))}</div>`; }
+    if (mode === "rozvoj") h += `<div class="small">pole ${p.agri}/${agriCap(S, p)} · řemesla ${p.com}/${comCap(S, p)}</div>`;
+    if (p.hunger > 0.05) h += `<div class="small bad">hlad</div>`;
+  } else h += `<div class="small muted">o nomu víš jen odhady</div>`;
+  if (p.siege) h += `<div class="small bad">obléhá ${esc(S.clans[p.siege.cl].n)}</div>`;
+  const ar = S.armies.filter(a => a.loc === pid && (a.cl === me() || kn)); for (const a of ar) h += `<div class="small">vojsko: ${esc(S.clans[a.cl].n)}, ${fmtK(men(a.t))} mužů</div>`;
+  return h;
+}
+function showTip(pid, x, y) { const t = document.getElementById("tip"); if (!t) return; t.innerHTML = tipHtml(pid); t.style.display = "block"; const w = t.offsetWidth, h = t.offsetHeight; t.style.left = Math.min(window.innerWidth - w - 8, x + 14) + "px"; t.style.top = Math.min(window.innerHeight - h - 8, y + 14) + "px"; }
+function hideTip() { const t = document.getElementById("tip"); if (t) t.style.display = "none"; }
+
+// ---------- plynulý běh času ----------
+const AUTO = { on: false, ms: 1600, timer: null };
+function autoTick() {
+  if (!AUTO.on) return;
+  if (S.events.length || (S.over && !S.over.cont)) { AUTO.on = false; render(); return; }
+  endTurn(S); render();
+  if (S.events.length) { AUTO.on = false; render(); return; }
+  AUTO.timer = setTimeout(autoTick, AUTO.ms);
 }
 
 // Akce hráče, vykreslení, ukládání a spuštění.
@@ -2614,8 +2812,12 @@ const val = id => { const el = document.getElementById(id); return el ? el.value
 
 ACT.tab = k => { SEL.tab = k; SEL.saveTxt = ""; window.scrollTo(0, 0); };
 ACT.end = () => { if (S.events.length) return "Nejdřív rozhodni o události."; endTurn(S); };
-ACT.selProv = id => { SEL.prov = id; if (SEL.tab !== "mapa") SEL.tab = "mapa"; };
-ACT.zoom = k => { SEL.zoom = k; };
+ACT.selProv = id => { if (MAPDRAG.until > Date.now()) return; SEL.prov = id; if (SEL.tab !== "mapa") SEL.tab = "mapa"; };
+ACT.closeProv = () => { SEL.prov = null; };
+ACT.mapMode = k => { SEL.mapMode = k; };
+ACT.play = () => { AUTO.on = !AUTO.on; clearTimeout(AUTO.timer); if (AUTO.on) AUTO.timer = setTimeout(autoTick, 300); };
+ACT.speed = v => { AUTO.ms = +v || 1600; };
+ACT.zoom = k => { setZoom(k); };
 ACT.cmdSel = (id, v) => { SEL.cmd[id] = v; };
 ACT.cmd = id => { const k = SEL.cmd[id] || val("cs_" + id); const a1 = val("p1_" + id), a2 = val("p2_" + id); if (a1 != null) SEL["p1_" + id] = a1; return doCmd(S, me(), id, k, a1, a2); };
 ACT.advise = id => { const c = chr(S, id); if (!c || c.acted === S.turn) return "Úředník už jedná."; aiDomestic(S, me(), c, true); if (c.acted !== S.turn) return "Rádce nic rozumného nenašel (málo debenů nebo obilí?)."; };
@@ -2664,7 +2866,9 @@ function render() {
   document.getElementById("top").innerHTML = renderTop();
   document.getElementById("tabs").innerHTML = renderTabs();
   let html; try { html = TAB_FN[SEL.tab](); } catch (e) { console.error(e); html = `<p class="bad">Chyba při vykreslení záložky: ${esc(e.message)}</p>`; }
-  document.getElementById("main").innerHTML = html;
+  const mainEl = document.getElementById("main"); mainEl.innerHTML = html; mainEl.className = SEL.tab === "mapa" ? "full" : "";
+  const hh = (document.getElementById("top").offsetHeight || 0) + (document.getElementById("tabs").offsetHeight || 0); document.documentElement.style.setProperty("--hdr", hh + "px");
+  if (SEL.tab === "mapa") initMap(); else hideTip();
   renderModal();
   try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) {}
 }
@@ -2681,6 +2885,7 @@ function boot() {
   try { const t = localStorage.getItem(SAVE_KEY); if (t) S = JSON.parse(t); } catch (e) { S = null; }
   if (!S || !S.provs || S.v !== 1) S = newGame({ scen: "sip", clan: "thebes" });
   SEL.prov = P(S).capital; SEL.ngScen = S.scen; SEL.ngClan = S.player;
+  const tip = document.createElement("div"); tip.id = "tip"; document.body.appendChild(tip);
   const f = document.createElement("input"); f.type = "file"; f.id = "impFile"; f.accept = ".json,application/json"; f.style.display = "none"; f.onchange = () => f.files[0] && importFile(f.files[0]); document.body.appendChild(f);
   document.addEventListener("click", ev => { const el = ev.target.closest("[data-a]"); if (!el || el.tagName === "SELECT" || (el.tagName === "INPUT")) return; ev.preventDefault(); handle(el, ev); });
   document.addEventListener("change", ev => { const el = ev.target.closest("[data-a]"); if (!el || (el.tagName !== "SELECT" && el.tagName !== "INPUT")) return; handle(el, ev); });

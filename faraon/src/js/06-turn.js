@@ -196,7 +196,8 @@ function harvestTick(s) {
 
 // ---------- události ----------
 function queueEvent(s, k, data) { if (!EVENTS[k]) return; s.events.push({ k, data: data || {}, t: s.turn }); }
-function eventView(s, ev) { return EVENTS[ev.k].view(s, ev.data); }
+const EVENT_Q = { nizka: "hapi_opozdi", vysoka: "hapi_zdrav", hlad: s => (s.scen === "sip" ? "hekanacht" : "anchtifi_hlad"), pohreb: "harfenik", pohrebiste: "merikare_thinis", pisar: "satira_pisar", nepokoje: "ipuver_sandaly", vymluvny: "rolnik", merikare: "merikare_slovo", edfu: "anchtifi_hrdina", lupici: "ptahhotep_maat", zpronevera: "rolnik", dedicnost: "amenemhat" };
+function eventView(s, ev) { const v = EVENTS[ev.k].view(s, ev.data), q = EVENT_Q[ev.k]; if (!v.q && q) v.q = Q(typeof q === "function" ? q(s) : q); return v; }
 function resolveEvent(s, i) { const ev = s.events[0]; if (!ev) return; const v = eventView(s, ev); const ch = v.ch[i]; if (!ch) return; s.events.shift(); const r = ch.f ? ch.f() : null; if (r) log(s, r, "udalosti", [s.player]); }
 const someOwnProv = (s, f) => { const L = clanProvs(s, s.player).filter(f || (() => true)); return L.length ? pick(s, L) : null; };
 const EVENTS = {
@@ -286,7 +287,7 @@ const EVENTS = {
   udoli: { view: (s, d) => { const C = P(s); return { t: "Krásný svátek údolí", tx: "Socha Amona se plaví z Karnaku na západní břeh Théb k chrámům a hrobkám předků. Rodiny hodují u hrobů svých mrtvých. (Svátek je doložen od Střední říše, od doby Montuhotepa II.)",
     ch: [{ t: "Vystrojit slavnost (600 debenů, 3 000 charů)", d: "maat +3, lid +3, kněží +2", f: () => { if (!pay(s, s.player, 600, 3000)) return "Nedostatek prostředků."; C.maat = Math.min(100, C.maat + 3); C.estates.lid = Math.min(100, C.estates.lid + 3); C.estates.knezi = Math.min(100, C.estates.knezi + 2); return null; } },
       { t: "Nechat slavit kněze", d: "maat +1", f: () => { C.maat = Math.min(100, C.maat + 1); return null; } }] }; } },
-  vitezstvi: { view: (s, d) => ({ t: d.win ? "Pán Obou zemí" : "Konec", tx: d.txt, ch: [{ t: d.win ? "Vládnout dál" : "Rozumím", d: d.win ? "hra pokračuje" : "můžeš začít novou hru v záložce Hra", f: () => null }] }) },
+  vitezstvi: { view: (s, d) => ({ t: d.win ? "Pán Obou zemí" : "Konec", tx: d.txt, q: d.win ? Q(s.scen === "sip" ? "kamose_vino" : "merikare_lide") : Q("harfenik"), ch: [{ t: d.win ? "Vládnout dál" : "Rozumím", d: d.win ? "hra pokračuje" : "můžeš začít novou hru v záložce Hra", f: () => null }] }) },
 };
 
 function randomEvents(s) {

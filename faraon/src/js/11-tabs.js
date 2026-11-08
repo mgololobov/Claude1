@@ -79,12 +79,6 @@ function provPanel(p) {
   else h += `<div class="row">${btn("Diplomacie s tímto rodem", "dipl", [p.owner])}</div>`;
   return h;
 }
-function tMapa() {
-  if (!SEL.prov || !S.provs[SEL.prov]) SEL.prov = P(S).capital;
-  return `<div class="grid map2"><section class="card mapcard"><div class="zoom">${Object.entries(ZOOMS).map(([k, Z]) => btn(SEL.zoom === k ? `<b>${Z.n}</b>` : Z.n, "zoom", [k])).join("")}</div>${mapSvg()}
-    <div class="tleg">${aliveClans(S).map(c => `<span>${emblem(c.id, 14)} ${esc(c.n)}</span>`).join("")}</div><p class="small muted">Hvězda = sídlo rodu, tečkovaný kruh = obléhání, trojúhelník = vojsko v poli. Zelená je Kemet, „černá země“ zúrodněná nilským bahnem; okrová je Dešret, „červená země“ pouště. Barvy území ukazují vládu nad nomy; Nil a jeho ramena v Deltě odpovídají skutečnému toku.</p></section>
-    <section class="card sticky">${provPanel(S.provs[SEL.prov])}<details style="margin-top:10px" ${alerts().some(a => a[0] === "bad") ? "open" : ""}><summary>${ricon("urednici", 16)} Rádci hlásí (${alerts().length})</summary>${alertsHtml(6)}</details></section></div>`;
-}
 function tZupy() {
   const rows = myProvs().sort((a, b) => b.v - a.v).map(p => { const L = chr(S, p.lord); return tr([`${provLink(p)}${p.id === P(S).capital ? " ★" : ""}<div class="small muted">${TERRAIN[p.ter].n}</div>`, L ? esc(L.n) : '<span class="muted">—</span>', tdn(fmt(p.pop * 1000)), tdn(`${p.agri}/${agriCap(S, p)}`), tdn(`${p.com}/${comCap(S, p)}`), tdn(Math.round(p.loy)), tdn(fmt(men(p.troops))), tdn(`${p.castle} (${Math.round(p.dur)})`), tdn(fmtK(provTax(S, p, S.flood.h || 15.5))), tdn(fmt(provDeben(S, p) + provRes(S, p))), p.build ? `${BUILD[p.build.b].n.split(" (")[0]} (${Math.ceil(p.build.left)})` : "", p.hunger > 0.05 ? '<span class="pill bad">hlad</span>' : ""]); });
   return card("Tvé nomy", tbl(["Nom", "Správce", "#Lidé", "#Pole", "#Obchod", "#Spokoj.", "#Vojsko", "#Pevnost", "#Daň/rok", "#Deb./měs.", "Stavba", ""], rows) + '<p class="small muted">Daň/rok = odhad obilí ze sklizně při poslední záplavě. Pole a obchod: současná úroveň / strop.</p>', "wide");
