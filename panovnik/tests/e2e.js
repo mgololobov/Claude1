@@ -4,26 +4,39 @@ const { chromium } = require("playwright");
 const FILE = "file://" + path.join(__dirname, "..", "dist", "index.html");
 const OUT = path.join(__dirname, "out"); fs.mkdirSync(OUT, { recursive: true });
 (async () => {
-  const b = await chromium.launch(); const pg = await b.newPage({ viewport: { width: 1280, height: 900 } }); pg.setDefaultTimeout(5000);
+  const b = await chromium.launch(); const pg = await b.newPage({ viewport: { width: 1360, height: 900 } }); pg.setDefaultTimeout(8000);
   const errors = [], fails = [];
   pg.on("pageerror", e => errors.push(e.message)); pg.on("console", m => { if (m.type() === "error") errors.push(m.text()); });
   await pg.goto(FILE); await pg.waitForSelector("#top .realm");
   const step = async (name, fn) => { try { await fn(); console.log("✓", name); } catch (e) { fails.push(name + ": " + e.message.split("\n")[0]); console.log("✗", name, e.message.split("\n")[0]); } };
-  const clearEvents = async () => { for (let i = 0; i < 10 && await pg.$("#modal:not(.hidden) .ch:not([disabled])"); i++) await pg.click("#modal:not(.hidden) .ch:not([disabled])"); };
-  const tabs = ["prehled", "sidlo", "uzemi", "hosp", "trh", "vojsko", "valka", "politika", "dvur", "diplo", "objevy", "kronika", "hra"];
-  await step("všechny záložky", async () => { for (const t of tabs) { await pg.click(`[data-x='["${t}"]']`); await pg.waitForTimeout(30); } });
-  await step("stavba v sídle", async () => { await pg.click(`[data-x='["sidlo"]']`); await pg.click(`[data-a=build][data-x='["seat","kaple"]']`); const q = await pg.evaluate(() => S.queue.length); if (q !== 1) throw new Error("fronta " + q); });
-  await step("prodej na trhu", async () => { await pg.click(`[data-x='["trh"]']`); const m = await pg.evaluate(() => S.money); await pg.click(`[data-a=sell][data-x='["zelezo","#q_zelezo"]']`); const m2 = await pg.evaluate(() => S.money); if (!(m2 > m)) throw new Error(m + " → " + m2); });
-  await step("čin panovníka", async () => { await pg.click(`[data-x='["prehled"]']`); await pg.click(`[data-a=action][data-x='["objezd"]']`); if (await pg.evaluate(() => S.ap) !== 1) throw new Error("body činů"); });
-  await step("daně a zákony", async () => { await pg.click(`[data-x='["hosp"]']`); await pg.selectOption(`select[data-a=tax][data-x='["sedlaci"]']`, "3"); if (await pg.evaluate(() => S.tax.sedlaci) !== 3) throw new Error("daň");
-    await pg.click(`[data-x='["politika"]']`); await pg.selectOption(`select[data-a=law][data-x='["robota"]']`, "2"); if (await pg.evaluate(() => S.laws.robota) !== 2) throw new Error("zákon"); });
-  await step("diplomacie: dary", async () => { await pg.click(`[data-x='["diplo"]']`); await pg.selectOption("#dp_biskup", "dar"); await pg.click(`[data-a=dip][data-x='["biskup","#dp_biskup"]']`); if (await pg.evaluate(() => S.rivals.biskup.lastDip) !== await pg.evaluate(() => S.turn)) throw new Error("poselstvo"); });
-  await step("válka a přesun vojska", async () => { await pg.evaluate(() => { S.claims.zalesi = true; }); await pg.selectOption("#dp_zalesi", "valka"); await pg.click(`[data-a=dip][data-x='["zalesi","#dp_zalesi"]']`);
-    await clearEvents(); await pg.click(`[data-x='["vojsko"]']`); await pg.selectOption(`select[data-a=move][data-x='["a1"]']`, "dubova"); if (!(await pg.evaluate(() => S.armies[0].order))) throw new Error("rozkaz"); });
-  await step("dvanáct období", async () => { for (let i = 0; i < 12; i++) { await clearEvents(); await pg.click("button.main"); } await clearEvents(); const t = await pg.evaluate(() => S.turn); if (t < 10) throw new Error("tah " + t); });
-  await step("všechny záložky po hře", async () => { for (const t of tabs) { await clearEvents(); await pg.click(`[data-x='["${t}"]']`); await pg.screenshot({ path: path.join(OUT, t + ".png"), fullPage: true }); } });
-  await step("uložení a načtení", async () => { await pg.click(`[data-a=save][data-x='[1]']`); const t = await pg.evaluate(() => S.turn); await clearEvents(); await pg.click("button.main"); await clearEvents(); await pg.click(`[data-a=load][data-x='[1]']`); if (await pg.evaluate(() => S.turn) !== t) throw new Error("načtení"); });
-  await step("telefon bez vodorovného posunu", async () => { await pg.setViewportSize({ width: 390, height: 800 }); await pg.click(`[data-x='["prehled"]']`); const w = await pg.evaluate(() => document.documentElement.scrollWidth); await pg.screenshot({ path: path.join(OUT, "telefon.png") }); if (w > 400) throw new Error("šířka " + w); });
+  const clearEvents = async () => { for (let i = 0; i < 15 && await pg.$("#modal:not(.hidden) .ch:not([disabled])"); i++) await pg.click("#modal:not(.hidden) .ch:not([disabled])"); };
+  const ev = f => pg.evaluate(f);
+  const tab = t => pg.click(`#tabs [data-x='["${t}"]']`);
+  const tabs = ["prehled", "mapa", "kraj", "vazalove", "vojsko", "diplo", "rise", "hosp", "stavy", "rod", "objevy", "kronika", "hra"];
+  await step("všechny záložky", async () => { for (const t of tabs) await tab(t); });
+  await step("rozkaz vazalovi", async () => {
+    await tab("kraj"); const btns = await pg.$$("button.go[data-a=cmd]"); await btns[0].click(); await clearEvents();
+    const acted = await ev(() => officers(S, S.player).filter(c => c.acted === S.turn).length); if (!(acted >= 1)) throw new Error("rozkaz neproběhl");
+  });
+  await step("nábor přes rozkaz", async () => {
+    const id = await ev(() => officersIn(S, P(S).capital).find(c => c.acted !== S.turn).id);
+    await pg.selectOption(`#cs_${id}`, "nabor"); await pg.fill(`#a2_${id}`, "200"); const m0 = await ev(() => men(S.provs[P(S).capital].troops));
+    await pg.click(`button[data-a=cmd][data-x='["${id}"]']`); const m1 = await ev(() => men(S.provs[P(S).capital].troops)); if (m1 !== m0 + 200) throw new Error(m0 + "→" + m1);
+  });
+  await step("mapa a výběr kraje", async () => { await tab("mapa"); await pg.click(`.pv[data-x='["budin"]']`); if (await ev(() => SEL.prov) !== "budin") throw new Error("výběr"); await pg.screenshot({ path: path.join(OUT, "mapa.png") }); });
+  await step("diplomacie: dary", async () => { await tab("diplo"); const r0 = await ev(() => rel(S, S.player, "wittL")); await pg.selectOption("#dt_wittL", "dar"); await pg.click(`[data-a=dip][data-x='["wittL"]']`); await clearEvents(); const r1 = await ev(() => rel(S, S.player, "wittL")); if (!(r1 > r0)) throw new Error(r0 + "→" + r1); });
+  await step("válka a vyslání vojska", async () => {
+    await pg.click(`[data-a=war][data-x='["wittL"]']`); await pg.click(`[data-a=war][data-x='["wittL"]']`); await clearEvents();
+    if (!(await ev(() => atWar(S, S.player, "wittL")))) throw new Error("válka");
+    await ev(() => { SEL.prov = "plzen"; }); await tab("kraj");
+    const opts = await pg.$$eval("#dto option", x => x.map(y => y.value)); await pg.selectOption("#dto", opts.includes("rezno") ? "rezno" : opts[0]);
+    await pg.click("button[data-a=dispatch]"); const n = await ev(() => S.armies.filter(a => a.cl === S.player).length); if (n < 1) throw new Error("vojsko nevytáhlo: " + (await pg.textContent("#toast")));
+  });
+  await step("24 měsíců", async () => { for (let i = 0; i < 24; i++) { await clearEvents(); await pg.click("button.main"); } await clearEvents(); if (await ev(() => S.turn) < 20) throw new Error("tah"); });
+  await step("všechny záložky po hře + snímky", async () => { for (const t of tabs) { await clearEvents(); await tab(t); await pg.screenshot({ path: path.join(OUT, t + ".png"), fullPage: true }); } });
+  await step("uložení a načtení", async () => { await pg.click(`[data-a=save][data-x='[1]']`); const t = await ev(() => S.turn); await clearEvents(); await pg.click("button.main"); await clearEvents(); await tab("hra"); await pg.click(`[data-a=load][data-x='[1]']`); if (await ev(() => S.turn) !== t) throw new Error("načtení"); });
+  await step("nová hra za Habsburky", async () => { await tab("hra"); await pg.selectOption("#ngClan", "habsburg"); await pg.click("[data-a=newgame]"); await pg.click("[data-a=newgame]"); if (await ev(() => S.player) !== "habsburg") throw new Error("rod"); });
+  await step("telefon bez vodorovného posunu", async () => { await pg.setViewportSize({ width: 390, height: 800 }); for (const t of ["prehled", "kraj", "mapa"]) { await tab(t); const w = await ev(() => document.documentElement.scrollWidth); if (w > 400) throw new Error(t + " šířka " + w); } await pg.screenshot({ path: path.join(OUT, "telefon.png") }); });
   await b.close();
   if (errors.length) console.log("Chyby v konzoli:\n" + [...new Set(errors)].join("\n"));
   if (fails.length || errors.length) { console.log("SELHALO: " + fails.length + " kroků, " + errors.length + " chyb"); process.exit(1); }

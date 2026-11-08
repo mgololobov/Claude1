@@ -1,81 +1,85 @@
-// Rozhraní: záložky s tabulkami, události v okně, ukládání v prohlížeči.
-let S = null, TAB = "prehled", SEL = { prov: "vranov", army: null, logCat: "" };
+// Rozhraní: záložky s tabulkami, mapa, rozkazy, události, ukládání.
+let S = null, TAB = "prehled", SEL = { prov: null, logF: "moje", cmd: {}, sortOff: "rank", provF: "moje", ng: "premysl" };
 const $ = q => document.querySelector(q);
 const esc = t => String(t == null ? "" : t).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const fmt = n => (Math.round(n) || 0).toLocaleString("cs-CZ");
 const sg = n => (n > 0 ? "+" : "") + fmt(n);
 const cls = (v, lo, hi) => (v < lo ? "bad" : v > hi ? "good" : "");
-const bar = (v, inv) => `<div class="bar ${inv ? (v > 60 ? "red" : v > 35 ? "yel" : "") : (v < 25 ? "red" : v < 45 ? "yel" : "")}"><i style="width:${clamp(v, 0, 100)}%"></i></div>`;
-function btn(label, a, args = [], err = null, title = "") { return `<button class="b" data-a="${a}" data-x="${esc(JSON.stringify(args))}"${err ? ` disabled title="${esc(err)}"` : title ? ` title="${esc(title)}"` : ""}>${label}</button>`; }
-const tbl = (head, rows) => `<table><thead><tr>${head.map(h => (h.startsWith("#") ? `<th class="n">${h.slice(1)}</th>` : `<th>${h}</th>`)).join("")}</tr></thead><tbody>${rows.join("") || `<tr><td colspan="${head.length}" class="muted">—</td></tr>`}</tbody></table>`;
-const tr = cells => "<tr>" + cells.map(c => (typeof c === "number" ? `<td class="n">${fmt(c)}</td>` : String(c).startsWith("<td") ? c : `<td>${c}</td>`)).join("") + "</tr>";
+const bar = (v, max = 100, inv) => { const f = clamp(v / max * 100, 0, 100); return `<span class="bar ${inv ? (f > 60 ? "red" : "") : (f < 25 ? "red" : f < 45 ? "yel" : "")}"><i style="width:${f}%"></i></span>`; };
+function btn(label, a, args = [], err = null, cl = "") { return `<button class="b ${cl}" data-a="${a}" data-x="${esc(JSON.stringify(args))}"${err ? ` disabled title="${esc(err)}"` : ""}>${label}</button>`; }
+const tbl = (head, rows, cl = "") => `<div class="tw"><table class="${cl}"><thead><tr>${head.map(h => (h.startsWith("#") ? `<th class="n">${h.slice(1)}</th>` : `<th>${h}</th>`)).join("")}</tr></thead><tbody>${rows.join("") || `<tr><td colspan="${head.length}" class="muted">—</td></tr>`}</tbody></table></div>`;
+const tr = (cells, cl = "") => `<tr class="${cl}">` + cells.map(c => (typeof c === "number" ? `<td class="n">${fmt(c)}</td>` : String(c).startsWith("<td") ? c : `<td>${c}</td>`)).join("") + "</tr>";
 const tdn = (v, c = "") => `<td class="n ${c}">${v}</td>`;
-const card = (t, body) => `<div class="card"><h3>${t}</h3>${body}</div>`;
-const costTxt = c => [c.money ? c.money + " zl" : "", c.drevo ? c.drevo + " dřeva" : "", c.kamen ? c.kamen + " kamene" : "", c.vino ? c.vino + " vína" : ""].filter(Boolean).join(", ") || "zdarma";
-function toast(t) { const el = $("#toast"); el.textContent = t; el.classList.add("on"); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove("on"), 2600); }
-const provOwner = p => (p.owner === "hrac" ? "<b>ty</b>" : S.rivals[p.owner] ? esc(S.rivals[p.owner].n) : "?");
+const card = (t, body, cl = "") => `<section class="card ${cl}"><h3>${t}</h3>${body}</section>`;
+const sel = (id, opts, cur, attrs = "") => `<select id="${id}" ${attrs}>${opts.map(([v, n]) => `<option value="${esc(v)}" ${String(v) === String(cur) ? "selected" : ""}>${esc(n)}</option>`).join("")}</select>`;
+const chip = (cid, txt) => `<span class="chip" style="--c:${S.clans[cid] ? S.clans[cid].col : "#888"}">${esc(txt || (S.clans[cid] ? S.clans[cid].house : cid))}</span>`;
+function toast(t) { const el = $("#toast"); el.textContent = t; el.classList.add("on"); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove("on"), 3200); }
+const statsTd = c => STAT_IDS.map(k => `<td class="n">${st(c, k)}</td>`).join("");
+const traitsTxt = c => (c.traits || []).map(t => TRAITS[t] ? TRAITS[t].n : t).join(", ");
+const me = () => S.player;
 
 // ---------- akce ----------
 const ACT = {
-  build: (w, b) => build(S, w, b), cancel: i => cancelBuild(S, i), recruit: (u, n, a) => recruit(S, u, n, a), disband: (a, u, n) => disband(S, a, u, n),
-  levy: () => raiseLevy(S), move: (a, to) => orderMove(S, a, to), cmd: (a, w) => setCommander(S, a, w), split: (a, u, n) => newArmy(S, a, u, n), merge: (a, b) => mergeArmies(S, a, b),
-  rename: (a, n) => { const x = S.armies.find(y => y.id === a); if (x && n) x.name = n; },
-  buy: (g, n) => trade(S, g, n, true), sell: (g, n) => trade(S, g, n, false), tax: (e, v) => setTax(S, e, +v), law: (l, v) => setLaw(S, l, +v),
-  borrow: n => borrow(S, n), repay: i => repay(S, i), appoint: (seat, c) => appoint(S, seat, c), dismiss: seat => dismiss(S, seat), focus: (c, f) => setFocus(S, c, f || null),
-  research: t => setResearch(S, t), exped: id => startExpedition(S, id), action: a => doAction(S, a), dip: (r, a, x) => dipAction(S, r, a, x),
-  peace: (r, t, pid) => makePeace(S, r, { t, pid }), title: () => raiseTitle(S), event: (i, c) => resolveEvent(S, i, c),
-  end: () => endTurn(S), prov: id => { SEL.prov = id; }, tab: t => { TAB = t; }, army: id => { SEL.army = id; }, logcat: c => { SEL.logCat = c; },
-  save: n => saveSlot(n), load: n => loadSlot(n), del: n => { try { localStorage.removeItem("panovnik_slot_" + n); } catch (e) {} }, exportSave: () => exportSave(), importSave: () => $("#impFile").click(),
-  newgame: () => { if (!SEL.ngConfirm) { SEL.ngConfirm = true; return "Opravdu? Neuložený postup se ztratí – klikni znovu na „Začít novou hru“."; } SEL.ngConfirm = false; S = newGame({ realm: $("#ngRealm").value, ruler: $("#ngRuler").value, dynasty: $("#ngDyn").value, seed: $("#ngSeed").value ? +$("#ngSeed").value : undefined }); TAB = "prehled"; },
+  tab: t => { TAB = t; }, prov: id => { SEL.prov = id; if (S.provs[id].owner === me() && TAB === "mapa") TAB = "kraj"; }, provOnly: id => { SEL.prov = id; },
+  cmdSel: (oid, v) => { SEL.cmd[oid] = v; },
+  cmd: oid => { const k = SEL.cmd[oid] || "zemedelstvi"; const a1 = $("#a1_" + oid), a2 = $("#a2_" + oid); return doCmd(S, me(), oid, k, a1 ? a1.value : undefined, a2 ? a2.value : undefined); },
+  dispatch: pid => { const t = {}; for (const k of TROOP_IDS) t[k] = +($("#dt_" + k) || {}).value || 0; const cm = [1, 2, 3].map(i => ($("#dc" + i) || {}).value).filter(Boolean); return dispatch(S, me(), pid, $("#dto").value, t, cm, +$("#dmon").value, $("#dmode").value); },
+  army: (aid, w) => orderArmy(S, me(), aid, w, w === "tahnout" ? $("#ato_" + aid).value : null),
+  deleg: (pid, v) => setDeleg(S, me(), pid, v),
+  promote: id => promote(S, me(), id), reward: id => reward(S, me(), id, +$("#rw_" + id).value), lord: (pid, id) => makeLord(S, me(), pid, id), dismiss: id => dismissOff(S, me(), id),
+  captive: (id, a) => captiveAction(S, me(), id, a), focus: (id, f) => { const c = chr(S, id); if (c) c.focus = f || null; },
+  tax: v => setTax(S, me(), v), law: (l, v) => setLaw(S, l, v), buy: g => tradeGoods(S, me(), g, +$("#q_" + g).value, true), sell: g => tradeGoods(S, me(), g, +$("#q_" + g).value, false),
+  borrow: () => borrow(S, me(), +$("#loan").value), repay: i => repay(S, me(), i), research: t => setResearch(S, me(), t),
+  dip: cid => { const o = $("#env_" + cid).value; if (!o) return "Vyber vyslance (vazal, který tento měsíc ještě nejednal)."; SEL.cmd[o] = "poselstvo"; return doCmd(S, me(), o, "poselstvo", cid, $("#dt_" + cid).value); },
+  war: cid => { if (!SEL.warConfirm || SEL.warConfirm !== cid) { SEL.warConfirm = cid; return "Opravdu vyhlásit válku? Klikni znovu."; } SEL.warConfirm = null; return declareWar(S, me(), cid, null); },
+  stand: () => standForElection(S, me()), bribe: e => bribeElector(S, me(), e, +$("#br_" + e).value), ban: () => imperialBan(S, me(), $("#banT").value), coronation: () => imperialCoronation(S, me()),
+  crown: k => crown(S, me(), k), popeGift: () => popeGift(S, me()), penance: () => penance(S, me()),
+  event: (i, c) => resolveEvent(S, i, c), end: () => endTurn(S), logF: f => { SEL.logF = f; }, sortOff: k => { SEL.sortOff = k; }, provF: f => { SEL.provF = f; },
+  save: n => saveSlot(n), load: n => loadSlot(n), del: n => { try { localStorage.removeItem("panovnik2_slot_" + n); } catch (e) {} }, exportSave: () => exportSave(), importSave: () => $("#impFile").click(),
+  ngClan: v => { SEL.ng = v; },
+  newgame: () => { if (!SEL.ngConfirm) { SEL.ngConfirm = true; return "Opravdu? Rozehraná hra se přepíše – klikni znovu."; } SEL.ngConfirm = false; S = newGame({ clan: SEL.ng, seed: $("#ngSeed").value ? +$("#ngSeed").value : undefined }); TAB = "prehled"; SEL.prov = P(S).capital; },
   theme: () => { const r = document.documentElement; const t = r.dataset.theme === "dark" ? "light" : r.dataset.theme === "light" ? "" : "dark"; if (t) r.dataset.theme = t; else delete r.dataset.theme; try { localStorage.setItem("panovnik_theme", t); } catch (e) {} },
 };
-document.addEventListener("click", ev => {
-  const el = ev.target.closest("[data-a]"); if (!el || el.disabled || el.tagName === "SELECT") return;
-  run(el.dataset.a, JSON.parse(el.dataset.x || "[]"));
-});
-document.addEventListener("change", ev => {
-  const el = ev.target.closest("select[data-a], input[data-a]"); if (!el) return;
-  const args = JSON.parse(el.dataset.x || "[]"); args.push(el.value); run(el.dataset.a, args);
-});
+document.addEventListener("click", ev => { const el = ev.target.closest("[data-a]"); if (!el || el.disabled || el.tagName === "SELECT" || el.tagName === "INPUT") return; run(el.dataset.a, JSON.parse(el.dataset.x || "[]")); });
+document.addEventListener("change", ev => { const el = ev.target.closest("select[data-a], input[data-a]"); if (!el) return; const args = JSON.parse(el.dataset.x || "[]"); args.push(el.type === "checkbox" ? el.checked : el.value); run(el.dataset.a, args); });
 document.addEventListener("keydown", ev => { if (ev.key === "Enter" && ev.ctrlKey) run("end", []); });
 function run(a, args) {
-  args = args.map(x => (typeof x === "string" && x[0] === "#" ? ($(x) ? ($(x).type === "number" ? +$(x).value : $(x).value) : "") : x));
   let err = null; try { err = ACT[a](...args); } catch (e) { console.error(e); err = "Chyba: " + e.message; }
   if (err) toast(err);
-  if (a === "end" && !err) { window.scrollTo(0, 0); toast(`${dateStr(S)} – nové období.`); }
+  if (a === "end" && !err) { toast(`${dateStr(S)}`); }
   autosave(); render();
 }
 
 // ---------- ukládání ----------
-function autosave() { try { localStorage.setItem("panovnik_auto", JSON.stringify(S)); } catch (e) {} }
-function saveSlot(n) { try { localStorage.setItem("panovnik_slot_" + n, JSON.stringify(S)); toast("Uloženo do pozice " + n + "."); } catch (e) { return "Uložení se nezdařilo: " + e.message; } }
-function loadSlot(n) { try { const t = localStorage.getItem("panovnik_slot_" + n); if (!t) return "Pozice je prázdná."; S = JSON.parse(t); toast("Načteno."); } catch (e) { return "Načtení se nezdařilo."; } }
-function slotInfo(n) { try { const t = localStorage.getItem("panovnik_slot_" + n); if (!t) return null; const x = JSON.parse(t); return `${x.realm.name}, ${SEASONS[x.season]} ${x.year}`; } catch (e) { return null; } }
-function exportSave() {
-  const blob = new Blob([JSON.stringify(S)], { type: "application/json" }); const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob); a.download = `panovnik-${S.year}-${SEASONS[S.season]}.json`; document.body.appendChild(a); a.click(); a.remove();
-}
-function importFile(f) { const r = new FileReader(); r.onload = () => { try { const x = JSON.parse(r.result); if (!x.provinces || !x.rivals) throw 0; S = x; toast("Hra načtena ze souboru."); autosave(); render(); } catch (e) { toast("Soubor není uložená hra."); } }; r.readAsText(f); }
+function autosave() { try { localStorage.setItem("panovnik2_auto", JSON.stringify(S)); } catch (e) {} }
+function saveSlot(n) { try { localStorage.setItem("panovnik2_slot_" + n, JSON.stringify(S)); toast("Uloženo do pozice " + n + "."); } catch (e) { return "Uložení se nezdařilo."; } }
+function loadSlot(n) { try { const t = localStorage.getItem("panovnik2_slot_" + n); if (!t) return "Pozice je prázdná."; S = JSON.parse(t); toast("Načteno."); } catch (e) { return "Načtení se nezdařilo."; } }
+function slotInfo(n) { try { const t = localStorage.getItem("panovnik2_slot_" + n); if (!t) return null; const x = JSON.parse(t); return `${x.clans[x.player].house}, ${MONTHS[x.month]} ${x.year}`; } catch (e) { return null; } }
+function exportSave() { const blob = new Blob([JSON.stringify(S)], { type: "application/json" }); const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `panovnik-${S.year}-${S.month + 1}.json`; document.body.appendChild(a); a.click(); a.remove(); }
+function importFile(f) { const r = new FileReader(); r.onload = () => { try { const x = JSON.parse(r.result); if (!x.provs || !x.clans) throw 0; S = x; toast("Hra načtena."); autosave(); render(); } catch (e) { toast("Soubor není uložená hra."); } }; r.readAsText(f); }
 
-// ---------- hlavička a záložky ----------
-const TABS = [["prehled", "Přehled"], ["sidlo", "Sídlo"], ["uzemi", "Území"], ["hosp", "Hospodářství"], ["trh", "Trh a obchod"], ["vojsko", "Vojsko"], ["valka", "Válka"], ["politika", "Stavy a zákony"], ["dvur", "Rod a rada"], ["diplo", "Diplomacie"], ["objevy", "Objevy"], ["kronika", "Kronika"], ["hra", "Hra"]];
+// ---------- hlavička ----------
+const TABS = [["prehled", "Přehled"], ["mapa", "Mapa"], ["kraj", "Kraj a rozkazy"], ["vazalove", "Vazalové"], ["vojsko", "Vojsko a války"], ["diplo", "Diplomacie"], ["rise", "Říše a církev"], ["hosp", "Hospodářství"], ["stavy", "Stavy a zákony"], ["rod", "Rod"], ["objevy", "Objevy"], ["kronika", "Kronika"], ["hra", "Hra"]];
 function renderTop() {
-  const R = ch(S, S.ruler), inc = sum(Object.values(incomeBreakdown(S))), ex = sum(Object.values(expenseBreakdown(S))), net = inc - ex;
-  const need = grainNeed(S), gn = need.lid + need.vojsko + need.dvur;
-  $("#top").innerHTML = `<span class="realm">${esc(S.realm.name)}</span>
-  <span class="st">${esc(cap(realmTitle(S)))} <b>${esc(R.name)}</b> (${R.age})</span>
-  <span class="st">📅 <b>${dateStr(S)}</b></span>
-  <span class="st" title="Zlato a odhad čistého příjmu za období">💰 <b>${fmt(S.money)}</b> <span class="${net < 0 ? "bad" : "good"}">(${sg(net)})</span></span>
-  <span class="st" title="Obilí na skladě / spotřeba za období">🌾 <b class="${S.stock.obili < gn * 1.5 ? "bad" : ""}">${fmt(S.stock.obili)}</b>/${fmt(gn)}</span>
-  <span class="st" title="Prestiž">⚜ <b>${fmt(S.prestige)}</b></span><span class="st" title="Zbožnost">✝ <b>${fmt(S.piety)}</b></span><span class="st" title="Legitimita">⚖ <b>${fmt(S.legitimacy)}</b></span>
-  <span class="st" title="Body činů panovníka">✋ <b>${S.ap}</b></span>
-  ${S.wars.length ? `<span class="st bad">⚔ válka: ${S.wars.map(w => esc(S.rivals[w.enemy].n)).join(", ")}</span>` : ""}
-  <span class="sp"></span><button class="main" data-a="end" data-x="[]" ${S.over ? "disabled" : ""} title="Ctrl+Enter">Konec období ▶</button>`;
-  $("#tabs").innerHTML = TABS.map(([id, n]) => `<button class="${TAB === id ? "on" : ""}" data-a="tab" data-x='["${id}"]'>${n}${id === "valka" && S.wars.length ? " ⚔" : ""}</button>`).join("");
+  const C = P(S), L = leaderOf(S, me()), b = clanBudget(S, me()), idle = officers(S, me()).filter(c => c.acted !== S.turn && !c.army && S.provs[c.loc] && S.provs[c.loc].owner === me() && !S.provs[c.loc].deleg).length;
+  $("#top").innerHTML = `<span class="realm" style="--c:${C.col}">${esc(C.house)}</span>
+  <span class="st">${esc(cap(C.t))} <b>${esc(L ? L.n : "—")}</b>${L ? ` (${age(S, L)})` : ""}</span>
+  <span class="st"><b>${MONTHS[S.month]} ${S.year}</b></span>
+  <span class="st" title="Zlato (čistý měsíční příjem)">Zlato <b>${fmt(C.gold)}</b> <span class="${b.net < 0 ? "bad" : "good"}">${sg(b.net)}</span></span>
+  <span class="st" title="Obilí na skladě">Obilí <b>${fmt(C.grain)}</b></span>
+  <span class="st" title="Kraje vlastní / včetně vazalů">Kraje <b>${clanProvs(S, me()).length}</b>${vassalsOf(S, me()).length ? "/" + realmProvs(S, me()) : ""}</span>
+  <span class="st" title="Vojsko">Vojsko <b>${fmt(clanMen(S, me()))}</b></span>
+  <span class="st" title="Prestiž">Prestiž <b>${fmt(C.prestige)}</b></span>
+  ${enemiesOf(S, me()).length ? `<span class="st bad">Válka: ${enemiesOf(S, me()).map(e => esc(S.clans[e].house)).join(", ")}</span>` : ""}
+  <span class="sp"></span><span class="st muted small">${idle ? idle + " vazalů čeká na rozkaz" : ""}</span>
+  <button class="main" data-a="end" data-x="[]" ${S.over && !S.over.cont ? "disabled" : ""} title="Ctrl+Enter">Konec měsíce ▶</button>`;
+  $("#tabs").innerHTML = TABS.map(([id, n]) => `<button class="${TAB === id ? "on" : ""}" data-a="tab" data-x='["${id}"]'>${n}</button>`).join("");
 }
 function render() {
-  if (!S) return; renderTop();
-  const f = { prehled: tPrehled, sidlo: tSidlo, uzemi: tUzemi, hosp: tHosp, trh: tTrh, vojsko: tVojsko, valka: tValka, politika: tPolitika, dvur: tDvur, diplo: tDiplo, objevy: tObjevy, kronika: tKronika, hra: tHra }[TAB];
+  if (!S) return;
+  if (!SEL.prov || !S.provs[SEL.prov]) SEL.prov = P(S).capital || Object.keys(S.provs)[0];
+  renderTop();
+  const f = { prehled: tPrehled, mapa: tMapa, kraj: tKraj, vazalove: tVazalove, vojsko: tVojsko, diplo: tDiplo, rise: tRise, hosp: tHosp, stavy: tStavy, rod: tRod, objevy: tObjevy, kronika: tKronika, hra: tHra }[TAB];
   $("#main").innerHTML = f();
   renderModal();
 }
@@ -83,233 +87,259 @@ function renderModal() {
   const m = $("#modal");
   if (S.events.length) {
     const v = eventView(S, S.events[0]);
-    m.innerHTML = `<div class="box"><div class="muted small">${dateStr(S)}${S.events.length > 1 ? ` · čeká ${S.events.length} událostí` : ""}</div><h2>${esc(v.t)}</h2><p>${esc(v.txt)}</p>${v.ch.map(c => `<button class="b ch" data-a="event" data-x="[0,${c.i}]" ${c.ok ? "" : "disabled title='Nelze zvolit'"}>${esc(c.t)}</button>`).join("")}</div>`;
+    m.innerHTML = `<div class="box"><div class="muted small">${dateStr(S)}${S.events.length > 1 ? ` · čeká ${S.events.length} zpráv` : ""}</div><h2>${esc(v.t)}</h2><p>${esc(v.txt)}</p>${v.ch.map(c => `<button class="b ch" data-a="event" data-x="[0,${c.i}]" ${c.ok ? "" : "disabled"}>${esc(c.t)}</button>`).join("")}</div>`;
     m.classList.remove("hidden");
   } else if (S.over && !S.overSeen) {
-    m.innerHTML = `<div class="box"><h2>${S.over.win ? "Konec hry" : "Prohra"}</h2><p>${esc(S.over.txt)}</p><p>Skóre: <b>${score(S)}</b></p><button class="b ch" data-a="tab" data-x='["hra"]' onclick="S.overSeen=true">Zavřít</button></div>`;
+    m.innerHTML = `<div class="box"><h2>${S.over.win ? "Vítězství" : "Konec"}</h2><p>${esc(S.over.txt)}</p><button class="b ch" onclick="S.overSeen=true;render()">${S.over.cont ? "Hrát dál" : "Zavřít"}</button></div>`;
     m.classList.remove("hidden");
   } else m.classList.add("hidden");
 }
 
 // ---------- Přehled ----------
-function warnings() {
-  const w = [], need = grainNeed(S), gn = need.lid + need.vojsko + need.dvur;
-  if (S.stock.obili + (provProductionAll(S) || 0) - gn < gn * 0.5) w.push(["bad", `Hrozí hlad: zásoba ${fmt(S.stock.obili)}, spotřeba ${fmt(gn)} za období, tato sklizeň ${fmt(provProductionAll(S))}.`]);
-  for (const e of ESTATE_IDS) if (S.estates[e].loy < 30) w.push(["bad", `${ESTATES[e].n}: věrnost jen ${fmt(S.estates[e].loy)} – hrozí krize.`]);
-  for (const p of myProvs(S)) { if (p.unrest > 60) w.push(["warn", `Nepokoje v ${p.n}: ${fmt(p.unrest)}.`]); if (p.occ) w.push(["bad", `${p.n} je obsazena nepřítelem!`]); if (p.siege && p.siege.by !== "hrac") w.push(["bad", `${p.n} je obléhána (${fmt(p.siege.prog)} %).`]); }
-  const net = sum(Object.values(incomeBreakdown(S))) - sum(Object.values(expenseBreakdown(S))); if (net < 0) w.push(["warn", `Výdaje převyšují příjmy o ${fmt(-net)} zl za období.`]);
-  if (!S.research.cur) w.push(["warn", "Učenci nemají zadaný výzkum (záložka Objevy)."]);
-  for (const k of COUNCIL_IDS) if (!S.council[k]) w.push(["warn", `Úřad ${COUNCIL[k].n} je neobsazený.`]);
-  if (S.ap > 0) w.push(["muted", `Panovníkovi zbývají ${S.ap} body činů.`]);
-  if (!S.spouse && ch(S, S.ruler).age >= 16) w.push(["warn", "Panovník nemá choť – rod nemá jistotu dědice."]);
-  if (!heirOf(S)) w.push(["bad", "Rod nemá dědice!"]);
-  return w;
+function alerts() {
+  const out = [], C = P(S);
+  for (const p of clanProvs(S, me())) { if (p.siege) out.push(["bad", `${p.n} je obléhán (${p.siege.months}. měsíc).`]); if (p.loy < 25) out.push(["warn", `${p.n}: lid je nespokojen (${Math.round(p.loy)}).`]); if (!p.lord) out.push(["warn", `${p.n} nemá purkrabího.`]); }
+  for (const a of S.armies.filter(x => x.cl !== me() && atWar(S, x.cl, me()))) if (S.provs[a.loc].owner === me() || S.provs[a.loc].nb.some(n => S.provs[n].owner === me())) out.push(["bad", `Nepřátelské vojsko (${S.clans[a.cl].house}, asi ${Math.round(men(a.t) / 100) * 100} mužů) u ${S.provs[a.loc].n}.`]);
+  const disl = officers(S, me()).filter(c => c.loy < 35 && !c.dyn); if (disl.length) out.push(["warn", `Nespolehliví vazalové: ${disl.map(c => esc(c.n) + " (" + Math.round(c.loy) + ")").join(", ")}.`]);
+  if (C.grain < clanGrainUse(S, me()) * 3) out.push(["bad", `Obilí vystačí jen na ${Math.floor(C.grain / Math.max(1, clanGrainUse(S, me())))} měsíců.`]);
+  if (C.excom > S.turn) out.push(["bad", "Jsi v papežské klatbě."]);
+  if (!heirsOf(S, me()).length) out.push(["bad", "Rod nemá mužského dědice!"]);
+  if (S.hre.election && P(S).hre) out.push(["", `Volba římského krále: ${MONTHS[(S.month + S.hre.election - S.turn) % 12]} (za ${S.hre.election - S.turn} měs.).`]);
+  if (!C.res.cur) out.push(["warn", "Učenci nemají zadaný objev."]);
+  return out;
 }
-function provProductionAll(s) { return Math.round(sum(myProvs(s).map(p => provProduction(s, p).out.obili || 0))); }
 function tPrehled() {
-  const R = ch(S, S.ruler), H = heirOf(S), inc = incomeBreakdown(S), ex = expenseBreakdown(S);
-  const tq = S.realm.title < 3 ? titleReq(S, S.realm.title + 1) : null, terr = canTitle(S);
-  const hist = S.history.slice(-12).reverse().map(h => tr([h.d, h.money, h.income, h.expense, h.pop, h.prov, h.army, h.grain, h.prestige, h.legit]));
+  const C = P(S), L = leaderOf(S, me()), b = clanBudget(S, me());
+  const rep = S.log.filter(l => l.cl && l.cl.includes(me())).slice(0, 18);
+  const world = S.log.filter(l => !l.cl || !l.cl.includes(me())).filter(l => ["valka", "rise", "rod", "svet", "cirkev", "diplomacie"].includes(l.cat)).slice(0, 12);
+  const top = aliveClans(S).map(c => [c, clanProvs(S, c.id).length, clanMen(S, c.id)]).sort((a, b) => b[1] - a[1]).slice(0, 10);
   return `<div class="grid">
-  ${card("Říše", `<div class="kv"><span>Titul</span><span>${cap(realmTitle(S))} – ${esc(S.realm.name)}</span><span>Panovník</span><span>${esc(R.name)}, ${R.age} let, zdraví ${fmt(R.health)}</span><span>Dědic</span><span>${H ? esc(H.name) + ` (${H.age})` : '<span class="bad">žádný</span>'}</span>
-    <span>Provincie</span><span>${myProvs(S).length}</span><span>Obyvatel</span><span>${fmt(totalPop(S))}</span><span>Vojsko</span><span>${unitCount(totalUnits(S))} setnin</span>
-    <span>Příjem / výdaje</span><span>${fmt(sum(Object.values(inc)))} / ${fmt(sum(Object.values(ex)))} zl za období</span><span>Dluhy</span><span>${fmt(sum(S.debts.map(d => d.amount)))} zl</span>
-    <span>Přízeň krále</span><span>${fmt(S.liege.opinion)}</span><span>Skóre</span><span>${score(S)}</span></div>`)}
-  ${card("Hlášení rádců", warnings().filter(x => x[1]).map(([c, t]) => `<div class="${c}">• ${esc(t)}</div>`).join("") || '<span class="good">Vše v pořádku.</span>')}
-  ${card(`Činy panovníka (zbývá ${S.ap})`, tbl(["Čin", "Účinek", "Cena", ""], Object.entries(ACTIONS).map(([id, A]) => tr([A.n, `<span class="small">${A.d}</span>`, costTxt(A.cost(S)), btn("Provést", "action", [id], S.ap <= 0 ? "Žádné body činů" : null)]))))}
-  ${card("Cesta ke koruně", tq ? `<p>Další titul: <b>${TITLES[S.realm.title + 1]}</b>${S.realm.title + 1 === 3 ? " (vítězství)" : ""}</p>` + tbl(["Podmínka", "#Potřeba", "#Máš"], [tr(["Provincie", tq.prov, myProvs(S).length]), tr(["Prestiž", tq.prestige, S.prestige]), tr(["Zlato", tq.money, S.money]), tq.liege ? tr(["Přízeň krále", tq.liege, S.liege.opinion]) : "", tq.legit ? tr(["Legitimita", tq.legit, S.legitimacy]) : ""]) + `<div class="row">${btn(S.realm.title + 1 === 3 ? "Usilovat o královskou korunu" : "Žádat krále o povýšení", "title", [], terr)}</div>` : "Jsi králem.")}
-  <div class="card" style="grid-column:1/-1"><h3>Vývoj říše</h3>${tbl(["Období", "#Zlato", "#Příjem", "#Výdaje", "#Obyvatel", "#Provincie", "#Vojsko", "#Obilí", "#Prestiž", "#Legitimita"], hist)}</div>
-  ${card("Poslední zprávy", S.log.slice(0, 12).map(l => `<div class="small"><span class="tag">${SEASONS[l.se]} ${l.y}</span>${esc(l.txt)}</div>`).join(""))}
+  ${card("Rod " + esc(C.house), `<div class="kv"><span>Země</span><span>${esc(C.n)}</span><span>Hlava rodu</span><span>${esc(L ? L.n : "—")}${L ? `, ${age(S, L)} let, zdraví ${Math.round(L.hp)}` : ""}</span><span>Tituly</span><span>${C.titles.map(esc).join(", ") || "—"}</span>
+   <span>Kraje</span><span>${clanProvs(S, me()).length} vlastních${vassalsOf(S, me()).length ? `, ${realmProvs(S, me())} s vazaly` : ""} (cíl: ${Math.ceil(Object.keys(S.provs).length / 2)})</span><span>Vazalové</span><span>${officers(S, me()).length}</span><span>Vojsko</span><span>${fmt(clanMen(S, me()))} mužů</span>
+   <span>Měsíční bilance</span><span class="${b.net < 0 ? "bad" : "good"}">${sg(b.net)} zl</span><span>Zásoby</span><span>${fmt(C.grain)} obilí, ${fmt(C.kone)} koní, ${fmt(C.zbroj)} zbrojí</span><span>Přízeň papeže</span><span>${Math.round(S.pope.op[me()] || 0)}</span><span>Římský král</span><span>${hreKingTxt()}</span></div>`)}
+  ${card("Hlášení", alerts().map(([c, t]) => `<div class="${c}">• ${t}</div>`).join("") || '<span class="good">Klid.</span>')}
+  ${card("Mocnosti", tbl(["Rod", "#Kraje", "#Vojsko", "Vztah"], top.map(([c, n, m]) => tr([chip(c.id), n, m, c.id === me() ? "—" : `<td class="n ${cls(rel(S, me(), c.id), -20, 30)}">${Math.round(rel(S, me(), c.id))}</td>`]))))}
+  ${card("Zprávy pro tebe", rep.map(l => `<div class="lg"><span class="tag">${MONTHS[l.m].slice(0, 3)} ${l.y}</span>${esc(l.txt)}</div>`).join("") || "—", "wide")}
+  ${card("Ze světa", world.map(l => `<div class="lg"><span class="tag">${MONTHS[l.m].slice(0, 3)} ${l.y}</span>${esc(l.txt)}</div>`).join("") || "—")}
+  ${card("Vývoj", tbl(["Měsíc", "#Zlato", "#Bilance", "#Obilí", "#Kraje", "#Vojsko", "#Vazalové", "#Prestiž"], S.history.slice(-12).reverse().map(h => tr([h.d, h.gold, h.net, h.grain, h.provs, h.men, h.offs, h.prestige]))), "wide")}
   </div>`;
 }
+const hreKingTxt = () => S.hre.kingClan ? esc(chr(S, S.hre.king).n) + " (" + esc(S.clans[S.hre.kingClan].house) + ")" + (S.hre.emperor ? ", císař" : "") : S.hre.king ? esc(S.hre.king.slice(4)) : "trůn je prázdný (interregnum)";
 
-// ---------- Sídlo ----------
-function buildRows(where, defs, cur) {
-  return Object.entries(defs).map(([b, B]) => {
-    const lvl = cur(b), next = lvl + 1, q = S.queue.find(x => x.where === where && x.b === b);
-    const ok = !B.need || B.need(where === "seat" ? S : S.provinces[where]);
-    if (!ok && !lvl) return tr([`<span class="muted">${B.n}</span>`, `<span class="muted small">${B.d}</span>`, "—", "", "", '<span class="muted small">nelze</span>']);
-    const c = lvl < B.max ? buildCost(S, B, next) : null;
-    return tr([B.n, `<span class="small">${B.d}</span>`, `<td class="n">${lvl}/${B.max}</td>`, c ? costTxt(c) : "—", c ? Math.max(1, B.time + Math.floor(lvl / 2) - (S.laws.robota === 2 ? 1 : 0)) + " obd." : "", q ? `<span class="warn">staví se (${q.left})</span>` : lvl >= B.max ? '<span class="good">hotovo</span>' : btn(lvl ? "Rozšířit" : "Postavit", "build", [where, b], canBuild(S, where, b))]);
-  });
-}
-function queueCard() { return card("Rozestavěno", tbl(["Stavba", "Kde", "#Zbývá", ""], S.queue.map((q, i) => tr([`${(q.where === "seat" ? SBUILD : PBUILD)[q.b].n} ${q.lvl}`, q.where === "seat" ? "sídlo" : S.provinces[q.where].n, q.left, btn("Zrušit", "cancel", [i])]))) + `<p class="small muted">Najednou lze stavět ${3 + Math.floor(cstat(S, "spravce") / 6)} staveb (podle purkrabího). Robota: ${LAWS.robota.opts[S.laws.robota]}.</p>`); }
-function tSidlo() {
-  const cap_ = grainCap(S);
-  return `<div class="grid"><div class="card" style="grid-column:1/-1"><h3>Panské sídlo – ${esc(S.provinces[S.capital].n)}</h3>${tbl(["Budova", "Účinek", "#Úroveň", "Cena další úrovně", "Doba", ""], buildRows("seat", SBUILD, b => S.seat[b] || 0))}</div>
-  ${queueCard()}
-  ${card("Hospodaření dvora", `<div class="kv"><span>Kapacita sýpek</span><span>${fmt(cap_)} obilí (nad ni 30 % zplesniví)</span><span>Kažení zásob</span><span>${r1((0.03 - S.seat.sypka * 0.008) * 100)} % za období</span><span>Spotřeba dvora</span><span>${4 + S.children.length} obilí, 1 víno, ½ sukna za období</span><span>Údržba sídla</span><span>${fmt(expenseBreakdown(S).sidlo)} zl za období</span><span>Obrana sídla</span><span>úroveň opevnění ${r1(fortLevel(S, S.provinces[S.capital]))}</span><span>Učenost ze sídla</span><span>${S.seat.knihovna * 2 + S.seat.univerzita * 5} bodů</span></div>`)}</div>`;
-}
-
-// ---------- Území ----------
-function tUzemi() {
-  const ps = myProvs(S); if (!ps.some(p => p.id === SEL.prov)) SEL.prov = ps[0] && ps[0].id;
-  const rows = ps.map(p => { const pr = provProduction(S, p, 2); const yr = sum([0, 1, 2, 3].map(se => provProduction(S, p, se).out.obili || 0)); const need = p.pop / 1000 * 8 * 4;
-    return `<tr class="${p.id === SEL.prov ? "sel" : ""}"><td>${btn(esc(p.n), "prov", [p.id])}${p.id === S.capital ? " ♛" : ""}</td><td>${TERRAIN[p.terrain].n}</td>${tdn(fmt(p.pop))}${tdn(fmt(p.prosp), cls(p.prosp, 30, 60))}${tdn(fmt(p.unrest), p.unrest > 60 ? "bad" : p.unrest > 35 ? "warn" : "")}${tdn(fmt(yr) + " / " + fmt(need), yr < need ? "bad" : "good")}<td>${p.res.map(r => GOODS[r].n).join(", ") || "—"}</td><td class="small">${Object.entries(p.b).filter(([, l]) => l).map(([b, l]) => PBUILD[b].n + " " + l).join(", ") || "—"}</td><td>${p.occ ? '<span class="bad">obsazeno</span>' : p.siege ? `<span class="warn">obléháno ${fmt(p.siege.prog)} %</span>` : p.hunger ? '<span class="bad">hlad</span>' : p.levy ? '<span class="warn">hotovost</span>' : "klid"}</td></tr>`; });
-  const p = S.provinces[SEL.prov]; let det = "";
-  if (p) {
-    const pr = provProduction(S, p); const ut = unrestTarget(S, p), pt = prospTarget(S, p);
-    det = `<div class="card" style="grid-column:1/-1"><h3>${esc(p.n)} – stavby</h3>${tbl(["Budova", "Účinek", "#Úroveň", "Cena", "Doba", ""], buildRows(p.id, PBUILD, b => p.b[b] || 0))}</div>
-    ${card("Výroba v tomto období", tbl(["Zboží", "#Vyrobí", "#Spotřebuje"], Object.keys(Object.assign({}, pr.out, pr.use)).map(g => tr([GOODS[g].n, r1(pr.out[g] || 0), r1(pr.use[g] || 0)]))) + `<p class="small muted">Obilí: násobek ${r1(grainMult(S, p))} (mlýny, objevy), úrodnost ${TERRAIN[p.terrain].fert}. Sklizeň je hlavně v létě a na podzim.</p>`)}
-    ${card(`Nepokoje: ${fmt(p.unrest)} → ${ut.val}`, tbl(["Vliv", "#Hodnota"], ut.rows.map(r => tr([r[0], `<td class="n ${r[1] > 0 ? "bad" : "good"}">${sg(r[1])}</td>`]))))}
-    ${card(`Prosperita: ${fmt(p.prosp)} → ${pt.val}`, tbl(["Vliv", "#Hodnota"], pt.rows.map(r => tr([r[0], `<td class="n ${r[1] < 0 ? "bad" : "good"}">${sg(r[1])}</td>`]))))}`;
+// ---------- Mapa ----------
+const MX = lon => (lon - 6.6) * 38, MY = lat => (55.1 - lat) * 60;
+function svgMap(hl) {
+  const ps = Object.values(S.provs); let edges = "";
+  for (const p of ps) for (const n of p.nb) if (p.id < n) { const q = S.provs[n]; edges += `<line x1="${MX(p.lon).toFixed(1)}" y1="${MY(p.lat).toFixed(1)}" x2="${MX(q.lon).toFixed(1)}" y2="${MY(q.lat).toFixed(1)}" class="edge${p.owner === q.owner ? " same" : ""}"/>`; }
+  let nodes = "", labels = "", arm = "";
+  for (const p of ps) {
+    const x = MX(p.lon), y = MY(p.lat), r = 4 + p.v * 1.6, C = S.clans[p.owner], mine = p.owner === me(), war = atWar(S, me(), p.owner);
+    nodes += `<g class="pv${p.id === SEL.prov ? " sel" : ""}" data-a="prov" data-x='["${p.id}"]'><title>${esc(p.n)} – ${esc(C.house)}</title><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r}" fill="${C.col}" class="${mine ? "mine" : war ? "war" : ""}${C.capital === p.id ? " capc" : ""}"/>${p.siege ? `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r + 4}" class="siege"/>` : ""}</g>`;
+    labels += `<text x="${(x + r + 2).toFixed(1)}" y="${(y + 3).toFixed(1)}" class="lbl${mine ? " lm" : ""}">${esc(p.n.split(" a ")[0].replace("Vídeňské Nové Město", "Vídeň. N. Město").replace("Vladimir Volyňský", "Vladimir"))}</text>`;
   }
-  const foreign = Object.values(S.provinces).filter(x => x.owner !== "hrac").map(x => tr([esc(x.n), provOwner(x), TERRAIN[x.terrain].n, fmt(x.pop), x.res.map(r => GOODS[r].n).join(", ") || "—", x.nb.filter(n => S.provinces[n].owner === "hrac").length ? '<span class="warn">sousedí s tebou</span>' : "", x.occ === "hrac" ? '<span class="good">obsadili jsme</span>' : x.siege && x.siege.by === "hrac" ? `obléháme ${fmt(x.siege.prog)} %` : ""]));
-  return `<div class="grid"><div class="card" style="grid-column:1/-1"><h3>Tvé provincie</h3>${tbl(["Provincie", "Terén", "#Obyvatel", "#Prosperita", "#Nepokoje", "#Obilí za rok / spotřeba", "Suroviny", "Stavby", "Stav"], rows)}</div>${det}${queueCard()}
-  <div class="card" style="grid-column:1/-1"><h3>Cizí provincie</h3>${tbl(["Provincie", "Pán", "Terén", "#Obyvatel", "Suroviny", "Hranice", "Válka"], foreign)}</div></div>`;
+  for (const a of S.armies) { const p = S.provs[a.loc]; const x = MX(p.lon) - 9, y = MY(p.lat) - 9; arm += `<path d="M${x} ${y - 5} l5 9 h-10z" fill="${S.clans[a.cl].col}" class="army"><title>Vojsko ${esc(S.clans[a.cl].house)}${a.cl === me() || knows(S, p) ? ": " + Math.round(men(a.t) / 100) * 100 + " mužů" : ""}</title></path>`; }
+  return `<svg viewBox="0 0 720 570" class="map" role="img" aria-label="Mapa krajů střední Evropy">${edges}${nodes}${arm}${labels}</svg>`;
+}
+function provRow(p) {
+  const C = S.clans[p.owner], k = knows(S, p);
+  return tr([btn(esc(p.n), "provOnly", [p.id]), chip(p.owner), TERRAIN[p.ter].n, k ? fmt(p.pop * 1000) : "?", k ? `${p.agri}/${agriCap(S, p)}` : "?", k ? `${p.com}/${comCap(S, p)}` : "?", `<td class="n">${k ? estimate(S, p, men(p.troops)) : "?"}</td>`, `${p.castle} (${k ? Math.round(p.dur) : "?"})`, k ? Math.round(p.loy) : "?", p.res.map(r => RES[r]).join(", ") || "—", p.siege ? `<span class="bad">obléhán (${S.clans[p.siege.by].house})</span>` : ""], p.id === SEL.prov ? "sel" : "");
+}
+function tMapa() {
+  const p = S.provs[SEL.prov], f = SEL.provF;
+  let ps = Object.values(S.provs); if (f === "moje") ps = ps.filter(x => x.owner === me()); else if (f === "sousede") ps = ps.filter(x => x.owner !== me() && x.nb.some(n => S.provs[n].owner === me())); else if (f === "nepratele") ps = ps.filter(x => atWar(S, me(), x.owner));
+  const legend = aliveClans(S).sort((a, b) => clanProvs(S, b.id).length - clanProvs(S, a.id).length).map(c => chip(c.id, c.house + " " + clanProvs(S, c.id).length)).join(" ");
+  return `<div class="grid map2">${card("Mapa střední Evropy", svgMap() + `<p class="small muted">Kroužek = kraj (velikost podle bohatství, barva podle rodu). Silně orámované jsou tvé kraje, červeně orámované nepřátelské. Trojúhelník = vojsko v poli, přerušovaný kruh = obléhání. Čáry = cesty mezi sousedními kraji.</p>`, "wide")}
+  ${card(esc(p.n), provDetail(p))}
+  ${card("Rody", `<div class="legend">${legend}</div>`, "wide")}
+  ${card("Kraje", `<div class="row">${[["moje", "moje"], ["sousede", "sousední"], ["nepratele", "nepřátelské"], ["vse", "všechny"]].map(([k, n]) => btn(f === k ? `<b>${n}</b>` : n, "provF", [k])).join("")}</div>` + tbl(["Kraj", "Pán", "Terén", "#Obyvatel", "#Pole", "#Obchod", "#Posádka", "Hrad", "#Spokoj.", "Suroviny", ""], ps.sort((a, b) => a.owner.localeCompare(b.owner) || b.v - a.v).map(provRow)), "wide")}</div>`;
+}
+function provDetail(p) {
+  const k = knows(S, p), L = chr(S, p.lord), C = S.clans[p.owner];
+  return `<div class="kv"><span>Pán</span><span>${chip(p.owner)} ${esc(C.n)}</span><span>Purkrabí</span><span>${L && k ? esc(L.n) : k ? "—" : "?"}</span><span>Terén</span><span>${TERRAIN[p.ter].n}</span>
+  <span>Obyvatel</span><span>${k ? fmt(p.pop * 1000) : "?"}</span><span>Zemědělství</span><span>${k ? p.agri + " / " + agriCap(S, p) : "?"}</span><span>Obchod</span><span>${k ? p.com + " / " + comCap(S, p) : "?"}</span>
+  <span>Hrad</span><span>úroveň ${p.castle}, hradby ${k ? Math.round(p.dur) + " / " + durMax(S, p) : "?"}</span><span>Posádka</span><span>${k ? estimate(S, p, men(p.troops)) + " mužů" : "?"}${(p.spy[me()] || 0) > S.turn ? " (přesně – zvědové)" : ""}</span>
+  <span>Spokojenost</span><span>${k ? Math.round(p.loy) : "?"}</span><span>Suroviny</span><span>${p.res.map(r => RES[r]).join(", ") || "—"}</span><span>Stavby</span><span>${Object.entries(p.b).filter(([, v]) => v).map(([b, v]) => BUILD[b].n.split(" (")[0] + " " + v).join(", ") || "—"}</span>
+  <span>Sousedé</span><span class="small">${p.nb.map(n => `<a class="lnk" data-a="provOnly" data-x='["${n}"]'>${esc(S.provs[n].n)}</a>`).join(", ")}</span></div>${p.owner === me() ? `<div class="row">${btn("Spravovat kraj", "tab", ["kraj"])}</div>` : ""}`;
 }
 
-// ---------- Hospodářství ----------
-const INC_N = { sedlaci: "Daně sedláků (berně z lánů)", mestane: "Daně měst a cechů", duchovni: "Desátek a církevní dávky", slechta: "Štítné od šlechty", myto: "Mýto z cest", domeny: "Výnos panských dvorů", cesty: "Obchodní cesty", mince: "Zisk z ražby mince" };
-const EXP_N = { vojsko: "Žold a výstroj vojska", rada: "Platy rádců", dvur: "Dvůr a rodina", sidlo: "Údržba sídla", uroky: "Úroky z dluhů" };
-function tHosp() {
-  const inc = incomeBreakdown(S), ex = expenseBreakdown(S), ti = sum(Object.values(inc)), te = sum(Object.values(ex)), need = grainNeed(S);
-  const L = S.last || {};
-  const lastInc = L.inc ? `<p class="small muted">Minulé období: příjem ${fmt(L.income)}, výdaje ${fmt(L.expense)}.</p>` : "";
-  return `<div class="grid">
-  ${card("Příjmy za období (odhad)", tbl(["Zdroj", "#Zlatých"], Object.entries(inc).map(([k, v]) => tr([INC_N[k], r1(v)]))) + `<p><b>Celkem ${fmt(ti)} zl</b> · výběrčí účinnost ${Math.round(efficiency(S) * 100)} %</p>` + lastInc)}
-  ${card("Výdaje za období", tbl(["Položka", "#Zlatých"], Object.entries(ex).map(([k, v]) => tr([EXP_N[k], r1(v)]))) + `<p><b>Celkem ${fmt(te)} zl</b> · bilance <b class="${ti - te < 0 ? "bad" : "good"}">${sg(ti - te)}</b></p>`)}
-  ${card("Daně podle stavů", tbl(["Stav", "Sazba", "#Věrnost", "Dopad"], ESTATE_IDS.map(e => tr([ESTATES[e].n, `<select data-a="tax" data-x='["${e}"]'>${TAX_LEVELS.map((t, i) => `<option value="${i}" ${S.tax[e] === i ? "selected" : ""}>${t}</option>`).join("")}</select>`, `<td class="n ${cls(S.estates[e].loy, 30, 60)}">${fmt(S.estates[e].loy)}</td>`, `<span class="small">věrnost ${sg(TAX_LOY[S.tax[e]])}${e === "sedlaci" ? `, nepokoje +${S.tax.sedlaci * 6}, prosperita −${S.tax.sedlaci * 5}` : ""}</span>`]))))}
-  ${card("Bilance obilí", tbl(["Položka", "#Za období"], [tr(["Spotřeba lidu", r1(need.lid)]), tr(["Spotřeba vojska", r1(need.vojsko)]), tr(["Spotřeba dvora", r1(need.dvur)]), tr(["Letošní sklizeň (toto období)", provProductionAll(S)]), tr(["Zásoba", S.stock.obili]), tr(["Kapacita sýpek", grainCap(S)])]) + `<p class="small muted">Podíl roční sklizně: jaro ${SEASON_GRAIN[0]}, léto ${SEASON_GRAIN[1]}, podzim ${SEASON_GRAIN[2]}, zima 0. Na zimu je třeba mít zásoby.</p>`)}
-  ${card("Dluhy a lichváři", tbl(["#Jistina", "#Úrok / obd.", "Od", ""], S.debts.map((d, i) => tr([d.amount, r1(d.amount * d.rate) + ` (${r1(d.rate * 100)} %)`, `období ${d.from}`, btn("Splatit", "repay", [i], S.money < d.amount ? "Nedostatek zlata" : null)]))) + `<div class="row">Půjčit: <input type="number" id="loanN" value="100" min="50" step="50"> ${btn("Vzít půjčku", "borrow", ["#loanN"])} <span class="small muted">úrok ${r1(loanRate(S) * 100)} % za období, strop ${fmt(maxLoan(S))} zl</span></div>`)}
-  ${card("Výroba minulého období", tbl(["Zboží", "#Vyrobeno", "#Spotřebováno", "#Sklad"], GOOD_IDS.map(g => tr([GOODS[g].n, r1((L.prod || {})[g] || 0), r1((L.use || {})[g] || 0), Math.floor(S.stock[g])]))))}
+// ---------- Kraj a rozkazy ----------
+function cmdParams(c, k, p) {
+  const id = c.id, myProvs = clanProvs(S, me()), near = Object.values(S.provs).filter(q => q.owner !== me() && (q.nb.some(n => S.provs[n].owner === me())));
+  switch (k) {
+    case "nabor": { const mx = maxRecruit(S, p, c); return sel("a1_" + id, TROOP_IDS.map(t => [t, `${TROOPS[t].n} (${TROOPS[t].cost} zl/100${Object.keys(TROOPS[t].goods).length ? ", " + Object.entries(TROOPS[t].goods).map(([g, q]) => q + " " + GOODS[g].n.toLowerCase()).join(", ") : ""})`]), "pesi") + ` <input type="number" id="a2_${id}" value="${Math.floor(mx / 100) * 100}" min="0" step="100" title="max ${mx}"> <span class="small muted">max ${mx}</span>`; }
+    case "stavba": return sel("a1_" + id, Object.entries(BUILD).filter(([b, B]) => !B.need || B.need(p)).map(([b, B]) => [b, `${B.n} – ${buildCost(S, me(), b, p)} zl, ${B.time} měs. (nyní ${buildLevel(p, b)}/${B.max})`]), "hrad");
+    case "zvedy": case "podnecovat": return sel("a1_" + id, near.map(q => [q.id, `${q.n} (${S.clans[q.owner].house})`]), "");
+    case "naklonit": { const targets = Object.values(S.chars).filter(x => x.st === "off" && x.cl && x.cl !== me() && !x.dyn && S.clans[x.cl].leader !== x.id && S.provs[x.loc] && (S.provs[x.loc].nb.some(n => S.provs[n].owner === me()))); return sel("a1_" + id, targets.map(x => [x.id, `${x.n} – ${S.clans[x.cl].house}, ${S.provs[x.loc].n}${Object.values(S.provs).some(q => q.lord === x.id) ? ", purkrabí" : ""}`]), ""); }
+    case "poselstvo": return sel("a1_" + id, aliveClans(S).filter(x => x.id !== me()).map(x => [x.id, x.house]), "") + sel("a2_" + id, Object.entries(DIPLO).map(([k2, d]) => [k2, d.n]), "dar");
+    case "presun": return sel("a1_" + id, myProvs.filter(q => q.id !== p.id).map(q => [q.id, q.n]), "");
+  }
+  return "";
+}
+function tKraj() {
+  let p = S.provs[SEL.prov]; if (p.owner !== me()) { p = S.provs[P(S).capital] || clanProvs(S, me())[0]; if (!p) return card("Kraj", "Nemáš žádný kraj."); SEL.prov = p.id; }
+  const offs = officersIn(S, p.id).filter(c => !c.army);
+  const cmdOpts = Object.entries(CMDS).map(([k, K]) => [k, K.n + (K.cost ? ` (${K.cost} zl)` : "")]);
+  const rows = offs.map(c => { const k = SEL.cmd[c.id] || (c.id === P(S).leader ? "poselstvo" : "zemedelstvi"); SEL.cmd[c.id] = k; const done = c.acted === S.turn;
+    return tr([`<b>${esc(c.n)}</b>${c.id === p.lord ? " <span class='tag'>purkrabí</span>" : ""}${c.id === P(S).leader ? " <span class='tag'>hlava rodu</span>" : ""}<div class="small muted">${RANKS[c.rank].n}, věrnost ${Math.round(c.loy)}${traitsTxt(c) ? ", " + traitsTxt(c) : ""}</div>`, statsTd(c),
+      done ? '<td colspan="2" class="muted">tento měsíc už jedná</td>' : `<td>${sel("cs_" + c.id, cmdOpts, k, `data-a="cmdSel" data-x='["${c.id}"]'`)}<div class="small muted">${CMDS[k].d}</div></td><td>${cmdParams(c, k, p)} ${btn("Provést", "cmd", [c.id], null, "go")}</td>`]); });
+  const myProv = clanProvs(S, me()).sort((a, b) => b.v - a.v);
+  const reach = Object.values(S.provs).filter(q => q.id !== p.id && (q.owner === me() || atWar(S, me(), q.owner))).sort((a, b) => dist(p, a) - dist(p, b)).slice(0, 25);
+  const cmOpts = [["", "—"]].concat(offs.filter(c => c.acted !== S.turn).map(c => [c.id, `${c.n} (vůd. ${st(c, "ved")}, ${RANKS[c.rank].cmd} mužů)`]));
+  return `<div class="row provpick">Kraj: ${sel("pk", myProv.map(q => [q.id, `${q.n}${q.siege ? " (obléhán)" : ""}${officersIn(S, q.id).some(c => c.acted !== S.turn && !c.army) ? " •" : ""}`]), p.id, `data-a="provOnly" data-x='[]'`)}
+    <label><input type="checkbox" data-a="deleg" data-x='["${p.id}"]' ${p.deleg ? "checked" : ""}> svěřit správu purkrabímu (rozkazy zadá sám)</label></div>
+  <div class="grid">
+  ${card(esc(p.n), provDetail(p) + `<div class="kv"><span>Měsíční výnos</span><span>${r1(provGold(S, p) + provMines(S, p).gold)} zl</span><span>Sklizeň (září)</span><span>asi ${Math.round(provHarvest(S, p))} obilí</span><span>Výcvik</span><span>${Math.round(p.train)}</span><span>Strop posádky</span><span>${fmt(troopCap(p))}</span><span>Stavba</span><span>${p.build ? BUILD[p.build.b].n + `, zbývá ${p.build.left} měs.` : "—"}</span></div>`)}
+  ${card("Posádka", tbl(["Druh", "#Mužů"], TROOP_IDS.map(k => tr([TROOPS[k].n, p.troops[k] || 0]))) + `<p class="small">Celkem ${fmt(men(p.troops))} mužů, obranná síla ${r1(provDefense(S, p))}.</p>`)}
+  ${card(`Vazalové v kraji – rozkazy (${offs.filter(c => c.acted !== S.turn).length} volných)`, tbl(["Vazal", "#Vůd", "#Uda", "#Roz", "#Spr", "Rozkaz", ""], rows) + `<p class="small muted">Každý vazal vykoná jeden rozkaz za měsíc. Výsledek závisí na jeho schopnostech (správa: rozvoj, vůdcovství: nábor a výcvik, rozum: zvědové, intriky a diplomacie).</p>`, "wide")}
+  ${card("Vyslat vojsko", `<div class="kv"><span>Cíl</span>${sel("dto", reach.map(q => [q.id, `${q.n} (${q.owner === me() ? "vlastní" : S.clans[q.owner].house}, ${Math.round(dist(p, q))} km)`]), "")}<span>Druh</span>${sel("dmode", [["utok", "tažení (dobýt kraj)"], ["presun", "přesun posádky do vlastního kraje"]], "utok")}
+    ${TROOP_IDS.map(k => `<span>${TROOPS[k].n}</span><span><input type="number" id="dt_${k}" value="${Math.floor((p.troops[k] || 0) * 0.7)}" min="0" max="${p.troops[k] || 0}"> / ${fmt(p.troops[k] || 0)}</span>`).join("")}
+    <span>Velitel</span>${sel("dc1", cmOpts, cmOpts[1] ? cmOpts[1][0] : "")}<span>Druhý velitel</span>${sel("dc2", cmOpts, "")}<span>Třetí velitel</span>${sel("dc3", cmOpts, "")}
+    <span>Zásoby (měsíce)</span><span><input type="number" id="dmon" value="4" min="1" max="12"> <span class="small muted">12 obilí na 1000 mužů a měsíc</span></span></div><div class="row">${btn("Vytáhnout", "dispatch", [p.id], null, "go")}</div>
+    <p class="small muted">Velitelé určují, kolik mužů lze vést (součet podle hodností). Vojsko táhne jeden kraj za měsíc. V nepřátelském kraji oblehne hrad; zteč nařídíš v záložce Vojsko a války.</p>`)}
   </div>`;
 }
 
-// ---------- Trh ----------
-function tTrh() {
-  const rows = GOOD_IDS.map(g => { const G = GOODS[g], m = S.market[g];
-    return tr([G.n + (G.exotic ? ' <span class="tag">exotické</span>' : ""), Math.floor(S.stock[g]), `<td class="n">${r1(buyPrice(S, g))}</td>`, `<td class="n">${r1(sellPrice(S, g))}</td>`, `<td class="n ${m > 1.1 ? "good" : m < 0.9 ? "bad" : ""}">${m > 1.1 ? "▲ drahé" : m < 0.9 ? "▼ levné" : "• běžné"}</td>`,
-      `<input type="number" id="q_${g}" value="10" min="1"> ${btn("Koupit", "buy", [g, "#q_" + g], G.exotic ? "Jen z obchodních cest" : null)} ${btn("Prodat", "sell", [g, "#q_" + g], S.stock[g] < 1 ? "Nemáš" : null)} ${btn("Prodat vše", "sell", [g, Math.floor(S.stock[g])], S.stock[g] < 1 ? "Nemáš" : null)}`]); });
-  const routes = S.routes.map(r => tr([esc(r.n), r.exotic ? "dálková" : "sousedská", r.good ? GOODS[r.good].n + " +1/obd." : "—", r1(routeIncome(S, r))]));
-  return `<div class="grid"><div class="card" style="grid-column:1/-1"><h3>Tržiště (ceny v zlatých za kus)</h3>${tbl(["Zboží", "#Sklad", "#Nákup", "#Prodej", "#Trh", "Obchod"], rows)}<p class="small muted">Ceny se řídí zásobou (čím víc máš, tím levněji prodáš), náhodnými výkyvy trhu a inflací (${r1(S.inflation * 100)} %). Velké obchody hýbou cenou.</p></div>
-  ${card(`Obchodní cesty (${S.routes.length}/${routeLimit(S)})`, tbl(["Cesta", "Druh", "Dovoz", "#Zisk / obd."], routes) + '<p class="small muted">Sousedské cesty vznikají obchodní smlouvou (Diplomacie), dálkové výpravami (Objevy). Počet cest zvyšují tržiště, přístav a koga.</p>')}</div>`;
+// ---------- Vazalové ----------
+function tVazalove() {
+  const all = officers(S, me()); const k = SEL.sortOff;
+  const sorted = all.slice().sort((a, b) => k === "rank" ? b.rank - a.rank || b.merit - a.merit : k === "loy" ? a.loy - b.loy : st(b, k) - st(a, k));
+  const lordOf = c => Object.values(S.provs).filter(p => p.lord === c.id).map(p => p.n).join(", ");
+  const rows = sorted.map(c => { const nx = RANKS[c.rank + 1];
+    return tr([`<b>${esc(c.n)}</b>${c.hist ? ' <span class="tag">hist.</span>' : ""}${c.dyn ? ' <span class="tag">rod</span>' : ""}<div class="small muted">${traitsTxt(c)}</div>`, age(S, c), statsTd(c), RANKS[c.rank].n, `<td class="n">${Math.round(c.merit)}${nx ? "/" + nx.merit : ""}</td>`, `<td class="n ${cls(c.loy, 35, 70)}">${Math.round(c.loy)}</td>`,
+      c.army ? '<span class="warn">v poli</span>' : esc(S.provs[c.loc] ? S.provs[c.loc].n : "?"), esc(lordOf(c)) || "—",
+      c.dyn || c.id === P(S).leader ? "" : `${btn("Povýšit", "promote", [c.id], nx && c.merit >= nx.merit ? null : "Málo zásluh")} <input type="number" id="rw_${c.id}" value="50" min="10" step="10"> ${btn("Odměnit", "reward", [c.id])} ${!lordOf(c) && S.provs[c.loc] && S.provs[c.loc].owner === me() && !c.army ? btn("Purkrabím", "lord", [c.loc, c.id]) : ""} ${btn("Propustit", "dismiss", [c.id])}`]); });
+  const caps = Object.values(S.chars).filter(c => c.st === "cap" && c.capBy === me()).map(c => tr([esc(c.n), c.cl && S.clans[c.cl] ? chip(c.cl) : "—", statsTd(c), RANKS[c.rank].n, `${btn("Propustit", "captive", [c.id, "propustit"])} ${btn("Žádat výkupné", "captive", [c.id, "vykupne"])} ${btn("Naverbovat", "captive", [c.id, "naverbovat"])} ${btn("Popravit", "captive", [c.id, "popravit"])}`]));
+  const mineCap = Object.values(S.chars).filter(c => c.st === "cap" && c.cl === me()).map(c => tr([esc(c.n), chip(c.capBy), RANKS[c.rank].n]));
+  const wand = Object.values(S.chars).filter(c => c.st === "wand" && S.provs[c.loc] && S.provs[c.loc].owner === me()).length;
+  return `<div class="grid">${card(`Vazalové (${all.length})`, `<div class="row">Řadit: ${[["rank", "hodnost"], ["ved", "vůdcovství"], ["uda", "udatnost"], ["roz", "rozum"], ["spr", "správa"], ["loy", "věrnost"]].map(([x, n]) => btn(k === x ? `<b>${n}</b>` : n, "sortOff", [x])).join("")}</div>` +
+    tbl(["Jméno", "#Věk", "#Vůd", "#Uda", "#Roz", "#Spr", "Hodnost", "#Zásluhy", "#Věrnost", "Kde", "Purkrabí v", ""], rows) +
+    `<p class="small muted">Hodnost určuje, kolik mužů vazal povede, a jeho plat. Zásluhy získává plněním rozkazů a v bitvách. Nevěrný purkrabí může přeběhnout i s krajem. V krajích se potuluje ${wand} schopných mužů – najdeš je rozkazem „Hledat schopné muže“.</p>`, "wide")}
+    ${card("Zajatci v tvém žaláři", tbl(["Jméno", "Rod", "#Vůd", "#Uda", "#Roz", "#Spr", "Hodnost", ""], caps))}
+    ${card("Tvoji lidé v zajetí", tbl(["Jméno", "Drží je", "Hodnost"], mineCap))}</div>`;
 }
 
 // ---------- Vojsko ----------
-function provSelect(id, aid) {
-  const a = S.armies.find(x => x.id === aid);
-  const ok = Object.values(S.provinces).filter(p => canEnter(S, p.id)).sort((x, y) => (x.owner === "hrac" ? 0 : 1) - (y.owner === "hrac" ? 0 : 1));
-  return `<select data-a="move" data-x='["${aid}"]'><option value="${a.loc}">— zůstat —</option>${ok.filter(p => p.id !== a.loc).map(p => `<option value="${p.id}" ${a.order && a.order.to === p.id ? "selected" : ""}>${esc(p.n)} (${p.owner === "hrac" ? "tvá" : esc(S.rivals[p.owner].n)})</option>`).join("")}</select>`;
-}
 function tVojsko() {
-  if (!S.armies.some(a => a.id === SEL.army)) SEL.army = S.armies[0] && S.armies[0].id;
-  const up = armyUpkeep(S, totalUnits(S));
-  const armies = S.armies.map(a => {
-    const p = S.provinces[a.loc], pow = playerArmyPower(S, a, true), au = armyUpkeep(S, a.units);
-    const others = S.armies.filter(x => x !== a && x.loc === a.loc);
-    const urows = UNIT_IDS.filter(u => a.units[u]).map(u => tr([UNITS[u].n, a.units[u], r1(UNITS[u].up * a.units[u]), `<input type="number" id="d_${a.id}_${u}" value="1" min="1" max="${a.units[u]}"> ${btn("Rozpustit", "disband", [a.id, u, "#d_" + a.id + "_" + u])} ${btn("Oddělit", "split", [a.id, u, "#d_" + a.id + "_" + u])}${others.map(o => btn("→ " + esc(o.name), "split_to", [a.id, o.id, u, "#d_" + a.id + "_" + u])).join("")}`]));
-    return `<div class="card"><h3>${esc(a.name)} ${a.id === SEL.army ? "✔" : btn("vybrat pro nábor", "army", [a.id])}</h3>
-      <div class="kv"><span>Poloha</span><span>${esc(p.n)} (${provOwner(p)})${a.order ? ` → ${esc(S.provinces[a.order.to].n)} (${a.order.path.length} obd.)` : ""}</span><span>Morálka</span><span class="${cls(a.morale * 100, 70, 105)}">${r1(a.morale)}</span><span>Síla (obrana)</span><span>${fmt(pow)}</span><span>Žold / obilí</span><span>${r1(au.money)} zl, ${r1(au.grain)} obilí</span>
-      <span>Velitel</span><span><select data-a="cmd" data-x='["${a.id}"]'><option value="">kapitán (slabý)</option><option value="ruler" ${a.commander === "ruler" ? "selected" : ""}>panovník (válečnictví ${stat(ch(S, S.ruler), "mil")})</option><option value="marsal" ${a.commander === "marsal" ? "selected" : ""}>maršálek (${cstat(S, "marsal")})</option></select></span>
-      <span>Rozkaz</span><span>${provSelect("mv_" + a.id, a.id)}</span></div>
-      ${tbl(["Jednotka", "#Setnin", "#Žold", ""], urows)}
-      <div class="row">${others.map(o => btn("Sloučit s " + esc(o.name), "merge", [a.id, o.id])).join("")} <input id="rn_${a.id}" value="${esc(a.name)}" size="14"> ${btn("Přejmenovat", "rename", [a.id, "#rn_" + a.id])}</div></div>`;
-  }).join("");
-  const sa = S.armies.find(x => x.id === SEL.army);
-  const rec = UNIT_IDS.filter(u => u !== "hotovost").map(u => { const U = UNITS[u]; return tr([U.n + (U.d ? `<div class="small muted">${U.d}</div>` : ""), U.atk, U.def, tdn(U.mor), Math.round(U.cost * S.inflation), U.up, Object.entries(U.goods || {}).map(([g, q]) => q + "× " + GOODS[g].n).join(", ") || "—", U.tech ? (has(S, U.tech) ? '<span class="good">' + TECHS[U.tech].n + "</span>" : '<span class="bad">' + TECHS[U.tech].n + "</span>") : "—",
-    sa ? `<input type="number" id="r_${u}" value="1" min="1"> ${btn("Naverbovat", "recruit", [u, "#r_" + u, sa.id], canRecruit(S, u, 1, sa.id))}` : ""]); });
-  return `<div class="grid">${armies}
-  <div class="card" style="grid-column:1/-1"><h3>Nábor${sa ? " do: " + esc(sa.name) : ""}</h3>${tbl(["Jednotka", "#Útok", "#Obrana", "#Kázeň", "#Cena", "#Žold", "Zboží", "Objev", ""], rec)}
-  <div class="row">${btn("Povolat selskou hotovost", "levy")} <span class="small muted">Asi ${fmt(sum(myProvs(S).filter(p => !p.levy).map(p => Math.max(1, Math.round(p.pop / 1000 * levyMult(S))))))} setnin (podle zákona o branné povinnosti). Odvedení mužové chybí na polích: nižší sklizeň a daně. Rozpuštěním hotovosti se vrátí domů.</span></div>
-  <p class="small">Celkem ${unitCount(totalUnits(S))} setnin, žold ${fmt(up.money)} zl a ${fmt(up.grain)} obilí za období.</p></div></div>`;
+  const mine = S.armies.filter(a => a.cl === me()).map(a => { const p = S.provs[a.loc];
+    const tgt = Object.values(S.provs).filter(q => atWar(S, me(), q.owner)).sort((x, y) => dist(p, x) - dist(p, y)).slice(0, 15);
+    return tr([`${esc(a.cmds.map(id => chr(S, id).n).join(", ") || "bez velitele")}`, esc(p.n) + (a.path && a.path.length ? ` → ${esc(S.provs[a.to].n)} (${a.path.length} měs.)` : ""), fmt(men(a.t)), TROOP_IDS.filter(k => a.t[k]).map(k => `${TROOPS[k].n.split(" ")[0]} ${fmt(a.t[k])}`).join(", "), `<td class="n ${cls(a.morale, 40, 70)}">${Math.round(a.morale)}</td>`, `<td class="n">${Math.round(a.grain)}</td>`,
+      p.siege && p.siege.army === a.id ? `obléhá (${p.siege.months}. měs., hradby ${Math.round(p.dur)}, posádka ${estimate(S, p, men(p.troops))})` : a.mode === "presun" ? "přesun" : "pochod",
+      `${btn(a.siegeMode === "ztec" ? "<b>Zteč</b>" : "Zteč", "army", [a.id, "ztec"])} ${btn(a.siegeMode === "obleh" ? "<b>Obléhat</b>" : "Obléhat", "army", [a.id, "obleh"])} ${sel("ato_" + a.id, tgt.map(q => [q.id, q.n]), "")} ${btn("Táhnout", "army", [a.id, "tahnout"])} ${btn("Domů", "army", [a.id, "domu"])}`]); });
+  const foes = S.armies.filter(a => a.cl !== me() && (knows(S, S.provs[a.loc]) || atWar(S, me(), a.cl))).map(a => tr([chip(a.cl), esc(S.provs[a.loc].n), knows(S, S.provs[a.loc]) ? estimate(S, S.provs[a.loc], men(a.t)) : "?", a.to ? esc(S.provs[a.to].n) : "", atWar(S, me(), a.cl) ? '<span class="bad">nepřítel</span>' : ""]));
+  const wars = S.wars.filter(w => w.a === me() || w.b === me()).map(w => { const o = w.a === me() ? w.b : w.a; return tr([chip(o), `${Math.floor((S.turn - w.start) / 12)} r. ${(S.turn - w.start) % 12} m.`, fmt(clanMen(S, o)) + " (odhad)", clanProvs(S, o).length, allied(S, me(), o) ? "" : ""]); });
+  const garr = clanProvs(S, me()).sort((a, b) => men(b.troops) - men(a.troops)).map(p => tr([btn(esc(p.n), "prov", [p.id]), ...TROOP_IDS.map(k => p.troops[k] || 0), men(p.troops), Math.round(p.train), p.nb.some(n => atWar(S, me(), S.provs[n].owner)) ? '<span class="bad">fronta</span>' : ""]));
+  const bat = S.battles.filter(b => b.a === me() || b.b === me()).slice(0, 25).map(b => tr([b.d, esc(b.place), b.kind, chip(b.a), `${fmt(b.aStart)} → ${fmt(b.aEnd)}`, chip(b.b), `${fmt(b.bStart)} → ${fmt(b.bEnd)}`, b.win === me() ? '<span class="good">vítězství</span>' : '<span class="bad">porážka</span>', `<details><summary>${b.rounds.length} kol</summary>${b.rounds.map((r, i) => `${i + 1}. kolo: ztráty ${r[0]} / ${r[1]} (síla ${r[2]} : ${r[3]})`).join("<br>")}<br>Velitelé: ${esc(b.aCmd)} × ${esc(b.bCmd)}${b.fate.length ? "<br>" + esc(b.fate.join(", ")) : ""}</details>`]));
+  return `<div class="grid">${card("Války", tbl(["Nepřítel", "Trvá", "#Jeho vojsko", "#Jeho kraje", ""], wars) + '<p class="small muted">Mír sjednáš poselstvem (záložka Diplomacie nebo rozkaz vazala).</p>')}
+  ${card("Nepřátelská a cizí vojska v dohledu", tbl(["Rod", "Kde", "#Mužů", "Cíl", ""], foes))}
+  ${card("Tvá vojska v poli", tbl(["Velitelé", "Kde", "#Mužů", "Složení", "#Morálka", "#Obilí", "Stav", "Rozkazy"], mine), "wide")}
+  ${card("Posádky", tbl(["Kraj", ...TROOP_IDS.map(k => "#" + TROOPS[k].n.split(" ")[0]), "#Celkem", "#Výcvik", ""], garr), "wide")}
+  ${card("Bitvy", tbl(["Kdy", "Kde", "Druh", "Útočník", "#Muži", "Obránce", "#Muži", "Výsledek", "Průběh"], bat), "wide")}</div>`;
 }
-ACT.split_to = (a, b, u, n) => moveUnits(S, a, b, u, n);
-
-// ---------- Válka ----------
-function tValka() {
-  const wars = S.wars.map(w => { const r = S.rivals[w.enemy], po = peaceOptions(S, w.enemy);
-    return card(`Válka s ${esc(r.n)}`, `<div class="kv"><span>Stav války</span><span class="${po.score >= 0 ? "good" : "bad"}"><b>${po.score}</b> (−100 až +100)</span><span>Od</span><span>období ${w.start}</span><span>Nepřátelské vojsko</span><span>${rivalEstimate(S, r).txt}, u ${esc(S.provinces[r.loc] ? S.provinces[r.loc].n : "?")}, morálka ${r1(r.morale)}</span><span>Vyčerpání nepřítele</span><span>${fmt(r.exhaustion)}</span><span>Spojenci</span><span>${w.allies.map(a => esc(S.rivals[a].n)).join(", ") || "—"}</span><span>Nárok</span><span>${w.just ? "spravedlivá válka" : "bez nároku"}</span></div>
-      <h4>Mírová jednání</h4>${po.opts.map(o => `<div>${btn(esc(o.n), "peace", [w.enemy, o.t, o.pid || null], o.ok ? null : "Soupeř by nepřijal")}</div>`).join("")}`); }).join("");
-  const sieges = Object.values(S.provinces).filter(p => p.siege || p.occ).map(p => tr([esc(p.n), provOwner(p), p.occ ? (p.occ === "hrac" ? '<span class="good">obsadili jsme</span>' : `<span class="bad">obsazeno: ${esc(S.rivals[p.occ].n)}</span>`) : "", p.siege ? `${p.siege.by === "hrac" ? "obléháme" : "obléhá " + esc(S.rivals[p.siege.by].n)} – ${fmt(p.siege.prog)} %` : "", r1(fortLevel(S, p))]));
-  const bat = (S.battles || []).map(b => tr([b.d, esc(b.place), esc(b.enemy), b.win ? '<span class="good">vítězství</span>' : '<span class="bad">porážka</span>', `<td class="n">${b.pA} : ${b.pB}</td>`, `<span class="small">${esc(b.myLost)}</span>`, `<span class="small">${esc(b.enLost)}</span>`, `<td class="n">${sg(b.score)}</td>`]));
-  return `<div class="grid">${wars || card("Mír", "<p>Nevedeš žádnou válku. Válku vyhlásíš v záložce Diplomacie. Bez nároku je válka nespravedlivá – ztratíš prestiž, zbožnost a přízeň krále.</p>")}
-  ${card("Obléhání a okupace", tbl(["Provincie", "Pán", "Okupace", "Obléhání", "#Opevnění"], sieges) + '<p class="small muted">Vojsko v nepřátelské provincii bez obránců ji obléhá. Rychlost zvyšují obléhací stroje a počet mužů, snižuje hrádek a hradby. Každá obsazená provincie dává 12 bodů stavu války.</p>')}
-  <div class="card" style="grid-column:1/-1"><h3>Bitvy</h3>${tbl(["Kdy", "Kde", "Nepřítel", "Výsledek", "#Síla", "Naše ztráty", "Jejich ztráty", "#Stav války"], bat)}</div></div>`;
-}
-
-// ---------- Stavy a zákony ----------
-function tPolitika() {
-  const est = ESTATE_IDS.map(e => { const E = S.estates[e], t = estateTarget(S, e);
-    return `<tr><td><b>${ESTATES[e].n}</b></td><td class="n ${cls(E.loy, 30, 60)}">${fmt(E.loy)}</td><td>${bar(E.loy)}</td><td class="n">${t.val}</td><td class="n">${E.infl}</td><td>${bar(E.infl, true)}</td><td><details><summary>rozpis</summary>${tbl(["Vliv", "#"], t.rows.map(r => tr([esc(r[0]), `<td class="n ${r[1] < 0 ? "bad" : "good"}">${sg(r[1])}</td>`])))}</details></td></tr>`; });
-  const laws = Object.entries(LAWS).map(([l, L]) => tr([`<b>${L.n}</b><div class="small muted">${L.d}</div>`, `<select data-a="law" data-x='["${l}"]' ${(S.lawCd[l] || 0) > S.turn ? "disabled" : ""}>${L.opts.map((o, i) => `<option value="${i}" ${S.laws[l] === i ? "selected" : ""}>${o}</option>`).join("")}</select>`, `<span class="small">${ESTATE_IDS.map(e => { const v = LAW_EST[l][S.laws[l]][e]; return v ? ESTATES[e].n + " " + sg(v) : ""; }).filter(Boolean).join(", ") || "—"}</span>`, (S.lawCd[l] || 0) > S.turn ? `${S.lawCd[l] - S.turn} obd.` : "lze měnit"]));
-  return `<div class="grid"><div class="card" style="grid-column:1/-1"><h3>Stavy země</h3><table><thead><tr><th>Stav</th><th class="n">Věrnost</th><th></th><th class="n">Směřuje k</th><th class="n">Vliv</th><th></th><th>Proč</th></tr></thead><tbody>${est.join("")}</tbody></table>
-  <p class="small muted">Věrnost se každé období posune o pětinu k cílové hodnotě. Stav s věrností pod 25 a velkým vlivem může vyvolat krizi: šlechtickou vzpouru, interdikt, stávku měst nebo útěky sedláků. Daně nastavíš v Hospodářství.</p></div>
-  <div class="card" style="grid-column:1/-1"><h3>Zákony</h3>${tbl(["Zákon", "Platí", "Vliv na stavy (nyní)", "Změna"], laws)}<p class="small muted">Změna zákona stojí ${lawChangeCost(S) / 2} legitimity a ${Math.round(lawChangeCost(S) / 3)} prestiže a další změna je možná až za 8 období.</p></div>
-  ${card("Lenní pán", `<div class="kv"><span>Král</span><span>${esc(cap(S.liege.n))}</span><span>Přízeň</span><span class="${cls(S.liege.opinion, 25, 60)}">${fmt(S.liege.opinion)}</span></div><p class="small">Každý podzim král žádá berni. Nízká přízeň vede k trestné výpravě, vysoká k darům a povýšení. Válka bez nároku a odmítání služby přízeň snižují.</p>`)}</div>`;
-}
-
-// ---------- Rod a rada ----------
-const statCells = c => ["dip", "mil", "spr", "uce", "int"].map(k => `<td class="n">${stat(c, k)}</td>`).join("");
-const traitTxt = c => c.traits.map(t => TRAITS[t] ? TRAITS[t].n : t).join(", ") || "—";
-function tDvur() {
-  const R = ch(S, S.ruler), sp = ch(S, S.spouse), H = heirOf(S);
-  const fam = [[R, "panovník"], [sp, "choť"]].filter(x => x[0]).map(([c, role]) => tr([`<b>${esc(c.name)}</b>`, role, c.age, `<td class="n ${cls(c.health, 35, 70)}">${fmt(c.health)}</td>`, statCells(c), traitTxt(c), ""]));
-  const kids = S.children.map(id => ch(S, id)).filter(Boolean).map(c => tr([esc(c.name) + (H && H.id === c.id ? " ♛" : ""), c.sex === "m" ? "syn" : "dcera", c.age, `<td class="n">${fmt(c.health)}</td>`, statCells(c), traitTxt(c),
-    (c.married ? `oddán(a): ${esc(c.spouseName)}` : "") + (c.age < 16 ? ` <select data-a="focus" data-x='["${c.id}"]'><option value="">výchova: volná</option>${[["dip", "diplomacie"], ["mil", "válečnictví"], ["spr", "správa"], ["uce", "učenost"], ["int", "intriky"]].map(([k, n]) => `<option value="${k}" ${c.focus === k ? "selected" : ""}>${n}</option>`).join("")}</select>` : "")]));
-  const council = COUNCIL_IDS.map(k => { const c = councillor(S, k); return tr([`<b>${COUNCIL[k].n}</b><div class="small muted">${COUNCIL[k].d}</div>`, c ? esc(c.name) : '<span class="bad">neobsazeno</span>', c ? `<td class="n">${stat(c, COUNCIL[k].stat)}</td>` : "", c ? `<td class="n ${cls(c.loyalty, 30, 70)}">${fmt(c.loyalty)}</td>` : "", c ? ESTATES[c.estate] ? ESTATES[c.estate].n : c.estate : "", c ? salary(c) : "", c ? btn("Odvolat", "dismiss", [k]) : ""]); });
-  const court = S.courtiers.map(id => ch(S, id)).filter(Boolean).map(c => tr([esc(c.name), c.age, ESTATES[c.estate] ? ESTATES[c.estate].n : c.estate, statCells(c), traitTxt(c), `<select data-a="appoint_sel" data-x='["${c.id}"]'><option value="">jmenovat…</option>${COUNCIL_IDS.map(k => `<option value="${k}">${COUNCIL[k].n}</option>`).join("")}</select>`]));
-  return `<div class="grid"><div class="card" style="grid-column:1/-1"><h3>Rod ${esc(S.dynasty)}</h3>${tbl(["Jméno", "Role", "#Věk", "#Zdraví", "#Dipl.", "#Válka", "#Správa", "#Učen.", "#Intr.", "Vlastnosti", ""], fam.concat(kids))}
-  <p class="small muted">Nástupnictví: ${LAWS.nastupnictvi.opts[S.laws.nastupnictvi]}. Dědic: ${H ? esc(H.name) : '<span class="bad">žádný</span>'}. Do 16 let lze potomkům určit výchovu. Sňatky potomků s rody sousedů dohodneš v Diplomacii.</p>
-  ${S.dead.length ? `<details><summary>Zesnulí (${S.dead.length})</summary>${tbl(["Jméno", "Zemřel(a)", "#Věk"], S.dead.slice().reverse().map(d => tr([esc(d.n) + (d.ruler ? " ♛" : ""), d.d, d.age])))}</details>` : ""}</div>
-  <div class="card" style="grid-column:1/-1"><h3>Královská rada</h3>${tbl(["Úřad", "Držitel", "#Schopnost", "#Věrnost", "Stav", "#Plat", ""], council)}<p class="small muted">Rádce ze stavu zvyšuje věrnost toho stavu (+6). Odvolání rádce jeho stav rozladí.</p></div>
-  <div class="card" style="grid-column:1/-1"><h3>Dvořané</h3>${tbl(["Jméno", "#Věk", "Stav", "#Dipl.", "#Válka", "#Správa", "#Učen.", "#Intr.", "Vlastnosti", ""], court)}<p class="small muted">Nové dvořany pozveš činem panovníka „Pozvat nové dvořany“.</p></div></div>`;
-}
-ACT.appoint_sel = (cid, seat) => (seat ? appoint(S, seat, cid) : null);
 
 // ---------- Diplomacie ----------
 function tDiplo() {
-  const rows = aliveRivals(S).map(r => { const R = ch(S, r.ruler), est = rivalEstimate(S, r), w = atWarWith(S, r.id);
-    const flags = [r.alliance ? '<span class="good">spojenec</span>' : "", r.trade ? "obchod" : "", r.marriage ? "spřízněni sňatkem" : "", r.truce > S.turn ? `příměří ${r.truce - S.turn} obd.` : "", w ? '<span class="bad">VÁLKA</span>' : "", S.claims[r.id] ? '<span class="warn">máš nárok</span>' : "", borders(S, r.id) ? "soused" : ""].filter(Boolean).join(", ");
-    return tr([`<b>${esc(r.n)}</b>`, `${esc(r.title)} ${esc(R.name)} (${R.age})<div class="small muted">${traitTxt(R)}</div>`, `<td class="n ${cls(r.attitude, -20, 30)}">${fmt(r.attitude)}</td>`, est.txt + (est.exact ? "" : " ?"), `<td class="n">${est.exact ? fmt(r.treasury) : "?"}</td>`, rivalProvs(S, r.id).length, flags,
-      `<select id="dp_${r.id}">${Object.entries(DIP).map(([k, d]) => `<option value="${k}">${d.n}</option>`).join("")}</select> ${btn("Provést", "dip", [r.id, "#dp_" + r.id], r.lastDip === S.turn ? null : null)}`]); });
-  const kids = unmarriedChildren(S);
-  return `<div class="grid"><div class="card" style="grid-column:1/-1"><h3>Sousední mocnosti</h3>${tbl(["Země", "Vládce", "#Vztah", "Vojsko", "#Pokladna", "#Provincie", "Vztahy", "Jednání"], rows)}
-  <p class="small muted">Každé zemi lze poslat jedno poselstvo za období (zvědové a intriky mimo tento limit). Úspěch závisí na diplomacii panovníka a kancléře, intriky na mistru šeptů. ${kids.length ? "Sňatek: nejstarší svobodný potomek je " + esc(kids[0].name) + "." : "Pro sňatek potřebuješ svobodného potomka starého aspoň 10 let."}</p></div>
-  ${card("Zprávy ze světa", S.log.filter(l => l.cat === "svet" || l.cat === "diplomacie" || l.cat === "intriky").slice(0, 15).map(l => `<div class="small"><span class="tag">${SEASONS[l.se]} ${l.y}</span>${esc(l.txt)}</div>`).join("") || '<span class="muted">Zatím nic.</span>')}</div>`;
+  const envoys = officers(S, me()).filter(c => c.acted !== S.turn && !c.army && S.provs[c.loc] && S.provs[c.loc].owner === me()).sort((a, b) => st(b, "roz") - st(a, "roz"));
+  const envOpts = [["", "— vyslanec —"]].concat(envoys.map(c => [c.id, `${c.n} (rozum ${st(c, "roz")})`]));
+  const rows = aliveClans(S).filter(c => c.id !== me()).sort((a, b) => clanProvs(S, b.id).length - clanProvs(S, a.id).length).map(c => { const L = leaderOf(S, c.id), r = rel(S, me(), c.id);
+    const status = [atWar(S, me(), c.id) ? '<span class="bad">válka</span>' : "", allied(S, me(), c.id) ? '<span class="good">spojenec</span>' : "", truceUntil(S, me(), c.id) > S.turn ? `příměří ${truceUntil(S, me(), c.id) - S.turn} m.` : "", married(S, me(), c.id) ? "sňatek" : "", c.vassalOf === me() ? '<span class="good">tvůj vazal</span>' : c.vassalOf ? "vazal: " + esc(S.clans[c.vassalOf].house) : "", P(S).vassalOf === c.id ? "tvůj lenní pán" : "", c.excom > S.turn ? "v klatbě" : "", (c.ban || 0) > S.turn ? "říšská klatba" : "", c.hre ? "" : "mimo říši"].filter(Boolean).join(", ");
+    return tr([chip(c.id), esc(c.n), L ? `${esc(L.n)} (${age(S, L)})<div class="small muted">${esc(cap(c.t))}${L.st === "cap" ? ", v zajetí" : ""}</div>` : "—", clanProvs(S, c.id).length, `<td class="n">~${fmt(Math.round(clanMen(S, c.id) / 500) * 500)}</td>`, `<td class="n ${cls(r, -20, 30)}">${Math.round(r)}</td>`, status,
+      `${sel("env_" + c.id, envOpts, envOpts[1] ? envOpts[1][0] : "")} ${sel("dt_" + c.id, Object.entries(DIPLO).map(([k, d]) => [k, d.n]), atWar(S, me(), c.id) ? "mir" : "dar")} ${btn("Vyslat", "dip", [c.id])} ${atWar(S, me(), c.id) ? "" : btn(SEL.warConfirm === c.id ? "<b>Opravdu válka?</b>" : "Válka", "war", [c.id], null, "danger")}`]); });
+  return `<div class="grid">${card("Rody střední Evropy", tbl(["Rod", "Země", "Hlava rodu", "#Kraje", "#Vojsko", "#Vztah", "Stav", "Jednání"], rows) +
+    `<p class="small muted">Poselstvo vede vazal (rozum zvyšuje šanci) a spotřebuje jeho měsíční rozkaz. Vyhlášení války porušující příměří nebo spojenectví stojí prestiž a přízeň papeže; útok na církevní knížectví papeže rozzlobí. Sňatky spojují rody – když jeden vymře, zdědí ho spřízněný rod. Lenní hold přijmou jen mnohem slabší rody, vazala lze po dvou letech a při vztahu 70+ připojit.</p>`, "wide")}</div>`;
+}
+
+// ---------- Říše a církev ----------
+function tRise() {
+  const H = S.hre, C = P(S), cands = candidates(S), holders = electorHolders(S);
+  const el = Object.entries(holders).map(([t, cid]) => tr([`Kurfiřt – ${t}`, chip(cid), cid === me() ? "ty" : `vztah ${Math.round(rel(S, me(), cid))}`, ""]))
+    .concat(EXT_ELECTORS.map(e => tr([esc(cap(e.n)), "mimo mapu", `přízeň k tobě ${Math.round(H.ext[e.id][me()] || 0)}`, H.election ? `<input type="number" id="br_${e.id}" value="100" min="50" step="50"> ${btn("Poslat dary", "bribe", [e.id])}` : ""])));
+  const last = H.lastElection ? `<h4>Poslední volba (${H.lastElection.d})</h4>${tbl(["Kurfiřt", "Hlas"], H.lastElection.votes.map(v => tr([esc(v[0]), esc(v[1])])))}<p>${esc(H.lastElection.txt || "")}</p>` : "";
+  const crowns = Object.entries(CROWNS).map(([k, K]) => { const h = crownHolder(S, k), own = K.core.filter(id => S.provs[id].owner === me()).length;
+    return tr([`<b>${k}</b>`, h ? chip(h.id) : "<i>neobsazena</i>", `${own}/${K.core.length}`, esc(S.provs[K.cap].n), btn("Korunovat se", "crown", [k], canCrown(S, me(), k))]); });
+  const pope = aliveClans(S).sort((a, b) => (S.pope.op[b.id] || 0) - (S.pope.op[a.id] || 0)).slice(0, 12).map(c => tr([chip(c.id), `<td class="n ${cls(S.pope.op[c.id] || 0, -20, 40)}">${Math.round(S.pope.op[c.id] || 0)}</td>`, c.excom > S.turn ? '<span class="bad">klatba</span>' : ""]));
+  const hreClans = aliveClans(S).filter(c => c.hre && c.id !== me());
+  return `<div class="grid">${card("Svatá říše římská", `<div class="kv"><span>Římský král</span><span>${hreKingTxt()}</span><span>Volba</span><span>${H.election ? `${MONTHS[(S.month + H.election - S.turn) % 12]} ${S.year + Math.floor((S.month + H.election - S.turn) / 12)}` : "nevypsána"}</span><span>Tvůj rod</span><span>${C.hre ? "říšské knížectví" : "mimo říši"}</span></div>
+    <h4>Kandidáti</h4>${tbl(["Kandidát", ""], cands.map(c => tr([esc(c.n), c.ext ? "cizí kandidát (zlato pro arcibiskupy)" : ""])))}
+    <div class="row">${btn("Ucházet se o římskou korunu", "stand", [], C.candidate ? "Už kandiduješ" : null)}</div>
+    <h4>Kurfiřti</h4>${tbl(["Hlas", "Drží", "Postoj", ""], el)}${last}
+    ${H.kingClan === me() ? `<h4>Pravomoci římského krále</h4><div class="row">${sel("banT", hreClans.map(c => [c.id, c.house]), "")} ${btn("Uvalit říšskou klatbu (50 prestiže)", "ban")} ${btn("Jet do Říma ke korunovaci (800 zl)", "coronation", [], H.emperor ? "Už jsi císař" : null)}</div><p class="small muted">Říšská klatba dovolí válku bez ztráty cti a ostatní knížata se proti postiženému obrátí. Římský král dostává 35 zl měsíčně z říšských příjmů a snáze žádá lenní hold od říšských knížat.</p>` : ""}
+    <p class="small muted">Sedm kurfiřtů: tři rýnští arcibiskupové (mimo mapu – získáš je dary a přízní papeže) a držitelé Čech, Falce, Saska a Braniborska (hlasují podle vztahů). Hlas drží rod, který ovládá sídelní kraj (Praha, Rýnská Falc, Wittenbersko, Braniborsko).</p>`, "wide")}
+  ${card("Královské koruny", tbl(["Koruna", "Drží", "#Tvé jádro", "Korunovační kraj", ""], crowns) + '<p class="small muted">Ke korunovaci musíš držet korunovační kraj a polovinu jádra koruny, mít přízeň papeže aspoň 30 a 500 zl.</p>')}
+  ${card(`Papež ${esc(S.pope.n)}`, `<div class="kv"><span>Přízeň k tobě</span><span>${Math.round(S.pope.op[me()] || 0)}</span><span>Klatba</span><span>${C.excom > S.turn ? `ano, ještě ${C.excom - S.turn} měs.` : "ne"}</span></div><div class="row">${btn("Dar Svatému stolci (100 zl)", "popeGift")} ${btn("Veřejné pokání (250 zl)", "penance", [], C.excom > S.turn ? null : "Nejsi v klatbě")}</div>` + tbl(["Rod", "#Přízeň", ""], pope) + '<p class="small muted">Klatba (pod −60) snižuje věrnost vazalů i lidu. Přízeň zvedají dary, kláštery, výprava do Pruska a poslušnost Římu; snižují ji útoky na církevní země, popravy a zrada příměří.</p>')}</div>`;
+}
+
+// ---------- Hospodářství ----------
+const INC_N = { kraje: "Daně a dávky z krajů", doly: "Doly a solivary", dan_vazalu: "Poplatky vazalů / lennímu pánovi", rise: "Říšské příjmy", cirkev: "Církevní statky (investitura)" };
+const EXP_N = { platy: "Platy vazalů", vojsko: "Vydržování vojska", dvur: "Dvůr", uroky: "Úroky" };
+function tHosp() {
+  const C = P(S), b = clanBudget(S, me());
+  const rows = clanProvs(S, me()).sort((a, c) => provGold(S, c) - provGold(S, a)).map(p => tr([btn(esc(p.n), "prov", [p.id]), r1(provGold(S, p)), r1(provMines(S, p).gold), Math.round(provHarvest(S, p)), r1(garrisonGrain(p)), p.agri, p.com, Math.round(p.loy), p.deleg ? "purkrabí" : "<b>ty</b>"]));
+  return `<div class="grid">${card("Měsíční příjmy", tbl(["Zdroj", "#Zlatých"], Object.entries(b.inc).map(([k, v]) => tr([INC_N[k], v]))) + `<p><b>Celkem ${fmt(sum(Object.values(b.inc)))} zl</b></p>`)}
+  ${card("Měsíční výdaje", tbl(["Položka", "#Zlatých"], Object.entries(b.ex).map(([k, v]) => tr([EXP_N[k], v]))) + `<p><b>Celkem ${fmt(sum(Object.values(b.ex)))} zl</b> · bilance <b class="${b.net < 0 ? "bad" : "good"}">${sg(b.net)}</b></p>`)}
+  ${card("Daně a obilí", `<div class="kv"><span>Daňová zátěž</span>${sel("taxs", TAX_LEVELS.map((t, i) => [i, t]), C.tax, `data-a="tax" data-x='[]'`)}<span>Obilí</span><span>${fmt(C.grain)} (spotřeba posádek a vojsk ${r1(clanGrainUse(S, me()))} měsíčně)</span><span>Poslední žně</span><span>${fmt(C.last.harvest || 0)} (v září)</span><span>Koně / zbroj</span><span>${fmt(C.kone)} / ${fmt(C.zbroj)}</span><span>Inflace</span><span>${Math.round(S.inflation * 100)} %</span></div><p class="small muted">Vyšší daně = víc zlata, ale nižší spokojenost lidu (a tím i výnos a sklizeň).</p>`)}
+  ${card("Trh", tbl(["Zboží", "#Máš", "#Nákup", "#Prodej", ""], Object.entries(GOODS).map(([g, G]) => tr([G.n, Math.floor(C[g === "obili" ? "grain" : g] || 0), r1(price(S, g) * 1.15), r1(price(S, g) * 0.85), `<input type="number" id="q_${g}" value="100" min="1" step="50"> ${btn("Koupit", "buy", [g])} ${btn("Prodat", "sell", [g])}`]))) + '<p class="small muted">Koně a zbroj potřebuješ k verbování jízdy a střelců. Hřebčíny a železné doly je vyrábějí.</p>')}
+  ${card("Lombardští bankéři", tbl(["#Jistina", "#Úrok/měs.", ""], (C.debts || []).map((d, i) => tr([d.amount, r1(d.amount * d.rate), btn("Splatit", "repay", [i])]))) + `<div class="row"><input type="number" id="loan" value="200" step="100"> ${btn("Půjčit si", "borrow")} <span class="small muted">strop ${maxLoan(S, me())} zl</span></div>`)}
+  ${card("Kraje", tbl(["Kraj", "#Zlato/měs.", "#Doly", "#Sklizeň", "#Obilí/měs.", "#Pole", "#Obchod", "#Spokoj.", "Správa"], rows), "wide")}</div>`;
+}
+
+// ---------- Stavy a zákony ----------
+function tStavy() {
+  const C = P(S);
+  const est = ESTATE_IDS.map(e => { const t = estateTarget(S, e); return tr([`<b>${ESTATES[e]}</b>`, `<td class="n ${cls(C.estates[e], 30, 60)}">${Math.round(C.estates[e])}</td>`, bar(C.estates[e]), t.val, `<details><summary>proč</summary>${tbl(["Vliv", "#"], t.rows.map(r => tr([esc(r[0]), `<td class="n ${r[1] < 0 ? "bad" : "good"}">${sg(r[1])}</td>`])))}</details>`]); });
+  const laws = Object.entries(LAWS).map(([l, L]) => tr([`<b>${L.n}</b><div class="small muted">${L.d}</div>`, sel("law_" + l, L.opts.map((o, i) => [i, o]), C.laws[l], `data-a="law" data-x='["${l}"]' ${(C.lawCd[l] || 0) > S.turn ? "disabled" : ""}`), (C.lawCd[l] || 0) > S.turn ? `za ${C.lawCd[l] - S.turn} měs.` : "lze měnit"]));
+  return `<div class="grid">${card("Stavy", tbl(["Stav", "#Věrnost", "", "#Směřuje k", "Rozpis"], est) + '<p class="small muted">Šlechta ovlivňuje věrnost vazalů, duchovenstvo vztah s církví, měšťané výnos obchodu, sedláci spokojenost lidu. Stav pod 25 hrozí krizí.</p>', "wide")}
+  ${card("Zákony země", tbl(["Zákon", "Platí", "Změna"], laws) + '<p class="small muted">Změna zákona stojí 20 prestiže a další změna je možná po dvou letech.</p>', "wide")}</div>`;
+}
+
+// ---------- Rod ----------
+function tRod() {
+  const C = P(S), fam = Object.values(S.chars).filter(c => c.cl === me() && c.dyn && c.st !== "dead");
+  const L = leaderOf(S, me()), H = heirsOf(S, me());
+  const rows = fam.sort((a, b) => a.by - b.by).map(c => tr([`<b>${esc(c.n)}</b>${c.id === C.leader ? " ♛" : ""}${H[0] && H[0].id === c.id ? " <span class='tag'>dědic</span>" : ""}`, c.sex === "m" ? "muž" : "žena", age(S, c), { off: "ve službě", fam: "u dvora", kid: "dítě", cap: "v zajetí", wand: "—" }[c.st] || c.st,
+    c.spouse && chr(S, c.spouse) ? esc(chr(S, c.spouse).n) : c.c ? "duchovní" : "svobodný(á)", c.father && chr(S, c.father) ? esc(chr(S, c.father).n) : "", statsTd(c),
+    c.st === "kid" ? sel("fo_" + c.id, [["", "výchova: volná"], ["ved", "vojevůdce"], ["uda", "rytířská"], ["roz", "učená"], ["spr", "správní"]], c.focus || "", `data-a="focus" data-x='["${c.id}"]'`) : ""]));
+  const dead = Object.values(S.chars).filter(c => c.dyn && c.st === "dead" && (c.cl === me())).slice(-15).map(c => tr([esc(c.n), c.died || ""]));
+  return `<div class="grid">${card("Členové rodu", tbl(["Jméno", "Pohlaví", "#Věk", "Stav", "Choť", "Otec", "#Vůd", "#Uda", "#Roz", "#Spr", "Výchova"], rows) + `<p class="small muted">Dědic: ${H[0] ? esc(H[0].n) : '<b class="bad">žádný</b>'} (zákon: ${LAWS[(C.laws || {}).nastupnictvi != null ? "nastupnictvi" : "nastupnictvi"].opts[C.laws ? C.laws.nastupnictvi : 0]}). Synové v 15 letech vstupují do služby. Sňatky dohodneš poselstvem v Diplomacii; vymře-li spřízněný rod, jeho země připadnou tobě.</p>`, "wide")}
+  ${card("Spřízněné rody", aliveClans(S).filter(c => married(S, me(), c.id)).map(c => chip(c.id)).join(" ") || "—")}
+  ${card("Zesnulí", tbl(["Jméno", "Zemřel(a)"], dead))}</div>`;
 }
 
 // ---------- Objevy ----------
 function tObjevy() {
-  const cur = S.research.cur, rate = researchRate(S);
-  const cats = [...new Set(TECH_IDS.map(t => TECHS[t].cat))];
-  const tabs = cats.map(c => card(c, tbl(["Objev", "Účinek", "#Cena", "Předpoklady", ""], TECH_IDS.filter(t => TECHS[t].cat === c).map(t => { const T = TECHS[t];
-    return tr([S.techs[t] ? `<span class="good">✔ ${T.n}</span>` : cur === t ? `<b>▶ ${T.n}</b>` : T.n, `<span class="small">${T.d}</span>`, T.cost, (T.req || []).map(r => (S.techs[r] ? '<span class="good">' : '<span class="bad">') + TECHS[r].n + "</span>").join(", ") || "—", S.techs[t] ? "" : cur === t ? `${fmt(S.research.pts)}/${T.cost}` : btn("Zkoumat", "research", [t], techAvailable(S, t) ? null : "Chybí předpoklady")]); })))).join("");
-  const ex = Object.entries(EXPEDITIONS).map(([id, E]) => { const on = S.expeditions.find(x => x.id === id);
-    return tr([E.n, `<span class="small">${E.d}</span>`, E.cost, E.time + " obd.", Math.round((E.chance + (has(S, "portolan") ? 0.2 : 0)) * 100) + " %", (E.req || []).map(r => (S.techs[r] ? '<span class="good">' : '<span class="bad">') + TECHS[r].n + "</span>").join(", ") || "—", on ? `<span class="warn">na cestě (${on.left})</span>` : S.expDone[id] && id !== "knihy" && id !== "hory" ? '<span class="good">probádáno</span>' : btn("Vyslat", "exped", [id])]); });
-  return `<div class="grid">${card("Učenost", `<div class="kv"><span>Zkoumá se</span><span>${cur ? TECHS[cur].n + ` – ${fmt(S.research.pts)}/${TECHS[cur].cost}` : '<span class="bad">nic</span>'}</span><span>Přírůstek</span><span>${rate} bodů za období</span><span>Zdroje</span><span class="small">panovník (učenost), kaplan, knihovna, kostely, univerzita, knihtisk</span><span>Objeveno</span><span>${Object.keys(S.techs).length} z ${TECH_IDS.length}</span></div>`)}
-  ${tabs}<div class="card" style="grid-column:1/-1"><h3>Výpravy do neznáma</h3>${tbl(["Kraj", "Co přinese", "#Cena", "Doba", "Šance", "Potřeba", ""], ex)}<p class="small muted">Námořní výpravy potřebují přístav.</p></div></div>`;
+  const C = P(S), cats = [...new Set(TECH_IDS.map(t => TECHS[t].cat))];
+  return `<div class="grid">${card("Učenost", `<p>Zkoumá se: <b>${C.res.cur ? TECHS[C.res.cur].n + ` (${Math.round(C.res.pts)}/${TECHS[C.res.cur].cost})` : "nic"}</b>. Body přinášejí rozkazy „Podporovat učence“ a kláštery.</p>`)}
+  ${cats.map(cat => card(cat, tbl(["Objev", "Účinek", "#Cena", ""], TECH_IDS.filter(t => TECHS[t].cat === cat).map(t => { const T = TECHS[t]; return tr([C.techs[t] ? `<span class="good">✔ ${T.n}</span>` : C.res.cur === t ? `<b>▶ ${T.n}</b>` : T.n, `<span class="small">${T.d}${T.req ? " · vyžaduje: " + T.req.map(r => TECHS[r].n).join(", ") : ""}</span>`, T.cost, C.techs[t] || C.res.cur === t ? "" : btn("Zkoumat", "research", [t], techAvail(S, me(), t) ? null : "Chybí předpoklady")]); })))).join("")}</div>`;
 }
 
 // ---------- Kronika ----------
-const LOGCATS = { "": "vše", rod: "rod", politika: "politika", hospodarstvi: "hospodářství", obchod: "obchod", stavby: "stavby", vojsko: "vojsko", valka: "válka", diplomacie: "diplomacie", intriky: "intriky", objevy: "objevy", udalosti: "události", panovnik: "činy", svet: "svět" };
 function tKronika() {
-  const l = S.log.filter(x => !SEL.logCat || x.cat === SEL.logCat).slice(0, 300);
-  return `<div class="card"><h3>Kronika rodu ${esc(S.dynasty)}</h3><div class="row">${Object.entries(LOGCATS).map(([k, n]) => btn(SEL.logCat === k ? `<b>${n}</b>` : n, "logcat", [k])).join("")}</div>
-  <div class="log">${l.map(x => `<div><span class="tag">${SEASONS[x.se]} ${x.y}</span><span class="tag">${LOGCATS[x.cat] || x.cat}</span>${esc(x.txt)}</div>`).join("")}</div></div>`;
+  const f = SEL.logF; const l = S.log.filter(x => f === "vse" || (f === "moje" ? x.cl && x.cl.includes(me()) : f === "svet" ? !x.cl || !x.cl.includes(me()) : x.cat === f)).slice(0, 400);
+  return card("Kronika", `<div class="row">${[["moje", "můj rod"], ["svet", "svět"], ["vse", "vše"], ["valka", "války"], ["rise", "říše"], ["rod", "rody"], ["diplomacie", "diplomacie"], ["rozkazy", "rozkazy"]].map(([k, n]) => btn(f === k ? `<b>${n}</b>` : n, "logF", [k])).join("")}</div><div class="log">${l.map(x => `<div class="lg"><span class="tag">${MONTHS[x.m].slice(0, 3)} ${x.y}</span>${esc(x.txt)}</div>`).join("")}</div>`, "wide");
 }
 
 // ---------- Hra ----------
 function tHra() {
   const slots = [1, 2, 3, 4, 5].map(n => { const i = slotInfo(n); return tr([n, i ? esc(i) : '<span class="muted">prázdná</span>', btn("Uložit", "save", [n]) + btn("Načíst", "load", [n], i ? null : "Prázdná") + btn("Smazat", "del", [n], i ? null : "Prázdná")]); });
-  return `<div class="grid">${card("Uložené hry", tbl(["#", "Obsah", ""], slots) + `<p class="small muted">Hra se po každém kroku sama ukládá v prohlížeči.</p><div class="row">${btn("Stáhnout uloženou hru (soubor)", "exportSave")} ${btn("Nahrát ze souboru", "importSave")}</div>`)}
-  ${card("Nová hra", `<div class="kv"><span>Panství</span><input id="ngRealm" value="Panství Vranovské"><span>Panovník</span><input id="ngRuler" value="Bořivoj"><span>Rod</span><input id="ngDyn" value="Vranovští"><span>Semínko náhody</span><input id="ngSeed" type="number" placeholder="náhodné"></div><div class="row">${btn(SEL.ngConfirm ? "Ano, začít novou hru" : "Začít novou hru", "newgame")}</div>`)}
+  const clansSel = CLANS.filter(c => c.type === "dyn").map(c => { const n = PROVINCES.filter(p => p[6] === c.id).length, h = HIST.find(x => x.cl === c.id && x.r === "leader"); return [c.id, `${c.house} – ${c.n} (${n} krajů${h ? ", " + h.n : ""})`]; });
+  return `<div class="grid">${card("Uložené hry", tbl(["#", "Obsah", ""], slots) + `<p class="small muted">Hra se sama ukládá po každém kroku.</p><div class="row">${btn("Stáhnout do souboru", "exportSave")} ${btn("Nahrát ze souboru", "importSave")}</div>`)}
+  ${card("Nová hra – leden 1256", `<div class="kv"><span>Rod</span>${sel("ngClan", clansSel, SEL.ng, `data-a="ngClan" data-x='[]'`)}<span>Semínko náhody</span><input id="ngSeed" type="number" placeholder="náhodné"></div><div class="row">${btn(SEL.ngConfirm ? "<b>Ano, začít</b>" : "Začít novou hru", "newgame")}</div><p class="small muted">Velké rody (Přemyslovci, Arpádovci) jsou nejsnazší. Habsburkové, Wittelsbachové nebo slezští Piastovci začínají malí – to je výzva.</p>`)}
   ${card("Vzhled", btn("Přepnout světlý / tmavý vzhled", "theme"))}
-  <div class="card help" style="grid-column:1/-1"><h3>Jak hrát</h3>
-  <p>Vládneš feudálnímu panství v letech ${START_YEAR}–${END_YEAR}. Každé kolo je jedno roční období. Rozhodni, co chceš, a stiskni <b>Konec období</b>. Cílem je stát se králem (hraběte, vévody a nakonec koruny dosáhneš v Přehledu) nebo přečkat sto let s co nejvyšším skóre.</p>
-  <h4>Hospodářství</h4><p>Obilí se sklízí hlavně v létě a na podzim, jí se po celý rok. Hlad snižuje počet obyvatel, morálku a zvedá nepokoje. Peníze plynou z daní stavů, mýta, obchodu a panských dvorů. Stavby stojí zlato, dřevo a kámen – co chybí, nakup na trhu. Přebytky (železo, víno, sůl, sukno) prodávej.</p>
-  <h4>Stavy a zákony</h4><p>Šlechta, duchovenstvo, měšťané a sedláci mají věrnost a vliv. Vysoké daně a tvrdé zákony dávají peníze, ale věrnost klesá. Nevěrný a vlivný stav vyvolá krizi. Rádci ze stavu jej uklidňují.</p>
-  <h4>Válka</h4><p>Vyhlas válku sousedovi (nejlépe s nárokem od kancléře), přesuň vojsko do jeho provincie a obléhej. Bitvy se odehrají, když se vojska potkají. Stav války roste vítězstvími a obsazenými provinciemi; podle něj si diktuješ mír – odškodné, provincie, nebo podrobení celé země.</p>
-  <h4>Rod</h4><p>Panovník stárne a umírá. Zajisti si choť a dědice, vychovávej potomky a žeň je s rody sousedů – sňatky zlepšují vztahy. Když rod vymře, hra končí.</p>
-  <h4>Objevy</h4><p>Učenost z kaplana, knihovny a kostelů odemyká zemědělské, řemeslné, správní a válečné objevy. Výpravy do neznáma přinášejí ložiska, dálkový obchod a slávu.</p></div></div>`;
+  <section class="card wide help"><h3>Jak hrát</h3>
+  <p>Jsi hlavou panovnického rodu ve střední Evropě po pádu Štaufů (od ledna 1256). Kolo je jeden měsíc. <b>Cíl:</b> ovládnout polovinu krajů (sám nebo skrze vazaly), nebo se stát císařem a vládnout třetině krajů. Prohraješ, když přijdeš o všechny kraje.</p>
+  <h4>Měsíc</h4><p>V záložce <b>Kraj a rozkazy</b> dáš každému vazalovi jeden rozkaz: rozvoj polí a trhů, opravy hradeb, nábor, výcvik, péči o lid, stavby, hledání schopných mužů, zvědy, podněcování, naklonění cizích vazalů, poselstva nebo přesun. Kraje, které „svěříš purkrabímu“, spravuje umělá inteligence sama. Pak stiskni <b>Konec měsíce</b>.</p>
+  <h4>Hospodářství</h4><p>Zlato plyne každý měsíc z obchodu a obyvatel, obilí jednou za rok při žních v září. Obilím se živí posádky a vojska v poli. Stříbrné doly (Jihlava, Kutná Hora a Čáslavsko, Štiavnica, Freiberg…) jsou pokladem.</p>
+  <h4>Válka</h4><p>Vyhlas válku (Diplomacie), vyšli vojsko s veliteli (Kraj a rozkazy → Vyslat vojsko). Vojsko táhne kraj za měsíc. U cíle obléhá hrad – vyhladovění trvá podle úrovně hradu, zteč je rychlá, ale krvavá. Bitva má až šest kol; rozhoduje počet, druh vojska, výcvik, terén, morálka a schopnosti velitelů. Poražení velitelé mohou padnout nebo být zajati.</p>
+  <h4>Vazalové</h4><p>Věrnost závisí na hodnosti, darech, prestiži rodu a náladě šlechty. Nevěrný purkrabí může přeběhnout k sousedovi i s krajem nebo se vzbouřit. Cizí vazaly lze úplatky naklonit na svou stranu.</p>
+  <h4>Evropská politika</h4><p>Sňatky spojují rody a dávají nárok na dědictví. Slabší rody mohou složit lenní hold. Kurfiřti volí římského krále; papež může dát rod do klatby. Kdo ovládne jádro koruny (Čechy, Uhry, Polsko, Halič), může se nechat korunovat.</p>
+  <p class="small muted">Historické postavy a vládci odpovídají roku 1256 (roky narození jsou přibližné). Jejich schopnosti a všichni ostatní vazalové jsou herní výmysl.</p></section></div>`;
 }
 
 // ---------- start ----------
 function boot() {
   try { const t = localStorage.getItem("panovnik_theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
-  try { const t = localStorage.getItem("panovnik_auto"); if (t) S = JSON.parse(t); } catch (e) { S = null; }
-  if (!S || !S.provinces) S = newGame();
+  try { const t = localStorage.getItem("panovnik2_auto"); if (t) S = JSON.parse(t); } catch (e) { S = null; }
+  if (!S || !S.provs || S.v !== 2) S = newGame();
   const f = document.createElement("input"); f.type = "file"; f.id = "impFile"; f.accept = ".json,application/json"; f.style.display = "none"; f.onchange = () => f.files[0] && importFile(f.files[0]); document.body.appendChild(f);
   render();
 }
-if (typeof document !== "undefined") document.addEventListener("DOMContentLoaded", boot);
+if (typeof document !== "undefined") { if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot(); }

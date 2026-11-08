@@ -52,4 +52,30 @@ input[type=number] { width: 62px; }
 .kv > :nth-child(odd) { color: var(--muted); }
 details summary { cursor: pointer; color: var(--accent2); }
 .help p { margin: 4px 0 8px; } .help h4 { color: var(--accent); }
+.wide { grid-column: 1 / -1; }
+.tw { overflow-x: auto; max-width: 100%; }
+.card { min-width: 0; }
+.grid.map2 { grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr); }
+.grid.map2 > .wide:first-child { grid-column: auto; }
+svg.map { width: 100%; height: auto; display: block; background: var(--head); border-radius: 6px; }
+svg.map .edge { stroke: var(--line); stroke-width: 1; }
+svg.map .edge.same { stroke: var(--muted); stroke-opacity: .45; stroke-width: 1.6; }
+svg.map circle { stroke: var(--panel); stroke-width: 1; cursor: pointer; }
+svg.map circle.mine { stroke: var(--ink); stroke-width: 2.2; }
+svg.map circle.war { stroke: var(--bad); stroke-width: 2.2; }
+svg.map circle.capc { stroke-dasharray: 2 1.5; }
+svg.map circle.siege { fill: none; stroke: var(--bad); stroke-dasharray: 3 2; stroke-width: 1.5; pointer-events: none; }
+svg.map .pv.sel circle:first-of-type { stroke: var(--accent); stroke-width: 3; }
+svg.map .lbl { font-size: 8.5px; fill: var(--muted); pointer-events: none; font-family: Georgia, serif; }
+svg.map .lbl.lm { fill: var(--ink); font-weight: bold; }
+svg.map .army { stroke: var(--ink); stroke-width: .8; }
+.chip { display: inline-block; padding: 0 6px 0 4px; border-radius: 9px; font-size: 12px; background: var(--head); border-left: 6px solid var(--c); margin: 1px 2px; white-space: nowrap; }
+.legend { line-height: 1.9; }
+.lg { border-bottom: 1px dotted var(--line); padding: 2px 0; font-size: 13px; }
+a.lnk { color: var(--accent2); cursor: pointer; text-decoration: underline dotted; }
+.realm { border-left: 8px solid var(--c); padding-left: 6px; }
+button.b.go { background: var(--accent2); color: #fff; border-color: transparent; }
+button.b.danger { color: var(--bad); }
+.provpick { margin-bottom: 8px; }
+@media (max-width: 900px) { .grid.map2 { grid-template-columns: 1fr; } }
 @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } header { font-size: 13px; } }
