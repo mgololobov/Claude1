@@ -1,0 +1,30 @@
+name: Testy hry Pán Obou zemí
+on:
+  push:
+    paths: ["faraon/**", ".github/workflows/faraon.yml"]
+  pull_request:
+    paths: ["faraon/**", ".github/workflows/faraon.yml"]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: faraon
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Sestavení
+        run: python3 build.py
+      - name: Simulace (20 let za každý rod)
+        run: node tests/sim.test.js 240
+      - name: Instalace prohlížeče
+        run: npm install --no-save playwright@1.48.2 && npx playwright install --with-deps chromium
+      - name: Test v prohlížeči
+        run: node tests/e2e.js
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: snimky-faraon
+          path: faraon/tests/out/
