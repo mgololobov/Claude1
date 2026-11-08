@@ -97,3 +97,37 @@ const SCENARIOS = {
     ],
   },
 };
+
+// Třetí scénář: doba nomarchy Anchtifiho (nápisy v jeho hrobce v Moalle). Odvozen z rodů scénáře 2070.
+(() => {
+  const base = id => Object.assign({}, SCENARIOS.fip.clans.find(c => c.id === id));
+  const herak = Object.assign(base("herak"), { provs: ["u7", "u8", "u9", "u14", "u17", "u18", "u19", "u20", "u21", "u22", "fa", "l1", "l2", "l13", "l3", "l5", "l6", "lx", "l12", "l16", "l18", "lav", "o_bah", "o_kha"], prestige: 230 });
+  const thebes = Object.assign(base("thebes"), { provs: ["u4"], aggr: 0.6, prestige: 90, maat: 45 });
+  SCENARIOS.anch = {
+    n: "≈ 2120 př. n. l. – Anchtifi z Moally (První přechodné období)",
+    bce: 2120,
+    d: "Nomarcha Anchtifi z Hefatu (Moally) píše ve své hrobce, že ho „Hor přivedl do župy Edfu“, aby v ní obnovil pořádek, a že se spojil s Elefantinou. Proti němu stojí Théby a Koptos, kde se rod Intefů právě prohlásil králi. Na severu vládne Hérakleopolis, které Anchtifi uznává. Záplavy jsou nízké a podle Anchtifiho „celý Horní Egypt umírá hladem“.",
+    climate: -1.3,
+    clans: [
+      { id: "anch", n: "Župy Hefat a Edfu", house: "Anchtifi z Moally", t: "nomarcha", type: "nom", cul: "eg", col: "#c9a227", emb: "star", aggr: 0.6, cap: "u3", tomb: "skalní hrobka v Moalle", vassalOf: "herak",
+        provs: ["u2", "u3"], techs: ["pisari", "nilometr"], maat: 50, prestige: 90 },
+      { id: "elef", n: "Župa Elefantina", house: "Nomarchové Elefantiny", t: "nomarcha", type: "nom", cul: "eg", col: "#4f8a5b", emb: "ankh", aggr: 0.2, cap: "u1", tomb: "skalní hrobka v Kubbet el-Hawá",
+        provs: ["u1"], techs: ["pisari", "nilometr"], maat: 50, prestige: 60 },
+      thebes,
+      { id: "koptos", n: "Župa Koptos", house: "Nomarchové Koptu", t: "nomarcha", type: "nom", cul: "eg", col: "#a3678e", emb: "feather", aggr: 0.35, cap: "u5", tomb: "hrobka v Koptu",
+        provs: ["u5", "u6"], techs: ["pisari", "nilometr"], maat: 50, prestige: 60 },
+      herak,
+      Object.assign(base("asjut"), {}), Object.assign(base("hermo"), {}), Object.assign(base("oryx"), {}),
+      base("kerma"), base("wawat"), base("medzaj"), base("oazy"), base("aamu"), base("lib"),
+    ],
+    rel: [["anch", "elef", 55], ["anch", "thebes", -50], ["anch", "koptos", -45], ["thebes", "koptos", 50], ["anch", "herak", 35], ["thebes", "herak", -30], ["herak", "asjut", 60], ["herak", "hermo", 30], ["herak", "aamu", -40], ["herak", "lib", -30]],
+    alliances: [["thebes", "koptos"], ["anch", "elef"]],
+    wars: [["anch", "thebes"], ["anch", "koptos"]],
+    hist: [
+      { n: "Anchtifi", cl: "anch", by: 2165, r: "leader", s: [74, 72, 66, 76], t: ["ctizadostivy", "stedry"], note: "nomarcha Hefatu; ve své hrobce v Moalle líčí obnovu pořádku v Edfu, boje s Thébami a Koptem a rozdávání obilí za hladu" },
+      { n: "Intef (I.)", cl: "thebes", by: 2160, r: "leader", s: [66, 64, 60, 64], t: ["ctizadostivy"], note: "první z Intefů s královským titulem (Sehertaui), vládl ≈ 2125–2112 př. n. l." },
+      { n: "Intef (II.)", cl: "thebes", by: 2150, r: "off", dyn: 1, rank: 4, s: [78, 70, 68, 74], t: ["vojevudce"], note: "budoucí Intef II. Wahanch; pokládá se za bratra Intefa I. (příbuzenství není jisté)" },
+      { n: "Neferkare", cl: "herak", by: 2165, r: "leader", s: [52, 46, 60, 58], t: [], note: "král jmenovaný v Anchtifiho hrobce, obvykle řazený k hérakleopolským králům; ztotožnění je nejisté" },
+    ],
+  };
+})();

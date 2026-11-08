@@ -169,7 +169,7 @@ function expeditionReturn(s, c) {
   const risk = E.risk * (1.3 - st(c, "spr") / 200 - st(c, "ved") / 300);
   if (chance(s, risk)) {
     if (chance(s, 0.4)) { die(s, c, `zahynul na výpravě (${E.foe})`); if (me) log(s, `Výprava „${E.n}“ se nevrátila: ${c.n} zahynul (${E.foe}).`, "vypravy", [c.cl]); return; }
-    if (me) log(s, `${c.n} se vrátil z výpravy „${E.n}“ s prázdnou – přepadli je ${E.foe}.`, "vypravy", [c.cl]); return;
+    if (me) log(s, E.tech === "namorni" ? `${c.n} se po bouři vrátil z výpravy „${E.n}“ jen s hrstkou mužů a bez nákladu – jako hrdina příběhu o ztroskotaném námořníkovi ze Střední říše.` : `${c.n} se vrátil z výpravy „${E.n}“ s prázdnou – přepadli je ${E.foe}.`, "vypravy", [c.cl]); return;
   }
   const g = Math.round(rrange(s, E.deben[0], E.deben[1]) * (0.8 + st(c, "spr") / 250));
   C.deben += g; C.prestige += E.prestige; if (E.maat) C.maat = Math.min(100, C.maat + E.maat); if (E.cedar) C.cedar += 2; c.merit += 15;

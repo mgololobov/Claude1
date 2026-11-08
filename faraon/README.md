@@ -9,6 +9,8 @@ Hra je jeden soubor `dist/index.html`: stačí ho otevřít v prohlížeči, fun
 - **≈ 2070 př. n. l. – Válka Obou zemí** (První přechodné období): Thébané Intefa II. proti Hérakleopoli („domu Chetiho“), nomarchové Asjútu, Hermopole a Beni Hasanu, Kuš, Vavat, Médžajové, Aamu a Libyjci. Sušší klima a nízké záplavy.
 - **≈ 1560 př. n. l. – Proti Hyksósům** (Druhé přechodné období): 17. dynastie Sekenenrea Taa a Kamoseho proti Hyksósům krále Apopiho z Avaridu a jejich spojenci Kuši; kníže Teti v Nefrusy. Historické události: spor o hrochy (papyrus Sallier I.), zachycený dopis vládci Kuše (Kamoseho stéla), Rhindův papyrus.
 
+- **≈ 2120 př. n. l. – Anchtifi z Moally**: nomarcha Hefatu, který podle nápisů ve své hrobce ovládl Edfu a bojoval s Thébami a Koptem za velkého hladu; Intef I. v Thébách, Hérakleopolis na severu.
+
 ## Co hra obsahuje
 
 - 48 žup od Kermy po Deltu s egyptskými jmény, bohy a surovinami; mapa se skutečným tokem Nilu a ramen v Deltě.
@@ -17,6 +19,8 @@ Hra je jeden soubor `dist/index.html`: stačí ho otevřít v prohlížeči, fun
 - Výpravy do Vádí Hammámát, Hatnubu, na Sinaj, do zlatých dolů Vavatu, do Byblu a do Puntu.
 - Vojsko (kopiníci, lučištníci, Médžajové, válečné vozy), pochody a plavba po Nilu, bitvy, obléhání pevností, nájezdy kmenů.
 - Maat, stavy (kněží, nomarchové, písaři, lid), zákony, chrámy, hrobka panovníka, svátek sed, Usirovy mystéria v Abydu.
+- Události podle pramenů: Výmluvný rolník, Ponaučení pro Merikarea, Nářky Ipuverovy, Krásný svátek údolí, proklínací obřady (Mirgissa), pád Nefrusy a Avaridu, příběh o ztroskotaném námořníkovi.
+- Odkaz rodu: bodové hodnocení vlády pro porovnání her.
 - Rod, sňatky, nástupnictví (i spoluvláda), vědění od nilometru po válečný vůz a námořní lodě.
 
 Jména vládců a doložených hodnostářů odpovídají pramenům; roky narození, schopnosti a ostatní postavy jsou herní. Letopočty podle střední chronologie (I. Shaw, The Oxford History of Ancient Egypt, 2000).

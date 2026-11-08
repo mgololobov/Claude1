@@ -55,7 +55,7 @@ function battle(s, A, D, pid, o = {}) {
   s.clans[loser.cl].prestige = Math.max(0, s.clans[loser.cl].prestige - 5);
   for (const id of winner.cmds || []) { const c = chr(s, id); if (c) c.merit += 20; }
   const fates = [];
-  for (const id of loser.cmds || []) { const c = chr(s, id); if (!c || c.st !== "off") continue; const r = rnd(s); if (r < 0.08) { fates.push(`${c.n} padl`); die(s, c, `padl v bitvě u župy ${p.n}`); } else if (r < 0.2) { fates.push(`${c.n} zajat`); capture(s, c, winner.cl); c.loc = pid; } else if (r < 0.3) { c.wound = 3; fates.push(`${c.n} raněn`); } }
+  for (const id of loser.cmds || []) { const c = chr(s, id); if (!c || c.st !== "off") continue; const r = rnd(s); if (r < 0.08) { const lead = s.clans[c.cl] && s.clans[c.cl].leader === c.id; fates.push(`${c.n} padl${lead ? " – panovník zemřel v boji jako kdysi Sekenenre Taa" : ""}`); die(s, c, `padl v bitvě u župy ${p.n}`); } else if (r < 0.2) { fates.push(`${c.n} zajat`); capture(s, c, winner.cl); c.loc = pid; } else if (r < 0.3) { c.wound = 3; fates.push(`${c.n} raněn`); } }
   b.fates = fates; s.battles.unshift(b); if (s.battles.length > 60) s.battles.length = 60;
   const lossA = aStart - men(A.t), lossD = dStart - men(D.t);
   log(s, `${o.kind === "zteč" ? "Boj u hradeb" : "Bitva"} v župě ${p.n}: ${s.clans[A.cl].house} (${fmtN(aStart)} mužů) proti ${s.clans[D.cl].house} (${fmtN(dStart)}). ${win === "A" ? "Útočník zvítězil" : "Obránce se ubránil"}. Ztráty ${fmtN(lossA)} : ${fmtN(lossD)}.${fates.length ? " " + fates.join(", ") + "." : ""}`, "valka", [A.cl, D.cl]);
@@ -93,6 +93,8 @@ function conquer(s, p, cid) {
   const old = p.owner; transferProv(s, p.id, cid, "dobytí"); p.siege = null;
   log(s, `${s.clans[cid].house} dobyl župu ${p.n}${s.clans[old] ? " (dříve " + s.clans[old].house + ")" : ""}.`, "valka", [cid, old]);
   if (p.flags.includes("h")) desecration(s, cid, p);
+  if (p.id === "u15" && old === "teti") log(s, `Tak jako Kamose, který se na své stéle chlubí, že zpustošil Nefrusy Tetiho, syna Pepiho, protože z ní Teti „udělal hnízdo Asiatů“.`, "valka", [cid]);
+  if (p.id === "lav" && s.scen === "sip" && old === "hyksos" && s.clans[cid].cul === "eg") { const C = s.clans[cid]; C.prestige += 100; C.maat = Math.min(100, C.maat + 5); log(s, `Avaris, sídlo Hyksósů, padl! Podle životopisu Ahmose, syna Ebany, se po pádu Avaridu Hyksósové stáhli do Šaruhenu v jižní Palestině, který Egypťané obléhali tři roky.`, "valka", [cid, old]); }
 }
 // Instructions for Merikare litují zpustošení hrobů v Thinidě; dobytí pohřebiště poškozuje maat.
 function desecration(s, cid, p) { if (isPlayer(s, cid)) queueEvent(s, "pohrebiste", { pid: p.id }); else s.clans[cid].maat = Math.max(0, s.clans[cid].maat - 3); }
@@ -224,6 +226,13 @@ function diplo(s, a, b, act, arg) {
       const ws = warScore(s, a, b), war = atWar(s, a, b);
       if ((ws > 3 && r > -30) || (war && ws > 4) || (ws > 2.2 && r > 30)) { if (war) makePeace(s, a, b); B.vassalOf = a; B.tributeTo = null; addRel(s, a, b, 10); log(s, `${B.house} uznal svrchovanost rodu ${A.house} a bude odvádět tribut.`, "diplomacie", [a, b]); return null; }
       addRel(s, a, b, -8); if (me) log(s, `${B.house} odmítl podřídit se (poměr sil ${r1(ws)}:1, potřeba víc než 3:1).`, "diplomacie", [a, b]); return null;
+    }
+    case "proklinani": {
+      if ((A.last["p_" + b] || -99) > s.turn - 12) return "Obřad proti tomuto rodu lze opakovat až za rok.";
+      if (!pay(s, a, 500)) return "Obřad stojí 500 debenů."; A.last["p_" + b] = s.turn;
+      B.prestige = Math.max(0, B.prestige - 15); A.maat = Math.min(100, A.maat + 1); if (A.estates) A.estates.knezi = Math.min(100, A.estates.knezi + 2); addRel(s, a, b, -10);
+      for (const p of clanProvs(s, b)) if (p.nb.some(n => s.provs[n].owner === a)) p.loy = Math.max(0, p.loy - 3);
+      log(s, `Kněží rodu ${A.house} napsali jména vládců rodu ${B.house} na hliněné nádoby a sošky spoutaných zajatců, rituálně je rozbili a pohřbili (proklínací obřad, jaký dokládá nález z Mirgissy).`, "diplomacie", [a, b]); return null;
     }
     case "propustit": { if (B.vassalOf !== a) return "Není tvým poddaným."; B.vassalOf = null; addRel(s, a, b, 20); done(); log(s, `${A.house} propustil rod ${B.house} z poddanství.`, "diplomacie", [a, b]); return null; }
     case "tribut_stop": { if (A.tributeTo !== b) return "Neplatíš mu tribut."; A.tributeTo = null; addRel(s, a, b, -35); A.prestige += 20; done(); log(s, `${A.house} přestal odvádět tribut rodu ${B.house}!`, "diplomacie", [a, b]); return null; }

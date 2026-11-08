@@ -216,9 +216,10 @@ function tDiplo() {
       ${btn("Žádat poddanství", "diplo", [id, "podruci"], e || (D.vassalOf ? "Už je něčím poddaným" : D.type === "kmen" ? null : null))}
       ${btn("Sňatek", "diplo", [id, "snatek"], e || (pair ? null : "Nejsou volní ženiši a nevěsty"))}
       ${D.vassalOf === me() ? btn("Propustit z poddanství", "diplo", [id, "propustit"], e) : ""}
+      ${btn("Proklínací obřad (500 d.)", "diplo", [id, "proklinani"], e || ((P(S).last["p_" + id] || -99) > S.turn - 12 ? "Lze opakovat až za rok" : null))}
       ${P(S).tributeTo === id ? btn("Přestat platit tribut", "diplo", [id, "tribut_stop"], e, "danger") : ""}</div>
       ${pair ? `<p class="small muted">Sňatek: ${esc(pair[0].n)} a ${esc(pair[1].n)}.</p>` : ""}
-      <p class="small muted">Poměr sil (tvá říše : jejich) ${dec(warScore(S, me(), id))} : 1. Mír přijmou spíš, když prohrávají nebo válka trvá dlouho. Poddanství přijmou při převaze víc než 3 : 1. Vyhlášení války během příměří nebo proti spojenci poškodí maat.</p>`;
+      <p class="small muted">Poměr sil (tvá říše : jejich) ${dec(warScore(S, me(), id))} : 1. Mír přijmou spíš, když prohrávají nebo válka trvá dlouho. Poddanství přijmou při převaze víc než 3 : 1. Vyhlášení války během příměří nebo proti spojenci poškodí maat. Proklínací obřad (rozbíjení nádob se jmény nepřátel, doložený od Staré po Střední říši) sníží slávu nepřítele a spokojenost jeho pohraničních žup.</p>`;
   }
   return `<div class="grid map2"><section class="card"><h3>Rody a kmeny</h3>${tbl(["", "Rod", "#Župy", "#Síla", "Vztah", "Stav", ""], rows)}</section><section class="card sticky"><h3>Jednání</h3>${panel}</section></div>`;
 }
@@ -276,9 +277,17 @@ function tRod() {
     ${others.length ? `<h4>Další členové rodu</h4><div class="gen">${others.map(c => famCard(c, c.sex === "m" ? "příbuzný" : "příbuzná")).join("")}</div>` : ""}</div>
     <p class="small muted">Dědic: ${H[0] ? esc(H[0].n) : '<b class="bad">žádný</b>'} (${LAWS.nastupnictvi.opts[C.laws.nastupnictvi]}). Sloupce: velení, statečnost, moudrost, správa. Synové v 15 letech vstupují do služby. Sňatky s jinými rody dohodneš v Diplomacii. Bez dědice převezme vládu nejschopnější úředník a založí novou dynastii.</p>`, "wide")}
   ${card("Královský titul", C.t === "král" ? `<p>${esc(L ? L.n : "")} nosí titul krále Horního a Dolního Egypta.</p>` : `<p>Jsi ${esc(C.t)}. Kdo ovládne aspoň šest žup, může přijmout královskou titulaturu a pět jmen panovníka – jako Intefové v Thébách.</p>${btn("Prohlásit se králem", "king", [], canKing ? null : "Potřebuješ aspoň 6 žup (a egyptský rod)", "go")}<p class="small muted">Vazalské pouto k pánovi se tím zpřetrhá a hrozí válka.</p>`)}
+  ${card("Odkaz rodu", legacyCard())}
   ${card("Spřízněné rody", aliveClans(S).filter(c => married(S, me(), c.id)).map(c => chip(c.id)).join(" ") || "—")}
   ${card("Zesnulí", tbl(["Jméno", "Zemřel(a)"], dead))}</div>`;
 }
+
+function legacy() {
+  const C = P(S), ps = clanProvs(S, me());
+  return [["Župy egyptského jádra (i poddaných)", realmCore(S, me()) * 10], ["Ostatní župy", ps.filter(p => !p.flags.includes("e")).length * 4], ["Chrámy (úrovně)", sum(ps.map(p => (p.b.chram || 0) * 6))], ["Pevnosti nad první úroveň", sum(ps.map(p => Math.max(0, p.castle - 1) * 2))],
+    ["Hrobka panovníka", C.tomb.stage * 15], ["Maat", Math.round(C.maat)], ["Sláva", Math.round(C.prestige / 10)], ["Vědění", Object.keys(C.techs).length * 3], ["Sjednocení Obou zemí", S.flags.won ? 200 : 0]];
+}
+function legacyCard() { const it = legacy(); return tbl(["Co zůstane", "#Body"], it.filter(x => x[1]).map(([n, v]) => tr([n, tdn(fmt(v))]))) + `<p><b>Celkem ${fmt(sum(it.map(x => x[1])))} bodů.</b></p><p class="small muted">Tak by tvou vládu hodnotili písaři budoucích letopisů. Slouží k porovnání her.</p>`; }
 
 // ---------- Vědění ----------
 function tVedeni() {
@@ -307,7 +316,7 @@ function tHra() {
     <span>Mlha</span><label><input type="checkbox" id="ngFog" ${SEL.ngFog === false ? "" : "checked"} data-a="ngFog" data-x='[]'> o vzdálených župách víš jen odhady</label>
     <span>Semínko</span><input id="ngSeed" type="number" placeholder="náhodné"></div>
     <div class="row">${btn(SEL.ngConfirm ? "<b>Ano, začít</b>" : "Začít novou hru", "newgame", [], null, "go")}</div>
-    <p class="small muted">Thébané a Hérakleopolští (2070) nebo Thébané a Hyksósové (1560) jsou velké říše. Nomarchové Asjútu, Hermopole, Beni Hasanu nebo kníže Teti začínají s jedinou župou – to je výzva.</p>`)}
+    <p class="small muted">Thébané a Hérakleopolští (2070), Hérakleopolští (2120) nebo Thébané a Hyksósové (1560) jsou velké říše. Anchtifi (2120) má dvě župy a válku se dvěma sousedy. Nomarchové Asjútu, Hermopole, Beni Hasanu nebo kníže Teti začínají s jedinou župou – to je výzva.</p>`)}
   ${card("Uložené hry", tbl(["#", "Obsah", ""], slots) + `<p class="small muted">Hra se sama ukládá po každém kroku (v tomto prohlížeči).</p><div class="row">${btn("Stáhnout do souboru", "exportSave")} ${btn("Nahrát ze souboru", "importSave")} ${btn("Světlý / tmavý vzhled", "theme")}</div>`)}
   <section class="card wide help"><h3>Jak hrát</h3>
   <p>Jsi hlavou vládnoucího rodu nebo rodu nomarchů v době, kdy je Egypt rozdělený. Jedno kolo je jeden měsíc egyptského občanského roku: tři období po čtyřech měsících o třiceti dnech – achet (záplava), peret (vzcházení, setí) a šemu (sklizeň, léto) – a na konci pět dní navíc. Skutečný občanský kalendář se vůči ročním obdobím posouval; hra ho drží v souladu se záplavou. <b>Cíl:</b> sjednotit Horní a Dolní Egypt – ovládnout (sám nebo skrze poddané) devět desetin žup egyptského jádra. Prohraješ, když přijdeš o všechny župy.</p>
@@ -333,7 +342,7 @@ function tHra() {
   <span>dům života</span><span>chrámová dílna písařů, kde se opisovaly a uchovávaly texty</span>
   <span>robota</span><span>pracovní povinnost pro stát, hlavně v době záplavy</span></div></section>
   <section class="card wide help"><h3>Historické pozadí a zdroje</h3>
-  <p><b>První přechodné období (≈ 2160–2055 př. n. l.):</b> po pádu Staré říše vládli v Hérakleopoli králové 9. a 10. dynastie („dům Chetiho“), v Thébách se Intefové 11. dynastie prohlásili králi. O Thinidu a Abydos se bojovalo; Ponaučení pro Merikarea lituje zpustošení hrobů v Thinidě. Nomarchové Asjútu (Tefibi, Cheti II.) stáli při Hérakleopoli, nomarcha Anchtifi z Moally líčí velký hlad. Egypt sjednotil Montuhotep II. (vládl ≈ 2055–2004 př. n. l.), zřejmě až po dvaceti a více letech vlády.</p>
+  <p><b>První přechodné období (≈ 2160–2055 př. n. l.):</b> po pádu Staré říše vládli v Hérakleopoli králové 9. a 10. dynastie („dům Chetiho“), v Thébách se Intefové 11. dynastie prohlásili králi. O Thinidu a Abydos se bojovalo; Ponaučení pro Merikarea lituje zpustošení hrobů v Thinidě. Nomarchové Asjútu (Tefibi, Cheti II.) stáli při Hérakleopoli, nomarcha Anchtifi z Moally líčí velký hlad. O generaci dříve (≈ 2120 př. n. l.) se nomarcha Anchtifi z Moally zmocnil župy Edfu a bojoval s Thébami a Koptem. Egypt nakonec sjednotil Montuhotep II. (vládl ≈ 2055–2004 př. n. l.), zřejmě až po dvaceti a více letech vlády.</p>
   <p><b>Druhé přechodné období (≈ 1650–1550 př. n. l.):</b> Hyksósové 15. dynastie („vládci cizích zemí“, heka chasut) vládli z Avaridu (Tell el-Dab'a), Kuš z Kermy ovládla Núbii a egyptské pevnosti u 2. kataraktu. Thébská 17. dynastie byla na Hyksósech zřejmě závislá. Papyrus Sallier I. (sepsaný až za 19. dynastie) vypráví o sporu Apopiho a Sekenenrea kvůli hrochům; Sekenenreova mumie nese smrtelné rány. Stély krále Kamoseho popisují tažení k Avaridu, hranici u Kúsaje i zachycený dopis vládci Kuše. Ahmose I. (vládl od ≈ 1550 př. n. l.) dobyl Avaris a vyhnal Hyksósy – popisuje to životopis Ahmose, syna Ebany, v jeho hrobce v Elkabu.</p>
   <p><b>Co je historické a co herní:</b> župy, jejich egyptská jména, bohové, suroviny, výpravy, kalendář, nilometr, příděly obilí, debeny, hodnosti a titulatura vycházejí z egyptologie. Jména vládců a doložených hodnostářů odpovídají pramenům; roky narození, schopnosti, povahy a všichni ostatní úředníci jsou herní. Letopočty se drží střední chronologie (I. Shaw, The Oxford History of Ancient Egypt), nejistota je desítky let. Výšky záplav jsou náhodné, ale klima Prvního přechodného období je sušší (pokles záplav kolem roku 2200 př. n. l.).</p></section></div>`;
 }

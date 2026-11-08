@@ -214,7 +214,7 @@ function clanBudget(s, cid) {
   for (const x of aliveClans(s)) if (x.tributeTo === cid) inc.tribut += sum(clanProvs(s, x.id).map(p => provDeben(s, p))) * 0.1;
   const allT = ps.map(p => p.troops).concat(s.armies.filter(a => a.cl === cid).map(a => a.t));
   const offs = officers(s, cid);
-  const ex = { dvur: 30 + (C.t === "král" ? 170 : 0), platy: sum(offs.map(c => (c.id === C.leader ? 0 : c.rank * 10))), vojsko: Math.round(sum(allT.map(t => men(t) * 0.04 + (t.vozy || 0) * 0.4))), zoldneri: sum(allT.map(t => (t.medzajove || 0) * TROOPS.medzajove.upd)),
+  const ex = { dvur: 30 + (C.t === "král" ? Math.min(170, ps.length * 45) : 0), platy: sum(offs.map(c => (c.id === C.leader ? 0 : c.rank * 10))), vojsko: Math.round(sum(allT.map(t => men(t) * 0.04 + (t.vozy || 0) * 0.4))), zoldneri: sum(allT.map(t => (t.medzajove || 0) * TROOPS.medzajove.upd)),
     stavby: sum(ps.map(p => (p.b.chram || 0) * 30 + Math.max(0, p.castle - 1) * 10)) + (C.laws.chramy === 0 ? sum(ps.map(p => (p.b.chram || 0) * 40)) : 0), tribut: 0 };
   if (C.type === "kmen") { ex.platy = 0; ex.vojsko = 0; ex.stavby = 0; }
   if (C.vassalOf) ex.tribut += inc.zupy * 0.12;
@@ -223,7 +223,7 @@ function clanBudget(s, cid) {
   const net = sum(Object.values(inc)) - sum(Object.values(ex));
   // obilí za měsíc
   const soldiers = sum(allT.map(men));
-  const gex = { vojsko: Math.round(soldiers * RATION_SOLDIER * (C.cul === "eg" || C.cul === "hyk" ? 1 : 0.5)), urednici: sum(offs.map(c => (c.id === C.leader ? 0 : RANKS[c.rank].pay))), dvur: 300 + ps.length * 100 + (C.t === "král" ? 1000 : 0), ztraty: Math.round(C.grain * spoilRate(s, cid)) };
+  const gex = { vojsko: Math.round(soldiers * RATION_SOLDIER * (C.cul === "eg" || C.cul === "hyk" ? 1 : 0.5)), urednici: sum(offs.map(c => (c.id === C.leader ? 0 : RANKS[c.rank].pay))), dvur: 300 + ps.length * 100 + (C.t === "král" ? Math.min(1000, ps.length * 250) : 0), ztraty: Math.round(C.grain * spoilRate(s, cid)) };
   return { inc, ex, net, gex, gnet: -sum(Object.values(gex)) };
 }
 function spoilRate(s, cid) { const lv = sum(clanProvs(s, cid).map(p => p.b.sypka || 0)); return Math.max(0.003, 0.012 - lv * 0.0012 - officeVal(s, cid, "sypky") / 10000); }

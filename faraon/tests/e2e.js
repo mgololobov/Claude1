@@ -9,7 +9,7 @@ const tabSel = t => `[data-a="tab"][data-x='["${t}"]']`;
   const tabs = ["prehled", "plan", "mapa", "zupy", "urednici", "vojsko", "diplo", "hosp", "chramy", "rod", "vedeni", "kronika", "hra"];
   const clearModal = async () => { for (let i = 0; i < 8; i++) { const ch = await pg.$("#modal:not(.hidden) .ch"); if (!ch) break; await ch.click(); } };
   const checkTab = async (label) => { const bad = await pg.$$eval("main .bad", els => els.map(e => e.textContent).filter(t => t.includes("Chyba"))); if (bad.length) errors.push(`${label}: ${bad[0]}`); };
-  for (const scen of ["sip", "fip"]) {
+  for (const scen of ["sip", "fip", "anch"]) {
     await pg.click(tabSel("hra"));
     await pg.selectOption("#ngScen", scen); await pg.click('[data-a="newgame"]'); await pg.click('[data-a="newgame"]');
     for (const t of tabs) { await pg.click(tabSel(t)); await checkTab(scen + "/" + t); }

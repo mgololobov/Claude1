@@ -176,7 +176,7 @@ const GODS = { u1: "Chnum a Satet", u2: "Hor Behdetský", u3: "Nechbet a Hor Nec
 // Župy (egyptsky sepat, řecky nomos): [id, název, staroegyptský název, z. šířka, z. délka, terén, velikost 1–5, příznaky, suroviny]
 // příznaky: e = egyptské jádro (pro sjednocení), c = město, k = pobřeží, h = posvátné pohřebiště, f = pohraniční pevnost, m = Médžajové (nábor)
 const PROVINCES = [
-  ["u1", "Elefantina", "Abu, 1. hornoegyptská župa", 24.09, 32.89, "katarakt", 2, "ecf", ["kamen"]],
+  ["u1", "Elefantina", "Abu, 1. hornoegyptská župa (s pláněmi u Kom Ombo)", 24.09, 32.89, "udoli", 2, "ecf", ["kamen"]],
   ["u2", "Edfu", "Behdet, 2. župa", 24.98, 32.87, "udoli", 3, "e", ["kamen"]],
   ["u3", "Nechen a Necheb", "Hierakonpolis a Elkab, 3. župa", 25.12, 32.78, "udoli", 3, "e", ["natron"]],
   ["u4", "Théby", "Veset, 4. župa", 25.70, 32.64, "udoli", 4, "ec", []],

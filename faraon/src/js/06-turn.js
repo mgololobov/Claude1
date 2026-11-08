@@ -137,7 +137,7 @@ function economyTick(s) {
       if (isPlayer(s, C.id)) log(s, `Sýpky jsou prázdné! Vojáci bez přídělů dezertují.`, "hospodarstvi", [C.id]);
       C.grain = 0;
     }
-    if (C.deben < 0) { C.maat = Math.max(0, C.maat - 0.5); for (const p of clanProvs(s, C.id)) if (p.troops.medzajove) p.troops.medzajove = Math.round(p.troops.medzajove * 0.85); }
+    if (C.deben < 0) { C.maat = Math.max(0, C.maat - 0.5); for (const p of clanProvs(s, C.id)) { if (p.troops.medzajove) p.troops.medzajove = Math.round(p.troops.medzajove * 0.85); lossApply(p.troops, men(p.troops) * 0.03); } if (isPlayer(s, C.id)) log(s, "Pokladna je prázdná: na výzbroj a odměny nezbývá, vojáci odcházejí domů.", "hospodarstvi", [C.id]); }
     // výcvik velitelem vojska
     const vt = officeVal(s, C.id, "vojsko"); if (vt) for (const p of clanProvs(s, C.id)) if (p.train < 70) p.train = Math.min(70, p.train + vt / 40);
     const kv = officeVal(s, C.id, "knez"); if (kv) { C.maat = Math.min(100, C.maat + kv / 400); if (C.estates) C.estates.knezi = Math.min(100, C.estates.knezi + kv / 300); }
@@ -276,12 +276,23 @@ const EVENTS = {
     ch: [{ t: "Opevnit východní hranici Delty proti Asiatům", d: "pevnost +1 v Heliopoli a Bubastidě, maat +2", f: () => { for (const id of ["l13", "l18"]) { const p = s.provs[id]; if (p.owner === s.player && p.castle < 5) { p.castle++; p.dur = durMax(s, p); } } C.maat = Math.min(100, C.maat + 2); return null; } },
       { t: "Hledat smír s Jihem", d: "vztah s Thébami +25, možná příměří", f: () => { addRel(s, s.player, "thebes", 25); if (atWar(s, s.player, "thebes") && chance(s, 0.5)) makePeace(s, s.player, "thebes"); return null; } },
       { t: "Posílit vojsko a trestat rebely", d: "výcvik +10 ve všech župách, nomarchové +5, lid −4", f: () => { for (const p of clanProvs(s, s.player)) p.train = Math.min(100, p.train + 10); C.estates.nomarchove = Math.min(100, C.estates.nomarchove + 5); C.estates.lid = Math.max(0, C.estates.lid - 4); return null; } }] }; } },
+  vymluvny: { view: (s, d) => { const C = P(s); return { t: "Výmluvný rolník", tx: "Rolník z Pole soli (Vádí Natrún) přišel do údolí prodat sůl, rohože a byliny. Úředník Nemtinacht mu pod záminkou, že osel spásl jeho ječmen, zabavil osly i náklad. Rolník teď den co den přichází před vrchního správce a skvělými řečmi žádá spravedlnost. (Podle příběhu z doby hérakleopolských králů, dochovaného ze Střední říše.)",
+    ch: [{ t: "Ihned rozhodnout v jeho prospěch", d: "maat +3, lid +5, nomarchové −3", f: () => { C.maat = Math.min(100, C.maat + 3); C.estates.lid = Math.min(100, C.estates.lid + 5); C.estates.nomarchove = Math.max(0, C.estates.nomarchove - 3); return "Rolník dostal osly zpět a Nemtinacht byl potrestán."; } },
+      { t: "Nechat ho mluvit devětkrát, jak to udělal král v příběhu, a dát jeho řeči zapsat", d: "maat +2, písaři +6, rolníkova rodina mezitím dostává chléb (500 charů)", f: () => { if (!pay(s, s.player, 0, 500)) return "Na chléb pro rodinu nebylo."; C.maat = Math.min(100, C.maat + 2); C.estates.pisari = Math.min(100, C.estates.pisari + 6); return "Řeči výmluvného rolníka opisují písaři v celé zemi."; } },
+      { t: "Zastat se úředníka", d: "maat −3, lid −4, nomarchové +3", f: () => { C.maat = Math.max(0, C.maat - 3); C.estates.lid = Math.max(0, C.estates.lid - 4); C.estates.nomarchove = Math.min(100, C.estates.nomarchove + 3); return null; } }] }; } },
+  edfu: { view: (s, d) => { const C = P(s); return { t: "„Hor mě přivedl do Edfu“", tx: "Anchtifi ve své hrobce píše, že ho bůh Hor přivedl do župy Edfu, kterou zanedbal její správce, aby ji „znovu založil“: nastolil pořádek, smířil znesvářené a ochránil slabé. Jak začneš?",
+    ch: [{ t: "Rozdat obilí a smířit znesvářené rody (6 000 charů)", d: "spokojenost v Edfu +20, maat +2", f: () => { if (!pay(s, s.player, 0, 6000)) return "Obilí nestačí."; const p = s.provs.u2; if (p.owner === s.player) p.loy = Math.min(100, p.loy + 20); C.maat = Math.min(100, C.maat + 2); return null; } },
+      { t: "Dosadit vlastní lidi a posílit posádku", d: "výcvik v Edfu +15, nomarchové +4", f: () => { const p = s.provs.u2; if (p.owner === s.player) p.train = Math.min(100, p.train + 15); C.estates.nomarchove = Math.min(100, C.estates.nomarchove + 4); return null; } }] }; } },
+  udoli: { view: (s, d) => { const C = P(s); return { t: "Krásný svátek údolí", tx: "Socha Amona se plaví z Karnaku na západní břeh Théb k chrámům a hrobkám předků. Rodiny hodují u hrobů svých mrtvých. (Svátek je doložen od Střední říše, od doby Montuhotepa II.)",
+    ch: [{ t: "Vystrojit slavnost (600 debenů, 3 000 charů)", d: "maat +3, lid +3, kněží +2", f: () => { if (!pay(s, s.player, 600, 3000)) return "Nedostatek prostředků."; C.maat = Math.min(100, C.maat + 3); C.estates.lid = Math.min(100, C.estates.lid + 3); C.estates.knezi = Math.min(100, C.estates.knezi + 2); return null; } },
+      { t: "Nechat slavit kněze", d: "maat +1", f: () => { C.maat = Math.min(100, C.maat + 1); return null; } }] }; } },
   vitezstvi: { view: (s, d) => ({ t: d.win ? "Pán Obou zemí" : "Konec", tx: d.txt, ch: [{ t: d.win ? "Vládnout dál" : "Rozumím", d: d.win ? "hra pokračuje" : "můžeš začít novou hru v záložce Hra", f: () => null }] }) },
 };
 
 function randomEvents(s) {
   const C = P(s); if (!C || !C.alive || s.events.length) return;
   if (s.month === OSIRIS_MONTH && s.provs.u8.owner === s.player) { queueEvent(s, "usir", {}); return; }
+  if (s.month === 9 && s.scen === "sip" && s.provs.u4.owner === s.player) { queueEvent(s, "udoli", {}); return; }
   if (s.month === 0 && regYear(s, s.player) >= 31 && (!C.hebsed || s.turn - C.hebsed >= 36)) { queueEvent(s, "hebsed", {}); return; }
   if (!chance(s, 0.22)) return;
   const opts = [];
@@ -292,10 +303,11 @@ function randomEvents(s) {
   const np = someOwnProv(s, p => p.pop > 15); if (np) opts.push(["nakaza", { pid: np.id }]);
   if (!C.medjay && clanProvs(s, s.player).some(p => p.nb.some(n => s.provs[n].flags.includes("m")) || p.flags.includes("m"))) opts.push(["medzaj", {}]);
   const zc = officers(s, s.player).filter(c => !c.dyn && c.traits.includes("chamtivy")); if (zc.length && C.grain > 30000) { const g = Math.round(C.grain * 0.05); C.grain -= g; opts.push(["zpronevera", { cid: pick(s, zc).id, g }]); }
-  if (s.scen === "fip") opts.push(["ipuver", {}]);
+  if (s.scen !== "sip") opts.push(["ipuver", {}]);
+  if (C.cul === "eg" && !s.flags.vymluvny) opts.push(["vymluvny", {}]);
   const groom = Object.values(s.chars).filter(c => c.cl === s.player && c.dyn && c.sex === "m" && !c.spouse && c.st === "off" && age(s, c) >= 16 && age(s, c) < 45);
   if (groom.length) { opts.push(["nevesta", { cid: groom[0].id }]); if (!heirsOf(s, s.player).some(c => c.sex === "m")) { queueEvent(s, "nevesta", { cid: groom[0].id }); return; } }
-  const [k, d] = pick(s, opts); queueEvent(s, k, d);
+  const [k, d] = pick(s, opts); if (k === "vymluvny") s.flags.vymluvny = 1; queueEvent(s, k, d);
 }
 function scriptedEvents(s) {
   if (s.scen === "sip") {
@@ -309,6 +321,7 @@ function scriptedEvents(s) {
     }
     if (!s.flags.rhind && s.turn >= 30 && s.clans.hyksos.alive && chance(s, 0.1)) { s.flags.rhind = 1; if (s.player === "hyksos") queueEvent(s, "rhind", {}); else s.clans.hyksos.res.pts += 30; }
   }
+  if (s.scen === "anch" && !s.flags.edfu && s.turn >= 1 && s.player === "anch" && s.provs.u2.owner === "anch") { s.flags.edfu = 1; queueEvent(s, "edfu", {}); }
   if (s.scen === "fip") {
     if (!s.flags.merikare && s.turn >= 6 && s.player === "herak" && s.clans.herak.alive) { s.flags.merikare = 1; queueEvent(s, "merikare", {}); }
   }
