@@ -132,7 +132,7 @@ function newGame(opts = {}) {
     for (const p of ps) p.deleg = !isPlayer(s, C.id) || p.id !== C.capital;
     assignLords(s, C.id);
   }
-  // zásoby obilí do první sklizně (sklizeň je v 1. měsíci Šemu)
+  // zásoby obilí do první sklizně (sklizeň je v 1. měsíci období šemu)
   for (const C of Object.values(s.clans)) C.grain = Math.max(C.grain, Math.round(-clanBudget(s, C.id).gnet * 11 + clanProvs(s, C.id).length * 4000));
   // potulní muži
   const all = Object.values(s.provs).filter(p => !isKmen(s, p.owner));
@@ -169,7 +169,7 @@ function floodWord(h) { if (h == null) return "neznámá"; return h < 12 ? "hlad
 const PASTORAL = { udoli: 0.2, delta: 0.45, fajjum: 0.35, nubie: 1.6, katarakt: 1.4, oaza: 1.4, poust: 3.0 };
 const NEED_PER_PERSON = 3.2; // charů obilí na osobu a rok
 function agriCap(s, p) { let m = 60; const o = p.owner; if (hasTech(s, o, "hraze") && (p.ter === "udoli" || p.ter === "delta")) m += 10; if (hasTech(s, o, "fajjum")) m += p.ter === "fajjum" ? 30 : 5; return m; }
-function comCap(s, p) { let m = p.comMax + (p.b.dilny || 0) * 20 + (p.b.pristav || 0) * 15; if (hasTech(s, p.owner, "dobytek") && p.ter === "delta") m += 5; return m; }
+function comCap(s, p) { let m = p.comMax + (p.b.dilny || 0) * 20 + (p.b.pristav || 0) * 15; return m; }
 function provHarvest(s, p, h) {
   const T = TERRAIN[p.ter], f = T.nile ? floodFactor(h != null ? h : s.flood.h) : (p.ter === "oaza" ? 0.95 : 0.7);
   return p.pop * 1000 * 5 * (p.agri / 50) * T.agri * f * (0.75 + p.loy / 400) * (p.siege ? 0.3 : 1);

@@ -133,14 +133,14 @@ svg.chart .ax { font-size: 10px; fill: var(--muted); font-family: Georgia, serif
 // Letopočty podle běžné „střední“ chronologie (I. Shaw, The Oxford History of Ancient Egypt, 2000); nejistota je desítky let.
 
 // Egyptský občanský rok: tři období po čtyřech měsících o 30 dnech + 5 dní navíc (epagomenální).
-const SEASONS = ["Achet", "Peret", "Šemu"];
-const SEASONS2 = ["Achetu", "Peretu", "Šemu"];
+const SEASONS = ["achet", "peret", "šemu"];
 const SEASON_D = ["záplava", "setí a růst", "sklizeň"];
-const monthName = m => `${(m % 4) + 1}. měsíc ${SEASONS2[Math.floor(m / 4)]}`;
+const monthName = m => `${(m % 4) + 1}. měsíc období ${SEASONS[Math.floor(m / 4)]}`;
 const monthShort = m => `${(m % 4) + 1}. ${SEASONS[Math.floor(m / 4)]}`;
-const FLOOD_MONTH = 1;   // vrchol záplavy (2. měsíc Achetu) – nilometr ukáže výšku
-const HARVEST_MONTH = 8; // sklizeň a výběr daně (1. měsíc Šemu)
-const OSIRIS_MONTH = 3;  // Usirovy mystéria v Abydu (4. měsíc Achetu, měsíc Chojak)
+const FLOOD_MONTH = 1;   // vrchol záplavy (2. měsíc období achet) – nilometr ukáže výšku
+const HARVEST_MONTH = 8; // sklizeň a výběr daně (1. měsíc období šemu)
+const OSIRIS_MONTH = 3;  // Usirovy mystéria v Abydu (herní termín; přesné datum ve Střední říši není jisté)
+// Pozn.: občanský kalendář (365 dní) se vůči skutečným ročním obdobím posouval o den za čtyři roky. Hra ho pro přehlednost drží v souladu se záplavou.
 
 const TERRAIN = {
   udoli: { n: "Nilské údolí", agri: 1.0, def: 1.0, vuz: 1.15, nile: 1 },
@@ -163,13 +163,13 @@ const TROOPS = {
 const TROOP_IDS = Object.keys(TROOPS);
 const RATION_SOLDIER = 1.5;
 
-// Hodnosti úředníků (podle titulatury Střední říše). Plat je měsíční příděl v charech obilí.
+// Hodnostní tituly Staré a Střední říše: seš, semer uati, hatia, heri-tep aa (nomarcha), iri-pat. Plat je měsíční příděl v charech obilí (herní odhad).
 const RANKS = [
-  { n: "Písař", cmd: 600, pay: 20, merit: 0 },
-  { n: "Jedinečný přítel", cmd: 1200, pay: 40, merit: 60 },
-  { n: "Hodnostář (hatia)", cmd: 2500, pay: 80, merit: 180 },
-  { n: "Velký vládce župy", cmd: 4500, pay: 150, merit: 400 },
-  { n: "Kníže (iripat)", cmd: 8000, pay: 250, merit: 800 },
+  { n: "Písař (seš)", cmd: 600, pay: 20, merit: 0 },
+  { n: "Jediný přítel (krále)", cmd: 1200, pay: 40, merit: 60 },
+  { n: "Hatia (představený)", cmd: 2500, pay: 80, merit: 180 },
+  { n: "Velký představený župy", cmd: 4500, pay: 150, merit: 400 },
+  { n: "Iripat hatia (přední muž země)", cmd: 8000, pay: 250, merit: 800 },
 ];
 
 const STATS = { ved: "Velení", uda: "Statečnost", roz: "Moudrost", spr: "Správa" };
@@ -223,12 +223,12 @@ const RES = {
   zlato: { n: "zlato", mine: 1, deben: 250 },
   med: { n: "měď", mine: 1, deben: 120 },
   tyrkys: { n: "tyrkys", mine: 1, deben: 100 },
-  kamen: { n: "stavební kámen", mine: 1, deben: 50 },
+  kamen: { n: "stavební kámen (žula, pískovec, vápenec)", mine: 1, deben: 50 },
   alabastr: { n: "alabastr (travertin)", mine: 1, deben: 100 },
-  natron: { n: "natron", mine: 1, deben: 70 },
+  natron: { n: "natron (soda k mumifikaci)", mine: 1, deben: 70 },
   papyrus: { n: "papyrus", deben: 60 },
-  dobytek: { n: "dobytek", deben: 50 },
-  vino: { n: "víno a datle", deben: 50 },
+  dobytek: { n: "skot (pastviny)", deben: 50 },
+  vino: { n: "datle a víno", deben: 50 },
   eben: { n: "eben a slonovina", deben: 90 },
 };
 
@@ -236,42 +236,42 @@ const RES = {
 const EXPED = {
   hammamat: { n: "Vádí Hammámát – kámen bechen a zlato", from: ["ham", "u5"], months: 3, deben: [3000, 6000], prestige: 8, risk: 0.1, foe: "Médžajové v poušti" },
   hatnub: { n: "Hatnub – alabastrové lomy", from: ["u15"], months: 2, deben: [2000, 3500], prestige: 6, risk: 0.05, foe: "pouštní nomádi" },
-  sinaj: { n: "Sinaj – tyrkys a měď (Serábit el-Chádim)", from: ["sin", "l20", "l14"], months: 4, deben: [4000, 7000], prestige: 10, maat: 2, risk: 0.15, foe: "kmeny Aamu" },
+  sinaj: { n: "Sinaj – tyrkys (Serábit el-Chádim, Vádí Maghára) a měď", from: ["sin", "l20", "l14"], months: 4, deben: [4000, 7000], prestige: 10, maat: 2, risk: 0.15, foe: "kmeny Aamu" },
   zlato: { n: "Zlaté doly Vavatu (vádí Allákí)", from: ["n_wawat"], months: 3, deben: [5000, 9000], prestige: 6, risk: 0.15, foe: "núbijské kmeny" },
-  byblos: { n: "Byblos – cedrové dřevo a olej", from: ["l6", "l14", "lav"], months: 5, deben: [3000, 5000], cedar: 1, prestige: 12, risk: 0.15, tech: "namorni", foe: "bouře a piráti" },
+  byblos: { n: "Byblos – cedrové dřevo (aš) a olej", from: ["l6", "l14", "lav"], months: 5, deben: [3000, 5000], cedar: 1, prestige: 12, risk: 0.15, tech: "namorni", foe: "bouře a piráti" },
   punt: { n: "Punt – kadidlo, myrha, eben a zlato", from: ["sau"], months: 8, deben: [12000, 20000], prestige: 40, maat: 6, risk: 0.25, tech: "namorni", foe: "bouře na Rudém moři" },
 };
 
 const TECHS = {
-  nilometr: { n: "Nilometr", cat: "Zemědělství", cost: 50, d: "předpověď záplavy už v 1. měsíci Achetu, hladomor mírnější o třetinu" },
-  hraze: { n: "Nádrže a hráze", cat: "Zemědělství", cost: 80, d: "+10 stropu polí v údolí a v Deltě" },
-  fajjum: { n: "Kolonizace Fajjúmu", cat: "Zemědělství", cost: 120, req: ["hraze"], d: "+30 stropu polí ve Fajjúmu, +5 jinde (tak jako za 12. dynastie)" },
-  dobytek: { n: "Chov dobytka v Deltě", cat: "Zemědělství", cost: 70, d: "+5 stropu obchodu v Deltě; s vozy chov koní" },
-  pisari: { n: "Hieratické písařství", cat: "Správa", cost: 60, d: "+10 % debenů ze žup" },
-  katastr: { n: "Katastr polí", cat: "Správa", cost: 90, req: ["pisari"], d: "+10 % daně ze sklizně" },
-  vezir: { n: "Úřad vezíra", cat: "Správa", cost: 110, req: ["pisari"], d: "úředníci +5 věrnosti, úřady působí silněji" },
-  kamenictvi: { n: "Kamenické umění", cat: "Stavitelství", cost: 90, d: "stavby o 20 % levnější" },
-  pevnosti: { n: "Pevnostní stavitelství", cat: "Stavitelství", cost: 110, req: ["kamenictvi"], d: "pevnosti +25 % obrany, +50 výdrže hradeb (núbijské pevnosti Střední říše)" },
-  texty: { n: "Texty rakví", cat: "Náboženství a učenost", cost: 70, d: "posmrtný život i pro nekrálovské: lid +5 spokojenosti, maat roste rychleji" },
-  matematika: { n: "Matematika písařů", cat: "Náboženství a učenost", cost: 100, req: ["pisari"], d: "+25 % bodů vědění, stavby o měsíc kratší" },
-  lekarstvi: { n: "Lékařské papyry", cat: "Náboženství a učenost", cost: 120, req: ["pisari"], d: "nižší úmrtnost, mírnější nákazy, rychlejší léčba zraněných" },
-  hvezdy: { n: "Hvězdné hodiny", cat: "Náboženství a učenost", cost: 90, req: ["matematika"], d: "přesný kalendář: +2 maat ročně, záplava se odhadne přesněji" },
-  bronz: { n: "Cínový bronz", cat: "Válečnictví", cost: 80, d: "kopiníci a lučištníci +15 % útoku" },
-  luk: { n: "Kompozitní luk", cat: "Válečnictví", cost: 100, d: "lučištníci a Médžajové +30 % útoku" },
-  vuz: { n: "Válečný vůz a kůň", cat: "Válečnictví", cost: 160, req: ["bronz"], d: "umožní válečné vozy; župy Delty chovají koně" },
-  chopes: { n: "Chopeš a bronzové sekery", cat: "Válečnictví", cost: 90, req: ["bronz"], d: "kopiníci +20 % útoku" },
-  zbroj: { n: "Šupinová zbroj", cat: "Válečnictví", cost: 110, req: ["bronz"], d: "+15 % obrany vojska" },
-  flotila: { n: "Říční flotila", cat: "Válečnictví", cost: 80, d: "vojsko pluje po Nilu: dvě župy za měsíc, +10 % útoku v údolí" },
-  namorni: { n: "Námořní lodě", cat: "Válečnictví", cost: 120, req: ["flotila"], d: "umožní výpravy do Byblu a do Puntu" },
+  nilometr: { n: "Měření záplav", cat: "Zemědělství", cost: 50, d: "značky výšky vody a letopisy záplav (zapisuje je už Palermská deska ze Staré říše): předpověď v 1. měsíci období achet, hlad mírnější o třetinu" },
+  hraze: { n: "Nádrže a hráze", cat: "Zemědělství", cost: 80, d: "lepší síť hrází a přepouštění vody do nádrží (kotlinové zavlažování): +10 stropu polí v údolí a v Deltě" },
+  fajjum: { n: "Kolonizace Fajjúmu", cat: "Zemědělství", cost: 120, req: ["hraze"], d: "odvodnění a osídlení pánve u Bahr Júsufu, jak to provedli králové 12. dynastie: +30 stropu polí ve Fajjúmu, +5 jinde" },
+  dobytek: { n: "Chov koní", cat: "Zemědělství", cost: 70, req: ["vuz"], d: "hřebčíny na pastvinách Delty: dvojnásobek koní (kůň přišel do Egypta až s Hyksósy)" },
+  pisari: { n: "Písařské školy", cat: "Správa", cost: 60, d: "výuka hieratického písma a účetnictví (školní text Kemit je ze Střední říše): +10 % debenů ze žup" },
+  katastr: { n: "Soupisy polí", cat: "Správa", cost: 90, req: ["pisari"], d: "vyměřování polí po opadnutí vody a jejich zápis: +10 % daně ze sklizně" },
+  vezir: { n: "Ústřední úřady (varet)", cat: "Správa", cost: 110, req: ["pisari"], d: "rozdělení správy na úřady Severu, Jihu a „Hlavy Jihu“ jako za Senusreta III.: úředníci +5 věrnosti, vezír působí silněji" },
+  kamenictvi: { n: "Bronzové nástroje kameníků", cat: "Stavitelství", cost: 90, req: ["bronz"], d: "dláta a pily z cínového bronzu místo měděných: stavby o 20 % levnější" },
+  pevnosti: { n: "Pevnostní stavitelství", cat: "Stavitelství", cost: 110, d: "cihlové hradby s baštami, příkopem a šikmým náspem, jak je známe z núbijských pevností 12. dynastie (Buhen): +25 % obrany, +50 výdrže hradeb" },
+  texty: { n: "Texty rakví", cat: "Náboženství a učenost", cost: 70, d: "zaříkání pro posmrtný život psaná na rakve hodnostářů (z Asjútu, Beni Hasanu, Beršy): lid +5 spokojenosti, maat roste rychleji" },
+  matematika: { n: "Matematika písařů", cat: "Náboženství a učenost", cost: 100, req: ["pisari"], d: "výpočty ploch, objemů sýpek a přídělů (Moskevský a Rhindův papyrus): +25 % bodů vědění, stavby o měsíc kratší" },
+  lekarstvi: { n: "Lékařské papyry", cat: "Náboženství a učenost", cost: 120, req: ["pisari"], d: "sbírky diagnóz a léčby (Kahúnský papyrus ze Střední říše, chirurgický Smithův papyrus opsaný v Druhém přechodném období): nižší úmrtnost a mírnější nákazy" },
+  hvezdy: { n: "Hvězdné hodiny", cat: "Náboženství a učenost", cost: 90, req: ["matematika"], d: "měření nočních hodin podle dekanů (diagonální hvězdné hodiny na víkách rakví z Asjútu): chrámové obřady v pravou hodinu, +2 maat ročně" },
+  bronz: { n: "Cínový bronz", cat: "Válečnictví", cost: 80, d: "slitina mědi s dováženým cínem nahrazuje arzenovou měď (běžná od Střední říše): kopiníci a lučištníci +15 % útoku" },
+  luk: { n: "Kompozitní luk", cat: "Válečnictví", cost: 100, d: "luk ze dřeva, rohoviny a šlach s delším dostřelem, do Egypta se rozšířil v Druhém přechodném období: lučištníci a Médžajové +30 % útoku" },
+  vuz: { n: "Válečný vůz a kůň", cat: "Válečnictví", cost: 160, req: ["bronz"], d: "lehký vůz s loukoťovými koly tažený dvěma koňmi. Hyksósové koně chovali (koňské hroby v Avaridu); jak hojně vozy nasazovali v boji, je sporné. Umožní válečné vozy" },
+  chopes: { n: "Chopeš a sekery levantského typu", cat: "Válečnictví", cost: 90, req: ["bronz"], d: "srpovitý meč a úzké průbojné sekery z Předního východu: kopiníci +20 % útoku" },
+  zbroj: { n: "Kožená zbroj", cat: "Válečnictví", cost: 110, req: ["bronz"], d: "kabátce z kůže a velké štíty z volské kůže (kovová šupinová zbroj je až z Nové říše): +15 % obrany vojska" },
+  flotila: { n: "Válečné lodě na Nilu", cat: "Válečnictví", cost: 80, d: "přeprava vojska po řece, jak ji líčí Anchtifi i Kamose: dvě župy za měsíc, +10 % útoku v údolí" },
+  namorni: { n: "Námořní lodě (kebenit)", cat: "Válečnictví", cost: 120, req: ["flotila"], d: "„byblské lodě“ pro plavbu po moři: výpravy do Byblu a do Puntu" },
 };
 const TECH_IDS = Object.keys(TECHS);
 
 const LAWS = {
   robota: { n: "Robota", opts: ["Mírná", "Obvyklá", "Těžká"], d: "Těžší robota zlevní a urychlí stavby a kanály, ale lid reptá." },
-  nomarchove: { n: "Postavení nomarchů", opts: ["Dědičné úřady", "Jmenování panovníkem", "Omezení moci nomarchů"], d: "Dědičné úřady těší úředníky a nomarchy, omezení dá víc daní, ale šlechta se bouří (Senusret III. omezil nomarchy až později)." },
-  chramy: { n: "Chrámové statky", opts: ["Osvobození od daní", "Rovnováha", "Zdanění chrámů"], d: "Osvobození (známé z dekretů z Koptu) těší kněze a maat; zdanění dá debeny, kněží se hněvají." },
+  nomarchove: { n: "Postavení nomarchů", opts: ["Dědičné úřady", "Jmenování panovníkem", "Omezení moci nomarchů"], d: "Dědičné úřady těší úředníky a nomarchy, omezení dá víc daní, ale nomarchové se bouří. (Dědičnými se úřady nomarchů staly koncem Staré říše; jejich moc omezil až Senusret III.)" },
+  chramy: { n: "Chrámové statky", opts: ["Osvobození od daní a roboty", "Rovnováha", "Zdanění chrámů"], d: "Osvobození (známé z královských dekretů z Koptu ze Staré říše) těší kněze a maat; zdanění dá debeny, kněží se hněvají." },
   vojsko: { n: "Vojsko", opts: ["Místní hotovost nomarchů", "Smíšené", "Stálé vojsko"], d: "Hotovost je levná, ale málo vycvičená; stálé vojsko je dražší a lepší." },
-  nastupnictvi: { n: "Nástupnictví", opts: ["Nejstarší syn", "Spoluvláda dědice", "Nejschopnější z rodu"], d: "Spoluvláda (známá ze Střední říše) zajistí hladké předání vlády; nejschopnější těší úředníky, ale budí spory." },
+  nastupnictvi: { n: "Nástupnictví", opts: ["Nejstarší syn", "Spoluvláda dědice", "Nejschopnější z rodu"], d: "Spoluvláda (doložená od 12. dynastie, Amenemhat I. a Senusret I.) zajistí hladké předání vlády; nejschopnější těší úředníky, ale budí spory." },
 };
 const ESTATES = { knezi: "Kněží", nomarchove: "Nomarchové a hodnostáři", pisari: "Písaři", lid: "Rolníci a řemeslníci" };
 const ESTATE_IDS = Object.keys(ESTATES);
@@ -281,27 +281,28 @@ const TAX_RATE = [0.1, 0.125, 0.2, 0.25, 0.33];
 
 const OFFICES = {
   vezir: { n: "Vezír (tjati)", stat: "spr", d: "nejvyšší úředník: věrnost úředníků, výnos daní" },
-  pokladnik: { n: "Pokladník (imi-ra chetemet)", stat: "spr", d: "spravuje pečetě a sklady: víc debenů" },
-  sypky: { n: "Správce sýpek", stat: "spr", d: "menší ztráty obilí a lepší sklizeň" },
+  pokladnik: { n: "Pokladník (imi-ra chetemet)", stat: "spr", d: "„představený zapečetěných věcí“ – sklady drahých kovů, látek a olejů: víc debenů" },
+  sypky: { n: "Představený sýpek (imi-ra šenuti)", stat: "spr", d: "menší ztráty obilí a lepší sklizeň" },
   vojsko: { n: "Velitel vojska (imi-ra meša)", stat: "ved", d: "výcvik všech posádek každý měsíc" },
-  knez: { n: "Velekněz", stat: "roz", d: "maat a přízeň kněží každý měsíc" },
+  knez: { n: "Představený kněží (imi-ra hemu-necer)", stat: "roz", d: "maat a přízeň kněží každý měsíc" },
 };
 
 // Jména podle kultury (pro úředníky tvořené hrou). Egyptská jména jsou doložená pro Střední říši a přechodná období.
 const NAMES = {
-  eg: { m: ["Intef", "Iku", "Cheti", "Senbi", "Meru", "Iti", "Henenu", "Sobekhotep", "Džehuti", "Nacht", "Hetepi", "Ipi", "Meketre", "Ankhu", "Renseneb", "Neferhotep", "Sabni", "Hekaib", "Iha", "Rensi", "Bebi", "Pepi", "Teti", "Ini", "Chuu", "Seneb", "Kemsu", "Amenemhat", "Montuhotep", "Džefai", "Nebipu", "Sehetepib", "Ib", "Kai", "Henu", "Merer", "Sarenput", "Chnumhotep", "Ameni", "Sobeknacht", "Iuf", "Tjeti", "Nedžemib", "Hapi", "Mentuemhat"],
+  eg: { m: ["Intef", "Iku", "Cheti", "Senbi", "Meru", "Iti", "Henenu", "Sobekhotep", "Džehuti", "Nacht", "Hetepi", "Ipi", "Meketre", "Ankhu", "Renseneb", "Neferhotep", "Sabni", "Hekaib", "Iha", "Rensi", "Bebi", "Pepi", "Teti", "Ini", "Chuu", "Seneb", "Kemsu", "Amenemhat", "Montuhotep", "Džefai", "Ib", "Kai", "Henu", "Merer", "Chnumhotep", "Ameni", "Sobeknacht", "Iuf", "Tjeti", "Nedžemib", "Hapidžefai"],
     f: ["Neferu", "Iah", "Sathathor", "Mereret", "Nebet", "Henut", "Tjat", "Anchesi", "Senet", "Nefret", "Satmontu", "Meryt", "Kemsit", "Ašajet", "Henhenet", "Satsobek", "Renesnebet", "Itet", "Hepet", "Neferut"] },
-  hyk: { m: ["Jakobhar", "Anathar", "Semken", "Janasi", "Šešej", "Abiša", "Šamuhar", "Jamu", "Chajan", "Abdu", "Jakeb", "Sikerhar", "Bnon", "Aperanat", "Nuja", "Ahmose", "Ipi", "Neferhotep", "Senbi", "Sobekhotep"],
+  hyk: { m: ["Jakobhar", "Anathar", "Semken", "Janasi", "Šešej", "Abiša", "Chajan", "Abdu", "Sikerhar", "Bnon", "Aperanat", "Nuja", "Ahmose", "Ipi", "Neferhotep", "Senbi", "Sobekhotep"],
     f: ["Tani", "Herit", "Anati", "Šarek", "Iti", "Nebet", "Senet", "Meryt"] },
   nub: { m: ["Awawa", "Kaa", "Teriahi", "Ijerkej", "Wenkat", "Tekeru", "Senemuer", "Arkhi", "Bakuaket", "Šaat", "Merkus", "Iteru", "Hekaneh", "Anuket"],
     f: ["Abar", "Kandaka", "Nehet", "Sešat", "Iriket", "Tabiri"] },
   lib: { m: ["Wenet", "Kapur", "Mešer", "Hesi", "Teha", "Iner", "Marai", "Weneš", "Kepi", "Betut"], f: ["Tenet", "Hesit", "Marit"] },
   aam: { m: ["Abiša", "Jamu", "Hadar", "Ibšemu", "Sapir", "Jakar", "Nahir", "Šubaj", "Kenaz"], f: ["Adah", "Tamar", "Šiprah"] },
 };
+// Jména Hyksósů podle skarabů a nápisů (Jakobhar, Anathar, Šešej, Chajan, Sikerhar); núbijská a libyjská jména jsou herní, inspirovaná egyptskými záznamy (proklínací texty).
 const SON_NAMES = { eg: ["Intef", "Montuhotep", "Cheti", "Ahmose", "Kamose", "Sobekemsaf", "Senachtenre", "Merikare", "Amenemhat", "Džehutinacht", "Neferkare", "Tefibi"], hyk: ["Apopi", "Chamudi", "Chajan", "Janasi", "Sakirhar"], nub: ["Nedžeh", "Awawa", "Kaa", "Teriahi"], lib: ["Kapur", "Mešer"], aam: ["Abiša", "Jamu"] };
 
 // Bohové žup (pro chrámy)
-const GODS = { u1: "Chnum a Satet", u2: "Hor Behdetský", u3: "Nechbet a Hor Nechenský", u4: "Amon a Montu", u5: "Min a Eset", u6: "Hathor", u7: "Bat a Hathor", u8: "Usir a Chontamenti", u9: "Min", u10: "Nemtej", u11: "Chnum", u12: "Nemtej", u13: "Upuaut", u14: "Hathor", u15: "Thovt", u16: "Pachet a Hor", u17: "Anup", u18: "Nemtej", u19: "Sutech a Thoeris", u20: "Herišef", u21: "Chnum", u22: "Hathor", fa: "Sobek", l1: "Ptah", l2: "Hor Chentejirti", l13: "Re a Atum", l3: "Hathor a Sachmet", l5: "Neit", l6: "Vadžet", lx: "Amon-Re", l12: "Onuris", l16: "Banebdžedet (beran)", l18: "Bastet", lav: "Sutech", l20: "Atum", l14: "Hor Mesenský", o_bah: "Amon", o_dak: "Sutech", o_kha: "Amon", lib: "Aš", sin: "Hathor, paní tyrkysu", ham: "Min", sau: "Min", n_wawat: "Hor Miamský", n_buhen: "Hor Buhenský", n_semna: "Dedun", n_sai: "Dedun", n_kerma: "bohové Kermy" };
+const GODS = { u1: "Chnum a Satet", u2: "Hor Behdetský", u3: "Nechbet a Hor Nechenský", u4: "Amon a Montu", u5: "Min a Eset", u6: "Hathor", u7: "Bat a Hathor", u8: "Usir a Chontamenti", u9: "Min", u10: "Nemtej", u11: "Chnum", u12: "Nemtej", u13: "Upuaut", u14: "Hathor", u15: "Thovt", u16: "Pachet a Hor", u17: "Anup", u18: "Nemtej", u19: "Sutech", u20: "Herišef", u21: "Chnum", u22: "Hathor", fa: "Sobek", l1: "Ptah", l2: "Hor Chentejirti", l13: "Re a Atum", l3: "Hathor a Sachmet", l5: "Neit", l6: "Vadžet", lx: "místní bůh Xoidy", l12: "Onuris", l16: "Banebdžedet (beran)", l18: "Bastet", lav: "Sutech", l20: "Atum", l14: "Hor Mesenský", o_bah: "místní bohové oázy", o_dak: "místní bohové oázy", o_kha: "místní bohové oázy", lib: "Aš", sin: "Hathor, paní tyrkysu", ham: "Min", sau: "Min", n_wawat: "Hor Miamský", n_buhen: "Hor Buhenský", n_semna: "Dedun", n_sai: "Dedun", n_kerma: "bohové Kermy" };
 
 // Župy (egyptsky sepat, řecky nomos): [id, název, staroegyptský název, z. šířka, z. délka, terén, velikost 1–5, příznaky, suroviny]
 // příznaky: e = egyptské jádro (pro sjednocení), c = město, k = pobřeží, h = posvátné pohřebiště, f = pohraniční pevnost, m = Médžajové (nábor)
@@ -317,7 +318,7 @@ const PROVINCES = [
   ["u9", "Achmím", "Ipu, 9. župa", 26.56, 31.75, "udoli", 3, "e", []],
   ["u10", "Kau", "Tjebu, 10. župa", 26.90, 31.52, "udoli", 2, "e", []],
   ["u11", "Šas-hotep", "11. župa", 27.06, 31.33, "udoli", 2, "e", []],
-  ["u12", "Per-Nemtej", "12. župa (Deir el-Gabráví)", 27.36, 31.10, "udoli", 2, "e", []],
+  ["u12", "Per-Nemtej", "12. župa (Dér el-Gabráví)", 27.36, 31.10, "udoli", 2, "e", []],
   ["u13", "Asjút", "Zautí, 13. župa", 27.18, 31.18, "udoli", 3, "ec", []],
   ["u14", "Kúsaj", "Kis, 14. župa", 27.44, 30.82, "udoli", 2, "e", []],
   ["u15", "Hermopolis", "Chemenu, 15. župa (Zaječí)", 27.78, 30.80, "udoli", 4, "ec", ["alabastr"]],
@@ -326,22 +327,22 @@ const PROVINCES = [
   ["u18", "El-Hiba", "Teudžoi, 18. župa", 28.79, 30.92, "udoli", 2, "e", []],
   ["u19", "Oxyrhynchos", "Per-medžed, 19. župa", 28.53, 30.66, "udoli", 2, "e", []],
   ["u20", "Hérakleopolis", "Nen-nesut, 20. župa", 29.08, 30.93, "udoli", 4, "ec", []],
-  ["u21", "Meidúm a Lišt", "21. župa", 29.39, 31.16, "udoli", 2, "e", []],
+  ["u21", "Meidúm a Lišt", "Šenachen, 21. župa", 29.39, 31.16, "udoli", 2, "e", []],
   ["u22", "Atfíh", "Tepihu, 22. župa", 29.42, 31.27, "udoli", 2, "e", []],
   ["fa", "Fajjúm", "Šedet, Ta-še", 29.31, 30.84, "fajjum", 3, "e", []],
-  ["l1", "Memfis", "Mennefer, Bílé zdi, 1. dolnoegyptská župa", 29.85, 31.25, "udoli", 5, "ech", ["kamen"]],
+  ["l1", "Memfis", "Ineb-hedž (Bílé zdi), 1. dolnoegyptská župa", 29.85, 31.25, "udoli", 5, "ech", ["kamen"]],
   ["l2", "Letopolis", "Chem, 2. župa", 30.13, 31.08, "delta", 2, "e", []],
   ["l13", "Heliopolis", "Iunu, 13. župa", 30.13, 31.31, "delta", 3, "ec", []],
   ["l3", "Západní župa", "Imentet (Kom el-Hisn), 3. župa", 30.80, 30.60, "delta", 2, "e", ["dobytek"]],
   ["l5", "Sais", "Zau, 5. župa", 30.97, 30.77, "delta", 3, "e", []],
-  ["l6", "Buto", "Pe a Dep, 6. župa", 31.20, 30.74, "delta", 2, "ek", ["papyrus"]],
+  ["l6", "Buto", "Pe a Dep (Per-Vadžet)", 31.20, 30.74, "delta", 2, "ek", ["papyrus"]],
   ["lx", "Xois", "Chasu", 31.10, 30.98, "delta", 2, "e", ["papyrus"]],
   ["l12", "Sebennytos", "Tjebnetjer, 12. župa", 30.96, 31.24, "delta", 2, "e", ["dobytek"]],
   ["l16", "Mendes", "Džedet, 16. župa", 30.96, 31.52, "delta", 3, "e", ["dobytek"]],
   ["l18", "Bubastis", "Per-Bastet, 18. župa", 30.57, 31.51, "delta", 3, "ec", []],
   ["lav", "Avaris", "Hut-uaret (Tell el-Dab'a)", 30.79, 31.82, "delta", 2, "ek", []],
   ["l20", "Vádí Tumilát", "Tjeku, 8. župa", 30.55, 32.05, "poust", 1, "ef", []],
-  ["l14", "Tjaru", "Sile, Zdi vládcovy, 14. župa", 30.86, 32.32, "delta", 2, "ekf", []],
+  ["l14", "Tjaru", "Sile, pohraniční pevnost, 14. župa", 30.86, 32.32, "delta", 2, "ekf", []],
   ["o_bah", "Oáza Bahríja", "Džesdžes", 28.35, 28.86, "oaza", 1, "", ["vino"]],
   ["o_dak", "Oáza Dachla", "Balat (Ajn Asíl)", 25.55, 29.20, "oaza", 2, "", ["vino"]],
   ["o_kha", "Oáza Charga", "Kenem", 25.44, 30.55, "oaza", 1, "", ["vino"]],
@@ -381,26 +382,26 @@ const SCENARIOS = {
   fip: {
     n: "≈ 2070 př. n. l. – Válka Obou zemí (První přechodné období)",
     bce: 2070,
-    d: "Stará říše se rozpadla. Na severu vládnou z Hérakleopole králové z rodu Chetiho, na jihu se Thébané pod Intefem II. prohlásili králi Horního i Dolního Egypta. Mezi nimi stojí mocní nomarchové Asjútu, Hermopole a Beni Hasanu. Země trpí nízkými záplavami a hladem. O Thinidu a posvátný Abydos se bojuje.",
+    d: "Stará říše se rozpadla. Na severu vládnou z Hérakleopole králové z rodu Chetiho, na jihu se Thébané pod Intefem II. prohlásili králi Horního i Dolního Egypta. Mezi nimi stojí mocní nomarchové Asjútu, Hermopole a Beni Hasanu. Nápisy té doby líčí nízké záplavy a hlad. O Thinidu a posvátný Abydos se bojuje.",
     climate: -0.9,
     clans: [
       { id: "thebes", n: "Thébské království", house: "Intefovci (11. dynastie)", t: "král", type: "dyn", cul: "eg", col: "#b5452c", emb: "was", aggr: 0.65, cap: "u4", tomb: "saff hrobka v et-Tárifu",
         provs: ["u1", "u2", "u3", "u4", "u5", "u6", "u7", "u8", "u9", "o_kha"], techs: ["pisari", "nilometr"], maat: 50, prestige: 160 },
       { id: "herak", n: "Hérakleopolské království", house: "Dům Chetiho (9./10. dynastie)", t: "král", type: "dyn", cul: "eg", col: "#2f6d8f", emb: "djed", aggr: 0.45, cap: "u20", tomb: "pyramida v Sakkáře",
-        provs: ["u14", "u17", "u18", "u19", "u20", "u21", "u22", "fa", "l1", "l2", "l13", "l3", "l5", "l6", "lx", "l12", "l16", "l18", "lav", "o_bah"], techs: ["pisari", "nilometr", "texty", "kamenictvi"], maat: 45, prestige: 200 },
+        provs: ["u14", "u17", "u18", "u19", "u20", "u21", "u22", "fa", "l1", "l2", "l13", "l3", "l5", "l6", "lx", "l12", "l16", "l18", "lav", "o_bah"], techs: ["pisari", "nilometr", "texty"], maat: 45, prestige: 200 },
       { id: "asjut", n: "Župa Asjút", house: "Asjútští nomarchové", t: "nomarcha", type: "nom", cul: "eg", col: "#c9a227", emb: "star", aggr: 0.55, cap: "u13", tomb: "skalní hrobka v Asjútu", vassalOf: "herak",
         provs: ["u10", "u11", "u12", "u13"], techs: ["pisari", "nilometr", "texty"], maat: 50, prestige: 90 },
-      { id: "hermo", n: "Zaječí župa", house: "Nomarchové Hermopole", t: "nomarcha", type: "nom", cul: "eg", col: "#4f8a5b", emb: "crescent", aggr: 0.3, cap: "u15", tomb: "skalní hrobka v Deir el-Beršá", vassalOf: "herak",
+      { id: "hermo", n: "Zaječí župa", house: "Nomarchové Hermopole", t: "nomarcha", type: "nom", cul: "eg", col: "#4f8a5b", emb: "crescent", aggr: 0.3, cap: "u15", tomb: "skalní hrobka v Dér el-Beršá", vassalOf: "herak",
         provs: ["u15"], techs: ["pisari", "nilometr", "texty"], maat: 50, prestige: 70 },
       { id: "oryx", n: "Oryxová župa", house: "Nomarchové z Beni Hasanu", t: "nomarcha", type: "nom", cul: "eg", col: "#a3678e", emb: "feather", aggr: 0.3, cap: "u16", tomb: "skalní hrobka v Beni Hasanu",
         provs: ["u16"], techs: ["pisari", "nilometr", "texty"], maat: 50, prestige: 60 },
-      { id: "kerma", n: "Kuš", house: "Vládci Kermy", t: "vládce", type: "dyn", cul: "nub", col: "#6b4a2b", emb: "bow", aggr: 0.4, cap: "n_kerma", tomb: "mohyla (tumulus) v Kermě",
+      { id: "kerma", n: "Kuš", house: "Vládci Kermy", t: "vládce", type: "dyn", cul: "nub", col: "#6b4a2b", emb: "bow", aggr: 0.4, cap: "n_kerma", tomb: "mohylový hrob v Kermě",
         provs: ["n_sai", "n_kerma"], techs: ["luk"], maat: 50, prestige: 110 },
       { id: "wawat", n: "Vavat", house: "Náčelníci Vavatu (skupina C)", t: "náčelník", type: "kmen", cul: "nub", col: "#8c6d46", emb: "bow", aggr: 0.35, cap: "n_wawat",
         provs: ["n_wawat", "n_buhen", "n_semna"], techs: [], maat: 50, prestige: 40 },
       { id: "medzaj", n: "Médžajové", house: "Kmeny Východní pouště", t: "náčelník", type: "kmen", cul: "nub", col: "#7a4b8c", emb: "bow", aggr: 0.4, cap: "ham",
         provs: ["ham", "sau"], techs: [], maat: 50, prestige: 30 },
-      { id: "oazy", n: "Oázy", house: "Správcové oáz z Balatu", t: "správce", type: "kmen", cul: "eg", col: "#9aa04a", emb: "papyrus", aggr: 0.1, cap: "o_dak",
+      { id: "oazy", n: "Oázy", house: "Správcové oáz z Balatu (doloženi ve Staré říši, později nejistí)", t: "správce", type: "kmen", cul: "eg", col: "#9aa04a", emb: "papyrus", aggr: 0.1, cap: "o_dak",
         provs: ["o_dak"], techs: ["pisari"], maat: 50, prestige: 30 },
       { id: "aamu", n: "Aamu", house: "Asijské kmeny východní Delty", t: "náčelník", type: "kmen", cul: "aam", col: "#5d6b7a", emb: "star", aggr: 0.6, cap: "l14",
         provs: ["l20", "l14", "sin"], techs: [], maat: 50, prestige: 30 },
@@ -431,20 +432,20 @@ const SCENARIOS = {
   sip: {
     n: "≈ 1560 př. n. l. – Proti Hyksósům (Druhé přechodné období)",
     bce: 1560,
-    d: "Sever ovládají Hyksósové („vládci cizích zemí“) z Avaridu, na jihu číhá mocná Kuš z Kermy. Thébská 17. dynastie drží jen Horní Egypt od Elefantiny po Kúsaj a platí Hyksósům tribut. Král Apopi prý posílá do Théb urážlivé vzkazy. Sekenenre Taa a jeho synové chystají osvobozovací válku.",
+    d: "Sever ovládají Hyksósové („vládci cizích zemí“) z Avaridu, na jihu číhá mocná Kuš z Kermy. Thébská 17. dynastie drží jen Horní Egypt od Elefantiny po Kúsaj a podle běžného výkladu uznává svrchovanost Hyksósů a odvádí jim poplatky. Podle pozdějšího vyprávění posílá král Apopi do Théb urážlivé vzkazy. Sekenenre Taa a jeho rod se chystají k válce.",
     climate: 0,
     clans: [
       { id: "thebes", n: "Thébské království", house: "17. dynastie (Taa)", t: "král", type: "dyn", cul: "eg", col: "#b5452c", emb: "was", aggr: 0.55, cap: "u4", tomb: "pyramida v Dra Abu el-Naga",
         provs: ["u1", "u2", "u3", "u4", "u5", "u6", "u7", "u8", "u9", "u10", "u11", "u12", "u13", "u14", "ham", "o_kha", "o_dak"], techs: ["pisari", "nilometr", "hraze", "katastr", "texty", "matematika", "bronz", "flotila", "pevnosti", "kamenictvi", "vezir"], maat: 55, prestige: 180, medjay: 1 },
-      { id: "hyksos", n: "Říše Hyksósů", house: "Hyksósové (15. dynastie)", t: "král", title: "heka chasut", type: "dyn", cul: "hyk", col: "#2f6d8f", emb: "star", aggr: 0.5, cap: "lav", tomb: "hrobka v Avaridu",
+      { id: "hyksos", n: "Říše Hyksósů", house: "Hyksósové (15. dynastie)", t: "král", title: "heka chasut", type: "dyn", cul: "hyk", col: "#2f6d8f", emb: "star", aggr: 0.5, cap: "lav", tomb: "hrobka v Avaridu (hroby hyksóských králů nebyly nalezeny)",
         provs: ["u16", "u17", "u18", "u19", "u20", "u21", "u22", "fa", "l1", "l2", "l13", "l3", "l5", "l6", "lx", "l12", "l16", "l18", "lav", "l20", "l14", "o_bah"], techs: ["pisari", "nilometr", "hraze", "fajjum", "katastr", "matematika", "bronz", "luk", "vuz", "chopes", "zbroj", "dobytek", "kamenictvi", "lekarstvi", "flotila", "namorni"], maat: 45, prestige: 260 },
-      { id: "teti", n: "Nefrusy", house: "Teti, syn Pepiho", t: "kníže", type: "nom", cul: "eg", col: "#4f8a5b", emb: "ankh", aggr: 0.2, cap: "u15", tomb: "skalní hrobka v Deir el-Beršá", vassalOf: "hyksos",
+      { id: "teti", n: "Nefrusy", house: "Teti, syn Pepiho", t: "kníže", type: "nom", cul: "eg", col: "#4f8a5b", emb: "ankh", aggr: 0.2, cap: "u15", tomb: "skalní hrobka (neznámá)", vassalOf: "hyksos",
         provs: ["u15"], techs: ["pisari", "nilometr", "texty"], maat: 45, prestige: 50 },
       { id: "kush", n: "Kuš", house: "Vládci Kermy", t: "vládce", type: "dyn", cul: "nub", col: "#6b4a2b", emb: "bow", aggr: 0.5, cap: "n_kerma", tomb: "mohyla (tumulus) v Kermě",
         provs: ["n_wawat", "n_buhen", "n_semna", "n_sai", "n_kerma"], techs: ["luk", "bronz", "pevnosti"], maat: 50, prestige: 200 },
       { id: "medzaj", n: "Médžajové", house: "Kmeny Východní pouště", t: "náčelník", type: "kmen", cul: "nub", col: "#7a4b8c", emb: "bow", aggr: 0.15, cap: "sau",
         provs: ["sau"], techs: ["luk"], maat: 50, prestige: 30 },
-      { id: "aamu", n: "Šasu", house: "Kmeny Sinaje", t: "náčelník", type: "kmen", cul: "aam", col: "#5d6b7a", emb: "star", aggr: 0.35, cap: "sin",
+      { id: "aamu", n: "Aamu", house: "Beduíni Sinaje", t: "náčelník", type: "kmen", cul: "aam", col: "#5d6b7a", emb: "star", aggr: 0.35, cap: "sin",
         provs: ["sin"], techs: [], maat: 50, prestige: 20 },
       { id: "lib", n: "Tjehenu", house: "Libyjské kmeny", t: "náčelník", type: "kmen", cul: "lib", col: "#8a8a6a", emb: "feather", aggr: 0.45, cap: "lib",
         provs: ["lib"], techs: [], maat: 50, prestige: 20 },
@@ -455,14 +456,14 @@ const SCENARIOS = {
     alliances: [["hyksos", "kush"]],
     hist: [
       { n: "Sekenenre Taa", cl: "thebes", by: 1595, r: "leader", s: [78, 84, 64, 66], t: ["stateny"], note: "jeho mumie nese smrtelná zranění od zbraní asijského typu – zřejmě padl v boji" },
-      { n: "Ahhotep", cl: "thebes", by: 1585, r: "fam", sex: "f", sp: "Sekenenre Taa", note: "královna, později oslavovaná za to, že „pečovala o vojsko“ a uklidnila Horní Egypt" },
-      { n: "Tetišeri", cl: "thebes", by: 1620, r: "fam", sex: "f", note: "matka Sekenenrea, babička Ahmose" },
+      { n: "Ahhotep", cl: "thebes", by: 1585, r: "fam", sex: "f", sp: "Sekenenre Taa", note: "královna; stéla Ahmose z Karnaku chválí Ahhotep, že „pečovala o vojsko“ a uklidnila Horní Egypt (o kterou Ahhotep jde, je sporné)" },
+      { n: "Tetišeri", cl: "thebes", by: 1620, r: "fam", sex: "f", note: "matka Sekenenrea, babička Ahmose (podle obvyklé rekonstrukce rodu)" },
       { n: "Kamose", cl: "thebes", by: 1580, r: "off", dyn: 1, rank: 4, s: [80, 78, 66, 60], t: ["ctizadostivy", "vojevudce"], note: "příbuzenský vztah k Sekenenreovi není jistý; jeho stély líčí tažení proti Avaridu" },
       { n: "Ahmose", cl: "thebes", by: 1566, r: "kid", sex: "m", father: "Sekenenre Taa", note: "budoucí Ahmose I., zakladatel 18. dynastie, dobyl Avaris" },
       { n: "Ahmose-Nefertari", cl: "thebes", by: 1568, r: "kid", sex: "f", father: "Sekenenre Taa", note: "budoucí Velká královská manželka Ahmose I." },
       { n: "Baba, syn Reanet", cl: "thebes", by: 1600, r: "off", rank: 2, s: [58, 64, 44, 50], t: ["verny"], loc: "u3", note: "voják krále Sekenenrea z Elkabu (podle životopisu jeho syna)" },
-      { n: "Ahmose, syn Ebany", cl: "thebes", by: 1570, r: "kid", sex: "m", father: "Baba, syn Reanet", note: "později velitel lodí při obléhání Avaridu" },
-      { n: "Neši", cl: "thebes", by: 1590, r: "off", rank: 3, s: [50, 45, 66, 74], t: ["hospodar"], note: "hodnostář jmenovaný na Kamoseho stéle" },
+      { n: "Ahmose, syn Ebany", cl: "thebes", by: 1570, r: "kid", sex: "m", father: "Baba, syn Reanet", note: "později voják na lodích krále Ahmose u Avaridu a „velitel posádky lodí“ (jeho životopis v Elkabu)" },
+      { n: "Neši", cl: "thebes", by: 1590, r: "off", rank: 3, s: [50, 45, 66, 74], t: ["hospodar"], note: "hodnostář, jehož jméno nese druhá Kamoseho stéla" },
       { n: "Apopi (Auserre)", cl: "hyksos", by: 1610, r: "leader", s: [64, 52, 74, 80], t: ["lstivy", "hospodar"], note: "vládl asi 40 let; podle papyru Sallier I. si stěžoval na řev thébských hrochů" },
       { n: "Chamudi", cl: "hyksos", by: 1590, r: "off", dyn: 1, rank: 4, s: [58, 58, 52, 54], t: [], note: "poslední hyksóský král; příbuzenství s Apopim neznámé" },
       { n: "Herit", cl: "hyksos", by: 1586, r: "fam", sex: "f", father: "Apopi (Auserre)", note: "královská dcera doložená nápisem na nádobě" },
@@ -607,7 +608,7 @@ function newGame(opts = {}) {
     for (const p of ps) p.deleg = !isPlayer(s, C.id) || p.id !== C.capital;
     assignLords(s, C.id);
   }
-  // zásoby obilí do první sklizně (sklizeň je v 1. měsíci Šemu)
+  // zásoby obilí do první sklizně (sklizeň je v 1. měsíci období šemu)
   for (const C of Object.values(s.clans)) C.grain = Math.max(C.grain, Math.round(-clanBudget(s, C.id).gnet * 11 + clanProvs(s, C.id).length * 4000));
   // potulní muži
   const all = Object.values(s.provs).filter(p => !isKmen(s, p.owner));
@@ -644,7 +645,7 @@ function floodWord(h) { if (h == null) return "neznámá"; return h < 12 ? "hlad
 const PASTORAL = { udoli: 0.2, delta: 0.45, fajjum: 0.35, nubie: 1.6, katarakt: 1.4, oaza: 1.4, poust: 3.0 };
 const NEED_PER_PERSON = 3.2; // charů obilí na osobu a rok
 function agriCap(s, p) { let m = 60; const o = p.owner; if (hasTech(s, o, "hraze") && (p.ter === "udoli" || p.ter === "delta")) m += 10; if (hasTech(s, o, "fajjum")) m += p.ter === "fajjum" ? 30 : 5; return m; }
-function comCap(s, p) { let m = p.comMax + (p.b.dilny || 0) * 20 + (p.b.pristav || 0) * 15; if (hasTech(s, p.owner, "dobytek") && p.ter === "delta") m += 5; return m; }
+function comCap(s, p) { let m = p.comMax + (p.b.dilny || 0) * 20 + (p.b.pristav || 0) * 15; return m; }
 function provHarvest(s, p, h) {
   const T = TERRAIN[p.ter], f = T.nile ? floodFactor(h != null ? h : s.flood.h) : (p.ter === "oaza" ? 0.95 : 0.7);
   return p.pop * 1000 * 5 * (p.agri / 50) * T.agri * f * (0.75 + p.loy / 400) * (p.siege ? 0.3 : 1);
@@ -1030,7 +1031,7 @@ function trade(s, cid, q) {
 
 // ---------- úředníci: povýšení, dary ----------
 function promote(s, cid, id) { const c = chr(s, id); if (!c || c.cl !== cid) return "Není tvůj."; if (c.rank >= RANKS.length - 1) return "Nejvyšší hodnost."; if (c.merit < RANKS[c.rank + 1].merit) return `Málo zásluh (${Math.round(c.merit)}/${RANKS[c.rank + 1].merit}).`; c.rank++; c.loy = Math.min(100, c.loy + 10); log(s, `${c.n} povýšen na hodnost ${RANKS[c.rank].n}.`, "rozkazy", [cid]); return null; }
-function gift(s, cid, id, amt) { const c = chr(s, id); if (!c || c.cl !== cid) return "Není tvůj."; amt = +amt || 300; if (!pay(s, cid, amt)) return "Nedostatek debenů."; const v = Math.round(amt / 60 * (c.traits.includes("chamtivy") ? 1.4 : 1)); c.loy = Math.min(100, c.loy + v); log(s, `${c.n} obdržel dar (${amt} debenů, zlato chvály): věrnost +${v}.`, "rozkazy", [cid]); return null; }
+function gift(s, cid, id, amt) { const c = chr(s, id); if (!c || c.cl !== cid) return "Není tvůj."; amt = +amt || 300; if (!pay(s, cid, amt)) return "Nedostatek debenů."; const v = Math.round(amt / 60 * (c.traits.includes("chamtivy") ? 1.4 : 1)); c.loy = Math.min(100, c.loy + v); log(s, `${c.n} obdržel odměnu v hodnotě ${amt} debenů: věrnost +${v}.`, "rozkazy", [cid]); return null; }
 function dismiss(s, cid, id) { const c = chr(s, id); if (!c || c.cl !== cid || c.dyn) return "Nelze."; if (c.army) return "Velí vojsku."; c.st = "wand"; c.cl = null; for (const p of Object.values(s.provs)) if (p.lord === c.id) p.lord = null; for (const k in s.clans[cid].offices) if (s.clans[cid].offices[k] === id) s.clans[cid].offices[k] = null; assignLords(s, cid); log(s, `${c.n} byl propuštěn ze služby.`, "rozkazy", [cid]); return null; }
 
 // Válka: vojska v poli, pochody po Nilu, bitvy, obléhání, nájezdy kmenů; diplomacie.
@@ -1266,7 +1267,7 @@ function diplo(s, a, b, act, arg) {
       const pair = marriagePair(s, a, b); if (!pair) return "Žádní volní ženiši ani nevěsty."; if (atWar(s, a, b)) return "Válčíte."; done();
       if (r < 15 && !isPlayer(s, b)) { addRel(s, a, b, -2); if (me) log(s, `${B.house} sňatek odmítl (vztah ${Math.round(r)}, potřeba aspoň 15).`, "diplomacie", [a, b]); return null; }
       wed(s, pair[0], pair[1]); s.marriages[pairKey(a, b)] = true; addRel(s, a, b, 25);
-      if (s.clans[pair[1].origin] && s.clans[pair[1].origin].cul === "eg" && s.clans[pair[0].cl].cul !== "eg" && s.clans[pair[1].origin].t === "král") { const O = s.clans[pair[1].origin]; O.maat = Math.max(0, O.maat - 6); log(s, `Egyptská královská dcera odchází k cizincům – podle staré zásady se to nemá (maat −6).`, "rod", [O.id]); }
+      if (s.clans[pair[1].origin] && s.clans[pair[1].origin].cul === "eg" && s.clans[pair[0].cl].cul !== "eg" && s.clans[pair[1].origin].t === "král") { const O = s.clans[pair[1].origin]; O.maat = Math.max(0, O.maat - 6); log(s, `Egyptská královská dcera odchází k cizincům. Nemá se to: ještě Amenhotep III. psal babylonskému králi, že „od pradávna nebyla dcera egyptského krále dána nikomu“ (maat −6).`, "rod", [O.id]); }
       return null;
     }
   }
@@ -1487,9 +1488,9 @@ function eventView(s, ev) { return EVENTS[ev.k].view(s, ev.data); }
 function resolveEvent(s, i) { const ev = s.events[0]; if (!ev) return; const v = eventView(s, ev); const ch = v.ch[i]; if (!ch) return; s.events.shift(); const r = ch.f ? ch.f() : null; if (r) log(s, r, "udalosti", [s.player]); }
 const someOwnProv = (s, f) => { const L = clanProvs(s, s.player).filter(f || (() => true)); return L.length ? pick(s, L) : null; };
 const EVENTS = {
-  nizka: { view: (s, d) => { const C = P(s), g = Math.round(sum(clanProvs(s, s.player).map(p => p.pop * 1000 * 0.5))); return { t: "Nízká záplava", tx: `Nilometr ukazuje jen ${String(d.h).replace(".", ",")} loktů. Podle starého rčení zaznamenaného Pliniem znamená dvanáct loktů hlad a třináct nouzi. Pole na okrajích údolí zůstanou suchá a sklizeň v Šemu bude slabá.`,
+  nizka: { view: (s, d) => { const C = P(s), g = Math.round(sum(clanProvs(s, s.player).map(p => p.pop * 1000 * 0.5))); return { t: "Nízká záplava", tx: `Nilometr ukazuje jen ${String(d.h).replace(".", ",")} loktů. Podle pravidla, které zapsal ještě v římské době Plinius Starší, znamená dvanáct loktů hlad a třináct nouzi. Pole na okrajích údolí zůstanou suchá a sklizeň v období šemu bude slabá.`,
     ch: [{ t: `Otevřít královské sýpky (${fmtN(g)} charů do obecních zásob)`, d: "chrání před hladem, lid ocení péči", f: () => { if (C.grain < g) return "V sýpkách tolik obilí není."; C.grain -= g; for (const p of clanProvs(s, s.player)) { p.stock += Math.round(p.pop * 500); p.loy = Math.min(100, p.loy + 5); } C.estates.lid = Math.min(100, C.estates.lid + 5); C.maat = Math.min(100, C.maat + 2); return "Královské sýpky byly otevřeny."; } },
-      { t: "Obětovat bohu záplavy Hapimu (1 500 debenů)", d: "maat +3, kněží spokojeni", f: () => { if (!pay(s, s.player, 1500)) return "Nedostatek debenů."; C.maat = Math.min(100, C.maat + 3); C.estates.knezi = Math.min(100, C.estates.knezi + 4); return "Kněží obětovali Hapimu."; } },
+      { t: "Obětiny Hapimu, bohu záplavy (1 500 debenů)", d: "maat +3, kněží spokojeni", f: () => { if (!pay(s, s.player, 1500)) return "Nedostatek debenů."; C.maat = Math.min(100, C.maat + 3); C.estates.knezi = Math.min(100, C.estates.knezi + 4); return "Kněží obětovali Hapimu."; } },
       { t: "Spoléhat na obecní zásoby", d: "nic neplatíš", f: () => null }] }; } },
   vysoka: { view: (s, d) => { const C = P(s); return { t: "Ničivá záplava", tx: `Voda vystoupila na ${String(d.h).replace(".", ",")} loktů. Strhla hráze, zaplavila vesnice na pahorcích a rozmáčela cihlové hradby.`,
     ch: [{ t: "Opravit hráze robotou (2 000 debenů, 8 000 charů)", d: "vrátí ztracenou ornou půdu", f: () => { if (!pay(s, s.player, 2000, 8000)) return "Nedostatek prostředků."; for (const p of clanProvs(s, s.player)) if (TERRAIN[p.ter].nile) p.agri = Math.min(agriCap(s, p), p.agri + 3); return "Hráze byly opraveny."; } },
@@ -1499,10 +1500,10 @@ const EVENTS = {
     ch: [{ t: `Nasytit je ze státních sýpek (${fmtN(tot)} charů)`, d: "spokojenost +, maat +, sláva +", f: () => { const g = Math.max(0, Math.min(C.grain, tot)); C.grain -= g; for (const [id, x] of d.list) { const p = s.provs[id]; p.stock += tot > 0 ? Math.round(x * g / tot) : 0; p.loy = Math.min(100, p.loy + 12); p.hunger = Math.max(0, p.hunger - 0.4); } C.maat = Math.min(100, C.maat + 3); C.prestige += 15; C.estates.lid = Math.min(100, C.estates.lid + 6); return g < tot ? "Obilí nestačilo pro všechny." : "Hladovějící dostali obilí."; } },
       { t: `Koupit obilí od kupců (${fmtN(Math.round(tot * s.market.p * 1.25))} debenů)`, d: "drahé, ale zachrání lidi", f: () => { const d2 = Math.round(tot * s.market.p * 1.25); if (!pay(s, s.player, d2)) return "Nedostatek debenů."; for (const [id, x] of d.list) { s.provs[id].stock += x; s.provs[id].loy = Math.min(100, s.provs[id].loy + 8); } return "Obilí bylo nakoupeno."; } },
       { t: "Nedělat nic", d: "lid strádá, maat klesá", f: () => { C.maat = Math.max(0, C.maat - 4); C.estates.lid = Math.max(0, C.estates.lid - 8); return null; } }] }; } },
-  pohreb: { view: (s, d) => { const C = P(s); return { t: "Nový panovník", tx: `${d.old ? d.old + " odešel na západ, do říše Usirovy. " : ""}Na trůn usedá ${leaderOf(s, s.player).n}. Sedmdesát dní trvá balzamování, pak vyrazí pohřební průvod.`,
+  pohreb: { view: (s, d) => { const C = P(s); return { t: "Nový panovník", tx: `${d.old ? d.old + " odešel na západ, do říše Usirovy. " : ""}Na trůn usedá ${leaderOf(s, s.player).n}. Balzamování trvá podle pozdějších pramenů sedmdesát dní, pak vyrazí pohřební průvod na západní břeh.`,
     ch: [{ t: "Okázalý pohřeb a korunovace (3 000 debenů, 10 000 charů)", d: "maat +6, úředníci +5 věrnosti", f: () => { if (!pay(s, s.player, 3000, 10000)) return "Nedostatek prostředků – pohřeb byl skromný."; C.maat = Math.min(100, C.maat + 6); for (const c of officers(s, s.player)) c.loy = Math.min(100, c.loy + 5); return "Pohřeb i korunovace proběhly se vší slávou."; } },
       { t: "Skromný obřad", d: "nic nestojí", f: () => null }] }; } },
-  pohrebiste: { view: (s, d) => { const C = P(s), p = s.provs[d.pid]; return { t: "Zpustošené hroby", tx: `Při dobývání župy ${p.n} vojáci vyplenili staré hroby a kaple na posvátném pohřebišti. Ponaučení pro Merikarea takový čin lituje jako hřích, za který bohové trestají.`,
+  pohrebiste: { view: (s, d) => { const C = P(s), p = s.provs[d.pid]; return { t: "Zpustošené hroby", tx: `Při dobývání župy ${p.n} vojáci vyplenili staré hroby a kaple na posvátném pohřebišti. Ponaučení pro Merikarea lituje, že za vlády jeho otce vojsko zpustošilo hroby v Thinidě, a říká, že za takový čin přichází odplata.`,
     ch: [{ t: "Obnovit hroby a obětiny (2 000 debenů)", d: "maat +2", f: () => { if (!pay(s, s.player, 2000)) { C.maat = Math.max(0, C.maat - 6); return "Na obnovu nebylo – maat utrpěla."; } C.maat = Math.min(100, C.maat + 2); C.estates.knezi = Math.min(100, C.estates.knezi + 4); return "Hroby byly obnoveny."; } },
       { t: "Válka je válka", d: "maat −6, kněží se hněvají", f: () => { C.maat = Math.max(0, C.maat - 6); C.estates.knezi = Math.max(0, C.estates.knezi - 6); return null; } }] }; } },
   nepokoje: { view: (s, d) => { const C = P(s), p = s.provs[d.pid]; return { t: `Vzpoura v župě ${p.n}`, tx: `Lid v župě ${p.n} odmítá robotu i daně a napadá písaře u sýpek. Spokojenost je ${Math.round(p.loy)}.`,
@@ -1524,16 +1525,16 @@ const EVENTS = {
     ch: [{ t: "Oddělit nemocné a zastavit trh", d: "menší ztráty lidí, obchod −", f: () => { p.pop = r1(p.pop * 0.97); p.com = Math.max(0, p.com - 5); return null; } },
       { t: "Obětiny Sachmet (800 debenů)", d: "maat +1", f: () => { if (!pay(s, s.player, 800)) { p.pop = r1(p.pop * 0.92); return "Na obětiny nebylo."; } p.pop = r1(p.pop * (hasTech(s, s.player, "lekarstvi") ? 0.97 : 0.94)); C.maat = Math.min(100, C.maat + 1); return null; } },
       { t: "Nechat bohům", d: "ztráty lidí", f: () => { p.pop = r1(p.pop * (hasTech(s, s.player, "lekarstvi") ? 0.94 : 0.9)); p.loy = Math.max(0, p.loy - 5); return null; } }] }; } },
-  medzaj: { view: (s, d) => { const C = P(s); return { t: "Médžajové nabízejí službu", tx: "Náčelníci Médžajů z Východní pouště nabízejí své lučištníky a stopaře. V obou přechodných obdobích sloužili egyptským pánům jako zvědové i vojáci (nálezy hrobů „pánevního typu“).",
+  medzaj: { view: (s, d) => { const C = P(s); return { t: "Médžajové nabízejí službu", tx: s.scen === "fip" ? "Náčelníci Médžajů z Východní pouště nabízejí své lučištníky a stopaře. Médžajové bojovali v egyptských vojscích už za Staré říše (nápis hodnostáře Veniho)." : "Náčelníci Médžajů z Východní pouště nabízejí své lučištníky a stopaře. V Druhém přechodném období je archeologicky zastupuje kultura pánvových hrobů; Kamose je ve svém vojsku jmenuje.",
     ch: [{ t: "Přijmout (dary 1 000 debenů)", d: "lze verbovat Médžaje ve všech župách", f: () => { if (!pay(s, s.player, 1000)) return "Nedostatek debenů."; C.medjay = true; return "Médžajové budou sloužit tvému rodu."; } },
       { t: "Odmítnout", d: "", f: () => null }] }; } },
   zpronevera: { view: (s, d) => { const C = P(s), c = chr(s, d.cid); return { t: "Zpronevěra v sýpkách", tx: `Písaři zjistili, že ${c.n} si přisvojil ${fmtN(d.g)} charů ze státních sýpek.`,
     ch: [{ t: "Potrestat a vymoci obilí zpět", d: "obilí zpět, jeho věrnost −20", f: () => { C.grain += d.g; c.loy = Math.max(0, c.loy - 20); return null; } },
       { t: "Odpustit", d: "jeho věrnost +5, obilí ztraceno", f: () => { c.loy = Math.min(100, c.loy + 5); return null; } }] }; } },
-  ipuver: { view: (s, d) => { const C = P(s); return { t: "Nářky mudrce", tx: "Mudrc u brány paláce naříká: „Hle, chudí mají bohatství, sýpky jsou vyloupeny, zákony síně soudní jsou pohozeny“ (podle Nářků Ipuverových, jejichž datace je sporná). Lid ho poslouchá.",
+  ipuver: { view: (s, d) => { const C = P(s); return { t: "Nářky mudrce", tx: "Mudrc u brány paláce naříká: „Hle, chudí země zbohatli… sýpky jsou prázdné… zákony soudní síně jsou pohozeny“ (volně podle Nářků Ipuverových, jejichž datace je sporná). Lid ho poslouchá.",
     ch: [{ t: "Rozdat obilí chudým (10 000 charů)", d: "lid +10, maat +3", f: () => { if (!pay(s, s.player, 0, 10000)) return "Obilí nestačí."; C.estates.lid = Math.min(100, C.estates.lid + 10); C.maat = Math.min(100, C.maat + 3); return null; } },
       { t: "Dát mudrce vyhnat", d: "maat −2", f: () => { C.maat = Math.max(0, C.maat - 2); return null; } }] }; } },
-  usir: { view: (s, d) => { const C = P(s); return { t: "Usirovy mystéria v Abydu", tx: "V měsíci Chojaku se v Abydu hrají posvátná dramata o smrti a vzkříšení Usira. Poutníci staví u Terasy velkého boha stély a kaple.",
+  usir: { view: (s, d) => { const C = P(s); return { t: "Usirovy mystéria v Abydu", tx: "V Abydu se slaví Usirovy mystéria: průvod s bohem Upuautem v čele, boj s jeho nepřáteli a návrat Usira do chrámu. Za Střední říše je popisuje stéla Ichernofreta; poutníci stavějí u „Terasy velkého boha“ stély a kaple.",
     ch: [{ t: "Financovat slavnost (800 debenů)", d: "maat +4, kněží +4, lid +2", f: () => { if (!pay(s, s.player, 800)) return "Nedostatek debenů."; C.maat = Math.min(100, C.maat + 4); C.estates.knezi = Math.min(100, C.estates.knezi + 4); C.estates.lid = Math.min(100, C.estates.lid + 2); return null; } },
       { t: "Nechat kněžím", d: "maat +1", f: () => { C.maat = Math.min(100, C.maat + 1); return null; } }] }; } },
   hebsed: { view: (s, d) => { const C = P(s), L = leaderOf(s, s.player); return { t: "Svátek sed", tx: `${L.n} vládne už ${regYear(s, s.player) - 1} let. Podle prastaré tradice má panovník po třiceti letech slavit svátek sed: běží kolem posvátných mezníků a znovu přijímá korunu Horního i Dolního Egypta.`,
@@ -1542,9 +1543,9 @@ const EVENTS = {
   mir_nabidka: { view: (s, d) => { const C = P(s), O = s.clans[d.cl]; return { t: "Nabídka míru", tx: `Posel rodu ${O.house} přináší nabídku míru${d.tribute ? " a slibuje tribut " + fmtN(d.tribute) + " debenů" : ""}.`,
     ch: [{ t: "Přijmout mír", d: "příměří na dva roky", f: () => { if (atWar(s, s.player, d.cl)) { makePeace(s, s.player, d.cl); if (d.tribute) { C.deben += d.tribute; O.deben -= d.tribute; } } return null; } },
       { t: "Odmítnout", d: "válka pokračuje", f: () => { addRel(s, s.player, d.cl, -5); return null; } }] }; } },
-  nevesta: { view: (s, d) => { const C = P(s), m = chr(s, d.cid); return { t: "Vhodná nevěsta", tx: `Pro ${m.n} se nabízí sňatek. Může si vzít dceru mocného nomarchy, nebo – po vzoru královského rodu – příbuznou z vlastního domu.`,
+  nevesta: { view: (s, d) => { const C = P(s), m = chr(s, d.cid); return { t: "Vhodná nevěsta", tx: `Pro ${m.n} se nabízí sňatek. Může si vzít dceru mocného nomarchy, nebo příbuznou z vlastního rodu – tak se v 17. dynastii zřejmě oženil Ahmose s Ahmose-Nefertari.`,
     ch: [{ t: "Dcera nomarchy", d: "nomarchové +5", f: () => { const w = makeChar(s, { n: genName(s, C.cul, "f"), sex: "f", by: m.by + rint(s, 0, 8), cl: s.player, st: "fam", loc: C.capital, dyn: 1 }); wed(s, m, w); C.estates.nomarchove = Math.min(100, C.estates.nomarchove + 5); return null; } },
-      { t: "Příbuzná z vlastního rodu", d: "maat +2 (posvátná královská krev)", f: () => { const w = makeChar(s, { n: pick(s, NAMES[C.cul === "eg" ? "eg" : C.cul].f) + (C.cul === "eg" ? "-" + pick(s, ["Nefertari", "Merit", "Sat-Amon", "Henut"]) : ""), sex: "f", by: m.by + rint(s, 0, 6), cl: s.player, st: "fam", loc: C.capital, dyn: 1 }); wed(s, m, w); C.maat = Math.min(100, C.maat + 2); return null; } },
+      { t: "Příbuzná z vlastního rodu", d: "maat +2, nomarchové −3", f: () => { C.estates.nomarchove = Math.max(0, C.estates.nomarchove - 3); const w = makeChar(s, { n: pick(s, (NAMES[C.cul] || NAMES.eg).f), sex: "f", by: m.by + rint(s, 0, 6), cl: s.player, st: "fam", loc: C.capital, dyn: 1 }); wed(s, m, w); C.maat = Math.min(100, C.maat + 2); return null; } },
       { t: "Zatím ne", d: "", f: () => null }] }; } },
   // ---- historické události ----
   hrosi: { view: (s, d) => { const C = P(s); return s.player === "thebes" ? { t: "Thébští hroši", tx: "Do Théb dorazil posel krále Apopiho z Avaridu: „Ať se vyžene hrochy z jezera na východě města, protože mi nedají spát ve dne ani v noci.“ Avaris leží stovky kilometrů daleko – je to výsměch a zkouška poslušnosti (podle papyru Sallier I.).",
@@ -1690,11 +1691,11 @@ function checkEnd(s) {
   if (!s.flags.won && C.cul === "eg" && mine >= Math.ceil(core * 0.9) && clanProvs(s, s.player).some(p => p.id === "l1" || p.id === "u4" || p.id === "u20" || p.id === "lav")) {
     s.flags.won = 1; C.maat = Math.min(100, C.maat + 20); C.prestige += 300;
     const L = leaderOf(s, s.player);
-    s.over = { win: true, cont: true, txt: `${L.n} sjednotil Horní a Dolní Egypt (sema-taui) a nasadil si dvojitou korunu. Ovládáš ${mine} z ${core} žup egyptského jádra. Tak jako Montuhotep II. kolem roku 2055 př. n. l. nebo Ahmose I. po dobytí Avaridu jsi zakladatelem nové éry. Můžeš vládnout dál.` };
+    s.over = { win: true, cont: true, txt: `${L.n} sjednotil Horní a Dolní Egypt (sema-taui) a nasadil si dvojitou korunu. Ovládáš ${mine} z ${core} žup egyptského jádra. Tak jako Montuhotep II. (vládl ≈ 2055–2004 př. n. l.) nebo Ahmose I. po dobytí Avaridu jsi zakladatelem nové éry. Můžeš vládnout dál.` };
     queueEvent(s, "vitezstvi", { win: true, txt: s.over.txt });
   }
   if (!s.flags.won && C.cul !== "eg" && mine >= Math.ceil(core * 0.5) && ["n_kerma", "n_buhen", "u1"].every(id => s.provs[id].owner === s.player || (s.clans[s.provs[id].owner].vassalOf === s.player))) {
-    s.flags.won = 1; s.over = { win: true, cont: true, txt: `Kuš ovládá Núbii i polovinu Egypta. Tak mocná Kerma nebyla nikdy – až o devět století později vládli Egyptu kušitští králové 25. dynastie.` };
+    s.flags.won = 1; s.over = { win: true, cont: true, txt: `Kuš ovládá Núbii i polovinu Egypta. Tak mocná Kerma nebyla nikdy – až asi o osm set let později vládli Egyptu kušitští králové 25. dynastie.` };
     queueEvent(s, "vitezstvi", { win: true, txt: s.over.txt });
   }
 }
@@ -1923,7 +1924,7 @@ function alerts() {
   if (!C.tomb.active && C.tomb.stage < TOMB_STAGES.length && regYear(S, me()) > 2) out.push(["info", `Hrobka panovníka (${C.tombN}) – hotovo ${C.tomb.stage} z ${TOMB_STAGES.length} fází (Chrámy a stavy).`]);
   for (const c of officers(S, me()).filter(c => !c.dyn && c.loy < 30)) out.push(["warn", `${c.n} je nevěrný (${Math.round(c.loy)}).`]);
   if (C.tributeTo) out.push(["info", `Platíš tribut rodu ${S.clans[C.tributeTo].house} (10 % výnosu žup).`]);
-  if (S.month === 0 && hasTech(S, me(), "nilometr") && S.flood.next) out.push(["info", `Nilometr předpovídá záplavu asi ${dec(S.flood.next - (hasTech(S, me(), "hvezdy") ? 0.3 : 0.8))}–${dec(S.flood.next + (hasTech(S, me(), "hvezdy") ? 0.3 : 0.8))} loktů.`]);
+  if (S.month === 0 && hasTech(S, me(), "nilometr") && S.flood.next) out.push(["info", `Nilometr předpovídá záplavu asi ${dec(S.flood.next - 0.8)}–${dec(S.flood.next + 0.8)} loktů.`]);
   return out;
 }
 function tPrehled() {
@@ -1939,7 +1940,7 @@ function tPrehled() {
     ${tile("Sláva", fmt(C.prestige), "vítězství, stavby, výpravy", sparkline(H.map(x => x.prestige)))}
     ${tile("Župy", clanProvs(S, me()).length, `jádro Egypta ${realmCore(S, me())} / ${coreProvs(S).length}`, sparkline(H.map(x => x.provs)))}
     ${tile("Vojsko", fmtK(clanMen(S, me())), `${S.armies.filter(a => a.cl === me()).length} vojsk v poli`, sparkline(H.map(x => x.men)))}
-    ${tile("Nil", S.flood.h ? dec(S.flood.h) + " loktů" : "?", S.flood.h ? floodWord(S.flood.h) + " záplava" : "záplava přijde v 2. měsíci Achetu")}
+    ${tile("Nil", S.flood.h ? dec(S.flood.h) + " loktů" : "?", S.flood.h ? floodWord(S.flood.h) + " záplava" : "záplava přijde ve 2. měsíci období achet")}
   </div>
   <div class="grid">
     ${card("Co je potřeba", al.length ? al.map(([c, t]) => `<div class="alert ${c}">${esc(t)}</div>`).join("") : '<p class="muted">Vše v pořádku.</p>')}
@@ -1984,7 +1985,7 @@ function tPlan() {
   }
   const away = officers(S, me()).filter(c => c.away || c.moving || c.army).map(c => tr([esc(c.n), c.away ? `výprava: ${EXPED[c.away.exp].n}, návrat za ${c.away.until - S.turn} měs.` : c.moving ? `na cestě do župy ${S.provs[c.moving.to].n}` : "velí vojsku"]));
   const C = P(S), b = clanBudget(S, me());
-  return `<div class="tiles">${tile("Volní úředníci", idle, "čekají na rozkaz")}${tile("Debeny", fmtK(C.deben), `<span class="${b.net < 0 ? "bad" : "good"}">${sg(b.net)} za měsíc</span>`)}${tile("Obilí", fmtK(C.grain), "sklizeň v 1. měsíci Šemu")}${tile("Období", SEASONS[Math.floor(S.month / 4)], S.month < 4 ? "záplava: robota na stavbách a kanálech je účinnější" : SEASON_D[Math.floor(S.month / 4)])}</div>
+  return `<div class="tiles">${tile("Volní úředníci", idle, "čekají na rozkaz")}${tile("Debeny", fmtK(C.deben), `<span class="${b.net < 0 ? "bad" : "good"}">${sg(b.net)} za měsíc</span>`)}${tile("Obilí", fmtK(C.grain), "sklizeň v 1. měsíci období šemu")}${tile("Období", SEASONS[Math.floor(S.month / 4)], S.month < 4 ? "záplava: pole jsou pod vodou, robota na stavbách je účinnější" : SEASON_D[Math.floor(S.month / 4)])}</div>
   ${card("Plán měsíce – všichni úředníci na jednom místě", `<div class="row">${btn("Rádce rozhodne za všechny volné", "adviseAll", [], idle ? null : "Nikdo nečeká", "go")} ${btn(SEL.planDone ? "Skrýt ty, kdo už jednají" : "Ukázat i ty, kdo už jednají", "planDone")} <span class="small muted">Předvybraný rozkaz je doporučení podle stavu župy. Úředníci ve svěřených župách jednají na konci měsíce sami.</span></div>` +
     tbl(["Úředník", "Župa", "#Vel.", "#Stat.", "#Moudr.", "#Správa", "Rozkaz", ""], rows), "wide")}
   ${away.length ? card("Mimo službu v župách", tbl(["Úředník", "Kde je"], away)) : ""}`;
@@ -2064,7 +2065,7 @@ function tVojsko() {
   ${card("Nepřátelská vojska", tbl(["Rod", "Kde", "Muži", "Pochod"], foe))}
   ${card("Posádky žup", troopLegend() + tbl(["Župa", "#Muži", "Složení", "#Výcvik", "#Strop", "#Obrana"], gar), "wide")}
   ${card("Bitvy", bt || '<p class="muted small">Zatím žádné.</p>', "wide")}
-  ${card("Druhy vojska", tbl(["Druh", "#Útok", "#Obrana", "#Cena/100", "Poznámka"], TROOP_IDS.map(k => tr([TROOPS[k].n, tdn(TROOPS[k].atk), tdn(TROOPS[k].def), tdn(TROOPS[k].cost), `<span class="small">${TROOPS[k].d || ""}</span>`]))) + '<p class="small muted">Kopiníci s koženými štíty a lučištníci tvořili jádro egyptských vojsk (dřevěné modely vojáků z hrobky Mesehtiho v Asjútu). Válečný vůz přinesli do Egypta Hyksósové.</p>')}</div>`;
+  ${card("Druhy vojska", tbl(["Druh", "#Útok", "#Obrana", "#Cena/100", "Poznámka"], TROOP_IDS.map(k => tr([TROOPS[k].n, tdn(TROOPS[k].atk), tdn(TROOPS[k].def), tdn(TROOPS[k].cost), `<span class="small">${TROOPS[k].d || ""}</span>`]))) + '<p class="small muted">Kopiníci s velkými štíty z volské kůže a lučištníci tvořili jádro egyptských vojsk (dřevěné modely egyptských kopiníků a núbijských lučištníků z hrobky Mesehtiho v Asjútu, 11. dynastie). Koně a válečný vůz se do Egypta dostali v době Hyksósů; egyptské vozatajstvo je doloženo až od počátku 18. dynastie.</p>')}</div>`;
 }
 
 // ---------- Diplomacie ----------
@@ -2116,12 +2117,12 @@ function tHosp() {
   const capQ = marketCap(S, me()), used = C.last.traded === S.turn ? C.last.tradedQ || 0 : 0;
   const ex = Object.entries(EXPED).map(([k, E]) => { const e = expAvail(S, me(), k); return tr([`<b>${E.n}</b>`, E.from.map(id => S.provs[id].n).join(", "), tdn(E.months), `${fmt(E.deben[0])}–${fmt(E.deben[1])}`, tdn(Math.round(E.risk * 100) + " %"), e ? `<span class="small muted">${esc(e)}</span>` : '<span class="good small">dostupná</span>']); });
   return `<div class="grid">
-  ${card("Pokladna – debeny měsíčně", tbl(["Příjem", "#Debeny"], Object.entries(b.inc).filter(([, v]) => v).map(([k, v]) => tr([INC[k], tdn(fmt(v))]))) + tbl(["Výdaj", "#Debeny"], Object.entries(b.ex).filter(([, v]) => v).map(([k, v]) => tr([EX[k], tdn(fmt(v))]))) + `<p><b>Celkem ${sg(b.net)} debenů měsíčně.</b></p><p class="small muted">Deben (asi 91 g mědi) byl jednotkou hodnoty, ne mincí. Ceny se počítaly v debenech, platilo se zbožím.</p>`)}
+  ${card("Pokladna – debeny měsíčně", tbl(["Příjem", "#Debeny"], Object.entries(b.inc).filter(([, v]) => v).map(([k, v]) => tr([INC[k], tdn(fmt(v))]))) + tbl(["Výdaj", "#Debeny"], Object.entries(b.ex).filter(([, v]) => v).map(([k, v]) => tr([EX[k], tdn(fmt(v))]))) + `<p><b>Celkem ${sg(b.net)} debenů měsíčně.</b></p><p class="small muted">Deben byl jednotkou váhy, ne mincí: v Nové říši asi 91 g, ve starších dobách se jeho hodnota lišila (ve Střední říši se počítalo i v šat). Ceny se vyjadřovaly v debenech mědi, platilo se zbožím. Hra ho používá jako společnou jednotku hodnoty.</p>`)}
   ${card("Sýpky – obilí měsíčně", tbl(["Výdaj", "#Charů"], Object.entries(b.gex).map(([k, v]) => tr([GX[k], tdn(fmt(v))]))) + `<p><b>Měsíčně ${sg(b.gnet)} charů</b>, ročně asi ${fmtK(-b.gnet * 12)}. Daň ze sklizně ${fc ? "podle předpovědi nilometru" : "při poslední záplavě"}: <b>≈ ${fmtK(tax)} charů</b>.</p>
-    <div class="row">Daň ze sklizně: ${sel("taxSel", TAX_LEVELS.map((t, i) => [i, `${t} (${Math.round(TAX_RATE[i] * 100)} %)`]), C.tax, `data-a="tax" data-x='[]'`)}</div><p class="small muted">Vyšší daň plní sýpky, ale lid strádá a v hubených letech hladoví. Obilí se vybírá jednou ročně při sklizni v 1. měsíci Šemu.</p>`)}
+    <div class="row">Daň ze sklizně: ${sel("taxSel", TAX_LEVELS.map((t, i) => [i, `${t} (${Math.round(TAX_RATE[i] * 100)} %)`]), C.tax, `data-a="tax" data-x='[]'`)}</div><p class="small muted">Vyšší daň plní sýpky, ale lid strádá a v hubených letech hladoví. Obilím se rozumí hlavně dvouzrnka (emmer) a ječmen. Daň se vybírá jednou ročně při sklizni v 1. měsíci období šemu.</p>`)}
   ${card("Trh – směna obilí za debeny", `<p>Cena: <b>${dec(S.market.p)} debenu za char</b> (prodej ${dec(S.market.p * 0.8)}, nákup ${dec(S.market.p * 1.25)}). Kupci tento měsíc smění ještě ${fmt(capQ - used)} charů.</p>
-    <div class="row"><input id="mktQ" type="number" step="1000" min="0" placeholder="charů"> ${btn("Prodat obilí", "trade", [-1])} ${btn("Koupit obilí", "trade", [1])}</div><p class="small muted">Po slabé záplavě obilí zdraží. Objem směny závisí na řemeslech a obchodu ve tvých župách. Za Nové říše stál char pšenice dvoj až čtyřnásobek debenu.</p>`)}
-  ${card("Nilometr – výšky záplav", fh.length ? `<div class="floodbars">${fh.map(x => `<span class="${x.h < 13.5 ? "low" : x.h >= 18 ? "high" : ""}" style="height:${clamp((x.h - 8) / 13 * 100, 4, 100)}%" title="${x.y} př. n. l.: ${dec(x.h)} loktů"></span>`).join("")}</div><div class="small muted">Posledních ${fh.length} let. Červeně hladová, oranžově ničivá záplava.</div>` : '<p class="muted small">První záplava přijde ve 2. měsíci Achetu.</p>' + '<p class="small">Plinius Starší zapsal pravidlo z memfidského nilometru: dvanáct loktů znamená hlad, třináct nouzi, čtrnáct radost, patnáct bezpečí a šestnáct hojnost. Víc než osmnáct loktů strhává hráze.</p>')}
+    <div class="row"><input id="mktQ" type="number" step="1000" min="0" placeholder="charů"> ${btn("Prodat obilí", "trade", [-1])} ${btn("Koupit obilí", "trade", [1])}</div><p class="small muted">Po slabé záplavě obilí zdraží. Objem směny závisí na řemeslech a obchodu ve tvých župách. V Dér el-Medíně za Nové říše stál char dvouzrnky obvykle 1–2 debeny mědi, v krizi na konci 20. dynastie mnohem víc.</p>`)}
+  ${card("Výšky záplav", fh.length ? `<div class="floodbars">${fh.map(x => `<span class="${x.h < 13.5 ? "low" : x.h >= 18 ? "high" : ""}" style="height:${clamp((x.h - 8) / 13 * 100, 4, 100)}%" title="${x.y} př. n. l.: ${dec(x.h)} loktů"></span>`).join("")}</div><div class="small muted">Posledních ${fh.length} let. Červeně hladová, oranžově ničivá záplava.</div>` : '<p class="muted small">První záplava přijde ve 2. měsíci období achet.</p>') + ('<p class="small">Plinius Starší (1. stol. n. l.) zapsal pravidlo: dvanáct loktů znamená hlad, třináct nouzi, čtrnáct radost, patnáct bezpečí a šestnáct hojnost. Velmi vysoká voda strhává hráze. Egyptské letopisy zapisovaly výšky záplav už za Staré říše (Palermská deska).</p>')}
   ${card("Výpravy", tbl(["Cíl", "Výchozí župy", "#Měs.", "Výnos (deb.)", "#Riziko", ""], ex) + '<p class="small muted">Výpravu vede úředník rozkazem „Vést výpravu“. Nápisy výprav se dochovaly ve Vádí Hammámát, v Hatnubu i na Sinaji; výpravy do Puntu vyplouvaly ze Sauu (Marsá Gavásis).</p>', "wide")}</div>`;
 }
 
@@ -2194,14 +2195,31 @@ function tHra() {
     <p class="small muted">Thébané a Hérakleopolští (2070) nebo Thébané a Hyksósové (1560) jsou velké říše. Nomarchové Asjútu, Hermopole, Beni Hasanu nebo kníže Teti začínají s jedinou župou – to je výzva.</p>`)}
   ${card("Uložené hry", tbl(["#", "Obsah", ""], slots) + `<p class="small muted">Hra se sama ukládá po každém kroku (v tomto prohlížeči).</p><div class="row">${btn("Stáhnout do souboru", "exportSave")} ${btn("Nahrát ze souboru", "importSave")} ${btn("Světlý / tmavý vzhled", "theme")}</div>`)}
   <section class="card wide help"><h3>Jak hrát</h3>
-  <p>Jsi hlavou vládnoucího rodu nebo rodu nomarchů v době, kdy je Egypt rozdělený. Jedno kolo je jeden měsíc egyptského občanského roku: čtyři měsíce záplavy (Achet), čtyři měsíce setí (Peret) a čtyři měsíce sklizně (Šemu), na konci pět dní navíc. <b>Cíl:</b> sjednotit Horní a Dolní Egypt – ovládnout (sám nebo skrze poddané) devět desetin žup egyptského jádra. Prohraješ, když přijdeš o všechny župy.</p>
+  <p>Jsi hlavou vládnoucího rodu nebo rodu nomarchů v době, kdy je Egypt rozdělený. Jedno kolo je jeden měsíc egyptského občanského roku: tři období po čtyřech měsících o třiceti dnech – achet (záplava), peret (vzcházení, setí) a šemu (sklizeň, léto) – a na konci pět dní navíc. Skutečný občanský kalendář se vůči ročním obdobím posouval; hra ho drží v souladu se záplavou. <b>Cíl:</b> sjednotit Horní a Dolní Egypt – ovládnout (sám nebo skrze poddané) devět desetin žup egyptského jádra. Prohraješ, když přijdeš o všechny župy.</p>
   <h4>Měsíc</h4><p>V záložce <b>Plán měsíce</b> dáš každému úředníkovi jeden rozkaz: kanály a hráze, dílny a trhy, hradby, odvod, výcvik, rozdělení obilí, sčítání, obětiny, hledání schopných mužů, dům života, stavby, výpravy, zvědy, intriky nebo přesun. Župy svěřené rádci spravuje umělá inteligence sama. Pak stiskni <b>Konec měsíce</b>.</p>
-  <h4>Nil a obilí</h4><p>Ve 2. měsíci Achetu ukáže nilometr výšku záplavy. Ta rozhodne o sklizni v 1. měsíci Šemu, kdy písaři vyberou daň v obilí. Obilím platíš příděly vojákům a úředníkům i robotníky na stavbách. Obecní sýpky v župách chrání lid před hladem; při nízké záplavě je doplň rozkazem „Rozdat obilí“. Debeny (měděná jednotka hodnoty) plynou z řemesel, obchodu, dolů a výprav.</p>
+  <h4>Nil a obilí</h4><p>Ve 2. měsíci období achet ukážou značky na březích výšku záplavy v loktech (královský loket ≈ 52 cm). Ta rozhodne o sklizni v 1. měsíci období šemu, kdy písaři vyberou daň v obilí. Obilím platíš příděly vojákům a úředníkům i robotníky na stavbách. Obecní sýpky v župách chrání lid před hladem; při nízké záplavě je doplň rozkazem „Rozdat obilí“. Debeny (měděná jednotka hodnoty) plynou z řemesel, obchodu, dolů a výprav.</p>
   <h4>Válka</h4><p>Válku vyhlásíš v Diplomacii, vojsko vyšleš z panelu župy na Mapě. Vojsko táhne jednu župu za měsíc, s říční flotilou dvě. Bitva má až šest kol; rozhoduje počet, druh vojska, výcvik, vědění, terén, hradby a velitel. Pevnosti se obléhají – hradby z nepálených cihel padnou, nebo posádka vyhladoví. Kmeny Libyjců, Aamu, Médžajů a Núbijců podnikají nájezdy.</p>
   <h4>Úředníci a maat</h4><p>Věrnost úředníků závisí na hodnosti, úřadech, darech, maat a slávě. Nevěrný nomarcha pohraniční župy může přeběhnout i se župou. Maat udržuješ obětinami, chrámy, péčí o hladové a hrobkou panovníka; po třiceti letech vlády můžeš slavit svátek sed.</p></section>
+  <section class="card wide help"><h3>Slovníček</h3><div class="kv small">
+  <span>achet, peret, šemu</span><span>tři období egyptského roku: záplava, vzcházení a setí, sklizeň</span>
+  <span>loket (meh)</span><span>královský loket ≈ 52,4 cm; v loktech se měřila výška záplavy</span>
+  <span>char</span><span>dutá míra na obilí, v Nové říši ≈ 77 litrů</span>
+  <span>deben</span><span>jednotka váhy (v Nové říši ≈ 91 g); ceny se vyjadřovaly v debenech mědi, mince Egypt neznal</span>
+  <span>dvouzrnka a ječmen</span><span>hlavní obilniny; z dvouzrnky (emmeru) se pekl chléb, z ječmene vařilo pivo</span>
+  <span>župa (sepat, řecky nomos)</span><span>správní oblast; Horní Egypt měl 22 žup, Dolní Egypt postupně 20</span>
+  <span>nomarcha</span><span>řecký název pro správce župy, egyptsky „velký představený župy“ (heri-tep aa)</span>
+  <span>seš, semer uati, hatia, iri-pat</span><span>písař, „jediný přítel“ krále, představený (starosta, kníže), přední muž země – hodnostní tituly</span>
+  <span>tjati</span><span>vezír, nejvyšší úředník po králi</span>
+  <span>maat</span><span>řád světa, pravda a spravedlnost; udržovat ji bylo hlavní povinností krále</span>
+  <span>heka chasut</span><span>„vládci cizích zemí“, z toho řecké Hyksósové</span>
+  <span>Aamu, Tjehenu, Médžajové</span><span>egyptská označení pro Asiaty, Libyjce a pouštní kmeny Východní pouště</span>
+  <span>Kuš, Vavat</span><span>Horní Núbie s centrem v Kermě a Dolní Núbie mezi 1. a 2. kataraktem</span>
+  <span>svátek sed</span><span>jubileum obnovy královské moci, zpravidla po třiceti letech vlády</span>
+  <span>dům života</span><span>chrámová dílna písařů, kde se opisovaly a uchovávaly texty</span>
+  <span>robota</span><span>pracovní povinnost pro stát, hlavně v době záplavy</span></div></section>
   <section class="card wide help"><h3>Historické pozadí a zdroje</h3>
-  <p><b>První přechodné období (≈ 2160–2055 př. n. l.):</b> po pádu Staré říše vládli v Hérakleopoli králové 9. a 10. dynastie („dům Chetiho“), v Thébách se Intefové 11. dynastie prohlásili králi. O Thinidu a Abydos se bojovalo; Ponaučení pro Merikarea lituje zpustošení hrobů v Thinidě. Nomarchové Asjútu (Tefibi, Cheti II.) stáli při Hérakleopoli, nomarcha Anchtifi z Moally líčí velký hlad. Egypt sjednotil Montuhotep II. kolem roku 2055 př. n. l.</p>
-  <p><b>Druhé přechodné období (≈ 1650–1550 př. n. l.):</b> Hyksósové 15. dynastie vládli z Avaridu (Tell el-Dab'a), Kuš z Kermy ovládla Núbii a egyptské pevnosti u 2. kataraktu. Thébská 17. dynastie platila tribut. Papyrus Sallier I. vypráví o sporu Apopiho a Sekenenrea kvůli hrochům; Sekenenreova mumie nese smrtelné rány. Stély krále Kamoseho popisují tažení k Avaridu, hranici u Kúsaje i zachycený dopis vládci Kuše. Ahmose I. (vládl od ≈ 1550 př. n. l.) dobyl Avaris a vyhnal Hyksósy – popisuje to životopis Ahmose, syna Ebany, v jeho hrobce v Elkabu.</p>
+  <p><b>První přechodné období (≈ 2160–2055 př. n. l.):</b> po pádu Staré říše vládli v Hérakleopoli králové 9. a 10. dynastie („dům Chetiho“), v Thébách se Intefové 11. dynastie prohlásili králi. O Thinidu a Abydos se bojovalo; Ponaučení pro Merikarea lituje zpustošení hrobů v Thinidě. Nomarchové Asjútu (Tefibi, Cheti II.) stáli při Hérakleopoli, nomarcha Anchtifi z Moally líčí velký hlad. Egypt sjednotil Montuhotep II. (vládl ≈ 2055–2004 př. n. l.), zřejmě až po dvaceti a více letech vlády.</p>
+  <p><b>Druhé přechodné období (≈ 1650–1550 př. n. l.):</b> Hyksósové 15. dynastie („vládci cizích zemí“, heka chasut) vládli z Avaridu (Tell el-Dab'a), Kuš z Kermy ovládla Núbii a egyptské pevnosti u 2. kataraktu. Thébská 17. dynastie byla na Hyksósech zřejmě závislá. Papyrus Sallier I. (sepsaný až za 19. dynastie) vypráví o sporu Apopiho a Sekenenrea kvůli hrochům; Sekenenreova mumie nese smrtelné rány. Stély krále Kamoseho popisují tažení k Avaridu, hranici u Kúsaje i zachycený dopis vládci Kuše. Ahmose I. (vládl od ≈ 1550 př. n. l.) dobyl Avaris a vyhnal Hyksósy – popisuje to životopis Ahmose, syna Ebany, v jeho hrobce v Elkabu.</p>
   <p><b>Co je historické a co herní:</b> župy, jejich egyptská jména, bohové, suroviny, výpravy, kalendář, nilometr, příděly obilí, debeny, hodnosti a titulatura vycházejí z egyptologie. Jména vládců a doložených hodnostářů odpovídají pramenům; roky narození, schopnosti, povahy a všichni ostatní úředníci jsou herní. Letopočty se drží střední chronologie (I. Shaw, The Oxford History of Ancient Egypt), nejistota je desítky let. Výšky záplav jsou náhodné, ale klima Prvního přechodného období je sušší (pokles záplav kolem roku 2200 př. n. l.).</p></section></div>`;
 }
 

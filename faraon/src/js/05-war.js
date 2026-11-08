@@ -231,7 +231,7 @@ function diplo(s, a, b, act, arg) {
       const pair = marriagePair(s, a, b); if (!pair) return "Žádní volní ženiši ani nevěsty."; if (atWar(s, a, b)) return "Válčíte."; done();
       if (r < 15 && !isPlayer(s, b)) { addRel(s, a, b, -2); if (me) log(s, `${B.house} sňatek odmítl (vztah ${Math.round(r)}, potřeba aspoň 15).`, "diplomacie", [a, b]); return null; }
       wed(s, pair[0], pair[1]); s.marriages[pairKey(a, b)] = true; addRel(s, a, b, 25);
-      if (s.clans[pair[1].origin] && s.clans[pair[1].origin].cul === "eg" && s.clans[pair[0].cl].cul !== "eg" && s.clans[pair[1].origin].t === "král") { const O = s.clans[pair[1].origin]; O.maat = Math.max(0, O.maat - 6); log(s, `Egyptská královská dcera odchází k cizincům – podle staré zásady se to nemá (maat −6).`, "rod", [O.id]); }
+      if (s.clans[pair[1].origin] && s.clans[pair[1].origin].cul === "eg" && s.clans[pair[0].cl].cul !== "eg" && s.clans[pair[1].origin].t === "král") { const O = s.clans[pair[1].origin]; O.maat = Math.max(0, O.maat - 6); log(s, `Egyptská královská dcera odchází k cizincům. Nemá se to: ještě Amenhotep III. psal babylonskému králi, že „od pradávna nebyla dcera egyptského krále dána nikomu“ (maat −6).`, "rod", [O.id]); }
       return null;
     }
   }

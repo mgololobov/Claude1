@@ -2,14 +2,14 @@
 // Letopočty podle běžné „střední“ chronologie (I. Shaw, The Oxford History of Ancient Egypt, 2000); nejistota je desítky let.
 
 // Egyptský občanský rok: tři období po čtyřech měsících o 30 dnech + 5 dní navíc (epagomenální).
-const SEASONS = ["Achet", "Peret", "Šemu"];
-const SEASONS2 = ["Achetu", "Peretu", "Šemu"];
+const SEASONS = ["achet", "peret", "šemu"];
 const SEASON_D = ["záplava", "setí a růst", "sklizeň"];
-const monthName = m => `${(m % 4) + 1}. měsíc ${SEASONS2[Math.floor(m / 4)]}`;
+const monthName = m => `${(m % 4) + 1}. měsíc období ${SEASONS[Math.floor(m / 4)]}`;
 const monthShort = m => `${(m % 4) + 1}. ${SEASONS[Math.floor(m / 4)]}`;
-const FLOOD_MONTH = 1;   // vrchol záplavy (2. měsíc Achetu) – nilometr ukáže výšku
-const HARVEST_MONTH = 8; // sklizeň a výběr daně (1. měsíc Šemu)
-const OSIRIS_MONTH = 3;  // Usirovy mystéria v Abydu (4. měsíc Achetu, měsíc Chojak)
+const FLOOD_MONTH = 1;   // vrchol záplavy (2. měsíc období achet) – nilometr ukáže výšku
+const HARVEST_MONTH = 8; // sklizeň a výběr daně (1. měsíc období šemu)
+const OSIRIS_MONTH = 3;  // Usirovy mystéria v Abydu (herní termín; přesné datum ve Střední říši není jisté)
+// Pozn.: občanský kalendář (365 dní) se vůči skutečným ročním obdobím posouval o den za čtyři roky. Hra ho pro přehlednost drží v souladu se záplavou.
 
 const TERRAIN = {
   udoli: { n: "Nilské údolí", agri: 1.0, def: 1.0, vuz: 1.15, nile: 1 },
@@ -32,13 +32,13 @@ const TROOPS = {
 const TROOP_IDS = Object.keys(TROOPS);
 const RATION_SOLDIER = 1.5;
 
-// Hodnosti úředníků (podle titulatury Střední říše). Plat je měsíční příděl v charech obilí.
+// Hodnostní tituly Staré a Střední říše: seš, semer uati, hatia, heri-tep aa (nomarcha), iri-pat. Plat je měsíční příděl v charech obilí (herní odhad).
 const RANKS = [
-  { n: "Písař", cmd: 600, pay: 20, merit: 0 },
-  { n: "Jedinečný přítel", cmd: 1200, pay: 40, merit: 60 },
-  { n: "Hodnostář (hatia)", cmd: 2500, pay: 80, merit: 180 },
-  { n: "Velký vládce župy", cmd: 4500, pay: 150, merit: 400 },
-  { n: "Kníže (iripat)", cmd: 8000, pay: 250, merit: 800 },
+  { n: "Písař (seš)", cmd: 600, pay: 20, merit: 0 },
+  { n: "Jediný přítel (krále)", cmd: 1200, pay: 40, merit: 60 },
+  { n: "Hatia (představený)", cmd: 2500, pay: 80, merit: 180 },
+  { n: "Velký představený župy", cmd: 4500, pay: 150, merit: 400 },
+  { n: "Iripat hatia (přední muž země)", cmd: 8000, pay: 250, merit: 800 },
 ];
 
 const STATS = { ved: "Velení", uda: "Statečnost", roz: "Moudrost", spr: "Správa" };
@@ -92,12 +92,12 @@ const RES = {
   zlato: { n: "zlato", mine: 1, deben: 250 },
   med: { n: "měď", mine: 1, deben: 120 },
   tyrkys: { n: "tyrkys", mine: 1, deben: 100 },
-  kamen: { n: "stavební kámen", mine: 1, deben: 50 },
+  kamen: { n: "stavební kámen (žula, pískovec, vápenec)", mine: 1, deben: 50 },
   alabastr: { n: "alabastr (travertin)", mine: 1, deben: 100 },
-  natron: { n: "natron", mine: 1, deben: 70 },
+  natron: { n: "natron (soda k mumifikaci)", mine: 1, deben: 70 },
   papyrus: { n: "papyrus", deben: 60 },
-  dobytek: { n: "dobytek", deben: 50 },
-  vino: { n: "víno a datle", deben: 50 },
+  dobytek: { n: "skot (pastviny)", deben: 50 },
+  vino: { n: "datle a víno", deben: 50 },
   eben: { n: "eben a slonovina", deben: 90 },
 };
 
@@ -105,42 +105,42 @@ const RES = {
 const EXPED = {
   hammamat: { n: "Vádí Hammámát – kámen bechen a zlato", from: ["ham", "u5"], months: 3, deben: [3000, 6000], prestige: 8, risk: 0.1, foe: "Médžajové v poušti" },
   hatnub: { n: "Hatnub – alabastrové lomy", from: ["u15"], months: 2, deben: [2000, 3500], prestige: 6, risk: 0.05, foe: "pouštní nomádi" },
-  sinaj: { n: "Sinaj – tyrkys a měď (Serábit el-Chádim)", from: ["sin", "l20", "l14"], months: 4, deben: [4000, 7000], prestige: 10, maat: 2, risk: 0.15, foe: "kmeny Aamu" },
+  sinaj: { n: "Sinaj – tyrkys (Serábit el-Chádim, Vádí Maghára) a měď", from: ["sin", "l20", "l14"], months: 4, deben: [4000, 7000], prestige: 10, maat: 2, risk: 0.15, foe: "kmeny Aamu" },
   zlato: { n: "Zlaté doly Vavatu (vádí Allákí)", from: ["n_wawat"], months: 3, deben: [5000, 9000], prestige: 6, risk: 0.15, foe: "núbijské kmeny" },
-  byblos: { n: "Byblos – cedrové dřevo a olej", from: ["l6", "l14", "lav"], months: 5, deben: [3000, 5000], cedar: 1, prestige: 12, risk: 0.15, tech: "namorni", foe: "bouře a piráti" },
+  byblos: { n: "Byblos – cedrové dřevo (aš) a olej", from: ["l6", "l14", "lav"], months: 5, deben: [3000, 5000], cedar: 1, prestige: 12, risk: 0.15, tech: "namorni", foe: "bouře a piráti" },
   punt: { n: "Punt – kadidlo, myrha, eben a zlato", from: ["sau"], months: 8, deben: [12000, 20000], prestige: 40, maat: 6, risk: 0.25, tech: "namorni", foe: "bouře na Rudém moři" },
 };
 
 const TECHS = {
-  nilometr: { n: "Nilometr", cat: "Zemědělství", cost: 50, d: "předpověď záplavy už v 1. měsíci Achetu, hladomor mírnější o třetinu" },
-  hraze: { n: "Nádrže a hráze", cat: "Zemědělství", cost: 80, d: "+10 stropu polí v údolí a v Deltě" },
-  fajjum: { n: "Kolonizace Fajjúmu", cat: "Zemědělství", cost: 120, req: ["hraze"], d: "+30 stropu polí ve Fajjúmu, +5 jinde (tak jako za 12. dynastie)" },
-  dobytek: { n: "Chov dobytka v Deltě", cat: "Zemědělství", cost: 70, d: "+5 stropu obchodu v Deltě; s vozy chov koní" },
-  pisari: { n: "Hieratické písařství", cat: "Správa", cost: 60, d: "+10 % debenů ze žup" },
-  katastr: { n: "Katastr polí", cat: "Správa", cost: 90, req: ["pisari"], d: "+10 % daně ze sklizně" },
-  vezir: { n: "Úřad vezíra", cat: "Správa", cost: 110, req: ["pisari"], d: "úředníci +5 věrnosti, úřady působí silněji" },
-  kamenictvi: { n: "Kamenické umění", cat: "Stavitelství", cost: 90, d: "stavby o 20 % levnější" },
-  pevnosti: { n: "Pevnostní stavitelství", cat: "Stavitelství", cost: 110, req: ["kamenictvi"], d: "pevnosti +25 % obrany, +50 výdrže hradeb (núbijské pevnosti Střední říše)" },
-  texty: { n: "Texty rakví", cat: "Náboženství a učenost", cost: 70, d: "posmrtný život i pro nekrálovské: lid +5 spokojenosti, maat roste rychleji" },
-  matematika: { n: "Matematika písařů", cat: "Náboženství a učenost", cost: 100, req: ["pisari"], d: "+25 % bodů vědění, stavby o měsíc kratší" },
-  lekarstvi: { n: "Lékařské papyry", cat: "Náboženství a učenost", cost: 120, req: ["pisari"], d: "nižší úmrtnost, mírnější nákazy, rychlejší léčba zraněných" },
-  hvezdy: { n: "Hvězdné hodiny", cat: "Náboženství a učenost", cost: 90, req: ["matematika"], d: "přesný kalendář: +2 maat ročně, záplava se odhadne přesněji" },
-  bronz: { n: "Cínový bronz", cat: "Válečnictví", cost: 80, d: "kopiníci a lučištníci +15 % útoku" },
-  luk: { n: "Kompozitní luk", cat: "Válečnictví", cost: 100, d: "lučištníci a Médžajové +30 % útoku" },
-  vuz: { n: "Válečný vůz a kůň", cat: "Válečnictví", cost: 160, req: ["bronz"], d: "umožní válečné vozy; župy Delty chovají koně" },
-  chopes: { n: "Chopeš a bronzové sekery", cat: "Válečnictví", cost: 90, req: ["bronz"], d: "kopiníci +20 % útoku" },
-  zbroj: { n: "Šupinová zbroj", cat: "Válečnictví", cost: 110, req: ["bronz"], d: "+15 % obrany vojska" },
-  flotila: { n: "Říční flotila", cat: "Válečnictví", cost: 80, d: "vojsko pluje po Nilu: dvě župy za měsíc, +10 % útoku v údolí" },
-  namorni: { n: "Námořní lodě", cat: "Válečnictví", cost: 120, req: ["flotila"], d: "umožní výpravy do Byblu a do Puntu" },
+  nilometr: { n: "Měření záplav", cat: "Zemědělství", cost: 50, d: "značky výšky vody a letopisy záplav (zapisuje je už Palermská deska ze Staré říše): předpověď v 1. měsíci období achet, hlad mírnější o třetinu" },
+  hraze: { n: "Nádrže a hráze", cat: "Zemědělství", cost: 80, d: "lepší síť hrází a přepouštění vody do nádrží (kotlinové zavlažování): +10 stropu polí v údolí a v Deltě" },
+  fajjum: { n: "Kolonizace Fajjúmu", cat: "Zemědělství", cost: 120, req: ["hraze"], d: "odvodnění a osídlení pánve u Bahr Júsufu, jak to provedli králové 12. dynastie: +30 stropu polí ve Fajjúmu, +5 jinde" },
+  dobytek: { n: "Chov koní", cat: "Zemědělství", cost: 70, req: ["vuz"], d: "hřebčíny na pastvinách Delty: dvojnásobek koní (kůň přišel do Egypta až s Hyksósy)" },
+  pisari: { n: "Písařské školy", cat: "Správa", cost: 60, d: "výuka hieratického písma a účetnictví (školní text Kemit je ze Střední říše): +10 % debenů ze žup" },
+  katastr: { n: "Soupisy polí", cat: "Správa", cost: 90, req: ["pisari"], d: "vyměřování polí po opadnutí vody a jejich zápis: +10 % daně ze sklizně" },
+  vezir: { n: "Ústřední úřady (varet)", cat: "Správa", cost: 110, req: ["pisari"], d: "rozdělení správy na úřady Severu, Jihu a „Hlavy Jihu“ jako za Senusreta III.: úředníci +5 věrnosti, vezír působí silněji" },
+  kamenictvi: { n: "Bronzové nástroje kameníků", cat: "Stavitelství", cost: 90, req: ["bronz"], d: "dláta a pily z cínového bronzu místo měděných: stavby o 20 % levnější" },
+  pevnosti: { n: "Pevnostní stavitelství", cat: "Stavitelství", cost: 110, d: "cihlové hradby s baštami, příkopem a šikmým náspem, jak je známe z núbijských pevností 12. dynastie (Buhen): +25 % obrany, +50 výdrže hradeb" },
+  texty: { n: "Texty rakví", cat: "Náboženství a učenost", cost: 70, d: "zaříkání pro posmrtný život psaná na rakve hodnostářů (z Asjútu, Beni Hasanu, Beršy): lid +5 spokojenosti, maat roste rychleji" },
+  matematika: { n: "Matematika písařů", cat: "Náboženství a učenost", cost: 100, req: ["pisari"], d: "výpočty ploch, objemů sýpek a přídělů (Moskevský a Rhindův papyrus): +25 % bodů vědění, stavby o měsíc kratší" },
+  lekarstvi: { n: "Lékařské papyry", cat: "Náboženství a učenost", cost: 120, req: ["pisari"], d: "sbírky diagnóz a léčby (Kahúnský papyrus ze Střední říše, chirurgický Smithův papyrus opsaný v Druhém přechodném období): nižší úmrtnost a mírnější nákazy" },
+  hvezdy: { n: "Hvězdné hodiny", cat: "Náboženství a učenost", cost: 90, req: ["matematika"], d: "měření nočních hodin podle dekanů (diagonální hvězdné hodiny na víkách rakví z Asjútu): chrámové obřady v pravou hodinu, +2 maat ročně" },
+  bronz: { n: "Cínový bronz", cat: "Válečnictví", cost: 80, d: "slitina mědi s dováženým cínem nahrazuje arzenovou měď (běžná od Střední říše): kopiníci a lučištníci +15 % útoku" },
+  luk: { n: "Kompozitní luk", cat: "Válečnictví", cost: 100, d: "luk ze dřeva, rohoviny a šlach s delším dostřelem, do Egypta se rozšířil v Druhém přechodném období: lučištníci a Médžajové +30 % útoku" },
+  vuz: { n: "Válečný vůz a kůň", cat: "Válečnictví", cost: 160, req: ["bronz"], d: "lehký vůz s loukoťovými koly tažený dvěma koňmi. Hyksósové koně chovali (koňské hroby v Avaridu); jak hojně vozy nasazovali v boji, je sporné. Umožní válečné vozy" },
+  chopes: { n: "Chopeš a sekery levantského typu", cat: "Válečnictví", cost: 90, req: ["bronz"], d: "srpovitý meč a úzké průbojné sekery z Předního východu: kopiníci +20 % útoku" },
+  zbroj: { n: "Kožená zbroj", cat: "Válečnictví", cost: 110, req: ["bronz"], d: "kabátce z kůže a velké štíty z volské kůže (kovová šupinová zbroj je až z Nové říše): +15 % obrany vojska" },
+  flotila: { n: "Válečné lodě na Nilu", cat: "Válečnictví", cost: 80, d: "přeprava vojska po řece, jak ji líčí Anchtifi i Kamose: dvě župy za měsíc, +10 % útoku v údolí" },
+  namorni: { n: "Námořní lodě (kebenit)", cat: "Válečnictví", cost: 120, req: ["flotila"], d: "„byblské lodě“ pro plavbu po moři: výpravy do Byblu a do Puntu" },
 };
 const TECH_IDS = Object.keys(TECHS);
 
 const LAWS = {
   robota: { n: "Robota", opts: ["Mírná", "Obvyklá", "Těžká"], d: "Těžší robota zlevní a urychlí stavby a kanály, ale lid reptá." },
-  nomarchove: { n: "Postavení nomarchů", opts: ["Dědičné úřady", "Jmenování panovníkem", "Omezení moci nomarchů"], d: "Dědičné úřady těší úředníky a nomarchy, omezení dá víc daní, ale šlechta se bouří (Senusret III. omezil nomarchy až později)." },
-  chramy: { n: "Chrámové statky", opts: ["Osvobození od daní", "Rovnováha", "Zdanění chrámů"], d: "Osvobození (známé z dekretů z Koptu) těší kněze a maat; zdanění dá debeny, kněží se hněvají." },
+  nomarchove: { n: "Postavení nomarchů", opts: ["Dědičné úřady", "Jmenování panovníkem", "Omezení moci nomarchů"], d: "Dědičné úřady těší úředníky a nomarchy, omezení dá víc daní, ale nomarchové se bouří. (Dědičnými se úřady nomarchů staly koncem Staré říše; jejich moc omezil až Senusret III.)" },
+  chramy: { n: "Chrámové statky", opts: ["Osvobození od daní a roboty", "Rovnováha", "Zdanění chrámů"], d: "Osvobození (známé z královských dekretů z Koptu ze Staré říše) těší kněze a maat; zdanění dá debeny, kněží se hněvají." },
   vojsko: { n: "Vojsko", opts: ["Místní hotovost nomarchů", "Smíšené", "Stálé vojsko"], d: "Hotovost je levná, ale málo vycvičená; stálé vojsko je dražší a lepší." },
-  nastupnictvi: { n: "Nástupnictví", opts: ["Nejstarší syn", "Spoluvláda dědice", "Nejschopnější z rodu"], d: "Spoluvláda (známá ze Střední říše) zajistí hladké předání vlády; nejschopnější těší úředníky, ale budí spory." },
+  nastupnictvi: { n: "Nástupnictví", opts: ["Nejstarší syn", "Spoluvláda dědice", "Nejschopnější z rodu"], d: "Spoluvláda (doložená od 12. dynastie, Amenemhat I. a Senusret I.) zajistí hladké předání vlády; nejschopnější těší úředníky, ale budí spory." },
 };
 const ESTATES = { knezi: "Kněží", nomarchove: "Nomarchové a hodnostáři", pisari: "Písaři", lid: "Rolníci a řemeslníci" };
 const ESTATE_IDS = Object.keys(ESTATES);
@@ -150,27 +150,28 @@ const TAX_RATE = [0.1, 0.125, 0.2, 0.25, 0.33];
 
 const OFFICES = {
   vezir: { n: "Vezír (tjati)", stat: "spr", d: "nejvyšší úředník: věrnost úředníků, výnos daní" },
-  pokladnik: { n: "Pokladník (imi-ra chetemet)", stat: "spr", d: "spravuje pečetě a sklady: víc debenů" },
-  sypky: { n: "Správce sýpek", stat: "spr", d: "menší ztráty obilí a lepší sklizeň" },
+  pokladnik: { n: "Pokladník (imi-ra chetemet)", stat: "spr", d: "„představený zapečetěných věcí“ – sklady drahých kovů, látek a olejů: víc debenů" },
+  sypky: { n: "Představený sýpek (imi-ra šenuti)", stat: "spr", d: "menší ztráty obilí a lepší sklizeň" },
   vojsko: { n: "Velitel vojska (imi-ra meša)", stat: "ved", d: "výcvik všech posádek každý měsíc" },
-  knez: { n: "Velekněz", stat: "roz", d: "maat a přízeň kněží každý měsíc" },
+  knez: { n: "Představený kněží (imi-ra hemu-necer)", stat: "roz", d: "maat a přízeň kněží každý měsíc" },
 };
 
 // Jména podle kultury (pro úředníky tvořené hrou). Egyptská jména jsou doložená pro Střední říši a přechodná období.
 const NAMES = {
-  eg: { m: ["Intef", "Iku", "Cheti", "Senbi", "Meru", "Iti", "Henenu", "Sobekhotep", "Džehuti", "Nacht", "Hetepi", "Ipi", "Meketre", "Ankhu", "Renseneb", "Neferhotep", "Sabni", "Hekaib", "Iha", "Rensi", "Bebi", "Pepi", "Teti", "Ini", "Chuu", "Seneb", "Kemsu", "Amenemhat", "Montuhotep", "Džefai", "Nebipu", "Sehetepib", "Ib", "Kai", "Henu", "Merer", "Sarenput", "Chnumhotep", "Ameni", "Sobeknacht", "Iuf", "Tjeti", "Nedžemib", "Hapi", "Mentuemhat"],
+  eg: { m: ["Intef", "Iku", "Cheti", "Senbi", "Meru", "Iti", "Henenu", "Sobekhotep", "Džehuti", "Nacht", "Hetepi", "Ipi", "Meketre", "Ankhu", "Renseneb", "Neferhotep", "Sabni", "Hekaib", "Iha", "Rensi", "Bebi", "Pepi", "Teti", "Ini", "Chuu", "Seneb", "Kemsu", "Amenemhat", "Montuhotep", "Džefai", "Ib", "Kai", "Henu", "Merer", "Chnumhotep", "Ameni", "Sobeknacht", "Iuf", "Tjeti", "Nedžemib", "Hapidžefai"],
     f: ["Neferu", "Iah", "Sathathor", "Mereret", "Nebet", "Henut", "Tjat", "Anchesi", "Senet", "Nefret", "Satmontu", "Meryt", "Kemsit", "Ašajet", "Henhenet", "Satsobek", "Renesnebet", "Itet", "Hepet", "Neferut"] },
-  hyk: { m: ["Jakobhar", "Anathar", "Semken", "Janasi", "Šešej", "Abiša", "Šamuhar", "Jamu", "Chajan", "Abdu", "Jakeb", "Sikerhar", "Bnon", "Aperanat", "Nuja", "Ahmose", "Ipi", "Neferhotep", "Senbi", "Sobekhotep"],
+  hyk: { m: ["Jakobhar", "Anathar", "Semken", "Janasi", "Šešej", "Abiša", "Chajan", "Abdu", "Sikerhar", "Bnon", "Aperanat", "Nuja", "Ahmose", "Ipi", "Neferhotep", "Senbi", "Sobekhotep"],
     f: ["Tani", "Herit", "Anati", "Šarek", "Iti", "Nebet", "Senet", "Meryt"] },
   nub: { m: ["Awawa", "Kaa", "Teriahi", "Ijerkej", "Wenkat", "Tekeru", "Senemuer", "Arkhi", "Bakuaket", "Šaat", "Merkus", "Iteru", "Hekaneh", "Anuket"],
     f: ["Abar", "Kandaka", "Nehet", "Sešat", "Iriket", "Tabiri"] },
   lib: { m: ["Wenet", "Kapur", "Mešer", "Hesi", "Teha", "Iner", "Marai", "Weneš", "Kepi", "Betut"], f: ["Tenet", "Hesit", "Marit"] },
   aam: { m: ["Abiša", "Jamu", "Hadar", "Ibšemu", "Sapir", "Jakar", "Nahir", "Šubaj", "Kenaz"], f: ["Adah", "Tamar", "Šiprah"] },
 };
+// Jména Hyksósů podle skarabů a nápisů (Jakobhar, Anathar, Šešej, Chajan, Sikerhar); núbijská a libyjská jména jsou herní, inspirovaná egyptskými záznamy (proklínací texty).
 const SON_NAMES = { eg: ["Intef", "Montuhotep", "Cheti", "Ahmose", "Kamose", "Sobekemsaf", "Senachtenre", "Merikare", "Amenemhat", "Džehutinacht", "Neferkare", "Tefibi"], hyk: ["Apopi", "Chamudi", "Chajan", "Janasi", "Sakirhar"], nub: ["Nedžeh", "Awawa", "Kaa", "Teriahi"], lib: ["Kapur", "Mešer"], aam: ["Abiša", "Jamu"] };
 
 // Bohové žup (pro chrámy)
-const GODS = { u1: "Chnum a Satet", u2: "Hor Behdetský", u3: "Nechbet a Hor Nechenský", u4: "Amon a Montu", u5: "Min a Eset", u6: "Hathor", u7: "Bat a Hathor", u8: "Usir a Chontamenti", u9: "Min", u10: "Nemtej", u11: "Chnum", u12: "Nemtej", u13: "Upuaut", u14: "Hathor", u15: "Thovt", u16: "Pachet a Hor", u17: "Anup", u18: "Nemtej", u19: "Sutech a Thoeris", u20: "Herišef", u21: "Chnum", u22: "Hathor", fa: "Sobek", l1: "Ptah", l2: "Hor Chentejirti", l13: "Re a Atum", l3: "Hathor a Sachmet", l5: "Neit", l6: "Vadžet", lx: "Amon-Re", l12: "Onuris", l16: "Banebdžedet (beran)", l18: "Bastet", lav: "Sutech", l20: "Atum", l14: "Hor Mesenský", o_bah: "Amon", o_dak: "Sutech", o_kha: "Amon", lib: "Aš", sin: "Hathor, paní tyrkysu", ham: "Min", sau: "Min", n_wawat: "Hor Miamský", n_buhen: "Hor Buhenský", n_semna: "Dedun", n_sai: "Dedun", n_kerma: "bohové Kermy" };
+const GODS = { u1: "Chnum a Satet", u2: "Hor Behdetský", u3: "Nechbet a Hor Nechenský", u4: "Amon a Montu", u5: "Min a Eset", u6: "Hathor", u7: "Bat a Hathor", u8: "Usir a Chontamenti", u9: "Min", u10: "Nemtej", u11: "Chnum", u12: "Nemtej", u13: "Upuaut", u14: "Hathor", u15: "Thovt", u16: "Pachet a Hor", u17: "Anup", u18: "Nemtej", u19: "Sutech", u20: "Herišef", u21: "Chnum", u22: "Hathor", fa: "Sobek", l1: "Ptah", l2: "Hor Chentejirti", l13: "Re a Atum", l3: "Hathor a Sachmet", l5: "Neit", l6: "Vadžet", lx: "místní bůh Xoidy", l12: "Onuris", l16: "Banebdžedet (beran)", l18: "Bastet", lav: "Sutech", l20: "Atum", l14: "Hor Mesenský", o_bah: "místní bohové oázy", o_dak: "místní bohové oázy", o_kha: "místní bohové oázy", lib: "Aš", sin: "Hathor, paní tyrkysu", ham: "Min", sau: "Min", n_wawat: "Hor Miamský", n_buhen: "Hor Buhenský", n_semna: "Dedun", n_sai: "Dedun", n_kerma: "bohové Kermy" };
 
 // Župy (egyptsky sepat, řecky nomos): [id, název, staroegyptský název, z. šířka, z. délka, terén, velikost 1–5, příznaky, suroviny]
 // příznaky: e = egyptské jádro (pro sjednocení), c = město, k = pobřeží, h = posvátné pohřebiště, f = pohraniční pevnost, m = Médžajové (nábor)
@@ -186,7 +187,7 @@ const PROVINCES = [
   ["u9", "Achmím", "Ipu, 9. župa", 26.56, 31.75, "udoli", 3, "e", []],
   ["u10", "Kau", "Tjebu, 10. župa", 26.90, 31.52, "udoli", 2, "e", []],
   ["u11", "Šas-hotep", "11. župa", 27.06, 31.33, "udoli", 2, "e", []],
-  ["u12", "Per-Nemtej", "12. župa (Deir el-Gabráví)", 27.36, 31.10, "udoli", 2, "e", []],
+  ["u12", "Per-Nemtej", "12. župa (Dér el-Gabráví)", 27.36, 31.10, "udoli", 2, "e", []],
   ["u13", "Asjút", "Zautí, 13. župa", 27.18, 31.18, "udoli", 3, "ec", []],
   ["u14", "Kúsaj", "Kis, 14. župa", 27.44, 30.82, "udoli", 2, "e", []],
   ["u15", "Hermopolis", "Chemenu, 15. župa (Zaječí)", 27.78, 30.80, "udoli", 4, "ec", ["alabastr"]],
@@ -195,22 +196,22 @@ const PROVINCES = [
   ["u18", "El-Hiba", "Teudžoi, 18. župa", 28.79, 30.92, "udoli", 2, "e", []],
   ["u19", "Oxyrhynchos", "Per-medžed, 19. župa", 28.53, 30.66, "udoli", 2, "e", []],
   ["u20", "Hérakleopolis", "Nen-nesut, 20. župa", 29.08, 30.93, "udoli", 4, "ec", []],
-  ["u21", "Meidúm a Lišt", "21. župa", 29.39, 31.16, "udoli", 2, "e", []],
+  ["u21", "Meidúm a Lišt", "Šenachen, 21. župa", 29.39, 31.16, "udoli", 2, "e", []],
   ["u22", "Atfíh", "Tepihu, 22. župa", 29.42, 31.27, "udoli", 2, "e", []],
   ["fa", "Fajjúm", "Šedet, Ta-še", 29.31, 30.84, "fajjum", 3, "e", []],
-  ["l1", "Memfis", "Mennefer, Bílé zdi, 1. dolnoegyptská župa", 29.85, 31.25, "udoli", 5, "ech", ["kamen"]],
+  ["l1", "Memfis", "Ineb-hedž (Bílé zdi), 1. dolnoegyptská župa", 29.85, 31.25, "udoli", 5, "ech", ["kamen"]],
   ["l2", "Letopolis", "Chem, 2. župa", 30.13, 31.08, "delta", 2, "e", []],
   ["l13", "Heliopolis", "Iunu, 13. župa", 30.13, 31.31, "delta", 3, "ec", []],
   ["l3", "Západní župa", "Imentet (Kom el-Hisn), 3. župa", 30.80, 30.60, "delta", 2, "e", ["dobytek"]],
   ["l5", "Sais", "Zau, 5. župa", 30.97, 30.77, "delta", 3, "e", []],
-  ["l6", "Buto", "Pe a Dep, 6. župa", 31.20, 30.74, "delta", 2, "ek", ["papyrus"]],
+  ["l6", "Buto", "Pe a Dep (Per-Vadžet)", 31.20, 30.74, "delta", 2, "ek", ["papyrus"]],
   ["lx", "Xois", "Chasu", 31.10, 30.98, "delta", 2, "e", ["papyrus"]],
   ["l12", "Sebennytos", "Tjebnetjer, 12. župa", 30.96, 31.24, "delta", 2, "e", ["dobytek"]],
   ["l16", "Mendes", "Džedet, 16. župa", 30.96, 31.52, "delta", 3, "e", ["dobytek"]],
   ["l18", "Bubastis", "Per-Bastet, 18. župa", 30.57, 31.51, "delta", 3, "ec", []],
   ["lav", "Avaris", "Hut-uaret (Tell el-Dab'a)", 30.79, 31.82, "delta", 2, "ek", []],
   ["l20", "Vádí Tumilát", "Tjeku, 8. župa", 30.55, 32.05, "poust", 1, "ef", []],
-  ["l14", "Tjaru", "Sile, Zdi vládcovy, 14. župa", 30.86, 32.32, "delta", 2, "ekf", []],
+  ["l14", "Tjaru", "Sile, pohraniční pevnost, 14. župa", 30.86, 32.32, "delta", 2, "ekf", []],
   ["o_bah", "Oáza Bahríja", "Džesdžes", 28.35, 28.86, "oaza", 1, "", ["vino"]],
   ["o_dak", "Oáza Dachla", "Balat (Ajn Asíl)", 25.55, 29.20, "oaza", 2, "", ["vino"]],
   ["o_kha", "Oáza Charga", "Kenem", 25.44, 30.55, "oaza", 1, "", ["vino"]],
