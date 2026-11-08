@@ -253,6 +253,9 @@ function tChramy() {
   ${card(`Hrobka panovníka – ${esc(C.tombN)}`, `<div class="small">${TOMB_STAGES.map((t, i) => `<div>${i < C.tomb.stage ? '<span class="good">✔</span>' : i === C.tomb.stage && C.tomb.active ? "▶" : "○"} ${t}</div>`).join("")}</div>
     ${C.tomb.active ? `<p>Pracuje se, zbývá asi ${Math.max(1, Math.ceil(C.tomb.left / (S.month < 4 ? 2 : 1)))} měs.</p>` : C.tomb.stage < TOMB_STAGES.length ? `<div class="row">${btn(`Zahájit fázi „${TOMB_STAGES[C.tomb.stage]}“ (${fmt(tc.deben)} d., ${fmtK(tc.grain)} ch.)`, "tomb", [], null, "go")}</div>` : '<p class="good">Hrobka je dokončena.</p>'}
     <p class="small muted">Když panovník zemře s hrobkou hotovou aspoň do třetí fáze, nástupce získá maat; bez hrobky ji ztratí. Za záplavy (Achet) se staví dvakrát rychleji – rolníci jsou volní pro robotu.</p>`)}
+  ${card("Velké stavby", tbl(["Stavba", "Kde", "Postup", "Účinek po dokončení", ""], MON_IDS.map(id => { const M = MONUMENTS[id], st_ = monState(S, id), e = monCheck(S, me(), id), c = monCost(S, me(), id);
+      return tr([`<b>${M.n}</b><div class="small muted">${esc(M.d)}</div>`, esc([...new Set([M.at].concat(M.need || []))].map(x => S.provs[x].n).join(", ")), `${st_.stage}/${M.stages}${st_.active ? ` <span class="small">(pracuje se, ${Math.max(1, Math.ceil(st_.left / (S.month < 4 ? 2 : 1)))} měs.)</span>` : ""}${st_.by && st_.by !== me() ? `<div class="small muted">stavěl ${esc(S.clans[st_.by].n)}</div>` : ""}`, `<span class="small">${esc(M.eff)}</span>`,
+        st_.stage >= M.stages ? '<span class="good">✔</span>' : btn(`Další fáze (${fmtK(c.deben)} d., ${fmtK(c.grain)} ch.)`, "mon", [id], e, "go")]); })) + '<p class="small muted">Každá fáze trvá šest měsíců, za záplavy polovinu. Stavba patří župě: kdo ji dobude, převezme i rozestavěné dílo. Hotové stavby se počítají do odkazu rodu.</p>', "wide")}
   ${card("Zákony", tbl(["Zákon", "Nastavení"], laws), "wide")}
   ${card("Chrámy", tbl(["Župa", "Bůh", "#Úroveň"], temples) + '<p class="small muted">Chrám staví úředník rozkazem „Řídit stavbu“. Každá úroveň dává maat, spokojenost a body vědění.</p>')}</div>`;
 }
@@ -285,7 +288,7 @@ function tRod() {
 function legacy() {
   const C = P(S), ps = clanProvs(S, me());
   return [["Župy egyptského jádra (i poddaných)", realmCore(S, me()) * 10], ["Ostatní župy", ps.filter(p => !p.flags.includes("e")).length * 4], ["Chrámy (úrovně)", sum(ps.map(p => (p.b.chram || 0) * 6))], ["Pevnosti nad první úroveň", sum(ps.map(p => Math.max(0, p.castle - 1) * 2))],
-    ["Hrobka panovníka", C.tomb.stage * 15], ["Maat", Math.round(C.maat)], ["Sláva", Math.round(C.prestige / 10)], ["Vědění", Object.keys(C.techs).length * 3], ["Sjednocení Obou zemí", S.flags.won ? 200 : 0]];
+    ["Hrobka panovníka", C.tomb.stage * 15], ["Maat", Math.round(C.maat)], ["Sláva", Math.round(C.prestige / 10)], ["Vědění", Object.keys(C.techs).length * 3], ["Velké stavby (fáze)", monCount(S, me()) * 10], ["Sjednocení Obou zemí", S.flags.won ? 200 : 0]];
 }
 function legacyCard() { const it = legacy(); return tbl(["Co zůstane", "#Body"], it.filter(x => x[1]).map(([n, v]) => tr([n, tdn(fmt(v))]))) + `<p><b>Celkem ${fmt(sum(it.map(x => x[1])))} bodů.</b></p><p class="small muted">Tak by tvou vládu hodnotili písaři budoucích letopisů. Slouží k porovnání her.</p>`; }
 
@@ -317,7 +320,10 @@ function tHra() {
     <span>Semínko</span><input id="ngSeed" type="number" placeholder="náhodné"></div>
     <div class="row">${btn(SEL.ngConfirm ? "<b>Ano, začít</b>" : "Začít novou hru", "newgame", [], null, "go")}</div>
     <p class="small muted">Thébané a Hérakleopolští (2070), Hérakleopolští (2120) nebo Thébané a Hyksósové (1560) jsou velké říše. Anchtifi (2120) má dvě župy a válku se dvěma sousedy. Nomarchové Asjútu, Hermopole, Beni Hasanu nebo kníže Teti začínají s jedinou župou – to je výzva.</p>`)}
-  ${card("Uložené hry", tbl(["#", "Obsah", ""], slots) + `<p class="small muted">Hra se sama ukládá po každém kroku (v tomto prohlížeči).</p><div class="row">${btn("Stáhnout do souboru", "exportSave")} ${btn("Nahrát ze souboru", "importSave")} ${btn("Světlý / tmavý vzhled", "theme")}</div>`)}
+  ${card("Uložené hry", tbl(["#", "Obsah", ""], slots) + `<p class="small muted">Hra se sama ukládá po každém kroku (v tomto prohlížeči).</p><div class="row">${btn("Stáhnout do souboru", "exportSave")} ${btn("Nahrát ze souboru", "importSave")} ${btn("Světlý / tmavý vzhled", "theme")}</div>
+    <h4>Uložení jako text</h4><p class="small muted">Kde stahování nefunguje (např. ve sdílené stránce), zkopíruj hru jako text a ulož si ji kamkoli; vložením textu ji později obnovíš.</p>
+    <textarea id="saveTxt" rows="3" style="width:100%;font:12px monospace;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:4px" placeholder="sem se vloží nebo zkopíruje uložená hra">${esc(SEL.saveTxt || "")}</textarea>
+    <div class="row">${btn("Zkopírovat hru jako text", "copySave")} ${btn("Načíst hru z textu", "pasteSave")}</div>`)}
   <section class="card wide help"><h3>Jak hrát</h3>
   <p>Jsi hlavou vládnoucího rodu nebo rodu nomarchů v době, kdy je Egypt rozdělený. Jedno kolo je jeden měsíc egyptského občanského roku: tři období po čtyřech měsících o třiceti dnech – achet (záplava), peret (vzcházení, setí) a šemu (sklizeň, léto) – a na konci pět dní navíc. Skutečný občanský kalendář se vůči ročním obdobím posouval; hra ho drží v souladu se záplavou. <b>Cíl:</b> sjednotit Horní a Dolní Egypt – ovládnout (sám nebo skrze poddané) devět desetin žup egyptského jádra. Prohraješ, když přijdeš o všechny župy.</p>
   <h4>Měsíc</h4><p>V záložce <b>Plán měsíce</b> dáš každému úředníkovi jeden rozkaz: kanály a hráze, dílny a trhy, hradby, odvod, výcvik, rozdělení obilí, sčítání, obětiny, hledání schopných mužů, dům života, stavby, výpravy, zvědy, intriky nebo přesun. Župy svěřené rádci spravuje umělá inteligence sama. Pak stiskni <b>Konec měsíce</b>.</p>

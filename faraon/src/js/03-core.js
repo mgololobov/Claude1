@@ -168,7 +168,7 @@ function floodFactor(h) {
 function floodWord(h) { if (h == null) return "neznámá"; return h < 12 ? "hladová" : h < 13 ? "nouzová" : h < 14 ? "slabá" : h < 15 ? "dobrá" : h < 17 ? "hojná" : h < 18 ? "vysoká" : "ničivá"; }
 const PASTORAL = { udoli: 0.2, delta: 0.45, fajjum: 0.35, nubie: 1.6, katarakt: 1.4, oaza: 1.4, poust: 3.0 };
 const NEED_PER_PERSON = 3.2; // charů obilí na osobu a rok
-function agriCap(s, p) { let m = 60; const o = p.owner; if (hasTech(s, o, "hraze") && (p.ter === "udoli" || p.ter === "delta")) m += 10; if (hasTech(s, o, "fajjum")) m += p.ter === "fajjum" ? 30 : 5; return m; }
+function agriCap(s, p) { let m = 60; const o = p.owner; if (hasTech(s, o, "hraze") && (p.ter === "udoli" || p.ter === "delta")) m += 10; if (hasTech(s, o, "fajjum")) m += p.ter === "fajjum" ? 30 : 5; return m + (typeof monAgri === "function" ? monAgri(s, p) : 0); }
 function comCap(s, p) { let m = p.comMax + (p.b.dilny || 0) * 20 + (p.b.pristav || 0) * 15; return m; }
 function provHarvest(s, p, h) {
   const T = TERRAIN[p.ter], f = T.nile ? floodFactor(h != null ? h : s.flood.h) : (p.ter === "oaza" ? 0.95 : 0.7);

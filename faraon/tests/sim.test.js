@@ -2,7 +2,7 @@
 const fs = require("fs"), path = require("path"), vm = require("vm");
 const dir = path.join(__dirname, "..", "src", "js");
 const files = fs.readdirSync(dir).filter(f => /^0\d-.*\.js$/.test(f)).sort();
-const code = '"use strict";\n' + files.map(f => fs.readFileSync(path.join(dir, f), "utf8")).join("\n") + "\n;this.API={newGame,endTurn,SCENARIOS,P,clanProvs,officers,aiDomestic,resolveEvent,eventView,clanBudget,men,clanMen,aliveClans,coreProvs,realmCore};";
+const code = '"use strict";\n' + files.map(f => fs.readFileSync(path.join(dir, f), "utf8")).join("\n") + "\n;this.API={newGame,endTurn,SCENARIOS,P,clanProvs,officers,aiDomestic,resolveEvent,eventView,clanBudget,men,clanMen,aliveClans,coreProvs,realmCore,MON_IDS,monState};";
 const ctx = {}; vm.createContext(ctx); vm.runInContext(code, ctx);
 const A = ctx.API;
 const months = +(process.argv[2] || 240);

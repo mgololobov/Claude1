@@ -2,7 +2,7 @@
 
 Strategická simulace starověkého Egypta v době rozdělení země – egyptská obdoba středověké hry Panovník. Hraje se po měsících egyptského občanského roku (Achet, Peret, Šemu), cílem je sjednotit Horní a Dolní Egypt.
 
-Hra je jeden soubor `dist/index.html`: stačí ho otevřít v prohlížeči, funguje bez internetu a ukládá se v prohlížeči.
+Hra je jeden soubor `dist/index.html`: stačí ho otevřít v prohlížeči, funguje bez internetu a ukládá se v prohlížeči; hru lze uložit i jako text (zkopírovat a později vložit).
 
 ## Scénáře
 
@@ -20,6 +20,7 @@ Hra je jeden soubor `dist/index.html`: stačí ho otevřít v prohlížeči, fun
 - Vojsko (kopiníci, lučištníci, Médžajové, válečné vozy), pochody a plavba po Nilu, bitvy, obléhání pevností, nájezdy kmenů.
 - Maat, stavy (kněží, nomarchové, písaři, lid), zákony, chrámy, hrobka panovníka, svátek sed, Usirovy mystéria v Abydu.
 - Události podle pramenů: Výmluvný rolník, Ponaučení pro Merikarea, Nářky Ipuverovy, Krásný svátek údolí, proklínací obřady (Mirgissa), pád Nefrusy a Avaridu, příběh o ztroskotaném námořníkovi.
+- Velké stavby panovníků: zádušní chrám v Dér el-Bahrí, chrám Amona v Karnaku, Usirův chrám v Abydu, hráze Fajjúmu, pevnosti 2. kataraktu, Zdi vládcovy, obelisk v Heliopoli.
 - Odkaz rodu: bodové hodnocení vlády pro porovnání her.
 - Rod, sňatky, nástupnictví (i spoluvláda), vědění od nilometru po válečný vůz a námořní lodě.
 

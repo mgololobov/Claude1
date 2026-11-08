@@ -3,7 +3,7 @@ const ACT = {};
 const SAVE_KEY = "faraon_auto", SLOT = n => "faraon_slot_" + n, THEME_KEY = "faraon_theme";
 const val = id => { const el = document.getElementById(id); return el ? el.value : undefined; };
 
-ACT.tab = k => { SEL.tab = k; window.scrollTo(0, 0); };
+ACT.tab = k => { SEL.tab = k; SEL.saveTxt = ""; window.scrollTo(0, 0); };
 ACT.end = () => { if (S.events.length) return "Nejdřív rozhodni o události."; endTurn(S); };
 ACT.selProv = id => { SEL.prov = id; if (SEL.tab !== "mapa") SEL.tab = "mapa"; };
 ACT.zoom = k => { SEL.zoom = k; };
@@ -26,6 +26,9 @@ ACT.tax = (v) => setTax(S, me(), v);
 ACT.trade = dir => { const q = Math.abs(+val("mktQ") || 0); if (!q) return "Zadej počet charů."; return trade(S, me(), dir * q); };
 ACT.law = (k, v) => setLaw(S, me(), k, v);
 ACT.tomb = () => startTomb(S, me());
+ACT.mon = id => startMon(S, me(), id);
+ACT.copySave = () => { const t = JSON.stringify(S); SEL.saveTxt = t; try { navigator.clipboard.writeText(t).then(() => toast("Hra zkopírována do schránky."), () => toast("Text je v poli – zkopíruj ho ručně.")); } catch (e) { toast("Text je v poli – zkopíruj ho ručně."); } return null; };
+ACT.pasteSave = () => { const el = document.getElementById("saveTxt"); try { const x = JSON.parse(el.value); if (!x.provs || !x.clans || x.v !== 1) throw 0; S = x; TERR.key = null; SEL.saveTxt = ""; toast("Hra načtena."); } catch (e) { return "Text není uložená hra."; } };
 ACT.focus = (id, v) => { const c = chr(S, id); if (c) c.focus = v || null; };
 ACT.research = t => { if (!techAvail(S, me(), t)) return "Chybí předpoklady."; P(S).res.cur = t; };
 ACT.king = () => { const C = P(S); if (C.t === "král" || clanProvs(S, me()).length < 6) return "Zatím nelze."; C.t = "král"; C.type = "dyn"; C.prestige += 60; C.maat = Math.max(0, C.maat - 3); const ov = C.vassalOf; if (ov) { C.vassalOf = null; addRel(S, me(), ov, -40); if (!atWar(S, me(), ov)) declareWar(S, ov, me(), "proti vzbouřenému nomarchovi, který se prohlásil králem"); } log(S, `${ruler().n} přijal královskou titulaturu a prohlásil se králem Horního a Dolního Egypta.`, "rod", [me()]); };

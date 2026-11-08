@@ -143,7 +143,7 @@ function economyTick(s) {
     const kv = officeVal(s, C.id, "knez"); if (kv) { C.maat = Math.min(100, C.maat + kv / 400); if (C.estates) C.estates.knezi = Math.min(100, C.estates.knezi + kv / 300); }
     if (hasTech(s, C.id, "texty")) C.maat = Math.min(100, C.maat + 0.05);
     // výzkum z chrámů
-    C.res.pts += sum(clanProvs(s, C.id).map(p => (p.b.chram || 0) * 0.6)) * researchMult(s, C.id);
+    C.res.pts += (sum(clanProvs(s, C.id).map(p => (p.b.chram || 0) * 0.6)) + monResearch(s, C.id)) * researchMult(s, C.id);
     researchTick(s, C.id); tombTick(s, C.id);
     C.prestige = Math.max(0, C.prestige * 0.996);
     C.maat = clamp(C.maat + (50 - C.maat) * 0.02, 0, 100);
@@ -247,7 +247,7 @@ const EVENTS = {
     ch: [{ t: "Rozdat obilí chudým (10 000 charů)", d: "lid +10, maat +3", f: () => { if (!pay(s, s.player, 0, 10000)) return "Obilí nestačí."; C.estates.lid = Math.min(100, C.estates.lid + 10); C.maat = Math.min(100, C.maat + 3); return null; } },
       { t: "Dát mudrce vyhnat", d: "maat −2", f: () => { C.maat = Math.max(0, C.maat - 2); return null; } }] }; } },
   usir: { view: (s, d) => { const C = P(s); return { t: "Usirovy mystéria v Abydu", tx: "V Abydu se slaví Usirovy mystéria: průvod s bohem Upuautem v čele, boj s jeho nepřáteli a návrat Usira do chrámu. Za Střední říše je popisuje stéla Ichernofreta; poutníci stavějí u „Terasy velkého boha“ stély a kaple.",
-    ch: [{ t: "Financovat slavnost (800 debenů)", d: "maat +4, kněží +4, lid +2", f: () => { if (!pay(s, s.player, 800)) return "Nedostatek debenů."; C.maat = Math.min(100, C.maat + 4); C.estates.knezi = Math.min(100, C.estates.knezi + 4); C.estates.lid = Math.min(100, C.estates.lid + 2); return null; } },
+    ch: [{ t: "Financovat slavnost (800 debenů)", d: monDone(s, "abydos") ? "maat +8 (Usirův chrám stojí), kněží +4, lid +2" : "maat +4, kněží +4, lid +2", f: () => { if (!pay(s, s.player, 800)) return "Nedostatek debenů."; C.maat = Math.min(100, C.maat + (monDone(s, "abydos") ? 8 : 4)); C.estates.knezi = Math.min(100, C.estates.knezi + 4); C.estates.lid = Math.min(100, C.estates.lid + 2); return null; } },
       { t: "Nechat kněžím", d: "maat +1", f: () => { C.maat = Math.min(100, C.maat + 1); return null; } }] }; } },
   hebsed: { view: (s, d) => { const C = P(s), L = leaderOf(s, s.player); return { t: "Svátek sed", tx: `${L.n} vládne už ${regYear(s, s.player) - 1} let. Podle prastaré tradice má panovník po třiceti letech slavit svátek sed: běží kolem posvátných mezníků a znovu přijímá korunu Horního i Dolního Egypta.`,
     ch: [{ t: "Slavit svátek sed (5 000 debenů, 20 000 charů)", d: "maat +15, sláva +60, úředníci +10", f: () => { if (!pay(s, s.player, 5000, 20000)) return "Na slavnost nebylo."; C.maat = Math.min(100, C.maat + 15); C.prestige += 60; for (const c of officers(s, s.player)) c.loy = Math.min(100, c.loy + 10); C.hebsed = s.turn; return "Svátek sed se slavil v celé zemi."; } },
@@ -360,6 +360,7 @@ function aiClan(s, cid) {
   if (s.turn % 12 === 0) aiOffices(s, cid);
   if (C.type === "kmen") return;
   // hrobka
+  aiMonuments(s, cid);
   const tc = tombCost(s, cid); if (!C.tomb.active && C.tomb.stage < TOMB_STAGES.length && C.deben > tc.deben * 2.5 && C.grain > tc.grain * 3) startTomb(s, cid);
   // trh
   const need = monthlyGrainNeed(s, cid);
@@ -370,7 +371,7 @@ function aiClan(s, cid) {
   for (const e of enemies) {
     if (s.armies.filter(a => a.cl === cid).length >= 2) break;
     const opts = [];
-    for (const p of clanProvs(s, cid)) for (const n of p.nb) { const q = s.provs[n]; if (q.owner !== e && !(atWar(s, cid, q.owner))) continue; if (q.siege) continue; const myP = troopPower(s, cid, p.troops, { train: p.train }) * 0.7, def = provDefense(s, q) + sum(s.armies.filter(a => a.loc === q.id && atWar(s, a.cl, cid)).map(a => troopPower(s, a.cl, a.t, { def: true, train: a.train }))); if (men(p.troops) > 900 && myP > def * 1.1) opts.push([p, q, myP / Math.max(1, def)]); }
+    for (const p of clanProvs(s, cid)) for (const n of p.nb) { const q = s.provs[n]; if (q.owner !== e && !(atWar(s, cid, q.owner))) continue; if (q.siege) continue; const myP = troopPower(s, cid, p.troops, { train: p.train }) * 0.7, def = provDefense(s, q) + sum(s.armies.filter(a => a.loc === q.id && atWar(s, a.cl, cid)).map(a => troopPower(s, a.cl, a.t, { def: true, train: a.train }))); if (men(p.troops) > 900 && (myP > def * 1.1 || (myP > def * 0.85 && realmPower(s, cid) > realmPower(s, e) * 1.5))) opts.push([p, q, myP / Math.max(1, def)]); }
     if (opts.length) { opts.sort((x, y) => y[2] - x[2]); const [p, q] = opts[0]; const cm = officersIn(s, p.id).filter(c => c.id !== C.leader || chance(s, 0.3)).sort((a, b) => st(b, "ved") - st(a, "ved")).slice(0, 2).map(c => c.id); sendArmy(s, cid, p.id, q.id, 0.7, cm); }
   }
   // posily ze zázemí do frontových žup (sousední župy, pochod do měsíce)
@@ -379,6 +380,11 @@ function aiClan(s, cid) {
   if (enemies.length && chance(s, 0.3)) {
     const ps = clanProvs(s, cid), front = ps.filter(p => isFront(s, p)), back = ps.filter(p => !isFront(s, p) && !isBorder(s, p) && men(p.troops) > 1500);
     if (front.length && back.length) { const b = pick(s, back), f = front.sort((x, y) => men(x.troops) - men(y.troops))[0]; sendArmy(s, cid, b.id, f.id, 0.5, []); }
+  }
+  // soupeření dvou egyptských králů o vládu nad Oběma zeměmi
+  if (C.t === "král" && C.cul !== "nub" && !enemies.length) for (const o of borderClans(s, cid)) {
+    const O = s.clans[o]; if (!O.alive || O.t !== "král" || friendly(s, cid, o) || truceUntil(s, cid, o) > s.turn || C.tributeTo === o) continue;
+    if (realmPower(s, cid) > realmPower(s, o) * 1.15 && chance(s, C.aggr * 0.03)) { declareWar(s, cid, o, "o vládu nad Oběma zeměmi"); break; }
   }
   // vyhlášení války
   if (!enemies.length || (C.aggr > 0.55 && enemies.length < 2)) for (const o of borderClans(s, cid)) {
@@ -431,7 +437,7 @@ function endTurn(s) {
   delegated(s);
   for (const C of aliveClans(s)) if (!isPlayer(s, C.id)) aiClan(s, C.id);
   moveArmies(s); siegeTick(s); raids(s);
-  economyTick(s);
+  economyTick(s); monTick(s);
   if (s.month === 0) { s.flood.next = rollFlood(s); }
   if (s.month === FLOOD_MONTH) floodTick(s);
   if (s.month === HARVEST_MONTH) harvestTick(s);

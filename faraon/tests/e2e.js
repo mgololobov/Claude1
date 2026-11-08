@@ -30,6 +30,8 @@ const tabSel = t => `[data-a="tab"][data-x='["${t}"]']`;
     await clearModal();
     for (const t of tabs) { await pg.click(tabSel(t)); await checkTab(scen + "/po válce/" + t); }
     for (const z of ["horni", "delta", "nubie", "cele"]) { await pg.click(tabSel("mapa")); await pg.click(`[data-a="zoom"][data-x='["${z}"]']`); }
+    await pg.click(tabSel("chramy")); const mb = await pg.$('[data-a="mon"]:not([disabled])'); if (mb) await mb.click(); await checkTab(scen + "/stavby");
+    await pg.click(tabSel("hra")); await pg.click('[data-a="copySave"]'); const len = await pg.$eval("#saveTxt", el => el.value.length); if (len < 1000) errors.push("uložení jako text je prázdné"); await pg.click('[data-a="pasteSave"]');
     await pg.click(tabSel("mapa")); await pg.screenshot({ path: path.join(out, `mapa-${scen}.png`) });
     await pg.click(tabSel("prehled")); await pg.screenshot({ path: path.join(out, `prehled-${scen}.png`) });
   }
