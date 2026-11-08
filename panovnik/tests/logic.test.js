@@ -159,3 +159,20 @@ test("EU: záminka, okupace, válečné skóre a mírová smlouva", () => {
   assert.equal(s.provs.straubing.owner, "premysl"); assert.ok(!E.atWar(s, "premysl", "wittL"));
   assert.ok(!s.provs.straubing.cores.includes("premysl"), "nový kraj není začleněn");
 });
+
+test("Herní nápady: činy, turnaj, mor a karanténa, velká díla, zakázky", () => {
+  const s = E.newGame({ seed: 31 }); const C = s.clans.premysl; s.events = []; C.gold = 20000;
+  const pr0 = C.prestige; assert.equal(E.doDeed(s, "objezd"), null); assert.ok(C.prestige > pr0);
+  assert.ok(E.doDeed(s, "hostina"), "jen jeden čin za měsíc");
+  s.events = []; E.endTurn(s); s.events = [];
+  assert.equal(E.doDeed(s, "turnaj"), null); const ev = s.events.find(e => e.id === "_joust");
+  if (ev) { for (let i = 0; i < 6 && !ev.done; i++) E.joustPass(s, ev, "stit"); assert.ok(ev.done, "klání skončí"); }
+  const p = s.provs.plzen; p.plague = 5; assert.equal(E.quarantine(s, "premysl", "plzen"), null); assert.ok(p.quar > s.turn);
+  for (let i = 0; i < 6; i++) E.plagueTick(s); assert.equal(p.plague, 0, "mor ustane"); assert.ok(p.immune > s.turn);
+  s.provs.praha.b.klaster = 1; assert.equal(E.startWork(s, "premysl", "katedrala", "praha"), null);
+  C.works.katedrala.left = 1; s.events = []; E.endTurn(s); assert.ok(C.works.katedrala.done, "katedrála dostavěna");
+  s.contracts = [{ id: "kX", from: "Test", g: "kone", qty: 10, reward: 500, until: s.turn + 5, accepted: false }];
+  assert.ok(E.deliverContract(s, "kX")); assert.equal(E.acceptContract(s, "kX"), null);
+  C.kone = 50; const g0 = C.gold; assert.equal(E.deliverContract(s, "kX"), null); assert.equal(C.gold, g0 + 500); assert.equal(s.contracts.length, 0);
+  assert.equal(E.dispName({ n: "Václav", epi: "Dobrý" }), "Václav Dobrý");
+});

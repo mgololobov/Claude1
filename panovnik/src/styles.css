@@ -335,3 +335,17 @@ header#top .realm svg.portrait { border: 1px solid var(--gold2); }
 .ctile.sel { border-color: var(--gold); background: rgba(226,194,122,.15); }
 .ctile .muted { color: #bfae88; } .ctile .good { color: #9fe39f; } .ctile .warn { color: #f3c46b; } .ctile .bad { color: #ff9a8a; }
 .tstart { margin: 16px 0 30px; color: #e8d8b0; } #title select { background: #2a2017; color: #efe3c5; }
+
+/* herní nápady: činy, díla, zakázky */
+.deeds, .works { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+.deed, .work { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--panel2, rgba(0,0,0,.03)); display: flex; flex-direction: column; }
+.deed svg, .work svg { width: 100%; height: auto; display: block; }
+.deed .dd, .work .dd { padding: 8px 10px; display: flex; flex-direction: column; gap: 4px; flex: 1; }
+.deed .row { margin-top: auto; }
+.deed.used { opacity: .6; }
+.work.done { border-color: var(--good); }
+.contracts { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; }
+.contract { border: 1px dashed var(--line); border-radius: 8px; padding: 8px; display: flex; flex-direction: column; gap: 3px; }
+.contract.acc { border-style: solid; border-color: #b08a2e; }
+.evport.r { left: auto; right: 14px; }
+.plague { pointer-events: auto; }

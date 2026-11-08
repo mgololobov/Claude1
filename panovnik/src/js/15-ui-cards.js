@@ -6,13 +6,14 @@ const loyIcon = v => `<span class="loy ${v < 35 ? "bad" : v < 60 ? "warn" : "goo
 // ---------- vazalové ----------
 function offTile(c, selected) {
   const lordOf = Object.values(S.provs).filter(p => p.lord === c.id).map(p => p.n);
-  return `<div class="otile${selected ? " sel" : ""}${c.acted === S.turn ? " acted" : ""}" data-a="selOff" data-x='["${c.id}"]'>${portrait(c, 58)}<div class="oti"><b>${esc(c.n)}</b><div class="small muted">${RANKS[c.rank].n}${c.dyn ? " · rod" : ""}${c.burgher ? " · měšťan" : ""}${lordOf.length ? " · purkrabí" : ""}</div>${statMini(c)}<div class="small">${loyIcon(c.loy)} <span class="muted">${c.army ? "v poli" : esc(S.provs[c.loc] ? S.provs[c.loc].n : "?")}</span></div></div></div>`;
+  return `<div class="otile${selected ? " sel" : ""}${c.acted === S.turn ? " acted" : ""}" data-a="selOff" data-x='["${c.id}"]'>${portrait(c, 58)}<div class="oti"><b>${esc(c.n)}</b><div class="small muted">${RANKS[c.rank].n}${c.dyn ? " · rod" : ""}${c.burgher ? " · měšťan" : ""}${lordOf.length ? " · purkrabí" : ""}</div>${statMini(c)}${ambBadges(c)}<div class="small">${loyIcon(c.loy)} <span class="muted">${c.army ? "v poli" : esc(S.provs[c.loc] ? S.provs[c.loc].n : "?")}</span></div></div></div>`;
 }
 function offCard(c) {
   const nx = RANKS[c.rank + 1], lordOf = Object.values(S.provs).filter(p => p.lord === c.id).map(p => p.n).join(", "), lead = c.id === P(S).leader;
   const lb = c.dyn || lead ? null : offLoyBreakdown(S, c);
   return `<div class="bigport">${portrait(c, 120)}<div><div class="big">${esc(c.n)}</div><div class="muted">${RANKS[c.rank].n}, ${age(S, c)} let${c.hist ? ", historická postava" : ""}${c.dyn ? ", člen rodu" : ""}</div><div class="muted">${traitsTxt(c) || "bez zvláštních vlastností"}${c.burgher ? " · měšťan" : ""}${Object.entries(P(S).offices || {}).filter(([, v]) => v === c.id).map(([k]) => " · " + OFFICES[k].n).join("")}</div>
     <div class="kv small"><span>Kde</span><span>${c.army ? "s vojskem v poli" : esc(S.provs[c.loc] ? S.provs[c.loc].n : "?")}</span><span>Purkrabí</span><span>${esc(lordOf) || "—"}</span><span>Velí až</span><span>${fmt(RANKS[c.rank].cmd)} mužům</span></div></div></div>
+  ${ambDetail(c)}
   ${STAT_IDS.map(k => meter(STATS[k], st(c, k), 100, { ved: "#a3332b", uda: "#b06a2e", roz: "#3f6fa8", spr: "#4f7f4f" }[k])).join("")}
   ${meter("Věrnost", Math.round(c.loy), 100, c.loy < 35 ? "var(--bad)" : "var(--accent2)")}
   ${lb ? `<details><summary>Proč je věrný(á) – směřuje k ${lb.val}</summary>${lb.rows.map(r => `<div class="why"><span>${esc(r[0])}</span><b class="${r[1] < 0 ? "bad" : "good"}">${sg(r[1])}</b></div>`).join("")}</details>` : ""}
@@ -98,6 +99,7 @@ function tHosp() {
   return `<div class="tiles">${tile("Příjem", fmt(ti), "zlatých měsíčně")}${tile("Výdaje", fmt(te), "zlatých měsíčně")}${tile("Bilance", `<span class="${b.net < 0 ? "bad" : "good"}">${sg(b.net)}</span>`, "za měsíc")}${tile("Obilí", fmt(C.grain), `spotřeba ${r1(clanGrainUse(S, me()))}/měs., žně v září`)}</div>
   <div class="grid">${card("Odkud plyne zlato", moneyBars(b.inc, INC_N, "#b08a2e"))}${card("Kam odtéká", moneyBars(b.ex, EXP_N, "#a3332b"))}
   ${card("Daně a trh", `<div class="kv"><span>Daňová zátěž</span>${sel("taxs", TAX_LEVELS.map((t, i) => [i, t]), C.tax, `data-a="tax" data-x='[]'`)}<span>Inflace</span><span>${Math.round(S.inflation * 100)} %</span></div><p class="small muted">Vyšší daně = víc zlata, ale nižší spokojenost lidu.</p><div class="gcards">${goods}</div>`)}
+  ${contractsCard()}
   ${routesCard()}
   ${card("Lombardští bankéři", `${(C.debts || []).map((d, i) => `<div class="row">Dluh ${fmt(d.amount)} zl, úrok ${r1(d.amount * d.rate)} zl/měs. ${btn("Splatit", "repay", [i])}</div>`).join("") || '<p class="muted small">Nemáš dluhy.</p>'}<div class="row"><input type="number" id="loan" value="200" step="100"> ${btn("Půjčit si", "borrow")} <span class="small muted">strop ${maxLoan(S, me())} zl</span></div>`)}
   ${card("Výnos krajů", provRows.map(p => { const v = provGold(S, p) + provMines(S, p).gold + routeIncomeProv(S, p); return `<div class="mbar"><span>${btn(esc(p.n), "prov", [p.id])}</span><i style="width:${v / mx * 100}%;background:${p.cores.includes(me()) ? "#b08a2e" : "#e68c28"}"></i><b>${r1(v)}</b></div>`; }).join(""), "wide")}</div>`;
@@ -116,7 +118,7 @@ function renderModal() {
   if (S.events.length && S.events[0].id === "_battle" && battleModal(S.events[0])) { m.innerHTML = battleModal(S.events[0]); m.classList.remove("hidden"); return; }
   if (S.events.length) {
     const ev = S.events[0], v = eventView(S, ev), who = eventPerson(ev);
-    m.innerHTML = `<div class="box evbox"><div class="evart">${scene(EVENT_ART[ev.id] || "dvur")}${who ? `<div class="evport">${portrait(who, 78)}</div>` : ""}</div><div class="evbody"><div class="muted small">${dateStr(S)}${S.events.length > 1 ? ` · čeká ${S.events.length} zpráv` : ""}</div><h2>${esc(v.t)}</h2><p>${esc(v.txt)}</p>${v.ch.map(c => `<button class="b ch" data-a="event" data-x="[0,${c.i}]" ${c.ok ? "" : "disabled"}>${esc(c.t)}</button>`).join("")}</div></div>`;
+    m.innerHTML = `<div class="box evbox"><div class="evart">${scene(EVENT_ART[ev.id] || "dvur")}${who ? `<div class="evport">${portrait(who, 78)}</div>` : ""}${ev.id === "_rada" || ev.id === "_duel" ? `<div class="evport r">${portrait(chr(S, ev.b), 78)}</div>` : ""}</div><div class="evbody"><div class="muted small">${dateStr(S)}${S.events.length > 1 ? ` · čeká ${S.events.length} zpráv` : ""}</div><h2>${esc(v.t)}</h2><p>${esc(v.txt)}</p>${v.ch.map(c => `<button class="b ch" data-a="event" data-x="[0,${c.i}]" ${c.ok ? "" : "disabled"}>${esc(c.t)}</button>`).join("")}</div></div>`;
     m.classList.remove("hidden");
   } else if (S.over && !S.overSeen) {
     m.innerHTML = `<div class="box evbox"><div class="evart">${scene(S.over.win ? "rod" : "pozar")}</div><div class="evbody"><h2>${S.over.win ? "Vítězství" : "Konec"}</h2><p>${esc(S.over.txt)}</p><button class="b ch" onclick="S.overSeen=true;render()">${S.over.cont ? "Hrát dál" : "Zavřít"}</button></div></div>`;

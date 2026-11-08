@@ -65,6 +65,16 @@ Je to samostatný projekt, s Herní dílnou (`herni-dilna/`) nesdílí žádný 
 - Přehled jako nástěnka: dlaždice s vývojem zlata, obilí, krajů, vojska a prestiže a graf moci rodů v čase.
 - Schopnosti vazalů a stav krajů jako pruhy, složení vojska jako barevný pruh, průběh bitvy jako graf, rodokmen.
 
+## Herní nápady proti stereotypu
+- **Činy panovníka** (okno Vláda): jednou za měsíc hostina, hon, turnaj, pouť, objezd země, soudní den, audience nebo rozprava s učenci – každý s vlastním obrázkem a riziky.
+- **Rytířský turnaj** jako minihra: při klání volíš, kam míříš kopím (přilba, štít, hruď), proti soupeři s vlastní udatností.
+- **Přání a spory vazalů**: vazal si občas něco přeje (dar, léno, úřad, povýšení) – splnění zvyšuje věrnost, nesplnění ji sráží. Znesváření páni se usmíří u hostiny nebo soudu, jinak dojde k souboji (Soud Boží).
+- **Zasedání rady**: dva rádci se přou o politiku a ty rozhoduješ, komu dáš za pravdu.
+- **Mor a karanténa**: nákazy se šíří mezi sousedními kraji (ikona na mapě), kraj lze uzavřít; v roce 1348 přichází Černá smrt, v roce 1315 Velký hladomor.
+- **Velká díla**: katedrála, kamenný most, královský palác, univerzita – staví se roky a splácí měsíčně.
+- **Kupecké zakázky** (Hospodářství): kupci poptávají obilí, koně nebo zbroj za odměnu; nedodání stojí prestiž.
+- **Křížová výprava do Pruska**, **přídomky panovníků** (Veliký, Vítězný, Stavitel, Zlatý, Pobožný, Ukrutný, Moudrý) a **roční období** na mapě (zimní sníh, podzimní barvy).
+
 ## Struktura
 
 ```

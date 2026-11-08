@@ -156,7 +156,7 @@ function capture(s, c, by) { for (const p of Object.values(s.provs)) if (p.lord 
 
 // ---------- vazalové ----------
 function promote(s, cid, id) { const c = chr(s, id); if (!c || c.cl !== cid || c.st !== "off") return "Není."; if (c.rank >= 4) return "Nejvyšší hodnost."; if (c.merit < RANKS[c.rank + 1].merit) return `Málo zásluh (${Math.round(c.merit)}/${RANKS[c.rank + 1].merit}).`; c.rank++; c.loy = Math.min(100, c.loy + 12); log(s, `${c.n} povýšen na hodnost ${RANKS[c.rank].n}.`, "vazalove", [cid]); return null; }
-function reward(s, cid, id, g) { const c = chr(s, id); g = Math.floor(g); if (!c || c.cl !== cid) return "Není."; if (g <= 0) return "Zadej částku."; if (!pay(s, cid, g)) return "Nedostatek zlata."; const v = Math.round(g / (4 + c.rank * 2) * (c.traits.includes("lakomy") ? 1.4 : 1)); c.loy = Math.min(100, c.loy + v); log(s, `${c.n} obdržel dar ${g} zl (věrnost +${v}).`, "vazalove", [cid]); return null; }
+function reward(s, cid, id, g) { const c = chr(s, id); g = Math.floor(g); if (!c || c.cl !== cid) return "Není."; if (g <= 0) return "Zadej částku."; if (!pay(s, cid, g)) return "Nedostatek zlata."; const v = Math.round(g / (4 + c.rank * 2) * (c.traits.includes("lakomy") ? 1.4 : 1)); c.loy = Math.min(100, c.loy + v); if (c.amb && c.amb.t === "dar") c.amb.gifts += g; log(s, `${c.n} obdržel dar ${g} zl (věrnost +${v}).`, "vazalove", [cid]); return null; }
 function makeLord(s, cid, pid, id) { const p = s.provs[pid], c = chr(s, id); if (!p || p.owner !== cid || !c || c.cl !== cid || c.st !== "off") return "Nelze."; if (c.loc !== pid) return "Vazal musí být v kraji."; p.lord = id; c.loy = Math.min(100, c.loy + 6); log(s, `${c.n} se stal purkrabím kraje ${p.n}.`, "vazalove", [cid]); return null; }
 function dismissOff(s, cid, id) { const c = chr(s, id); if (!c || c.cl !== cid || c.dyn || c.id === s.clans[cid].leader) return "Nelze propustit."; for (const p of Object.values(s.provs)) if (p.lord === id) p.lord = null; c.st = "wand"; c.cl = null; c.rank = 0; assignLords(s, cid); log(s, `${c.n} byl propuštěn ze služby.`, "vazalove", [cid]); return null; }
 function captiveAction(s, cid, id, act) {
@@ -178,7 +178,7 @@ function captiveAction(s, cid, id, act) {
       c.loy = Math.min(100, c.loy + 5); log(s, `${c.n} odmítl změnit stranu.`, "vazalove", [cid]); return null;
     }
     case "popravit":
-      c.st = "dead"; c.died = dateStr(s); s.clans[cid].prestige -= 10; s.pope.op[cid] = (s.pope.op[cid] || 0) - (isLeader ? 30 : 8);
+      c.st = "dead"; c.died = dateStr(s); s.clans[cid].prestige -= 10; s.clans[cid].execs = (s.clans[cid].execs || 0) + 1; s.pope.op[cid] = (s.pope.op[cid] || 0) - (isLeader ? 30 : 8);
       if (home) addRel(s, cid, home, isLeader ? -80 : -35); for (const o of officers(s, cid)) o.loy -= 3;
       log(s, `${c.n} byl popraven.`, "vazalove", [cid, home]); if (isLeader) heirSucceeds(s, home, "poprava"); return null;
   }

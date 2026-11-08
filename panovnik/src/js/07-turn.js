@@ -9,6 +9,7 @@ function endTurn(s) {
   for (const C of aliveClans(s)) if (!isPlayer(s, C.id)) aiClan(s, C.id);
   armiesTurn(s);
   euTick(s);
+  funTick(s);
   for (const C of aliveClans(s)) economy(s, C);
   provincesTurn(s);
   officersTurn(s);

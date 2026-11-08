@@ -19,7 +19,7 @@ function chipTop(ic, label, val, sub, cls_ = "", title = "") { return `<span cla
 function mpChip(k) { const C = P(S), g = mpGain(S, me())[k]; return `<span class="res mp" title="${MP[k].n}: ${Math.round(C.mp[k])} bodů, +${g} měsíčně"><i class="mpdot" style="background:${MP[k].col}">${MP[k].n[0]}</i><b>${Math.round(C.mp[k])}</b><small>+${g}</small></span>`; }
 function renderTop() {
   const C = P(S), L = leaderOf(S, me()), b = clanBudget(S, me());
-  $("#top").innerHTML = `<span class="realm">${shield(me(), 30)}${portrait(L, 34)}<span><b>${esc(C.house)}</b><small>${esc(cap(C.t))} ${esc(L ? L.n : "—")}${L ? ` (${age(S, L)})` : ""}</small></span></span>
+  $("#top").innerHTML = `<span class="realm">${shield(me(), 30)}${portrait(L, 34)}<span><b>${esc(C.house)}</b><small>${esc(cap(C.t))} ${esc(dispName(L))}${L ? ` (${age(S, L)})` : ""}</small></span></span>
   <span class="resbar">${chipTop("gold", "Zlato", fmt(C.gold), `<span class="${b.net < 0 ? "bad" : "good"}">${sg(b.net)}</span>`, "", "Zlato a čistý měsíční příjem")}${chipTop("grain", "Obilí", fmt(C.grain))}${chipTop("men", "Vojsko", fmt(Math.round(clanMen(S, me()) / 100) / 10) + "k", "", "", "Muži ve zbrani")}${chipTop("crown", "Prestiž", fmt(C.prestige))}
   ${chipTop("scale", "Stabilita", sg(C.stab), "", C.stab < 0 ? "bad" : C.stab > 0 ? "good" : "", "Stabilita země (−3 až +3)")}${MP_IDS.map(mpChip).join("")}${C.we >= 1 ? chipTop("fire", "Vyčerpání", r1(C.we), "", C.we > 8 ? "bad" : "warn", "Válečné vyčerpání") : ""}${overext(S, me()) > 0 ? chipTop("scale", "Přetížení", overext(S, me()) + " %", "", overext(S, me()) > 50 ? "bad" : "warn", "Podíl nezačleněných krajů na rozvoji říše") : ""}</span>
   <span class="sp"></span>
@@ -133,7 +133,8 @@ function mapView() {
     arm += `<g class="atok${own ? " own" : ""}${SEL.armySel === a.id ? " sel" : ""}${atWar(S, me(), a.cl) ? " foe" : ""}" data-a="${own ? "selArmy" : "prov"}" data-x='["${own ? a.id : loc}"]' transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${k.toFixed(2)})"><title>${esc(S.clans[a.cl].house)}: ${fmt(n)} mužů${a.cmds.length ? ", " + esc(chr(S, a.cmds[0]).n) : ""}</title><rect width="27" height="11" rx="2" fill="${S.clans[a.cl].col}"/><rect width="27" height="2" y="9" class="mor" style="width:${(clamp(a.morale, 0, 100) * 0.27).toFixed(1)}px"/><text x="13.5" y="8" text-anchor="middle">${txt}</text></g>`; });
   return `<svg id="msvg" viewBox="${v.x.toFixed(1)} ${v.y.toFixed(1)} ${v.w.toFixed(1)} ${v.h.toFixed(1)}" class="map eu" role="img" aria-label="Mapa střední Evropy">
     <defs><marker id="arO" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" class="mo"/></marker><marker id="arF" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" class="mf"/></marker></defs>
-    <rect x="-200" y="-200" width="${MW + 400}" height="${MH + 400}" class="sea"/><image href="${euTerrain(mode)}" width="${MW}" height="${MH}" preserveAspectRatio="none"/>${mapDecor(z, mode)}${routes}${names}${nodes}${arrows}${arm}${labels}</svg>
+    <pattern id="snowp" width="14" height="14" patternUnits="userSpaceOnUse"><circle cx="3" cy="4" r="1" fill="#fff"/><circle cx="10" cy="10" r="1.3" fill="#fff"/></pattern>
+    <rect x="-200" y="-200" width="${MW + 400}" height="${MH + 400}" class="sea"/><image href="${euTerrain(mode)}" width="${MW}" height="${MH}" preserveAspectRatio="none"/>${seasonOverlay()}${mapDecor(z, mode)}${routes}${names}${nodes}${plagueIcons(z)}${arrows}${arm}${labels}</svg>
     <div class="mmodes">${MAPMODES.map(([k, n]) => btn(n, "mode", [k], null, mode === k ? "on" : "")).join("")}${mode !== "obchod" ? btn(SEL.routes ? "Cesty ✓" : "Cesty", "routes", [], null, SEL.routes ? "on" : "") : ""}</div>
     <div class="zoom">${btn("+", "zoom", [0.7])}${btn("−", "zoom", [1.4])}${btn("⌂", "zoomReset")}</div>${mapLegend(mode)}`;
 }
@@ -176,6 +177,8 @@ function provPanel(p) {
   let html = provArt(p) + `<div class="sph">${shield(p.owner, 34)}<div><b>${esc(p.n)}</b><div class="small muted">${esc(C.house)}${C.capital === p.id ? " · sídlo" : ""}</div></div></div><div class="tags">${tags.map(t => `<span class="pill">${t}</span>`).join("")}</div>`;
   if (k) html += `${meter("Pole", p.agri, agriCap(S, p), "#7f9a3c")}${meter("Obchod", p.com, comCap(S, p), "#b08a2e")}${meter("Hradby", Math.round(p.dur), durMax(S, p), "#777")}${meter("Spokojenost", Math.round(p.loy), 100, p.loy < 30 ? "var(--bad)" : "var(--accent2)")}<div class="kv"><span>Obyvatel</span><span>${fmt(p.pop * 1000)}</span><span>Posádka</span><span>${estimate(S, p, men(p.troops))}</span><span>Rozvoj</span><span>${dev(p)}</span></div>`;
   else html += `<p class="small muted">Vzdálený kraj – víš jen to, co vyprávějí kupci. Pošli zvědy.</p>`;
+  if (p.plague) html += `<div class="alert bad">Řádí tu mor (ještě ${p.plague} měs.)${(p.quar || 0) > S.turn ? " · kraj je v karanténě" : ""}.</div>`;
+  if (mine && !p.occ && !((p.quar || 0) > S.turn) && (p.plague || p.nb.some(n => S.provs[n].plague))) html += `<div class="row">${btn("Karanténa na rok (60 zl)", "quar", [p.id], null, "danger")}</div>`;
   if (mine && !p.occ) {
     const c = devCost(S, me(), p);
     html += `<h4>Rozvoj kraje (${c} bodů)</h4><div class="row">${btn("+ Pole", "develop", [p.id, "adm"], P(S).mp.adm >= c ? null : "Málo bodů správy", "mpb adm")}${btn("+ Obchod", "develop", [p.id, "dip"], P(S).mp.dip >= c ? null : "Málo bodů diplomacie", "mpb dip")}${btn("+ Muži", "develop", [p.id, "mil"], P(S).mp.mil >= c ? null : "Málo bodů vojska", "mpb mil")}</div>`;
@@ -208,10 +211,12 @@ function tVlada() {
   const miss = missionsFor(S, me()).map(m => `<div class="mis ${C.missions[m.id] ? "done" : ""}"><b>${C.missions[m.id] ? "✔ " : ""}${m.n}</b><div class="small">${m.d}</div><div class="small muted">Odměna: ${m.r}</div></div>`).join("");
   return `<div class="grid">
   ${card("Panovník", `<div class="crest">${portrait(L, 110)}${shield(me(), 56)}<div><div class="big">${esc(L ? L.n : "—")}</div><div class="muted">${esc(cap(C.t))}, ${L ? age(S, L) + " let" : ""} · ${esc(C.house)}</div><div class="muted">${traitsTxt(L || { traits: [] })}</div></div></div>${L ? STAT_IDS.map(k2 => meter(STATS[k2], st(L, k2), 100)).join("") : ""}`)}
+  ${deedsCard()}
   ${card("Body vlády", mpRows + `<p class="small muted">Body se utrácejí za rozvoj krajů (boční panel kraje), stabilitu, začleňování krajů, ideje a snižování válečného vyčerpání. Přibývají podle schopností panovníka a rádců v úřadech (Vazalové → Dvůr a úřady). Strop je 999.</p>`)}
   ${card("Stabilita a vyčerpání", `<div class="stab">${stabScale}</div><p class="small">Stabilita zvyšuje příjmy (+5 % za bod), spokojenost lidu i věrnost vazalů. Klesá při válce bez záminky, nástupu nového vládce, klatbě a přetížení říše.</p><div class="row">${btn(`Zvýšit stabilitu (${stabCost(S, me())} správy)`, "stab", [], C.stab < 3 && C.mp.adm >= stabCost(S, me()) ? null : "Nelze", "mpb adm")}</div>
     ${meter("Válečné vyčerpání", r1(C.we), 20, C.we > 8 ? "var(--bad)" : "var(--warn)")}<p class="small">Vyčerpání roste ve válce a s ztrátami, snižuje spokojenost lidu a ochotu bojovat dál.</p><div class="row">${btn("Snížit vyčerpání o 2 (75 diplomacie)", "reduceWE", [], C.we >= 0.5 && C.mp.dip >= 75 ? null : "Nelze", "mpb dip")}</div>`)}
   ${card(`Začlenění říše – přetížení ${overext(S, me())} %`, unc.length ? tbl(["Kraj", "#Rozvoj", ""], unc.map(p => tr([btn(esc(p.n), "prov", [p.id]), dev(p), p.coring ? `začleňuje se, ${p.coring.left} měs.` : btn(`Začlenit (${coreCost(S, p)})`, "core", [p.id], C.mp.adm >= coreCost(S, p) && !p.occ ? null : "Nelze", "mpb adm")]))) + '<p class="small muted">Přetížení nad 50 % ohrožuje stabilitu.</p>' : '<p class="good">Všechny kraje jsou začleněné.</p>')}
+  ${worksCard()}
   ${card("Ideje", `<div class="ideas">${ideas}</div>`, "wide")}
   ${card("Úkoly rodu", `<div class="missions">${miss}</div>`, "wide")}</div>`;
 }
