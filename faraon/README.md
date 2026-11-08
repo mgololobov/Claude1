@@ -56,6 +56,10 @@ Hra je jeden soubor `dist/index.html`: stačí ho otevřít v prohlížeči, fun
 - Ilustrace v egyptském stylu u každé události (Nil, bitva, chrám, dvůr, hrobka, karavana, lov v bažinách, sýpky, svátek, kouzla), bojiště se šiky vojáků při osobně vedené bitvě, kolo kalendáře svátků, karty nomů a rodů a barevné pruhy příjmů a výdajů místo tabulek.
 - Senet jako malá hra o debeny nebo o čest: vrhací hůlky, třicet polí a „dům vody“ (pravidla podle moderní rekonstrukce, původní se nedochovala).
 - Další události: královský lov (gazely, hroch, ptáci), navrátilec z Retjenu (jako v Příběhu Sinuhetově), trpaslík z jihu (dopis Pepiho II. Harchufovi), kupci z Keftiu, kouzelník z papyru Westcar, bodnutí štírem a zaklínači Selkety, sen panovníka, vykradený hrob, krokodýl v kanálu, hostina s harfeníkem.
+- Sedmnáct zákonů, nově sčítání dobytka, správa kanálů, půda pro vojáky, obětní kalendář, dohled nad trhem a majetek žen (podle listiny z Lahúnu).
+- 54 vynálezů, nově měřičské provazce, plachty a kormidla, pouštní studny, hrnčířský kruh, rýžování zlata, chrámové účetní knihy, šikmé valy (glacis) a rybářské sítě; záložka Vědění je obrázkový strom s průběhem zkoumání.
+- Náhoda a život rodu: znamení roku z vrhacích hůlek (příznivý či zlý rok), narození dětí v paláci (porodní cihly z Abydu, amulety Bese a Taveret), výchova dědice (kap, vojsko, dům života), královská objížďka nomů s nečekanými příhodami.
+- Další události: písečná bouře, útěk z roboty (papyrus z Brooklynu), ztroskotaný náklad obilí, nová zlatá žíla, statečný voják, paviáni z jihu.
 - Uložené hry mají číslo verze a starší se při načtení převedou; mapa se překresluje jen při změně.
 
 Jména vládců a doložených hodnostářů odpovídají pramenům; roky narození, schopnosti a ostatní postavy jsou herní. Letopočty podle střední chronologie (I. Shaw, The Oxford History of Ancient Egypt, 2000).

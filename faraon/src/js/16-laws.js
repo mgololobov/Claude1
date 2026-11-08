@@ -9,7 +9,7 @@ function tZakony() {
   const C = P(S), cats = {};
   for (const k of Object.keys(LAWS)) (cats[LAW_CATS[k] || "Ostatní"] = cats[LAW_CATS[k] || "Ostatní"] || []).push(k);
   const lawCard = k => { const L = LAWS[k], cur = lw(S, me(), k), cd = (C.lawCd[k] || 0) > S.turn ? C.lawCd[k] - S.turn : 0;
-    return `<div class="person"><div class="pn">${esc(L.n)}</div><div class="small muted">${esc(L.d)}</div>
+    return `<div class="person law"><div class="lawh">${lawDial(cur, L.opts.length)}<div class="pn">${esc(L.n)}</div></div><div class="small muted">${esc(L.d)}</div>
       ${L.opts.map((o, i) => `<div class="lawopt${i === cur ? " on" : ""}"><div class="row">${i === cur ? "<b>✔ " + esc(o) + "</b>" : btn(esc(o), "law", [k, i], cd ? `Zákon lze znovu změnit za ${cd} měs.` : null)}</div><div class="small">${esc((L.eff || [])[i] || "beze změny")}</div><div>${estDelta((LAW_EST[k] || [])[i])}</div></div>`).join("")}
       ${cd ? `<div class="small muted">Změna možná za ${cd} měs.</div>` : ""}</div>`; };
   return `<section class="card"><h3>Zákony a nařízení</h3><p class="small muted">Změna zákona okamžitě posune náladu stavů (kněží, nomarchové, písaři, lid) a lze ji opakovat nejdřív po roce. Daň ze sklizně se mění po půl roce.</p>

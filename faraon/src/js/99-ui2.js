@@ -57,7 +57,7 @@ function raidHtml(p) {
   const C = P(S); if (C.type !== "kmen" || p.owner !== me()) return "";
   const ts = p.nb.map(n => S.provs[n]).filter(q => q.owner !== me() && !friendly(S, me(), q.owner));
   if (!ts.length) return "";
-  const wait = (C.last.raid || -9) > S.turn - 3 ? `Bojovníci odpočívají ještě ${C.last.raid + 3 - S.turn} měs.` : null;
+  const wait = (C.last.raid ?? -9) > S.turn - 3 ? `Bojovníci odpočívají ještě ${C.last.raid + 3 - S.turn} měs.` : null;
   return `<h4>Nájezd</h4><div class="row">${sel("rt_" + p.id, ts.map(q => [q.id, `${q.n} – ${S.clans[q.owner].n}${knows(S, q) ? `, posádka ${fmtK(men(q.troops))}` : ""}`]), SEL["rt_" + p.id] || ts[0].id, `data-a="raidSel" data-x='["${p.id}"]'`)} ${btn("Vyrazit na nájezd", "raid", [p.id], wait, "danger")}</div><p class="small muted">Do nájezdu vyrazí asi polovina bojovníků. Kořist: debeny a obilí; vztahy s napadeným klesnou.</p>`;
 }
 

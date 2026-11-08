@@ -318,3 +318,26 @@ svg.senet .hg { font: 20px "Noto Sans Egyptian Hieroglyphs", serif; fill: #2a242
 .rodh { display: grid; grid-template-columns: auto 1fr; gap: 8px; align-items: center; }
 .rodm { display: flex; flex-wrap: wrap; gap: 2px; }
 @media (max-width: 700px) { .festwrap { grid-template-columns: 1fr; } #modal .box > svg.vign { height: 96px; } }
+
+/* strom vědění, zákony, znamení */
+.labhead { display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: center; }
+.labhead .big { font-size: 20px; font-weight: bold; margin: 2px 0 4px; }
+.tlane { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 8px; }
+.tnode { border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; background: var(--panel); display: flex; flex-direction: column; gap: 5px; position: relative; }
+.tnode.known { background: linear-gradient(135deg, rgba(79,138,91,.18), var(--panel)); border-color: #4f8a5b; }
+.tnode.cur { border: 2px solid #c9a227; box-shadow: 0 0 0 3px rgba(201,162,39,.25); }
+.tnode.locked { opacity: .55; filter: grayscale(.5); }
+.tnode .tnh { display: flex; gap: 6px; align-items: center; }
+.tnode .tni { display: inline-flex; width: 26px; height: 26px; border-radius: 50%; background: rgba(201,162,39,.18); align-items: center; justify-content: center; flex: none; }
+.tnode .treq { display: flex; flex-wrap: wrap; gap: 4px; }
+.tnode .treq span { font-size: 11px; padding: 1px 6px; border-radius: 10px; background: rgba(181,69,44,.15); }
+.tnode .treq span.ok { background: rgba(79,138,91,.2); }
+.tnode .treq span::before { content: "← "; }
+.tnode .tnf { display: flex; justify-content: space-between; align-items: center; gap: 6px; font-size: 12px; margin-top: auto; }
+.b.sm { padding: 3px 9px; font-size: 12px; }
+.person.law .lawh { display: flex; align-items: center; gap: 8px; }
+.ldial { width: 70px; height: 22px; flex: none; }
+svg.omen { display: block; width: 100%; max-width: 360px; margin: 6px auto; }
+.omenbox { display: flex; gap: 12px; align-items: center; }
+.omenbox .omv { display: inline-flex; width: 46px; height: 46px; border-radius: 50%; color: #fff; font-size: 22px; font-weight: bold; align-items: center; justify-content: center; background: #c9a227; }
+.omenbox.good .omv { background: #4f8a5b; } .omenbox.bad .omv { background: #b5452c; }

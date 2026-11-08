@@ -325,6 +325,29 @@ svg.senet .hg { font: 20px "Noto Sans Egyptian Hieroglyphs", serif; fill: #2a242
 .rodh { display: grid; grid-template-columns: auto 1fr; gap: 8px; align-items: center; }
 .rodm { display: flex; flex-wrap: wrap; gap: 2px; }
 @media (max-width: 700px) { .festwrap { grid-template-columns: 1fr; } #modal .box > svg.vign { height: 96px; } }
+
+/* strom vědění, zákony, znamení */
+.labhead { display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: center; }
+.labhead .big { font-size: 20px; font-weight: bold; margin: 2px 0 4px; }
+.tlane { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 8px; }
+.tnode { border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; background: var(--panel); display: flex; flex-direction: column; gap: 5px; position: relative; }
+.tnode.known { background: linear-gradient(135deg, rgba(79,138,91,.18), var(--panel)); border-color: #4f8a5b; }
+.tnode.cur { border: 2px solid #c9a227; box-shadow: 0 0 0 3px rgba(201,162,39,.25); }
+.tnode.locked { opacity: .55; filter: grayscale(.5); }
+.tnode .tnh { display: flex; gap: 6px; align-items: center; }
+.tnode .tni { display: inline-flex; width: 26px; height: 26px; border-radius: 50%; background: rgba(201,162,39,.18); align-items: center; justify-content: center; flex: none; }
+.tnode .treq { display: flex; flex-wrap: wrap; gap: 4px; }
+.tnode .treq span { font-size: 11px; padding: 1px 6px; border-radius: 10px; background: rgba(181,69,44,.15); }
+.tnode .treq span.ok { background: rgba(79,138,91,.2); }
+.tnode .treq span::before { content: "← "; }
+.tnode .tnf { display: flex; justify-content: space-between; align-items: center; gap: 6px; font-size: 12px; margin-top: auto; }
+.b.sm { padding: 3px 9px; font-size: 12px; }
+.person.law .lawh { display: flex; align-items: center; gap: 8px; }
+.ldial { width: 70px; height: 22px; flex: none; }
+svg.omen { display: block; width: 100%; max-width: 360px; margin: 6px auto; }
+.omenbox { display: flex; gap: 12px; align-items: center; }
+.omenbox .omv { display: inline-flex; width: 46px; height: 46px; border-radius: 50%; color: #fff; font-size: 22px; font-weight: bold; align-items: center; justify-content: center; background: #c9a227; }
+.omenbox.good .omv { background: #4f8a5b; } .omenbox.bad .omv { background: #b5452c; }
 </style>
 </head>
 <body>
@@ -2978,7 +3001,7 @@ function inheritPrep(s, c) {
 }
 function inheritApply(s, c, inh) {
   const C = s.clans[inh.cl]; if (!C || !C.alive) return;
-  const priv = C.rodPriv && C.rodPriv[rodOf(c)], pr = priv ? 1 : [0.9, 0.45, 0.15][lw(s, inh.cl, "nomarchove")];
+  const priv = C.rodPriv && C.rodPriv[rodOf(c)], pr = priv ? 1 : Math.min(1, [0.9, 0.45, 0.15][lw(s, inh.cl, "nomarchove")] + (lw(s, inh.cl, "zeny") === 2 ? 0.15 : 0));
   if (!chance(s, pr)) return;
   let son = Object.values(s.chars).find(k => k.father === c.id && k.sex === "m" && k.st !== "dead" && k.st !== "cap" && age(s, k) >= 16 && (k.cl === inh.cl || !k.cl));
   if (!son && age(s, c) >= 38 && chance(s, priv ? 1 : 0.75)) {
@@ -3022,7 +3045,8 @@ EVENT_Q.spor_rodu = "rolnik"; EVENT_Q.mocny_rod = "amenemhat";
 function marketTick(s) {
   const M = s.market; if (M.base == null) M.base = M.p; M.hist = M.hist || []; M.short = M.short || 0; M.press = M.press || 0;
   const m = (s.month - HARVEST_MONTH + 12) % 12, season = 0.9 + m * 0.022;
-  M.p = Math.round(clamp(M.base * season * (1 + M.short) * (1 + M.press), 0.8, 12) * 100) / 100;
+  const damp = [1.3, 1, 0.5][lw(s, s.player, "ceny")], raw = M.base * season * (1 + M.short) * (1 + M.press);
+  M.p = Math.round(clamp(M.base + (raw - M.base) * damp, 0.8, 12) * 100) / 100;
   M.hist.push(M.p); if (M.hist.length > 120) M.hist.splice(0, M.hist.length - 120);
   M.press *= 0.7; M.short *= 0.985;
 }
@@ -3144,7 +3168,7 @@ function playerRaid(s, fromId, toId) {
   if (T.type !== "kmen") return "Nájezdy podnikají jen kmeny.";
   if (!from || from.owner !== s.player || !q || !from.nb.includes(toId) || q.owner === s.player) return "Nájezd jde jen do sousedního cizího kraje.";
   if (friendly(s, s.player, q.owner)) return "Na spojence se neútočí.";
-  if ((T.last.raid || -9) > s.turn - 3) return "Bojovníci odpočívají – další nájezd nejdřív za " + (T.last.raid + 3 - s.turn) + " měs.";
+  if ((T.last.raid ?? -9) > s.turn - 3) return "Bojovníci odpočívají – další nájezd nejdřív za " + (T.last.raid + 3 - s.turn) + " měs.";
   const r = doRaid(s, T, from, q); if (r.err) return r.err; T.last.raid = s.turn;
   return r.b.win === "A" ? `Kořist: ${fmtN(r.loot)} debenů a ${fmtN(r.gl)} charů obilí.` : "Nájezd se nezdařil.";
 }
@@ -3274,6 +3298,175 @@ var _moreEventOpts0 = moreEventOpts;
 moreEventOpts = function (s) { return _moreEventOpts0(s).concat(moreEventOpts3(s)); };
 var _onEventPicked0 = onEventPicked;
 onEventPicked = function (s, k) { if (k === "navratilec" || k === "trpaslik" || k === "kouzelnik") s.flags[k] = 1; return _onEventPicked0(s, k); };
+
+// Další zákony a vynálezy, náhoda (znamení roku), narození dětí v rodu, výchova dědice, královská objížďka nomů
+// a další události. Kde je doklad mladší než doba hry, je to uvedeno.
+
+// ---------- zákony ----------
+Object.assign(LAWS, {
+  dobytek: { n: "Sčítání dobytka", opts: ["Bez sčítání", "Každý druhý rok", "Každoročně"], d: "Ve Staré říši se dobytek sčítal zhruba každé dva roky a podle sčítání se dokonce počítala léta vlády. Častější soupis dává víc daní, ale lid ho nenávidí.", eff: ["lid +5, výnos nomů −3 %", "", "výnos nomů +6 %, lid −6"] },
+  voda: { n: "Správa kanálů", opts: ["Obce a nomarchové", "Smíšená", "Královští správci kanálů"], d: "Kdo rozděluje vodu z kanálů, ovládá zemi. Nomarchové se v nápisech chlubili, že kopali kanály pro svůj nom.", eff: ["nomarchové +6, státu nic nestojí", "", "pole v nomech u Nilu rostou o 1 ročně navíc, stojí 30 debenů za nom měsíčně, nomarchové −8"] },
+  vojaci: { n: "Půda pro vojáky", opts: ["Jen příděly obilí", "Pole pro veterány", "Vojenské osady"], d: "Půdu za službu dostávali vojáci hlavně v Nové říši; odměny za statečnost (pole, otroci, zlato) líčí už Ahmose, syn Ebany.", eff: ["", "výcvik posádek +0,5 měsíčně, obilí −", "výcvik posádek +1 měsíčně, obilí −−, lid −4"] },
+  obetiny: { n: "Obětní kalendář", opts: ["Skromné obětiny", "Obvyklé", "Okázalé slavnosti"], d: "Chrámy dostávaly denní i sváteční obětiny podle kalendáře, jak ho známe ze seznamů svátků. Okázalé slavnosti těší kněze i lid, ale stojí.", eff: ["+100 debenů měsíčně, maat pomalu klesá, kněží −8", "", "−250 debenů měsíčně, maat pomalu roste, kněží +10"] },
+  ceny: { n: "Dohled nad trhem", opts: ["Volné ceny", "Dohled písařů", "Státní výkup obilí"], d: "Stát a chrámy svými sýpkami tlumily výkyvy cen; v krizi na konci Nové říše však obilí přesto mnohonásobně zdražilo.", eff: ["ceny kolísají silněji, kupci +", "", "výkyvy cen o polovinu menší, výnos obchodních cest −5 %"] },
+  zeny: { n: "Majetek žen", opts: ["Podle zvyku", "Ženy dědí rovným dílem", "Vdovy spravují statky"], d: "Egyptské ženy mohly vlastnit, dědit i odkazovat majetek; z Lahúnu (12. dynastie) se dochovala listina, jíž muž převádí majetek na manželku.", eff: ["", "lid +4", "úřady se v rodech dědí jistěji, nomarchové +3"] },
+});
+Object.assign(LAW_EST, {
+  dobytek: [{ lid: 5, pisari: -3 }, {}, { lid: -6, pisari: 5 }],
+  voda: [{ nomarchove: 6, pisari: -3 }, {}, { nomarchove: -8, pisari: 6 }],
+  vojaci: [{}, { lid: -2 }, { lid: -4, nomarchove: -3 }],
+  obetiny: [{ knezi: -8 }, {}, { knezi: 10, lid: 3 }],
+  ceny: [{ pisari: -2 }, {}, { pisari: 4, lid: 2 }],
+  zeny: [{}, { lid: 4 }, { nomarchove: 3 }],
+});
+Object.assign(LAW_CATS, { dobytek: "Hospodářství", voda: "Země a lidé", vojaci: "Vojsko", obetiny: "Náboženství", ceny: "Hospodářství", zeny: "Země a lidé" });
+
+// ---------- vynálezy ----------
+const NEW_TECHS = {
+  mery: { n: "Měřičské provazce a loket", cat: "Správa", cost: 80, req: ["katastr"], d: "„napínači provazce“ znovu vyměří pole po záplavě: po ničivé vodě se pole rychleji obnoví (+2 v nomech u Nilu)" },
+  plachty: { n: "Plachty a kormidelní vesla", cat: "Řemesla", cost: 70, req: ["flotila"], d: "lodě plují proti proudu s větrem od severu: výnos obchodních cest +8 %" },
+  studny: { n: "Pouštní studny a cisterny", cat: "Stavitelství", cost: 80, d: "oázy a pouštní kraje: lidé +3 % ročně, spokojenost +3 ročně" },
+  hrncir: { n: "Hrnčířský kruh", cat: "Řemesla", cost: 60, d: "keramika na točícím se kruhu (v Egyptě od Staré říše, ve Střední říši zdokonalený): řemesla a obchod v nomech +1 ročně" },
+  zlato: { n: "Rýžování a drcení zlaté rudy", cat: "Řemesla", cost: 100, req: ["bronz"], d: "doly ve Vádí Allákí a Východní poušti: +150 debenů měsíčně za Vavat, Buhen a Vádí Hammámát" },
+  ucetnictvi: { n: "Chrámové účetní knihy", cat: "Správa", cost: 90, req: ["pisari"], d: "denní záznamy příjmů a výdajů jako v chrámovém archivu z Lahúnu: výnos nomů +4 %" },
+  glacis: { n: "Šikmé valy a příkopy", cat: "Válečnictví", cost: 100, req: ["pevnosti"], d: "hliněný šikmý val (glacis) před hradbami, typický pro města Kenaanu a Avaris: hradby +25 %" },
+  rybari: { n: "Rybářské vrše a vlečné sítě", cat: "Zemědělství", cost: 50, d: "ryby z Nilu, bažin Delty a Fajjúmského jezera: víc obilí zůstane v sýpkách" },
+};
+Object.assign(TECHS, NEW_TECHS); for (const k of Object.keys(NEW_TECHS)) if (!TECH_IDS.includes(k)) TECH_IDS.push(k);
+var _durMax0 = durMax;
+durMax = function (s, p) { return Math.round(_durMax0(s, p) * (hasTech(s, p.owner, "glacis") ? 1.25 : 1)); };
+
+// ---------- měsíční účinky nových zákonů a vynálezů ----------
+function lawTechTick(s) {
+  for (const C of aliveClans(s)) {
+    if (C.type === "kmen") continue;
+    const ps = clanProvs(s, C.id); if (!ps.length) continue;
+    const zup = sum(ps.map(p => provDeben(s, p))), L = k => lw(s, C.id, k), T = k => hasTech(s, C.id, k);
+    C.deben += zup * [-0.03, 0, 0.06][L("dobytek")] + (T("ucetnictvi") ? zup * 0.04 : 0);
+    if (L("voda") === 2) C.deben -= 30 * ps.length;
+    const soldiers = sum(ps.map(p => men(p.troops)));
+    if (L("vojaci") > 0) { const tr_ = L("vojaci") === 2 ? 1 : 0.5; for (const p of ps) p.train = Math.min(80, p.train + tr_); C.grain = Math.max(0, C.grain - soldiers * (L("vojaci") === 2 ? 0.1 : 0.05)); }
+    if (L("obetiny") === 0) { C.deben += 100; C.maat = Math.max(0, C.maat - 0.05); }
+    if (L("obetiny") === 2) { C.deben -= 250; C.maat = Math.min(100, C.maat + 0.1); if (C.estates) C.estates.knezi = Math.min(100, C.estates.knezi + 0.1); }
+    if (L("zeny") === 1 && C.estates) C.estates.lid = Math.min(100, C.estates.lid + 0.03);
+    if (T("rybari")) C.grain += Math.round(sum(ps.filter(p => TERRAIN[p.ter].nile).map(p => p.pop)) * 12);
+    if (T("zlato")) C.deben += 150 * ps.filter(p => ["n_wawat", "n_buhen", "ham"].includes(p.id)).length;
+    if (T("plachty") && typeof routeIncome === "function") C.deben += routeIncome(s, C.id) * 0.08 * (L("ceny") === 2 ? 0.95 : 1);
+    if (s.month === 0) for (const p of ps) {
+      if (L("voda") === 2 && TERRAIN[p.ter].nile) p.agri = Math.min(agriCap(s, p), p.agri + 1);
+      if (T("hrncir")) p.com = Math.min(comCap(s, p), p.com + 1);
+      if (T("studny") && (p.ter === "oaza" || p.ter === "poust")) { p.pop = r1(p.pop * 1.03); p.loy = Math.min(100, p.loy + 3); }
+    }
+    if (s.month === FLOOD_MONTH + 1 && T("mery") && s.flood.h >= 18) for (const p of ps) if (TERRAIN[p.ter].nile) p.agri = Math.min(agriCap(s, p), p.agri + 2);
+  }
+}
+
+// ---------- náhoda: znamení roku ----------
+// Kněží „hodí hůlkami“ – ve hře čtyři vrhací hůlky jako v senetu (1–5). Kalendáře šťastných a nešťastných dnů
+// se dochovaly až z Nové říše; víra ve znamení je ale doložena po celé dějiny.
+function omenRoll(s) { const sticks = []; for (let i = 0; i < 4; i++) sticks.push(chance(s, 0.5) ? 1 : 0); const v = sum(sticks) || 5; return { v, sticks }; }
+const OMEN = { 1: ["Zlé znamení", "bad"], 2: ["Nejisté znamení", "bad"], 3: ["Vyrovnaný rok", "mid"], 4: ["Příznivé znamení", "good"], 5: ["Velmi příznivé znamení", "good"] };
+EVENTS.znameni = { view: (s, d) => { const C = P(s), O = OMEN[d.v], cost = 800;
+  const apply = sign => { for (const p of clanProvs(s, s.player)) p.loy = clamp(p.loy + sign * 3, 0, 100); C.maat = clamp(C.maat + sign * 2, 0, 100); };
+  if (O[1] === "good") return { t: `Nový rok: ${O[0]}`, tx: `Na Nový rok vykládají kněží znamení – vrhací hůlky padly ${d.v === 5 ? "všechny tmavou stranou, což se počítá jako pět" : d.v + "× světlou stranou"}. Lid věří, že bohové budou letos štědří.`, omen: d,
+    ch: [{ t: "Oznámit to lidu při slavnosti", d: "spokojenost nomů +3, maat +2", f: () => { apply(1); s.omen = d.v; return null; } }] };
+  if (O[1] === "mid") return { t: `Nový rok: ${O[0]}`, tx: `Hůlky padly třikrát světlou stranou. Kněží neočekávají ani hojnost, ani pohromu.`, omen: d, ch: [{ t: "Dobře", f: () => { s.omen = 3; return null; } }] };
+  return { t: `Nový rok: ${O[0]}`, tx: `Hůlky padly ${d.v}× světlou stranou. Kněží se mračí: rok prý nebude příznivý. Lid je neklidný.`, omen: d,
+    ch: [{ t: `Odvrátit zlo obětinami (${fmtN(cost)} debenů)`, d: "kněží +3, znamení se nenaplní", f: () => { if (!pay(s, s.player, cost)) return "Nedostatek debenů."; C.estates.knezi = Math.min(100, C.estates.knezi + 3); s.omen = 3; return "Obětiny byly přineseny."; } },
+      { t: "Nedbat na to", d: "spokojenost nomů −3, maat −2, víc nehod během roku", f: () => { apply(-1); s.omen = d.v; return null; } }] };
+} };
+
+// ---------- narození v rodu ----------
+EVENTS.narozeni = { view: (s, d) => { const C = P(s), L = leaderOf(s, s.player), W = chr(s, L && L.spouse);
+  const born = (risk, extra) => () => { if (!L || !W) return null; const sx = chance(s, 0.5) ? "m" : "f", n = sx === "m" ? pick(s, SON_NAMES[C.cul] || SON_NAMES.eg) : genName(s, C.cul, "f").split(",")[0];
+    if (chance(s, risk)) return `Dítě se narodilo mrtvé. Dvůr truchlí.`;
+    const k = makeChar(s, { n, sex: sx, by: s.bce, cl: s.player, st: "kid", loc: C.capital, dyn: 1, father: L.id, ved: rint(s, 25, 60), uda: rint(s, 25, 60), roz: rint(s, 25, 60), spr: rint(s, 25, 60) });
+    L.kids.push(k.id); if (W) W.kids = W.kids || [], W.kids.push(k.id); if (extra) extra(k);
+    return `${W.n.split(",")[0]} porodila ${sx === "m" ? "syna" : "dceru"} jménem ${n}.`; };
+  return { t: "Narození v paláci", tx: `${W ? W.n.split(",")[0] : "Královna"} čeká dítě. Rodička usedala na porodní cihly; jedna taková malovaná cihla z doby kolem roku 1750 př. n. l. se našla v Abydu. Domácnosti chránily amulety trpasličího boha Bese a hroší bohyně Taveret.`,
+    ch: [{ t: "Porodní cihly, amulety Bese a Taveret, zkušené porodní báby (300 debenů)", d: "menší riziko, kněží +2", f: () => { if (!pay(s, s.player, 300)) return "Nedostatek debenů."; C.estates.knezi = Math.min(100, C.estates.knezi + 2); return born(0.08)(); } },
+      { t: "Svěřit porod kněžkám Hathor a Meschenet", d: "dítě dostane požehnání (+5 ke schopnostem), stojí 600 debenů", f: () => { if (!pay(s, s.player, 600)) return "Nedostatek debenů."; return born(0.1, k => { for (const st_ of STAT_IDS) k[st_] = Math.min(96, k[st_] + 5); })(); } },
+      { t: "Nechat vše na ženách z domácnosti", d: "zdarma, riziko vyšší", f: () => born(0.2)() }] }; } };
+
+// ---------- výchova dědice ----------
+EVENTS.vychova = { view: (s, d) => { const h = chr(s, d.cid); if (!h) return { t: "Výchova", tx: "", ch: [{ t: "Dále", f: () => null }] };
+  const set = (k, v, txt) => () => { h.edu = k; for (const [st_, x] of Object.entries(v)) h[st_] = Math.min(96, (h[st_] || 40) + x); return `${h.n}: ${txt}`; };
+  return { t: `Výchova dědice ${h.n.split(",")[0]}`, tx: `${h.n} je ${age(s, h)} let a je čas rozhodnout o jeho výchově. Synové panovníků i hodnostářů vyrůstali v královské „školce“ kap, učili se v domě života nebo sloužili u vojska.`,
+    ch: [{ t: "Do kapu s dětmi hodnostářů", d: "správa +8, úskočnost +4; přátelé z dětství u dvora", f: () => { set("kap", { spr: 8, uda: 4 }, "vyrůstá v kapu")(); for (const c of officers(s, s.player).filter(c => !c.dyn)) c.loy = Math.min(100, c.loy + 2); return `${h.n} vyrůstá v kapu s dětmi hodnostářů.`; } },
+      { t: "K vojsku pod velitele posádky", d: "velení +10, odvaha", f: set("vojsko", { ved: 10, uda: 3 }, "se učí válečnému řemeslu") },
+      { t: "Do domu života k písařům a kněžím", d: "rozum +10", f: set("pisar", { roz: 10, spr: 3 }, "se učí písmu, počtům a obřadům") }] }; } };
+
+// ---------- další události ----------
+const EV7 = {
+  chamsin: { view: (s, d) => { const C = P(s), p = s.provs[d.pid];
+    return { t: "Písečná bouře", tx: `Z pouště se přihnal horký vítr plný písku. Zasypal kanály a pole v nomu ${p.n}, lidé se schovali v domech a dobytek se splašil.`,
+      ch: [{ t: "Poslat robotníky čistit kanály (400 debenů)", d: "pole se nezmenší", f: () => { if (!pay(s, s.player, 400)) { p.agri = Math.max(10, p.agri - 3); return "Nedostatek debenů – pole utrpěla."; } return "Kanály byly vyčištěny."; } },
+        { t: "Nechat to na obcích", d: "pole −3, spokojenost −3", f: () => { p.agri = Math.max(10, p.agri - 3); p.loy = Math.max(0, p.loy - 3); return null; } }] }; } },
+  uprchlici: { view: (s, d) => { const C = P(s), n = rint(s, 20, 60);
+    return { t: "Útěk z roboty", tx: `Z robotních prací uteklo asi ${n} lidí. Papyrus z Brooklynu (13. dynastie) obsahuje právě takový seznam uprchlíků z roboty – a tresty pro jejich rodiny, které úřad zadržoval místo nich.`,
+      ch: [{ t: "Zadržet jejich rodiny ve Velkém vězení", d: "robota pokračuje, lid −5, maat −1", f: () => { C.estates.lid = Math.max(0, C.estates.lid - 5); C.maat = Math.max(0, C.maat - 1); return null; } },
+        { t: "Vyslat písaře a policii, ať je najdou (300 debenů)", d: "pisaři +2", f: () => { if (!pay(s, s.player, 300)) return "Nedostatek debenů."; C.estates.pisari = Math.min(100, C.estates.pisari + 2); return chance(s, 0.6) ? "Většina uprchlíků byla nalezena." : "Uprchlíci zmizeli v poušti."; } },
+        { t: "Prominout jim a zmírnit robotu", d: "lid +6, stavby se letos zpomalí", f: () => { C.estates.lid = Math.min(100, C.estates.lid + 6); for (const p of clanProvs(s, s.player)) if (p.build) p.build.left++; return null; } }] }; } },
+  lodni: { view: (s, d) => { const C = P(s), g = Math.min(C.grain, rint(s, 4000, 12000));
+    return { t: "Ztroskotaný náklad", tx: `Nákladní loď s ${fmtN(g)} chary obilí z daní najela na mělčinu a převrhla se. Lodníci se zachránili, obilí nasáklo vodou.`,
+      ch: [{ t: "Zachránit, co se dá (200 debenů)", d: "zachráníš asi polovinu", f: () => { if (!pay(s, s.player, 200)) { C.grain -= g; return "Nedostatek debenů – obilí je ztraceno."; } C.grain -= Math.round(g / 2); return "Polovinu obilí se podařilo vysušit."; } },
+        { t: "Potrestat kormidelníka", d: "obilí ztraceno, písaři +2", f: () => { C.grain -= g; C.estates.pisari = Math.min(100, C.estates.pisari + 2); return null; } }] }; } },
+  zlaty_nalez: { view: (s, d) => { const C = P(s), p = s.provs[d.pid], v = rint(s, 3, 8) * 1000;
+    return { t: "Nová zlatá žíla", tx: `Horníci v nomu ${p.n} narazili na novou křemennou žílu se zlatem. Odhad písařů: asi ${fmtN(v)} debenů, pokud se do ní hned pustí.`,
+      ch: [{ t: "Poslat robotníky a stráže (1 000 debenů)", d: `zisk asi ${fmtN(v)} debenů`, f: () => { if (!pay(s, s.player, 1000)) return "Nedostatek debenů."; const got = Math.round(v * rrange(s, 0.5, 1.3)); C.deben += got; return `Žíla vynesla ${fmtN(got)} debenů.`; } },
+        { t: "Přenechat ji chrámu", d: "kněží +6, maat +1", f: () => { C.estates.knezi = Math.min(100, C.estates.knezi + 6); C.maat = Math.min(100, C.maat + 1); return null; } }] }; } },
+  mlady_vojak: { view: (s, d) => { const C = P(s);
+    return { t: "Statečný voják", tx: `Velitelé chválí mladého vojáka ${d.n}, který při cvičení i v potyčkách vyniká. Ahmose, syn Ebany, se podobně vypracoval od prostého vojáka na lodi až po „velitele posádky lodí“.`,
+      ch: [{ t: "Povýšit ho a svěřit mu oddíl", d: "nový úředník se schopností velet", f: () => { const c = genOfficer(s, s.player, C.cul, C.capital, { n: d.n, by: s.bce + rint(s, 20, 26), rank: 1, loy: 85 }); c.ved = Math.max(c.ved, rint(s, 66, 82)); c.traits = ["stateny"]; return `${c.n} se stal velitelem.`; } },
+        { t: "Odměnit ho „zlatem chrabrosti“ (200 debenů)", d: "sláva +3, vojáci věrnější", f: () => { if (!pay(s, s.player, 200)) return "Nedostatek debenů."; C.prestige += 3; for (const p of clanProvs(s, s.player)) p.train = Math.min(80, p.train + 2); return null; } }] }; } },
+  paviani: { view: (s, d) => { const C = P(s);
+    return { t: "Paviáni z jihu", tx: `Výprava přivezla posvátné paviány, zvířata boha Thovta, která podle egyptských představ zdraví vycházející slunce. Paviány přiváželi z jihu a z Puntu.`,
+      ch: [{ t: "Darovat je Thovtovu chrámu", d: "kněží +4, písaři +2", f: () => { C.estates.knezi = Math.min(100, C.estates.knezi + 4); C.estates.pisari = Math.min(100, C.estates.pisari + 2); return null; } },
+        { t: "Ponechat je v palácové zahradě (300 debenů)", d: "sláva +6", f: () => { if (!pay(s, s.player, 300)) return "Nedostatek debenů."; C.prestige += 6; return null; } }] }; } },
+};
+Object.assign(EVENTS, EV7);
+function moreEventOpts4(s) {
+  const C = P(s), o = []; if (!C || C.type === "kmen") return o;
+  const dp = someOwnProv(s, p => TERRAIN[p.ter].nile && p.agri > 20); if (dp && s.month >= 6 && s.month <= 10) o.push(["chamsin", { pid: dp.id }]);
+  o.push(["uprchlici", {}]); if (C.grain > 15000) { o.push(["lodni", {}]); if ((s.omen || 3) <= 2) o.push(["lodni", {}]); }
+  const gp = someOwnProv(s, p => p.res.includes("zlato")); if (gp) o.push(["zlaty_nalez", { pid: gp.id }]);
+  o.push(["mlady_vojak", { n: genName(s, C.cul === "hyk" ? "hyk" : "eg", "m") }]);
+  if (clanProvs(s, s.player).some(p => p.id === "u15" || p.id === "u1" || p.id === "sau")) o.push(["paviani", {}]);
+  if ((s.omen || 3) >= 4 && gp) o.push(["zlaty_nalez", { pid: gp.id }]);
+  return o;
+}
+var _moreEventOpts1 = moreEventOpts;
+moreEventOpts = function (s) { return _moreEventOpts1(s).concat(moreEventOpts4(s)); };
+
+// ---------- královská objížďka nomů ----------
+function royalTour(s, cid) {
+  const C = s.clans[cid], L = leaderOf(s, cid); if (!L || L.st !== "off") return "Panovník nemůže cestovat.";
+  if ((C.last.tour ?? -99) > s.turn - 12) return `Objížďka je možná jednou za rok (ještě ${C.last.tour + 12 - s.turn} měs.).`;
+  if (L.army) return "Panovník velí vojsku.";
+  const ps = clanProvs(s, cid).filter(p => p.id !== C.capital).sort((a, b) => a.loy - b.loy).slice(0, 5); if (!ps.length) return "Není kam jet.";
+  const cd = 250 * ps.length, cg = 1500 * ps.length; if (!pay(s, cid, cd, cg)) return `Objížďka stojí ${fmtN(cd)} debenů a ${fmtN(cg)} charů.`;
+  C.last.tour = s.turn; const notes = [];
+  for (const p of ps) { p.loy = Math.min(100, p.loy + 8); for (const c of officersIn(s, p.id)) c.loy = Math.min(100, c.loy + 4); }
+  const r = rnd(s);
+  if (r < 0.15) { C.maat = Math.min(100, C.maat + 3); notes.push("Na cestě panovník rozsoudil spor podle maat – lid o tom zpívá."); }
+  else if (r < 0.28) { const c = pick(s, officers(s, cid).filter(c => !c.dyn) || []); if (c) { c.loy = Math.max(0, c.loy - 10); C.deben += 800; notes.push(`Při kontrole sýpek se zjistilo, že ${c.n} kradl; zabavilo se 800 debenů.`); } }
+  else if (r < 0.36) { L.wound = 2; notes.push("Panovník na cestě onemocněl horečkou."); }
+  else if (r < 0.5) { C.prestige += 10; notes.push("Nomarchové panovníka přivítali s velkou slávou."); }
+  log(s, `Královská objížďka: ${ps.map(p => p.n).join(", ")}. Spokojenost nomů +8.${notes.length ? " " + notes.join(" ") : ""}`, "rozkazy", [cid]);
+  return null;
+}
+
+// ---------- měsíční náhoda ----------
+function randomTick(s) {
+  const C = P(s); if (!C || !C.alive || C.type === "kmen") return;
+  if (s.month === 0 && s.turn > 0 && !s.events.some(e => e.k === "znameni")) queueEvent(s, "znameni", omenRoll(s));
+  if (s.month === 6) { const L = leaderOf(s, s.player), W = L && chr(s, L.spouse); if (W && W.st !== "dead" && age(s, W) >= 16 && age(s, W) <= 40 && chance(s, 0.35)) queueEvent(s, "narozeni", {}); }
+  if (s.month % 3 === 1) { const h = heirsOf(s, s.player).find(c => c.sex === "m" && !c.edu && age(s, c) >= 8 && age(s, c) <= 14); if (h && !s.events.some(e => e.k === "vychova")) queueEvent(s, "vychova", { cid: h.id }); }
+  // nepříznivý rok: o něco víc nehod
+  if ((s.omen || 3) <= 2 && chance(s, 0.04)) { const p = someOwnProv(s, q => q.pop > 5); if (p) { p.loy = Math.max(0, p.loy - 4); log(s, `Zlé znamení se naplňuje: v nomu ${p.n} vyhořela sýpka.`, "udalosti", [s.player]); p.stock = Math.round(p.stock * 0.8); } }
+}
+var _worldTick0 = worldTick;
+worldTick = function (s) { _worldTick0(s); lawTechTick(s); randomTick(s); };
 
 // Rozhraní: pomocné funkce, znaky rodů, pruhy, grafy a mapa Egypta.
 let S = null;
@@ -3691,12 +3884,15 @@ const SCENES = {
   nemoc: () => `<rect x="0" y="0" width="600" height="160" fill="${PG.w}" opacity=".35"/>` + A_.column(80, 150, 110) + A_.column(520, 150, 110) + `<rect x="240" y="120" width="120" height="14" fill="${PG.y}" stroke="${PG.k}"/>` + A_.man(380, 150, PG.b, -1) + A_.scorpion(170, 140) + A_.ankh(300, 70, 1.1, PG.b),
   kouzlo: () => `<rect x="0" y="0" width="600" height="160" fill="#1d2b44" opacity=".85"/>` + [40, 110, 190, 260, 340, 420, 480, 560].map((x, i) => A_.star(x, 20 + (i % 3) * 18)).join("") + `<path d="M300 38a22 22 0 1 0 0.1 0" fill="none"/>` + A_.ankh(300, 100, 1.4) + A_.man(220, 150, PG.w, 1) + `<ellipse cx="390" cy="140" rx="16" ry="9" fill="${PG.w}"/><path d="M402 134q8 -14 2 -24" stroke="${PG.w}" stroke-width="5" fill="none"/>`,
   krokodyl: () => A_.water(100) + [30, 60, 520, 556].map(x => A_.papyrus(x, 110, 50)).join("") + A_.croc(240, 104) + A_.man(140, 96, PG.r, 1, "spear"),
+  porod: () => `<rect x="0" y="0" width="600" height="160" fill="${PG.w}" opacity=".35"/>` + A_.column(70, 150, 120) + A_.column(530, 150, 120) + `<rect x="250" y="128" width="40" height="22" fill="#b5452c" stroke="${PG.k}"/><rect x="310" y="128" width="40" height="22" fill="#b5452c" stroke="${PG.k}"/>` + A_.man(300, 128, PG.w, 1) + `<ellipse cx="190" cy="118" rx="14" ry="22" fill="#4f8a5b"/><circle cx="190" cy="90" r="9" fill="#4f8a5b"/><path d="M180 84l-4 -8M200 84l4 -8" stroke="#4f8a5b" stroke-width="3"/>` + `<circle cx="410" cy="100" r="12" fill="#c9a227"/><rect x="400" y="110" width="20" height="30" rx="6" fill="#c9a227"/><path d="M398 92l-4 -10l8 4l4 -8l4 8l8 -4l-4 10" fill="#b5452c"/>` + [120, 470, 520].map((x, i) => A_.star(x, 30 + i * 8)).join(""),
+  boure: () => `<rect width="600" height="160" fill="#d9a85a"/>` + A_.dunes(110, "#c8904a") + [0, 1, 2, 3, 4, 5].map(i => `<path d="M${-40 + i * 110} ${40 + (i % 3) * 22}q60 -30 120 0t120 0" stroke="#f3e3b8" stroke-width="${3 + i % 3}" fill="none" opacity=".7"/>`).join("") + A_.palm(470, 150) + A_.man(220, 150, PG.r, -1) + A_.donkey(300, 150) + A_.sun(80, 30, 10),
+  zlato: () => `<path d="M0 130l80 -70l60 40l80 -60l90 70l70 -40l110 60l110 -20V160H0Z" fill="#b89a6a" stroke="${PG.k}"/>` + `<path d="M260 150l20 -40h40l20 40z" fill="${PG.k}" opacity=".75"/>` + [[150, 120], [190, 132], [420, 126], [460, 138], [300, 140]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="5" fill="${PG.y}" stroke="#8a6a1a"/>`).join("") + A_.man(220, 150, PG.r, 1, "carry") + A_.man(380, 150, PG.b, -1) + A_.sun(530, 30, 13),
   senet: () => `<rect x="0" y="0" width="600" height="160" fill="${PG.w}" opacity=".35"/>` + A_.column(60, 150, 120) + A_.column(540, 150, 120) + `<rect x="200" y="96" width="200" height="40" fill="#8a5a2a" stroke="${PG.k}"/>` + [...Array(10)].map((_, i) => `<rect x="${204 + i * 19.4}" y="100" width="17" height="10" fill="${PG.w}"/><rect x="${204 + i * 19.4}" y="112" width="17" height="10" fill="${PG.w}"/><rect x="${204 + i * 19.4}" y="124" width="17" height="10" fill="${PG.w}"/>`).join("") + A_.man(170, 150, PG.r, 1) + A_.man(430, 150, PG.b, -1),
 };
 const VIGN = { nizka: "nil", vysoka: "nil", hlad: "hlad", pohreb: "hrob", pohrebiste: "hrob", dopis_mrtvym: "hrob", vykradeny: "hrob", bitva: "bitva", vbitva: "bitva", korist: "bitva", hrozba: "bitva", medzaj: "bitva", tasetilukostrelci: "bitva", zbehove: "bitva",
   usir: "svatek", hebsed: "svatek", svatek: "svatek", min: "svatek", udoli: "svatek", apis: "chram", sochy: "chram", poutnici: "svatek", obnova: "chram", sen: "chram", exempce: "chram", stela: "chram",
   karavana: "obchod", byblos_posel: "obchod", obchod_nabidka: "obchod", posli_kus: "obchod", keftiu: "obchod", trpaslik: "obchod", navratilec: "obchod", dary_posel: "obchod",
-  hroch: "lov", hrosi: "lov", lov: "lov", senet: "senet", senet_pozvani: "senet", nakaza: "nemoc", nemoc: "nemoc", mor_skotu: "nemoc", stir: "nemoc", kouzelnik: "kouzlo", krokodyl: "krokodyl", skudci: "hlad", hostina: "dvur" };
+  hroch: "lov", hrosi: "lov", lov: "lov", senet: "senet", senet_pozvani: "senet", nakaza: "nemoc", nemoc: "nemoc", mor_skotu: "nemoc", stir: "nemoc", kouzelnik: "kouzlo", krokodyl: "krokodyl", skudci: "hlad", hostina: "dvur", znameni: "kouzlo", narozeni: "porod", vychova: "dvur", chamsin: "boure", uprchlici: "hlad", lodni: "nil", zlaty_nalez: "zlato", mlady_vojak: "bitva", paviani: "obchod" };
 function vignKind(ev, v) {
   if (VIGN[ev.k]) return VIGN[ev.k];
   const t = (v.t || "").toLowerCase();
@@ -4060,7 +4256,7 @@ function renderModal() {
   const m = document.getElementById("modal"); const ev = S.events[0];
   if (!ev) { m.classList.add("hidden"); m.innerHTML = ""; return; }
   const v = eventView(S, ev), who = eventPerson(ev);
-  m.innerHTML = `<div class="box" role="dialog" aria-modal="true">${vign(vignKind(ev, v))}<div class="ehead">${who ? portrait(who, 72) : ""}<div><div class="muted small">${esc(dateStr(S))}</div><h2>${esc(v.t)}</h2></div></div><p class="etx">${esc(v.tx)}</p>${v.field ? fieldSvg(v.field) : ""}${v.senet ? senetSvg(v.senet) : ""}${v.battle && !v.field ? battleChart(v.battle) : ""}${v.q ? `<blockquote class="papyr">„${esc(v.q.t)}“<cite>${esc(v.q.src)}</cite></blockquote>` : ""}${v.ch.map((c, i) => `<button class="b ch" data-a="event" data-x="[${i}]"><b>${esc(c.t)}</b>${c.d ? `<br><span class="small muted">${esc(c.d)}</span>` : ""}</button>`).join("")}${S.events.length > 1 ? `<p class="small muted">Další zprávy čekají: ${S.events.length - 1}</p>` : ""}</div>`;
+  m.innerHTML = `<div class="box" role="dialog" aria-modal="true">${vign(vignKind(ev, v))}<div class="ehead">${who ? portrait(who, 72) : ""}<div><div class="muted small">${esc(dateStr(S))}</div><h2>${esc(v.t)}</h2></div></div><p class="etx">${esc(v.tx)}</p>${v.field ? fieldSvg(v.field) : ""}${v.senet ? senetSvg(v.senet) : ""}${v.omen ? omenSvg(v.omen) : ""}${v.battle && !v.field ? battleChart(v.battle) : ""}${v.q ? `<blockquote class="papyr">„${esc(v.q.t)}“<cite>${esc(v.q.src)}</cite></blockquote>` : ""}${v.ch.map((c, i) => `<button class="b ch" data-a="event" data-x="[${i}]"><b>${esc(c.t)}</b>${c.d ? `<br><span class="small muted">${esc(c.d)}</span>` : ""}</button>`).join("")}${S.events.length > 1 ? `<p class="small muted">Další zprávy čekají: ${S.events.length - 1}</p>` : ""}</div>`;
   m.classList.remove("hidden");
 }
 
@@ -4272,7 +4468,7 @@ function tZakony() {
   const C = P(S), cats = {};
   for (const k of Object.keys(LAWS)) (cats[LAW_CATS[k] || "Ostatní"] = cats[LAW_CATS[k] || "Ostatní"] || []).push(k);
   const lawCard = k => { const L = LAWS[k], cur = lw(S, me(), k), cd = (C.lawCd[k] || 0) > S.turn ? C.lawCd[k] - S.turn : 0;
-    return `<div class="person"><div class="pn">${esc(L.n)}</div><div class="small muted">${esc(L.d)}</div>
+    return `<div class="person law"><div class="lawh">${lawDial(cur, L.opts.length)}<div class="pn">${esc(L.n)}</div></div><div class="small muted">${esc(L.d)}</div>
       ${L.opts.map((o, i) => `<div class="lawopt${i === cur ? " on" : ""}"><div class="row">${i === cur ? "<b>✔ " + esc(o) + "</b>" : btn(esc(o), "law", [k, i], cd ? `Zákon lze znovu změnit za ${cd} měs.` : null)}</div><div class="small">${esc((L.eff || [])[i] || "beze změny")}</div><div>${estDelta((LAW_EST[k] || [])[i])}</div></div>`).join("")}
       ${cd ? `<div class="small muted">Změna možná za ${cd} měs.</div>` : ""}</div>`; };
   return `<section class="card"><h3>Zákony a nařízení</h3><p class="small muted">Změna zákona okamžitě posune náladu stavů (kněží, nomarchové, písaři, lid) a lze ji opakovat nejdřív po roce. Daň ze sklizně se mění po půl roce.</p>
@@ -4439,7 +4635,7 @@ function raidHtml(p) {
   const C = P(S); if (C.type !== "kmen" || p.owner !== me()) return "";
   const ts = p.nb.map(n => S.provs[n]).filter(q => q.owner !== me() && !friendly(S, me(), q.owner));
   if (!ts.length) return "";
-  const wait = (C.last.raid || -9) > S.turn - 3 ? `Bojovníci odpočívají ještě ${C.last.raid + 3 - S.turn} měs.` : null;
+  const wait = (C.last.raid ?? -9) > S.turn - 3 ? `Bojovníci odpočívají ještě ${C.last.raid + 3 - S.turn} měs.` : null;
   return `<h4>Nájezd</h4><div class="row">${sel("rt_" + p.id, ts.map(q => [q.id, `${q.n} – ${S.clans[q.owner].n}${knows(S, q) ? `, posádka ${fmtK(men(q.troops))}` : ""}`]), SEL["rt_" + p.id] || ts[0].id, `data-a="raidSel" data-x='["${p.id}"]'`)} ${btn("Vyrazit na nájezd", "raid", [p.id], wait, "danger")}</div><p class="small muted">Do nájezdu vyrazí asi polovina bojovníků. Kořist: debeny a obilí; vztahy s napadeným klesnou.</p>`;
 }
 
@@ -4507,6 +4703,47 @@ mapSvg = function () {
 var SAVE_T = null;
 function saveSoon() { clearTimeout(SAVE_T); SAVE_T = setTimeout(() => { try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) {} }, 400); }
 if (typeof window !== "undefined") window.addEventListener("pagehide", () => { try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) {} });
+
+// Strom vědění, zákony s ukazatelem, znamení roku a královská objížďka v paláci.
+
+const CAT_ICON = { "Zemědělství": "grain", "Správa": "urednici", "Stavitelství": "nomy", "Náboženství a učenost": "maat", "Válečnictví": "vojsko", "Řemesla": "deben" };
+function ringSvg(f, size = 54, col = "#c9a227") {
+  const r = size / 2 - 5, c = 2 * Math.PI * r;
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true"><circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="rgba(0,0,0,.1)" stroke-width="6"/><circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="${col}" stroke-width="6" stroke-dasharray="${(c * clamp(f, 0, 1)).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 ${size / 2} ${size / 2})" stroke-linecap="round"/><text x="50%" y="55%" text-anchor="middle" font-size="12" font-weight="bold" fill="currentColor">${Math.round(clamp(f, 0, 1) * 100)}%</text></svg>`;
+}
+function techNode(t) {
+  const C = P(S), T = TECHS[t], known = !!C.techs[t], cur = C.res.cur === t, av = techAvail(S, me(), t), cost = techCost(S, me(), t);
+  const st_ = known ? "known" : cur ? "cur" : av ? "avail" : "locked";
+  return `<div class="tnode ${st_}"><div class="tnh"><span class="tni">${ricon(CAT_ICON[T.cat] || "maat", 18)}</span><b>${esc(T.n)}</b></div>
+    <div class="small">${esc(T.d)}</div>
+    ${T.req ? `<div class="treq">${T.req.map(r => `<span class="${C.techs[r] ? "ok" : ""}">${esc(TECHS[r].n)}</span>`).join("")}</div>` : ""}
+    <div class="tnf">${known ? '<span class="good">✔ známé</span>' : cur ? `<span>▶ zkoumá se · ${Math.round(C.res.pts)}/${cost}</span>` : `<span class="muted">${cost} bodů</span>${btn("Zkoumat", "research", [t], av ? null : "Chybí předpoklady", "sm")}`}</div></div>`;
+}
+function tVedeniArt() {
+  const C = P(S), cats = [...new Set(TECH_IDS.map(t => TECHS[t].cat))], cur = C.res.cur, cost = cur ? techCost(S, me(), cur) : 1;
+  const known = TECH_IDS.filter(t => C.techs[t]).length;
+  const head = `<div class="labhead">${ringSvg(cur ? C.res.pts / cost : 0, 84)}<div><div class="small muted">Dům života zkoumá</div><div class="big">${cur ? esc(TECHS[cur].n) : "nic – vyber vědění níže"}</div><div class="small">Známo ${known} z ${TECH_IDS.length} objevů. Body přinášejí rozkaz „Dům života“ a chrámy; co znají sousedé, se učí o třetinu levněji.</div>${meter("Objevy", known, TECH_IDS.length, "#4f8a5b")}</div></div>`;
+  return `<div class="grid">${card("Dům života", head, "wide")}${cats.map(cat => { const ids = TECH_IDS.filter(t => TECHS[t].cat === cat), k = ids.filter(t => C.techs[t]).length;
+    return card(`${ricon(CAT_ICON[cat] || "maat", 20)} ${esc(cat)} <span class="small muted">${k}/${ids.length}</span>`, `<div class="tlane">${ids.sort((a, b) => (TECHS[a].req ? 1 : 0) - (TECHS[b].req ? 1 : 0) || TECHS[a].cost - TECHS[b].cost).map(techNode).join("")}</div>`, "wide"); }).join("")}</div>`;
+}
+// ukazatel zákona: tři kameny, svítí zvolená možnost
+function lawDial(cur, n = 3) { return `<svg class="ldial" viewBox="0 0 90 26" aria-hidden="true"><path d="M8 13h74" stroke="#8a7a5a" stroke-width="3"/>${[...Array(n)].map((_, i) => `<circle cx="${8 + i * 37}" cy="13" r="${i === cur ? 9 : 6}" fill="${i === cur ? "#c9a227" : "#efe6cf"}" stroke="#2a2420" stroke-width="1.5"/>`).join("")}</svg>`; }
+// vrhací hůlky znamení
+function omenSvg(d) {
+  const st_ = d.sticks || [], col = d.v >= 4 ? "#4f8a5b" : d.v === 3 ? "#c9a227" : "#b5452c";
+  return `<svg class="omen" viewBox="0 0 320 90" role="img" aria-label="Vrhací hůlky: výsledek ${d.v}"><rect width="320" height="90" rx="6" fill="#ecd9a8"/>${st_.map((x, i) => `<g transform="translate(${60 + i * 44} 14) rotate(${(i - 1.5) * 8})"><rect width="18" height="62" rx="8" fill="${x ? "#efe6cf" : "#6d4a1f"}" stroke="#2a2420" stroke-width="1.5"/>${x ? "" : '<path d="M5 12h8M5 31h8M5 50h8" stroke="#efe6cf" stroke-width="1.5"/>'}</g>`).join("")}<circle cx="270" cy="45" r="22" fill="${col}"/><text x="270" y="52" text-anchor="middle" font-size="20" font-weight="bold" fill="#fff">${d.v}</text></svg>`;
+}
+function palaceExtra() {
+  const C = P(S); if (C.type === "kmen") return "";
+  const L = leaderOf(S, me()), wait = (C.last.tour ?? -99) > S.turn - 12 ? C.last.tour + 12 - S.turn : 0, n = Math.min(5, myProvs().length - 1);
+  const om = S.omen ? OMEN[S.omen] : null;
+  return `<div class="grid">${card("Znamení roku", om ? `<div class="omenbox ${om[1]}"><span class="omv">${S.omen}</span><div><b>${esc(om[0])}</b><div class="small muted">${om[1] === "good" ? "Bohové jsou letos nakloněni; víc příznivých událostí." : om[1] === "bad" ? "Nepříznivý rok: víc nehod a požárů." : "Ani hojnost, ani pohroma."}</div></div></div>` : '<p class="small muted">Kněží vyloží znamení na Nový rok (1. měsíc období achet).</p>')}
+  ${card("Královská objížďka", `<p class="small">Panovník objede ${n} nejméně spokojených nomů: spokojenost +8, úředníci v nich +4. Na cestě se může stát cokoli – spravedlivý soud, odhalený zloděj, nemoc. Stojí ${fmt(250 * n)} debenů a ${fmt(1500 * n)} charů.</p>${btn(wait ? `Další objížďka za ${wait} měs.` : `Vyrazit na objížďku${L ? " s " + esc(L.n.split(",")[0]) : ""}`, "tour", [], wait ? "Jednou za rok" : null, "go")}`)}</div>`;
+}
+ACT.tour = () => royalTour(S, me());
+TAB_FN.vedeni = tVedeniArt;
+var _tPrehled0 = TAB_FN.prehled;
+TAB_FN.prehled = () => palaceExtra() + _tPrehled0();
 
 </script>
 </body>

@@ -2,7 +2,7 @@
 const fs = require("fs"), path = require("path"), vm = require("vm"), assert = require("assert");
 const dir = path.join(__dirname, "..", "src", "js");
 const code = '"use strict";\n' + fs.readdirSync(dir).filter(f => /^0\d-.*\.js$/.test(f)).sort().map(f => fs.readFileSync(path.join(dir, f), "utf8")).join("\n") +
-  "\n;this.X={newGame,endTurn,floodFactor,tacMult,STANCES,routeIncome,ROUTES,declareWar,makePeace,setLaw,heirsOf,clanBudget,battle,men,SCENARIOS,PROVINCES,lw,provTax,yearTaxEstimate,marketCap,liveBattleStart,liveStep,ordMod,die,genOfficer,migrate,marketTick,trade,checkEnd,coreProvs,realmCore,officers,rodsOf,goalProgress,clanProvs,sendArmy};";
+  "\n;this.X={newGame,endTurn,floodFactor,tacMult,STANCES,routeIncome,ROUTES,declareWar,makePeace,setLaw,heirsOf,clanBudget,battle,men,SCENARIOS,PROVINCES,lw,provTax,yearTaxEstimate,marketCap,liveBattleStart,liveStep,ordMod,die,genOfficer,migrate,marketTick,trade,checkEnd,coreProvs,realmCore,officers,rodsOf,goalProgress,clanProvs,sendArmy,royalTour,lawTechTick,durMax,omenRoll,EVENTS,eventView};";
 const ctx = {}; vm.createContext(ctx); vm.runInContext(code, ctx); const X = ctx.X;
 let n = 0; const t = (name, f) => { f(); n++; console.log("✔ " + name); };
 
@@ -73,5 +73,18 @@ t("soupeř, který sjednotí Egypt, ukončí hru porážkou", () => {
   const s = X.newGame({ scen: "sip", clan: "thebes", seed: 13 }); X.checkEnd(s); assert(!s.over);
   const core = X.coreProvs(s); let k = 0; for (const p of core) if (p.owner !== "thebes" || k++ > 3) p.owner = p.id === "u4" ? "thebes" : "hyksos";
   X.checkEnd(s); assert(s.over && s.over.win === false, "porážka");
+});
+t("zákon o sčítání dobytka zvyšuje příjem, šikmé valy zesilují hradby", () => {
+  const s = X.newGame({ scen: "sip", clan: "thebes", seed: 14 }), C = s.clans.thebes; C.laws.dobytek = 1; let d0 = C.deben; X.lawTechTick(s); const a = C.deben - d0;
+  C.laws.dobytek = 2; d0 = C.deben; X.lawTechTick(s); assert(C.deben - d0 > a);
+  const p = s.provs.u4, m0 = X.durMax(s, p); C.techs.glacis = 1; assert(X.durMax(s, p) > m0);
+});
+t("královská objížďka zvedne spokojenost a jde jen jednou za rok", () => {
+  const s = X.newGame({ scen: "ahm", clan: "thebes", seed: 15 }), low = X.clanProvs(s, "thebes").filter(p => p.id !== "u4").sort((a, b) => a.loy - b.loy)[0], l0 = low.loy;
+  s.clans.thebes.deben = 1e5; assert.strictEqual(X.royalTour(s, "thebes"), null); assert(low.loy >= l0 + 8); assert.notStrictEqual(X.royalTour(s, "thebes"), null);
+});
+t("znamení roku: hůlky dávají 1 až 5 a událost má volby", () => {
+  const s = X.newGame({ scen: "sip", clan: "thebes", seed: 16 });
+  for (let i = 0; i < 30; i++) { const o = X.omenRoll(s); assert(o.v >= 1 && o.v <= 5 && o.sticks.length === 4); const v = X.eventView(s, { k: "znameni", data: o }); assert(v.ch.length >= 1); }
 });
 console.log(`OK – ${n} testů`);

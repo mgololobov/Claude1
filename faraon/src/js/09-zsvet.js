@@ -109,7 +109,7 @@ function inheritPrep(s, c) {
 }
 function inheritApply(s, c, inh) {
   const C = s.clans[inh.cl]; if (!C || !C.alive) return;
-  const priv = C.rodPriv && C.rodPriv[rodOf(c)], pr = priv ? 1 : [0.9, 0.45, 0.15][lw(s, inh.cl, "nomarchove")];
+  const priv = C.rodPriv && C.rodPriv[rodOf(c)], pr = priv ? 1 : Math.min(1, [0.9, 0.45, 0.15][lw(s, inh.cl, "nomarchove")] + (lw(s, inh.cl, "zeny") === 2 ? 0.15 : 0));
   if (!chance(s, pr)) return;
   let son = Object.values(s.chars).find(k => k.father === c.id && k.sex === "m" && k.st !== "dead" && k.st !== "cap" && age(s, k) >= 16 && (k.cl === inh.cl || !k.cl));
   if (!son && age(s, c) >= 38 && chance(s, priv ? 1 : 0.75)) {
@@ -153,7 +153,8 @@ EVENT_Q.spor_rodu = "rolnik"; EVENT_Q.mocny_rod = "amenemhat";
 function marketTick(s) {
   const M = s.market; if (M.base == null) M.base = M.p; M.hist = M.hist || []; M.short = M.short || 0; M.press = M.press || 0;
   const m = (s.month - HARVEST_MONTH + 12) % 12, season = 0.9 + m * 0.022;
-  M.p = Math.round(clamp(M.base * season * (1 + M.short) * (1 + M.press), 0.8, 12) * 100) / 100;
+  const damp = [1.3, 1, 0.5][lw(s, s.player, "ceny")], raw = M.base * season * (1 + M.short) * (1 + M.press);
+  M.p = Math.round(clamp(M.base + (raw - M.base) * damp, 0.8, 12) * 100) / 100;
   M.hist.push(M.p); if (M.hist.length > 120) M.hist.splice(0, M.hist.length - 120);
   M.press *= 0.7; M.short *= 0.985;
 }
@@ -275,7 +276,7 @@ function playerRaid(s, fromId, toId) {
   if (T.type !== "kmen") return "Nájezdy podnikají jen kmeny.";
   if (!from || from.owner !== s.player || !q || !from.nb.includes(toId) || q.owner === s.player) return "Nájezd jde jen do sousedního cizího kraje.";
   if (friendly(s, s.player, q.owner)) return "Na spojence se neútočí.";
-  if ((T.last.raid || -9) > s.turn - 3) return "Bojovníci odpočívají – další nájezd nejdřív za " + (T.last.raid + 3 - s.turn) + " měs.";
+  if ((T.last.raid ?? -9) > s.turn - 3) return "Bojovníci odpočívají – další nájezd nejdřív za " + (T.last.raid + 3 - s.turn) + " měs.";
   const r = doRaid(s, T, from, q); if (r.err) return r.err; T.last.raid = s.turn;
   return r.b.win === "A" ? `Kořist: ${fmtN(r.loot)} debenů a ${fmtN(r.gl)} charů obilí.` : "Nájezd se nezdařil.";
 }
