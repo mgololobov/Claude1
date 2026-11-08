@@ -23,6 +23,19 @@ Je to samostatný projekt, s Herní dílnou (`herni-dilna/`) nesdílí žádný 
 - **Objevy:** 16 objevů v pěti oborech. **Události:** přes 25 událostí s volbami a historické zprávy.
 - **Cíl:** ovládnout polovinu krajů, nebo být císařem a vládnout třetině krajů.
 
+## Ve stylu Europa Universalis
+
+- **Mapa jako hlavní obrazovka:** přiblížení kolečkem, posun tažením, moře a pobřeží, řeky (Dunaj, Labe, Vltava, Odra, Visla, Rýn, Mohan, Morava, Tisa, Dráva, Sáva, Inn, Varta, Dněstr, Bug), pohoří a lesy, jména zemí, žetony vojsk s počtem mužů a morálkou, šipky pochodů, obléhání a pruhovaně okupované kraje.
+- **Mapové režimy:** politický, terén, rozvoj, spokojenost, vztahy, kultura, víra, obchod, začlenění.
+- **Ovládání:** levý panel s ikonami, horní lišta zdrojů (zlato, obilí, vojsko, prestiž, stabilita, body správy/diplomacie/vojska, vyčerpání, přetížení), boční panel kraje či vojska, přehled válek a vojsk, běh času (přehrávání ve třech rychlostech), okna nad mapou.
+- **Body vlády** (správa, diplomacie, vojsko) za rozvoj krajů, stabilitu, začleňování, ideje a snižování vyčerpání.
+- **Stabilita** (−3 až +3) a **válečné vyčerpání**.
+- **Záminky k válce** (nárok, znovudobytí, jednota koruny, říšská klatba, svatá válka, koalice); zfalšování nároku rozkazem vazala.
+- **Okupace, válečné skóre a mírové smlouvy** – postoupení krajů, odškodné, vazalství, připojení země, bílý mír; AI vyjednává mír i mezi sebou.
+- **Začleňování krajů a přetížení říše**, **agresivní expanze a koalice**.
+- **Kultury a náboženství** (katolíci, pravoslavní, pohanští Prusové) a misie.
+- **Pět skupin idejí** (správa, diplomacie, válečnictví, obchod, víra) a **úkoly rodu** včetně úkolů pro konkrétní rody.
+
 ## Rozšíření
 
 - **Tři scénáře:** leden 1256 (interregnum), leden 1260 (boj o Štýrsko, válka Čech s Uhry), leden 1273 (Zlatý král na vrcholu moci, volba římského krále v říjnu). Vládci, rodiny a hranice odpovídají době.
@@ -46,6 +59,7 @@ Je to samostatný projekt, s Herní dílnou (`herni-dilna/`) nesdílí žádný 
 ## Struktura
 
 ```
+src/js/01b-eu.js       kultury, víra, ideje, úkoly, záminky, řeky, moře a pohoří
 src/js/01-data.js      pravidla a číselníky (terén, vojsko, hodnosti, rozkazy, stavby, objevy, zákony, jména)
 src/js/02-world.js     kraje, rody a historické postavy roku 1256
 src/js/02b-scenarios.js scénáře 1260 a 1273
@@ -54,12 +68,14 @@ src/js/04-orders.js    rozkazy vazalům, správa vazalů, zajatci, trh, zákony 
 src/js/05-diplo.js     diplomacie, sňatky, vazalství, volba krále, papež, koruny
 src/js/06-war.js       vojska, pochody, bitvy, obléhání, dobývání
 src/js/07-turn.js      měsíční tah, rod a nástupnictví, výzkum, konec hry
+src/js/07c-eu.js       body vlády, stabilita, okupace, válečné skóre, mír, koalice, ideje, úkoly
 src/js/07b-world.js    obchodní cesty a Hanza, úřady, tatarské vpády, obtížnost, rozpisy příčin
 src/js/08-ai.js        umělá inteligence rodů
 src/js/09-events.js    události
 src/js/10-ui.js        rozhraní (záložky, ukládání)
 src/js/11-gfx.js       grafika: erby, politická mapa, grafy, pruhy, ikony
 src/js/12-ui-ext.js    plán měsíce, bojová obrazovka, úřady, obchodní cesty
+src/js/13-eu-ui.js     mapa jako hlavní obrazovka, mapové režimy, boční panel, lišta, okno Vláda
 ```
 
 ## Sestavení a testy

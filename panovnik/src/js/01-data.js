@@ -60,6 +60,8 @@ const CMDS = {
   podnecovat: { n: "Podněcovat nepokoje", d: "sníží spokojenost a posádku v cizím kraji", cost: 40, stat: "roz" },
   naklonit: { n: "Naklonit si cizího vazala", d: "úplatky a sliby – sníží jeho věrnost, případně přejde k tobě", cost: 50, stat: "roz" },
   poselstvo: { n: "Vést poselstvo", d: "diplomatické jednání s jiným rodem", cost: 0, stat: "roz" },
+  narok: { n: "Zfalšovat nárok", d: "listiny a svědci – nárok na sousední cizí kraj (záminka k válce na 10 let)", cost: 30, stat: "roz" },
+  misie: { n: "Vést misii", d: "obrací kraj na víru tvého rodu", cost: 20, stat: "roz" },
   obchodovat: { n: "Vést obchodní výpravu", d: "výnos podle obchodních cest kraje (správa a rozum)", cost: 20, stat: "spr" },
   presun: { n: "Odjet do jiného kraje", d: "přesun vazala (dorazí příští měsíc)", cost: 0, stat: null },
 };

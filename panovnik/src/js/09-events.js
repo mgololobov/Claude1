@@ -80,6 +80,12 @@ const SPECIAL = {
     txt: (s, e) => { const x = s.pend && s.pend[e.bid]; if (!x) return "Bitva skončila."; const b = x.b; return `${b.r + 1}. kolo z nejvýš 6.`; },
     ch: (s, e) => { const x = s.pend && s.pend[e.bid]; if (!x) return [{ t: "Pokračovat", e: () => "" }]; const b = x.b, used = b.ps === "A" ? b.resA : b.resB;
       return Object.entries(ORDERS).filter(([k]) => k !== "zaloha" || (!used && b.r >= 2)).map(([k, O]) => ({ t: O.n, d: O.d, e: (s, e) => { const err = manualRound(s, e.bid, k); if (s.pend && s.pend[e.bid]) e.keep = true; return err || ""; } })); } },
+  _mission: { t: "Úkol splněn", txt: (s, e) => { const m = MISSIONS.find(x => x.id === e.mid); return `${m.n}: ${m.d} Odměna: ${m.r}.`; }, ch: [{ t: "Výborně", e: () => "" }] },
+  _peaceOffer: { t: (s, e) => (e.win ? "Nepřítel žádá mír" : "Nepřítel nabízí mír") + " – " + s.clans[e.from].house,
+    txt: (s, e) => { const ws = warScore(s, s.player, e.from), list = e.items.length ? e.items.map(i => i.n).join("; ") : "bílý mír (vše jako před válkou)";
+      return e.win ? `${s.clans[e.from].house} vítězí (válečné skóre ${ws}) a za mír požadují: ${list}.` : `${s.clans[e.from].house} prohrávají (válečné skóre ${ws}) a nabízejí: ${list}.`; },
+    ch: [{ t: "Přijmout mír", e: (s, e) => { if (!atWar(s, s.player, e.from)) return "Válka už skončila."; const items = e.items.filter(i => i.t !== "kraj" || s.provs[i.pid].owner === (e.win ? s.player : e.from)); if (e.win) applyPeace(s, e.from, s.player, items); else applyPeace(s, s.player, e.from, items); return "Mír uzavřen."; } },
+      { t: "Odmítnout a bojovat dál", e: () => "Válka pokračuje." }] },
   _war: { t: "Válka!", txt: (s, e) => `${s.clans[e.by].house} (${s.clans[e.by].n}) ti vyhlásili válku. Jejich vojsko čítá asi ${Math.round(clanMen(s, e.by) / 1000)} tisíc mužů.`, ch: [{ t: "Do zbraně!", e: () => "Země se chystá k boji." }] },
   _lost: { t: "Ztráta kraje", txt: (s, e) => `Hrad v kraji ${pn(s, e.pid)} padl do rukou rodu ${s.clans[e.by].house}.`, ch: [{ t: "Pomstíme se", e: () => "" }] },
   _succ: { t: "Nový vládce", txt: (s, e) => e.txt, ch: [{ t: "Ať vládne dlouho!", e: () => "" }] },

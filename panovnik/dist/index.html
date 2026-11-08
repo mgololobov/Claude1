@@ -163,6 +163,107 @@ tr.muted td { opacity: .55; }
 .orders { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 6px; }
 .orders .ch { margin: 0; }
 @media (max-width: 600px) { .bgrid { grid-template-columns: 1fr; } }
+
+/* ===== Rozvržení ve stylu Europa Universalis ===== */
+:root { --frame: #2a2017; --frame2: #3a2d20; --gold: #e2c27a; --gold2: #b8964f; --sea: #84aac4; }
+html, body { height: 100%; }
+body { display: grid; grid-template-rows: auto 1fr; grid-template-columns: auto 1fr; height: 100vh; overflow: hidden; }
+header#top { grid-column: 1 / -1; position: relative; top: 0; background: linear-gradient(var(--frame2), var(--frame)); color: #efe3c5; border-bottom: 2px solid var(--gold2); padding: 5px 12px; gap: 6px 10px; flex-wrap: nowrap; overflow-x: auto; }
+header#top .realm { color: var(--gold); gap: 8px; font-size: 14px; flex: none; }
+header#top .realm small { display: block; font-size: 11px; color: #cdbb94; font-weight: normal; }
+header#top .muted, header#top small { color: #cdbb94; }
+.resbar { display: flex; gap: 4px; flex-wrap: nowrap; }
+.res { display: inline-flex; align-items: center; gap: 4px; background: rgba(0,0,0,.28); border: 1px solid rgba(226,194,122,.25); border-radius: 4px; padding: 2px 7px; white-space: nowrap; font-size: 13px; }
+.res .ico { width: 14px; height: 14px; stroke: var(--gold); }
+.res .rl { display: none; }
+.res small { font-size: 11px; }
+.res.bad b { color: #ff9a8a; } .res.good b { color: #9fe39f; } .res.warn b { color: #f3c46b; }
+header#top .good { color: #9fe39f; } header#top .bad { color: #ff9a8a; }
+.mpdot { display: inline-flex; width: 16px; height: 16px; border-radius: 50%; color: #fff; font-style: normal; font-size: 10px; font-weight: bold; align-items: center; justify-content: center; border: 1px solid rgba(0,0,0,.4); flex: none; }
+.mpdot.big { width: 26px; height: 26px; font-size: 14px; }
+.clock { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; color: var(--gold); flex: none; }
+.speed { display: inline-flex; gap: 1px; }
+.speed .b { background: rgba(0,0,0,.3); color: #efe3c5; border-color: rgba(226,194,122,.3); padding: 1px 6px; }
+.speed .b.on { background: var(--gold2); color: #1c140c; }
+.speed .ico { width: 12px; height: 12px; fill: currentColor; stroke: none; }
+header#top button.main { flex: none; background: #8c2f1f; border: 1px solid var(--gold2); }
+nav#tabs { grid-row: 2; grid-column: 1; flex-direction: column; flex-wrap: nowrap; gap: 2px; padding: 6px 4px; background: var(--frame); border-right: 2px solid var(--gold2); border-bottom: none; overflow-y: auto; width: 56px; }
+nav#tabs button { border: 1px solid transparent; border-radius: 6px; background: transparent; color: #cdbb94; padding: 7px 0; justify-content: center; position: relative; width: 46px; }
+nav#tabs button span { display: none; }
+nav#tabs button .ico { width: 22px; height: 22px; stroke: currentColor; }
+nav#tabs button:hover, nav#tabs button.on { background: var(--frame2); color: var(--gold); border-color: var(--gold2); font-weight: normal; }
+nav#tabs button:hover span { display: block; position: absolute; left: 52px; top: 50%; transform: translateY(-50%); background: var(--frame); color: var(--gold); padding: 3px 8px; border: 1px solid var(--gold2); border-radius: 4px; white-space: nowrap; z-index: 40; font-size: 13px; }
+.badge { position: absolute; top: 1px; right: 1px; background: var(--accent2); color: #fff; font-style: normal; font-size: 10px; border-radius: 8px; padding: 0 4px; line-height: 14px; }
+.badge.bad { background: #b0301f; }
+main#main { grid-row: 2; grid-column: 2; position: relative; padding: 0; max-width: none; margin: 0; overflow: hidden; display: grid; grid-template-columns: 1fr 330px; min-height: 0; }
+#mapwrap { position: relative; overflow: hidden; background: var(--sea); min-width: 0; min-height: 0; }
+#mapwrap svg.map.eu { width: 100%; height: 100%; border-radius: 0; background: var(--sea); touch-action: none; cursor: grab; }
+svg.map.eu .sea { fill: var(--sea); }
+svg.map.eu .river { fill: none; stroke: #5f8fb3; stroke-linecap: round; stroke-linejoin: round; opacity: .9; }
+svg.map.eu .mtn { fill: rgba(120, 100, 75, .55); stroke: #5d4b36; stroke-width: .6; pointer-events: none; }
+svg.map.eu .tree { fill: #3f6b35; stroke: #2c4a25; stroke-width: .4; pointer-events: none; }
+svg.map.eu .marsh { stroke: #4d7364; stroke-width: .8; pointer-events: none; }
+svg.map.eu .hit { stroke: none; fill: transparent; }
+svg.map.eu .siege { fill: none; stroke: #c0301f; stroke-width: 1.4; stroke-dasharray: 3 2; }
+svg.map.eu .selring { fill: none; stroke: #fff; stroke-width: 2; filter: drop-shadow(0 0 2px #000); }
+svg.map.eu .castle { fill: #f2e8d0; stroke: #3a2e22; stroke-width: .8; }
+svg.map.eu .capm { fill: #e2b13c; stroke: #3a2e22; stroke-width: .9; }
+svg.map.eu .realmname { fill: rgba(40, 25, 10, .5); letter-spacing: .18em; font-weight: bold; pointer-events: none; font-family: Georgia, serif; }
+svg.map.eu .lbl { fill: #1e160e; stroke: rgba(246, 238, 220, .85); stroke-width: 2.2px; paint-order: stroke; pointer-events: none; font-family: Georgia, serif; }
+svg.map.eu .atok { cursor: pointer; } svg.map.eu .atok rect:first-of-type { stroke: #111; stroke-width: .8; }
+svg.map.eu .atok.sel rect:first-of-type { stroke: #fff; stroke-width: 2; } svg.map.eu .atok.foe rect:first-of-type { stroke: #ff3b2b; stroke-width: 1.5; }
+svg.map.eu .atok .mor { fill: #6fdc6f; } svg.map.eu .atok text { fill: #fff; font-size: 7.5px; font-weight: bold; font-family: Georgia, serif; paint-order: stroke; stroke: rgba(0,0,0,.6); stroke-width: 1.5px; }
+.mmodes { position: absolute; left: 8px; bottom: 8px; display: flex; flex-wrap: wrap; gap: 3px; max-width: calc(100% - 120px); }
+.mmodes .b, .zoom .b { background: rgba(42, 32, 23, .88); color: #efe3c5; border-color: var(--gold2); }
+.mmodes .b.on { background: var(--gold2); color: #1c140c; }
+.zoom { position: absolute; right: 8px; bottom: 8px; display: flex; gap: 3px; }
+.zoom .b { width: 30px; font-size: 16px; }
+.mlegend { position: absolute; left: 8px; bottom: 44px; background: rgba(246, 238, 220, .92); color: #2b2118; border: 1px solid var(--gold2); border-radius: 6px; padding: 4px 8px; font-size: 12px; display: flex; flex-wrap: wrap; gap: 4px 10px; max-width: 60%; }
+.mlegend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
+#side { background: var(--panel); border-left: 2px solid var(--gold2); overflow-y: auto; padding: 10px 12px; min-width: 0; }
+.sph { display: flex; gap: 10px; align-items: center; margin-bottom: 6px; } .sph b { font-size: 16px; color: var(--accent); } .sph .b { margin-left: auto; }
+.tags { display: flex; flex-wrap: wrap; gap: 2px; margin-bottom: 6px; }
+.hint { background: var(--head); border-left: 3px solid var(--accent2); padding: 4px 8px; font-size: 12px; margin: 6px 0; }
+.mpb.adm { border-color: #4f7f4f; } .mpb.dip { border-color: #3f6fa8; } .mpb.mil { border-color: #a3332b; }
+#outl { position: absolute; top: 8px; right: 338px; z-index: 5; width: 230px; }
+.olbox { background: rgba(246, 238, 220, .95); color: #2b2118; border: 1px solid var(--gold2); border-radius: 6px; padding: 6px 8px; max-height: 50vh; overflow-y: auto; font-size: 12px; box-shadow: 0 2px 6px rgba(0,0,0,.3); }
+.olh { font-weight: bold; color: #7a2e1d; display: flex; justify-content: space-between; align-items: center; }
+.olt2 { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: #7a6a58; margin-top: 4px; }
+.olr { display: flex; align-items: center; gap: 4px; padding: 2px 3px; border-radius: 3px; cursor: pointer; } .olr:hover, .olr.sel { background: #e8dcc2; }
+.olr .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; } .olr .sp { flex: 1; }
+.olt { position: absolute; right: 0; background: rgba(42, 32, 23, .88); color: #efe3c5; }
+#win { position: absolute; inset: 0; z-index: 10; background: var(--bg); display: flex; flex-direction: column; border-left: 2px solid var(--gold2); }
+#win.hidden { display: none; }
+.winbar { display: flex; align-items: center; gap: 8px; background: linear-gradient(var(--frame2), var(--frame)); color: var(--gold); padding: 6px 12px; border-bottom: 2px solid var(--gold2); font-size: 16px; }
+.winbar .ico { width: 20px; height: 20px; } .winbar .sp { flex: 1; }
+.winbar .b { background: rgba(0,0,0,.3); color: #efe3c5; border-color: var(--gold2); }
+.winbody { overflow-y: auto; padding: 12px max(16px, env(safe-area-inset-right, 0px)) 16px max(16px, env(safe-area-inset-left, 0px)); flex: 1; }
+.stab { display: flex; gap: 3px; margin: 6px 0; } .stab i { flex: 1; text-align: center; font-style: normal; padding: 4px 0; border-radius: 4px; background: var(--line); font-weight: bold; }
+.stab i.neg.on { background: var(--bad); color: #fff; } .stab i.pos.on { background: var(--good); color: #fff; } .stab i.on { outline: 2px solid var(--ink); }
+.mprow { display: flex; gap: 10px; align-items: center; margin: 6px 0; } .mprow > div { flex: 1; min-width: 0; }
+.ideas { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+.idea { border: 1px solid var(--line); border-radius: 8px; padding: 8px; display: flex; flex-direction: column; gap: 4px; }
+.idea .ih { display: flex; gap: 6px; align-items: center; font-size: 15px; }
+.il { padding: 3px 6px; border-radius: 4px; border-left: 3px solid var(--line); } .il.done { border-color: var(--good); background: color-mix(in srgb, var(--good) 12%, transparent); } .il.next { border-color: var(--warn); }
+.missions { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px; }
+.mis { border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; border-top: 3px solid var(--warn); } .mis.done { border-top-color: var(--good); opacity: .75; }
+.wsbar { position: relative; height: 16px; background: var(--line); border-radius: 8px; margin: 6px 0; overflow: hidden; } .wsbar i { position: absolute; top: 0; bottom: 0; } .wsbar b { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--ink); } .wsbar span { position: absolute; right: 8px; top: 0; font-size: 12px; font-weight: bold; }
+.pitem { display: block; padding: 2px 0; }
+@media (max-width: 900px) {
+  body { display: block; height: auto; overflow: auto; }
+  header#top { flex-wrap: wrap; position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; }
+  .resbar { flex-wrap: wrap; }
+  nav#tabs { flex-direction: row; width: auto; overflow-x: auto; border-right: none; border-bottom: 2px solid var(--gold2); padding: 4px 8px; }
+  nav#tabs button { width: 40px; flex: none; }
+  nav#tabs button:hover span { display: none; }
+  main#main { display: block; overflow: visible; }
+  #mapwrap { height: 62vh; }
+  #side { border-left: none; border-top: 2px solid var(--gold2); }
+  #outl { right: 8px; width: 190px; }
+  #win { position: static; border-left: none; }
+  main#main.haswin #mapwrap, main#main.haswin #side, main#main.haswin #outl { display: none; }
+  .mmodes { max-width: calc(100% - 110px); }
+}
 </style>
 </head>
 <body>
@@ -235,6 +336,8 @@ const CMDS = {
   podnecovat: { n: "Podněcovat nepokoje", d: "sníží spokojenost a posádku v cizím kraji", cost: 40, stat: "roz" },
   naklonit: { n: "Naklonit si cizího vazala", d: "úplatky a sliby – sníží jeho věrnost, případně přejde k tobě", cost: 50, stat: "roz" },
   poselstvo: { n: "Vést poselstvo", d: "diplomatické jednání s jiným rodem", cost: 0, stat: "roz" },
+  narok: { n: "Zfalšovat nárok", d: "listiny a svědci – nárok na sousední cizí kraj (záminka k válce na 10 let)", cost: 30, stat: "roz" },
+  misie: { n: "Vést misii", d: "obrací kraj na víru tvého rodu", cost: 20, stat: "roz" },
   obchodovat: { n: "Vést obchodní výpravu", d: "výnos podle obchodních cest kraje (správa a rozum)", cost: 20, stat: "spr" },
   presun: { n: "Odjet do jiného kraje", d: "přesun vazala (dorazí příští měsíc)", cost: 0, stat: null },
 };
@@ -300,6 +403,107 @@ const NAMES = {
 };
 const FEMALE = { cz: ["Kunhuta", "Eliška", "Anežka", "Ludmila", "Jitka", "Zdislava", "Markéta", "Hedvika", "Bohuslava", "Dobroslava"], de: ["Gertruda", "Adléta", "Matylda", "Žofie", "Alžběta", "Juta", "Hedvika", "Kateřina", "Anna", "Klára"], hu: ["Alžběta", "Anna", "Kateřina", "Markéta", "Marie", "Konstancie", "Jolanta"], pl: ["Salomea", "Jolanta", "Anna", "Viola", "Grzymisława", "Konstancie", "Hedvika", "Eufrozína"], ru: ["Anastázie", "Olga", "Jelena", "Sofie", "Marie", "Konstancie"] };
 const SONS = { cz: ["Václav", "Vladislav", "Přemysl", "Spytihněv", "Soběslav", "Bořivoj", "Jaromír", "Oldřich", "Jindřich"], de: ["Albrecht", "Rudolf", "Fridrich", "Ota", "Ludvík", "Jindřich", "Konrád", "Hartmann", "Jan"], hu: ["Ladislav", "Béla", "Ondřej", "Štěpán", "Koloman", "Emerich"], pl: ["Boleslav", "Vladislav", "Kazimír", "Lešek", "Měšek", "Konrád", "Přemysl", "Jindřich"], ru: ["Lev", "Roman", "Švarno", "Mstislav", "Jurij", "Vladimír", "Andrej"] };
+
+// Data ve stylu Europa Universalis: kultury, náboženství, ideje, úkoly, záminky k válce, zeměpis mapy.
+
+// ---------- kultury a náboženství ----------
+const CULTURES = {
+  cz: { n: "česká", g: "zs" }, sk: { n: "slovenská", g: "zs" }, pl: { n: "polská", g: "zs" }, de: { n: "německá", g: "ger" },
+  hu: { n: "maďarská", g: "uh" }, ru: { n: "ruská (rusínská)", g: "vs" }, sl: { n: "slovinská", g: "js" }, hr: { n: "chorvatská", g: "js" }, pr: { n: "pruská", g: "balt" },
+};
+const CGROUPS = { zs: "západoslovanská", ger: "německá", uh: "uherská", vs: "východoslovanská", js: "jihoslovanská", balt: "baltská" };
+const CULT_COL = { cz: "#c0392b", sk: "#e67e22", pl: "#e74c3c", de: "#7f8c8d", hu: "#27ae60", ru: "#5d6d7e", sl: "#8e44ad", hr: "#2471a3", pr: "#a0522d" };
+// výjimky z kultury podle majitele (jinak se bere kultura rodu)
+const PROV_CULTURE = { viden: "de", linec: "de", kremze: "de", pitten: "de", stajhradec: "de", leoben: "de", ptuj: "sl", kransko: "sl", korutany: "de", gorice: "sl", zahreb: "hr",
+  nitra: "sk", stiavnica: "sk", spis: "sk", tesin: "pl", kladsko: "cz", opava: "cz", kralovec: "pr", elblag: "pr", chelmno: "pl", budysin: "de", dluzice: "de", stetin: "de", volegost: "de", kolobreh: "pl", lebus: "pl", premysl_r: "ru" };
+const RELIGIONS = { kat: { n: "katolická", col: "#e0c060" }, prav: { n: "pravoslavná", col: "#7d4fa0" }, poh: { n: "pohanská", col: "#4f7f3f" } };
+const PROV_RELIGION = { chelm: "prav", vladimir: "prav", halic: "prav", lvov: "prav", premysl_r: "prav", kralovec: "poh" };
+const CLAN_RELIGION = { halic: "prav" };
+
+// ---------- body vlády ----------
+const MP = { adm: { n: "Správa", stat: "spr", col: "#4f7f4f", off: "komori" }, dip: { n: "Diplomacie", stat: "roz", col: "#3f6fa8", off: "kancler" }, mil: { n: "Vojsko", stat: "ved", col: "#a3332b", off: "marsal" } };
+const MP_IDS = Object.keys(MP);
+
+// ---------- skupiny idejí ----------
+const IDEAS = {
+  sprava: { n: "Správa země", mp: "adm", list: [["komora", "Královská komora", "+10 % daní z krajů"], ["desky", "Zemské desky", "stabilita o čtvrtinu levnější"], ["lokace", "Lokace měst a vsí", "+0,05 % růstu obyvatel měsíčně, rozvoj levnější"], ["urad", "Zemské úřady", "+1 bod správy měsíčně"]] },
+  diplomacie: { n: "Diplomacie", mp: "dip", list: [["vyslanci", "Stálí vyslanci", "+10 k úspěchu poselstev"], ["snatky", "Sňatková politika", "sňatky ochotněji přijímány"], ["smir", "Smírčí soudy", "agresivní expanze o třetinu nižší"], ["kancelar", "Dvorská kancelář", "+1 bod diplomacie měsíčně"]] },
+  vojsko: { n: "Válečnictví", mp: "mil", list: [["rytiri", "Rytířské družiny", "jízda +15 % síly"], ["kondotieri", "Žoldnéřské smlouvy", "žoldnéři o čtvrtinu levnější"], ["hrady", "Síť hradů", "hrady +1 úroveň obrany"], ["korist", "Válečná kořist", "dvojnásobná kořist z dobytí"]] },
+  obchod: { n: "Obchod", mp: "dip", list: [["vysady", "Kupecké výsady", "obchodní cesty +30 %"], ["jarmarky", "Trhy a jarmarky", "+5 spokojenosti ve městech"], ["mincovna", "Mincovní reforma", "+5 % všech příjmů"], ["hanza", "Hanzovní styky", "vstup do Hanzy zdarma, Hanza +50 %"]] },
+  vira: { n: "Víra", mp: "adm", list: [["klastery", "Klášterní reforma", "kláštery +100 % učenosti"], ["pout", "Poutní místa", "+0,5 prestiže měsíčně"], ["misie", "Misie", "obracení na víru dvakrát úspěšnější"], ["biskupove", "Biskupská podpora", "+0,5 přízně papeže měsíčně"]] },
+};
+const IDEA_COST = 150;
+
+// ---------- záminky k válce ----------
+const CB = {
+  narok: { n: "Nárok na kraj", d: "máš nárok (zfalšovaný nebo zděděný) na jejich kraj" },
+  jadro: { n: "Znovudobytí", d: "drží kraj, který je tvým jádrem" },
+  koruna: { n: "Jednota koruny", d: "drží kraj z jádra tvé koruny" },
+  klatba: { n: "Říšská klatba", d: "rod je v říšské klatbě" },
+  krizova: { n: "Svatá válka", d: "rod je v papežské klatbě nebo jiné víry" },
+  koalice: { n: "Koalice", d: "obrana proti tvé agresivní expanzi" },
+  zadna: { n: "Bez záminky", d: "stabilita −2, prestiž −30, vyšší agresivní expanze" },
+};
+
+// ---------- úkoly rodů ----------
+// test: funkce (s, cid) => bool, odmena: text a funkce
+const MISSIONS = [
+  { id: "stab", n: "Upevnit vládu", d: "Dosáhni stability +2.", t: (s, c) => s.clans[c].stab >= 2, r: "+60 bodů správy", g: (s, c) => { s.clans[c].mp.adm += 60; } },
+  { id: "sidlo", n: "Skvělé sídlo", d: "Rozviň sídelní kraj na rozvoj 150 (pole + obchod).", t: (s, c) => { const p = s.provs[s.clans[c].capital]; return p && p.agri + p.com >= 150; }, r: "+40 prestiže", g: (s, c) => { s.clans[c].prestige += 40; } },
+  { id: "hrad", n: "Hrad nad hrady", d: "Postav v sídle hrad 4. úrovně.", t: (s, c) => { const p = s.provs[s.clans[c].capital]; return p && p.castle >= 4; }, r: "+60 bodů vojska", g: (s, c) => { s.clans[c].mp.mil += 60; } },
+  { id: "spojenci", n: "Síť spojenců", d: "Měj dva spojence.", t: (s, c) => aliveClans(s).filter(o => allied(s, c, o.id)).length >= 2, r: "+60 bodů diplomacie", g: (s, c) => { s.clans[c].mp.dip += 60; } },
+  { id: "snatky", n: "Krev králů", d: "Buď spřízněn sňatky se třemi rody.", t: (s, c) => aliveClans(s).filter(o => married(s, c, o.id)).length >= 3, r: "+50 prestiže", g: (s, c) => { s.clans[c].prestige += 50; } },
+  { id: "bitvy", n: "Vítěz bitev", d: "Vyhraj pět bitev.", t: (s, c) => s.battles.filter(b => b.win === c).length >= 5 || (s.clans[c].wins || 0) >= 5, r: "+80 bodů vojska", g: (s, c) => { s.clans[c].mp.mil += 80; } },
+  { id: "expanze", n: "Rozšířit panství", d: "Získej o tři kraje víc, než jsi měl na začátku.", t: (s, c) => clanProvs(s, c).length >= (s.clans[c].startProvs || 0) + 3, r: "+50 prestiže, +50 bodů správy", g: (s, c) => { s.clans[c].prestige += 50; s.clans[c].mp.adm += 50; } },
+  { id: "koruna", n: "Královská koruna", d: "Nech se korunovat králem (Čechy, Uhry, Polsko, Halič).", t: (s, c) => s.clans[c].titles.some(t => CROWNS[t]), r: "+100 prestiže", g: (s, c) => { s.clans[c].prestige += 100; } },
+  { id: "rise", n: "Římská koruna", d: "Staň se římským králem.", t: (s, c) => s.hre.kingClan === c, r: "+100 bodů diplomacie", g: (s, c) => { s.clans[c].mp.dip += 100; } },
+  { id: "hanza", n: "Brána k moři", d: "Měj město v Hanze.", t: (s, c) => clanProvs(s, c).some(p => p.hanza), r: "+60 bodů diplomacie", g: (s, c) => { s.clans[c].mp.dip += 60; } },
+  { id: "ideje", n: "Osvícený vladař", d: "Získej čtyři ideje.", t: (s, c) => Object.keys(s.clans[c].ideas || {}).length >= 4, r: "+50 ke všem bodům", g: (s, c) => { for (const k of MP_IDS) s.clans[c].mp[k] += 50; } },
+  // úkoly konkrétních rodů
+  { id: "styrsko", only: "premysl", n: "Štýrské dědictví", d: "Ovládni Štýrský Hradec, Horní a Dolní Štýrsko.", t: s => ["stajhradec", "leoben", "ptuj"].every(id => s.provs[id].owner === "premysl"), r: "+120 prestiže", g: s => { s.clans.premysl.prestige += 120; } },
+  { id: "jadran", only: "premysl", n: "Od Krkonoš k Jadranu", d: "Ovládni Korutany a Kraňsko.", t: s => ["korutany", "kransko"].every(id => s.provs[id].owner === "premysl"), r: "+100 bodů vojska", g: s => { s.clans.premysl.mp.mil += 100; } },
+  { id: "rakousy", only: "habsburg", n: "Rakouské vévodství", d: "Ovládni Vídeň a Horní Rakousy.", t: s => ["viden", "linec"].every(id => s.provs[id].owner === "habsburg"), r: "+150 prestiže", g: s => { s.clans.habsburg.prestige += 150; } },
+  { id: "styrsko_u", only: "arpad", n: "Udržet Štýrsko", d: "Drž Štýrsko ještě v roce 1265.", t: s => s.year >= 1265 && ["stajhradec", "leoben", "ptuj"].every(id => s.provs[id].owner === "arpad"), r: "+100 prestiže", g: s => { s.clans.arpad.prestige += 100; } },
+  { id: "polsko", only: ["krakov", "velkopolsko", "kujavsko", "mazovsko", "vratislav"], n: "Sjednocení Polska", d: "Nech se korunovat polským králem.", t: (s, c) => s.clans[c].titles.includes("Polsko"), r: "+200 prestiže", g: (s, c) => { s.clans[c].prestige += 200; } },
+  { id: "bavorsko", only: ["wittH", "wittL"], n: "Sjednocené Bavorsko", d: "Ovládni Mnichov i Landshut.", t: (s, c) => ["mnichov", "landshut"].every(id => s.provs[id].owner === c), r: "+120 prestiže", g: (s, c) => { s.clans[c].prestige += 120; } },
+  { id: "pomorany_b", only: "brandenburg", n: "Cesta k Baltu", d: "Ovládni Štětín.", t: s => s.provs.stetin.owner === "brandenburg", r: "+100 bodů diplomacie", g: s => { s.clans.brandenburg.mp.dip += 100; } },
+  { id: "prusko", only: "rad", n: "Pokřtění Prus", d: "Obrať Sambii na křesťanství.", t: s => s.provs.kralovec.rel === "kat" && s.provs.kralovec.owner === "rad", r: "+150 prestiže", g: s => { s.clans.rad.prestige += 150; } },
+];
+
+// ---------- zeměpis mapy (zem. délka, šířka) ----------
+const SEAS = [
+  [[9.6, 55.3], [9.9, 54.8], [10.2, 54.4], [10.75, 53.95], [11.5, 54.02], [12.2, 54.2], [13.3, 54.62], [13.8, 54.15], [14.3, 53.92], [15.6, 54.2], [17.0, 54.7], [18.3, 54.82], [18.7, 54.4], [19.6, 54.45], [20.0, 54.78], [21.2, 55.0], [25.9, 55.3]],
+  [[11.5, 45.2], [12.3, 45.45], [13.0, 45.68], [13.55, 45.8], [13.78, 45.66], [13.6, 45.2]],
+];
+const LAKES = [[17.75, 46.85, 0.42, 0.09, -0.6], [9.35, 47.62, 0.28, 0.07, -0.5]];
+const RIVERS = [
+  ["Dunaj", [[9.99, 48.4], [11.42, 48.76], [12.1, 49.02], [12.57, 48.88], [13.46, 48.57], [14.29, 48.31], [15.6, 48.41], [16.37, 48.21], [17.11, 48.14], [18.12, 47.76], [18.74, 47.8], [19.13, 47.78], [19.04, 47.5], [18.9, 46.9], [18.68, 46.0], [18.9, 45.4]]],
+  ["Labe", [[15.55, 50.75], [15.83, 50.21], [15.2, 50.03], [14.47, 50.35], [14.13, 50.53], [14.04, 50.66], [13.74, 51.05], [13.47, 51.16], [13.0, 51.56], [12.65, 51.87], [11.63, 52.13], [11.9, 52.9], [10.9, 53.3], [9.99, 53.55]]],
+  ["Vltava", [[13.8, 48.75], [14.32, 48.81], [14.47, 48.97], [14.4, 49.4], [14.42, 50.08], [14.47, 50.35]]],
+  ["Odra", [[17.6, 49.7], [18.22, 50.09], [17.93, 50.67], [17.04, 51.11], [16.08, 51.66], [15.6, 52.0], [14.55, 52.35], [14.55, 53.43], [14.3, 53.9]]],
+  ["Visla", [[18.9, 49.6], [19.94, 50.06], [21.75, 50.68], [21.6, 51.5], [21.0, 52.23], [19.7, 52.55], [18.6, 53.0], [18.46, 53.35], [18.8, 54.0], [18.65, 54.35]]],
+  ["Rýn", [[9.6, 47.6], [7.59, 47.56], [7.6, 48.5], [7.75, 48.58], [8.43, 49.32], [8.47, 49.49], [8.27, 50.0], [7.6, 50.4], [7.0, 50.9]]],
+  ["Mohan", [[10.9, 49.9], [9.93, 49.79], [8.68, 50.11], [8.27, 50.0]]],
+  ["Morava", [[16.9, 50.1], [17.25, 49.59], [17.4, 49.1], [16.95, 48.6], [16.98, 48.17]]],
+  ["Tisa", [[23.0, 48.2], [21.9, 48.0], [20.2, 47.18], [20.15, 46.25], [20.3, 45.4]]],
+  ["Dráva", [[12.5, 46.7], [13.85, 46.61], [14.3, 46.6], [15.65, 46.56], [15.87, 46.42], [17.0, 46.0], [18.6, 45.6]]],
+  ["Sáva", [[14.3, 46.3], [14.51, 46.05], [15.98, 45.8], [17.0, 45.4]]],
+  ["Mura", [[14.8, 47.2], [15.44, 47.07], [16.0, 46.6], [16.6, 46.4]]],
+  ["Inn", [[10.2, 46.7], [11.4, 47.26], [12.1, 47.85], [13.46, 48.57]]],
+  ["Varta", [[19.0, 50.8], [18.7, 51.6], [17.3, 52.1], [16.93, 52.41], [15.2, 52.7], [14.65, 52.59]]],
+  ["Dněstr", [[23.0, 49.4], [24.71, 49.12], [25.9, 48.8]]],
+  ["Bug", [[24.5, 49.8], [24.33, 50.85], [23.6, 51.6], [22.5, 52.4], [21.0, 52.4]]],
+];
+const RANGES = [
+  ["Alpy", [[7.0, 46.6], [8.5, 46.7], [10.0, 46.8], [11.5, 47.0], [12.8, 47.1], [14.0, 47.25], [15.2, 47.4], [15.9, 47.6]]],
+  ["Karpaty", [[17.8, 49.2], [18.8, 49.45], [19.8, 49.3], [21.0, 49.35], [22.3, 49.2], [23.2, 48.9], [24.3, 48.3], [25.2, 47.6], [25.5, 46.9], [24.6, 46.3], [23.3, 45.7]]],
+  ["Sudety", [[14.9, 50.85], [15.6, 50.75], [16.3, 50.55], [16.9, 50.3], [17.4, 50.15]]],
+  ["Šumava", [[12.6, 49.45], [13.2, 49.1], [13.8, 48.8], [14.3, 48.65]]],
+  ["Krušné hory", [[12.3, 50.35], [12.9, 50.48], [13.5, 50.6], [14.0, 50.75]]],
+  ["Dinárské hory", [[14.6, 45.7], [15.4, 45.5]]],
+];
+const MAPMODES = [["polit", "Politická"], ["teren", "Terén"], ["rozvoj", "Rozvoj"], ["spokoj", "Spokojenost"], ["vztahy", "Vztahy"], ["kultura", "Kultura"], ["vira", "Víra"], ["obchod", "Obchod"], ["jadra", "Začlenění"]];
+const TERRAIN_COL = { n: "#c9c58a", k: "#b5a46d", h: "#8d7f6a", l: "#5f8a4e", b: "#6f8f7f", p: "#c9b98a" };
 
 // Svět roku 1256: kraje, rody a historické postavy.
 // Kraj: [id, název, zem. délka, šířka, terén, velikost 1–5, pán, příznaky (c = město, * = sídlo rodu), suroviny]
@@ -688,6 +892,7 @@ function newGame(opts = {}) {
   s.pope.op.premysl = 45; s.pope.op.krakov = 50; s.pope.op.halic = -10;
   for (const e of EXT_ELECTORS) { s.hre.ext[e.id] = {}; for (const c of cl) s.hre.ext[e.id][c.id] = rint(s, -10, 10); }
   applyScenario(s, s.opts.scen); s.events = [];
+  initEU(s);
   for (const C of Object.values(s.clans)) if (C.alive) aiOffices(s, C.id);
   if (!s.clans[s.player] || !s.clans[s.player].alive) s.player = "premysl";
   // hráč
@@ -719,6 +924,8 @@ function provGold(s, p) {
   if (hasTech(s, p.owner, "ucetnictvi")) g *= 1.1;
   g *= 1 + officeVal(s, p.owner, "komori") / 1500;
   if (isPlayer(s, p.owner)) g *= diffIncome(s);
+  if (p.cores && !p.cores.includes(p.owner)) g *= 0.5;
+  g *= 1 + (C.stab || 0) * 0.05 + (hasIdea(s, p.owner, "komora") ? 0.1 : 0) + (hasIdea(s, p.owner, "mincovna") ? 0.05 : 0);
   if (isPlayer(s, p.owner)) g *= [0.85, 1, 1.25][C.laws.mesta] * (0.85 + C.estates.mestane / 333) * [1, 1.08, 1.18][C.laws.mince];
   if (p.b.vinice) g += p.b.vinice * 3;
   return g;
@@ -739,7 +946,7 @@ function provHarvest(s, p) {
 const garrisonGrain = p => men(p.troops) / 1000 * 8;
 function clanGrainUse(s, cid) { return sum(clanProvs(s, cid).map(garrisonGrain)) + sum(s.armies.filter(a => a.cl === cid).map(a => men(a.t) / 1000 * 12)); }
 function clanBudget(s, cid) {
-  const C = s.clans[cid], ps = clanProvs(s, cid).filter(p => !p.siege);
+  const C = s.clans[cid], ps = clanProvs(s, cid).filter(p => !p.siege && !p.occ);
   const inc = { domeny: ps.length ? 12 : 0, kraje: sum(ps.map(p => provGold(s, p))), obchod: sum(ps.map(p => routeIncomeProv(s, p))), doly: sum(ps.map(p => provMines(s, p).gold)), dan_vazalu: 0, rise: 0, cirkev: 0 };
   for (const v of vassalsOf(s, cid)) inc.dan_vazalu += sum(clanProvs(s, v.id).map(p => provGold(s, p))) * 0.15;
   if (C.vassalOf) inc.dan_vazalu -= sum(ps.map(p => provGold(s, p))) * 0.15;
@@ -806,7 +1013,7 @@ function cmdCheck(s, cid, c) {
   if (!c || c.cl !== cid || c.st !== "off") return "Není to tvůj vazal.";
   if (c.army) return "Vazal je s vojskem v poli.";
   if (c.acted === s.turn) return "Vazal už v tomto měsíci jedná.";
-  const p = s.provs[c.loc]; if (!p || p.owner !== cid) return "Vazal není ve vlastním kraji.";
+  const p = s.provs[c.loc]; if (!p || p.owner !== cid) return "Vazal není ve vlastním kraji."; if (p.occ) return "Kraj je obsazen nepřítelem.";
   if (p.siege) return "Kraj je obléhán.";
   return null;
 }
@@ -856,6 +1063,7 @@ function doCmd(s, cid, offId, cmd, arg, arg2) {
       say(`Rozdáno ${g} obilí v kraji ${p.n}, spokojenost +${v}.`); break;
     }
     case "hledat": {
+      if (officers(s, cid).length >= offCap(s, cid)) return `Dvůr je plný – víc než ${offCap(s, cid)} vazalů neuživíš (2 na kraj + 4).`;
       if (!pay(s, cid, cost)) return "Nedostatek zlata.";
       const w = Object.values(s.chars).filter(x => x.st === "wand" && x.loc === p.id);
       c.merit += 2;
@@ -864,6 +1072,7 @@ function doCmd(s, cid, offId, cmd, arg, arg2) {
         if (chance(s, 0.5 + C.prestige / 1500 + st(c, "roz") / 400)) { x.st = "off"; x.cl = cid; x.loy = rint(s, 55, 80); x.rank = 0; x.merit = 0; return say(`našel muže jménem ${x.n} a ten vstoupil do služby! (${STAT_IDS.map(k => STATS[k].slice(0, 3) + " " + st(x, k)).join(", ")})`); }
         return say(`našel ${x.n}, ale ten službu odmítl.`);
       }
+      if (wandCount(s) > 60) return say("nikoho schopného nenašel.");
       if ((p.b.mesto || p.city) && chance(s, 0.25 + (p.b.mesto || 0) * 0.08)) { const x = genOfficer(s, null, C.cul, p.id, { st: "wand", rank: 0, loy: 0, burgher: 1, ved: rint(s, 10, 35), uda: rint(s, 10, 35), roz: rint(s, 50, 80), spr: rint(s, 55, 88) }); x.n = pick(s, (NAMES[C.cul] || NAMES.de).m) + " " + pick(s, ["Kramář", "Soukeník", "Mincíř", "Kupec", "Zlatník", "Sladovník", "Rychtář"]) + " (" + p.n + ")"; x.traits = ["hospodar"]; return say(`ve městě se ozval schopný měšťan ${x.n} – hledej dál a přijmi ho do služby.`); }
       if (chance(s, 0.12 + st(c, "roz") / 500)) { const x = genOfficer(s, null, C.cul, p.id, { st: "wand", rank: 0, loy: 0 }); return say(`zaslechl o schopném muži (${x.n}), který se potuluje krajem.`); }
       say("nikoho schopného nenašel."); break;
@@ -907,6 +1116,12 @@ function doCmd(s, cid, offId, cmd, arg, arg2) {
       break;
     }
     case "poselstvo": { const e = diplomacy(s, cid, c, arg, arg2); if (e) return e; break; }
+    case "narok": {
+      const t = s.provs[arg]; if (!t || t.owner === cid || !t.nb.some(n => s.provs[n].owner === cid)) return "Vyber cizí kraj sousedící s tvým územím."; if (!pay(s, cid, cost)) return "Nedostatek zlata.";
+      if (chance(s, 0.35 + st(c, "roz") / 200)) { C.claims[t.id] = s.turn + 120; say(`našel listiny prokazující nárok na kraj ${t.n} (platí 10 let).`); } else { if (chance(s, 0.3)) addRel(s, cid, t.owner, -10); say(`padělání listin na kraj ${t.n} se zatím nepodařilo.`); }
+      c.merit += 4; break;
+    }
+    case "misie": { const r = convertProv(s, cid, c, p); if (r.startsWith("Kraj už")) return r; if (!pay(s, cid, cost)) return "Nedostatek zlata."; say(r); c.merit += 3; break; }
     case "obchodovat": {
       const rs = provRoutes(p); if (!rs.length && !(p.b.mesto || p.city)) return "Kraj neleží na obchodní cestě ani nemá město.";
       if (!pay(s, cid, cost)) return "Nedostatek zlata.";
@@ -922,6 +1137,8 @@ function doCmd(s, cid, offId, cmd, arg, arg2) {
   }
   c.acted = s.turn; return null;
 }
+const offCap = (s, cid) => clanProvs(s, cid).length * 2 + 4;
+const wandCount = s => Object.values(s.chars).filter(c => c.st === "wand").length;
 function defect(s, x, to) { const from = x.cl; for (const p of Object.values(s.provs)) if (p.lord === x.id) p.lord = null; x.cl = to; x.loy = 55; x.rank = Math.min(x.rank, 2); x.loc = s.clans[to].capital || x.loc; x.acted = s.turn; if (from) assignLords(s, from); assignLords(s, to); }
 function capture(s, c, by) { for (const p of Object.values(s.provs)) if (p.lord === c.id) p.lord = null; const from = c.cl; c.st = "cap"; c.capBy = by; c.loc = s.clans[by].capital; c.army = null; if (from) assignLords(s, from); }
 
@@ -1069,7 +1286,7 @@ function diplomacy(s, cid, envoy, to, typ, extra) {
     case "poddat": if (C.vassalOf) return "Už jsi vazal."; if (willing(s, cid, to, typ, envoy) > 0) { makeVassal(s, cid, to); return say("přijali tě za vazala a budou tě chránit."); } return say("tvou službu odmítli.");
     case "pomoc": { const foes = enemiesOf(s, cid).filter(e => !atWar(s, to, e) && !allied(s, to, e) && s.clans[e].vassalOf !== to); if (!foes.length) return "Nemáš válku, do které by mohli vstoupit.";
       if (willing(s, cid, to, typ, envoy) > 0) { declareWar(s, to, foes[0], "pomoc spojenci"); return say(`vstupují do války proti rodu ${s.clans[foes[0]].house}!`); } return say("pomoc odmítli."); }
-    case "pripojit": if (T.vassalOf !== cid) return "Nejsou tvými vazaly."; if (s.turn - T.vassalSince < 24) return `Vazalem musí být aspoň 2 roky (zbývá ${24 - (s.turn - T.vassalSince)} měsíců).`; if (rel(s, cid, to) < 70) return "Vztah musí být aspoň 70.";
+    case "pripojit": if (T.vassalOf !== cid) return "Nejsou tvými vazaly."; if (s.turn - T.vassalSince < 24) return `Vazalem musí být aspoň 2 roky (zbývá ${24 - (s.turn - T.vassalSince)} měsíců).`; if (rel(s, cid, to) < 70) return "Vztah musí být aspoň 70."; { const dc = Math.round(clanDev(s, to) * 0.6); if (C.mp && C.mp.dip < dc) return `Připojení stojí ${dc} bodů diplomacie.`; if (C.mp) C.mp.dip -= dc; }
       annex(s, to, cid); return null;
   }
   return "Neznámé jednání.";
@@ -1080,7 +1297,8 @@ function wed(s, a, b) {
   const k = pairKey(a.origin || a.cl, b.origin || b.cl); if (a.origin !== b.origin || true) s.marriages[pairKey(husband.cl, wife.origin)] = true;
   addRel(s, husband.cl, wife.origin, 25); s.clans[husband.cl].prestige += 10;
 }
-function makePeace(s, a, b) { s.wars = s.wars.filter(w => !((w.a === a && w.b === b) || (w.a === b && w.b === a))); s.truces[pairKey(a, b)] = s.turn + 24; addRel(s, a, b, 10); for (const ar of s.armies.filter(x => (x.cl === a && s.provs[x.loc].owner === b) || (x.cl === b && s.provs[x.loc].owner === a))) armyHome(s, ar); news(s, `Mír mezi rody ${s.clans[a].house} a ${s.clans[b].house}.`, "valka", [a, b]); }
+function makePeace(s, a, b) { s.wars = s.wars.filter(w => !((w.a === a && w.b === b) || (w.a === b && w.b === a)));
+  for (const p of Object.values(s.provs)) if ((p.owner === a && p.occ === b) || (p.owner === b && p.occ === a)) { p.occ = null; p.siege = null; } s.truces[pairKey(a, b)] = s.turn + 24; addRel(s, a, b, 10); for (const ar of s.armies.filter(x => (x.cl === a && s.provs[x.loc].owner === b) || (x.cl === b && s.provs[x.loc].owner === a))) armyHome(s, ar); news(s, `Mír mezi rody ${s.clans[a].house} a ${s.clans[b].house}.`, "valka", [a, b]); }
 function makeVassal(s, v, lord) {
   const V = s.clans[v]; V.vassalOf = lord; V.vassalSince = s.turn; addRel(s, v, lord, 20); s.clans[lord].prestige += 20 + clanProvs(s, v).length * 5;
   for (const w of s.wars.slice()) if (w.a === v && w.b === lord || w.b === v && w.a === lord) makePeace(s, v, lord);
@@ -1104,7 +1322,9 @@ function declareWar(s, a, b, why) {
   if (B.type !== "dyn" && !(B.excom > s.turn)) s.pope.op[a] -= 35;
   if (A.vassalOf === b) { A.vassalOf = null; news(s, `${A.house} se vzbouřili proti svému lennímu pánovi!`, "valka", [a, b]); }
   addRel(s, a, b, -50);
-  s.wars.push({ a, b, start: s.turn });
+  const cb = why ? (why === "koalice" ? "koalice" : "pomoc") : cbAgainst(s, a, b);
+  if (cb === "zadna") { changeStab(s, a, isPlayer(s, a) ? -2 : -1, "válka bez záminky"); A.prestige -= 30; for (const c of aliveClans(s)) if (c.id !== a && c.id !== b) addRel(s, a, c.id, -5); }
+  s.wars.push({ a, b, start: s.turn, cb, bs: 0 });
   news(s, `${A.house} (${A.n}) vyhlásili válku rodu ${B.house} (${B.n})${why ? " – " + why : ""}.`, "valka", [a, b]);
   // spojenci a vazalové obránce
   for (const c of aliveClans(s)) {
@@ -1211,7 +1431,7 @@ function popeTick(s) {
   for (const c of aliveClans(s)) {
     const o = s.pope.op[c.id] || 0;
     s.pope.op[c.id] = clamp(o + (c.type !== "dyn" ? 0.5 : 0) + (c.laws && c.laws.cirkev === 0 ? 0.5 : 0) - (c.laws && c.laws.cirkev === 2 ? 0.5 : 0) + (o < 0 ? 0.3 : -0.1), -100, 100);
-    if (s.pope.op[c.id] < -60 && !(c.excom > s.turn)) { c.excom = s.turn + 36; c.prestige -= 40; news(s, `Papež dal do klatby rod ${c.house}!`, "cirkev", [c.id]); }
+    if (s.pope.op[c.id] < -60 && !(c.excom > s.turn)) { c.excom = s.turn + 36; c.prestige -= 40; changeStab(s, c.id, -1, "papežská klatba"); news(s, `Papež dal do klatby rod ${c.house}!`, "cirkev", [c.id]); }
   }
 }
 
@@ -1230,7 +1450,7 @@ function armyLimit(s, ids) { return Math.max(500, sum(ids.map(id => RANKS[chr(s,
 // Vyslání vojska z kraje. t = {pesi, strelci, jizda, zoldneri}, cmds = id vazalů (první velí), months = zásoby obilí
 function dispatch(s, cid, from, to, t, cmds, months, mode) {
   const p = s.provs[from], C = s.clans[cid];
-  if (!p || p.owner !== cid) return "Vojsko lze vyslat jen z vlastního kraje."; if (p.siege) return "Kraj je obléhán.";
+  if (!p || p.owner !== cid || p.occ) return "Vojsko lze vyslat jen z vlastního neobsazeného kraje."; if (p.siege) return "Kraj je obléhán.";
   cmds = (cmds || []).filter(Boolean).slice(0, 3);
   for (const id of cmds) { const c = chr(s, id); if (!c || c.cl !== cid || c.st !== "off" || c.loc !== from || c.army || c.acted === s.turn) return `${c ? c.n : "Vazal"} nemůže velet (musí být v kraji a volný).`; }
   const tt = {}; for (const k of TROOP_IDS) { tt[k] = Math.max(0, Math.min(Math.floor(+t[k] || 0), p.troops[k] || 0)); }
@@ -1239,7 +1459,7 @@ function dispatch(s, cid, from, to, t, cmds, months, mode) {
   if (!transfer && !cmds.length) return "Vojsko potřebuje velitele.";
   if (!transfer && n > armyLimit(s, cmds)) return `Velitelé zvládnou nejvýš ${armyLimit(s, cmds)} mužů (podle hodnosti).`;
   const path = pathTo(s, cid, from, to, transfer ? "own" : null); if (!path || !path.length) return transfer ? "Do kraje nevede cesta přes vlastní území." : "Tam nelze táhnout (cíl musí být nepřátelský nebo vlastní kraj a cesta volná).";
-  if (!transfer && !atWar(s, cid, s.provs[to].owner) && s.provs[to].owner !== cid) return "S pánem cílového kraje nejsi ve válce.";
+  if (!transfer && !atWar(s, cid, ctrl(s.provs[to])) && s.provs[to].owner !== cid) return "S pánem cílového kraje nejsi ve válce.";
   months = clamp(Math.floor(+months || 3), 1, 12); const grain = Math.ceil(n / 1000 * 12 * months);
   if (C.grain < grain) return `Na ${months} měsíců zásob je třeba ${grain} obilí.`;
   C.grain -= grain;
@@ -1357,6 +1577,8 @@ function battleFinish(s, b) {
   s.clans[A.cl].warLoss = (s.clans[A.cl].warLoss || 0) + start.a - men(A.t); s.clans[B.cl].warLoss = (s.clans[B.cl].warLoss || 0) + start.b - men(B.t);
   s.clans[aWins ? A.cl : B.cl].prestige += Math.round(Math.min(30, (start.a + start.b) / 400));
   s.battles.unshift(rep); if (s.battles.length > 80) s.battles.length = 80;
+  addBattleScore(s, rep.win, aWins ? B.cl : A.cl, start.a + start.b);
+  for (const [cl, lost] of [[A.cl, start.a - men(A.t)], [B.cl, start.b - men(B.t)]]) if (s.clans[cl].we != null) s.clans[cl].we = Math.min(20, s.clans[cl].we + lost / 2500);
   news(s, `${kind === "zteč" ? "Zteč hradu" : "Bitva"} – ${rep.place}: ${s.clans[A.cl].house} (${start.a}→${rep.aEnd}) proti ${s.clans[B.cl].house} (${start.b}→${rep.bEnd}). Vítězí ${s.clans[rep.win].house}${b.retreat ? " (protivník ustoupil)" : ""}.${rep.fate.length ? " " + rep.fate.join(", ") + "." : ""}`, "valka", [A.cl, B.cl]);
   return { aWins, rep };
 }
@@ -1401,7 +1623,8 @@ function transferProv(s, pid, to, how) {
     else { const esc = clanProvs(s, from).filter(q => q.id !== pid); if (esc.length) c.loc = (esc.find(q => q.id === s.clans[from].capital) || esc[0]).id; else if (how !== "připojení") { c.st = "wand"; c.cl = null; } }
   }
   for (const c of Object.values(s.chars).filter(x => (x.st === "fam" || x.st === "kid") && x.loc === pid && x.cl === from)) { const esc = clanProvs(s, from).filter(q => q.id !== pid); if (esc.length) c.loc = esc[0].id; else if (how === "dobytí") capture(s, c, to); }
-  p.owner = to; p.lord = null; p.siege = null; p.deleg = true; p.build = null; p.conq = s.turn;
+  p.owner = to; p.lord = null; p.siege = null; p.deleg = true; p.build = null; p.conq = s.turn; p.occ = null; p.coring = null;
+  if (p.cores && (how === "připojení" || how === "úděl" || how === "dědictví") && !p.cores.includes(to)) p.cores.push(to);
   if (how === "dobytí") { p.loy = Math.max(10, p.loy - 25); p.dur = Math.round(p.dur * 0.5); p.com = Math.round(p.com * 0.85); }
   if (from && s.clans[from]) {
     if (s.clans[from].capital === pid) { const rest = clanProvs(s, from); s.clans[from].capital = rest.length ? rest.sort((a, b) => b.v - a.v)[0].id : null; if (rest.length) for (const c of Object.values(s.chars)) if (c.cl === from && (c.st === "fam" || c.st === "kid") && c.loc === pid) c.loc = s.clans[from].capital; }
@@ -1445,8 +1668,8 @@ function armiesTurn(s) {
     // střet s nepřátelským vojskem v kraji
     const foe = s.armies.find(x => x !== a && x.loc === a.loc && atWar(s, x.cl, a.cl) && !x.engaged);
     if (foe) { fieldBattle(s, a, foe); if (!s.armies.includes(a) || a.engaged) continue; }
-    if (p.owner === a.cl) { if (a.mode === "presun" && (!a.path || !a.path.length)) mergeArmy(s, a, p.id); continue; }
-    if (!atWar(s, a.cl, p.owner)) { if (!a.path || !a.path.length) armyHome(s, a); continue; }
+    if (ctrl(p) === a.cl) { if (p.owner === a.cl && a.mode === "presun" && (!a.path || !a.path.length)) mergeArmy(s, a, p.id); continue; }
+    if (!atWar(s, a.cl, ctrl(p))) { if (!a.path || !a.path.length) armyHome(s, a); continue; }
     if (a.path && a.path.length) continue; // jen průchod (cíl je dál)
     siegeTurn(s, a, p);
   }
@@ -1467,7 +1690,7 @@ function fieldAfter(s, a, b, aWins) {
 }
 function garrisonSide(s, p, castle) {
   const C = s.clans[p.owner];
-  return { cl: p.owner, t: Object.assign({}, p.troops), train: p.train, morale: 85 + Math.round(officeVal(s, p.owner, "marsal") / 20), cmds: p.lord ? [p.lord] : [], def: true, ter: p.ter, tac: isPlayer(s, p.owner) ? C.defTac || "sik" : null, castle: castle ? p.castle + (hasTech(s, p.owner, "gotika") ? 1 : 0) : 0, dur: castle ? p.dur : 0 };
+  return { cl: ctrl(p), t: Object.assign({}, p.troops), train: p.train, morale: 85 + Math.round(officeVal(s, p.owner, "marsal") / 20), cmds: p.lord && !p.occ ? [p.lord] : [], def: true, ter: p.ter, tac: isPlayer(s, p.owner) ? C.defTac || "sik" : null, castle: castle ? p.castle + (hasTech(s, p.owner, "gotika") ? 1 : 0) : 0, dur: castle ? p.dur : 0 };
 }
 function siegeTurn(s, a, p) {
   const C = s.clans[a.cl];
@@ -1501,17 +1724,9 @@ function assaultAfter(s, a, p, aWins) {
 }
 
 function conquer(s, a, p) {
-  const from = p.owner, C = s.clans[a.cl];
-  for (const k of TROOP_IDS) p.troops[k] = 0;
-  const loot = Math.round(p.com * 2 + p.pop * 2); C.gold += loot; s.clans[from].gold = Math.max(0, s.clans[from].gold - loot / 2);
-  news(s, `${C.house} dobyli kraj ${p.n} (dosud ${s.clans[from].house}). Kořist ${loot} zl.`, "valka", [a.cl, from]);
-  C.prestige += 8 + p.v * 3;
-  for (const id of a.cmds) { const c = chr(s, id); if (c) c.merit += 25; }
-  transferProv(s, p.id, a.cl, "dobytí");
-  if (!s.clans[a.cl].alive) return;
-  // vojsko zůstane jako posádka
-  mergeArmy(s, a, p.id);
-  if (from && isPlayer(s, from) && !s.over) s.events.push({ id: "_lost", pid: p.id, by: a.cl });
+  occupy(s, a, p);
+  if (!s.armies.includes(a)) return;
+  if (p.owner === a.cl && !p.occ) mergeArmy(s, a, p.id); // osvobozený vlastní kraj – vojsko se stane posádkou
 }
 
 // Měsíční tah: hospodářství, kraje, věrnost vazalů, rod a nástupnictví, výzkum, stavy, konec hry.
@@ -1524,6 +1739,7 @@ function endTurn(s) {
   for (const p of clanProvs(s, s.player)) if (p.deleg) for (const c of officersIn(s, p.id)) if (c.acted !== s.turn && !c.army && c.id !== pc.leader) aiDomestic(s, s.player, c, true);
   for (const C of aliveClans(s)) if (!isPlayer(s, C.id)) aiClan(s, C.id);
   armiesTurn(s);
+  euTick(s);
   for (const C of aliveClans(s)) economy(s, C);
   provincesTurn(s);
   officersTurn(s);
@@ -1534,6 +1750,7 @@ function endTurn(s) {
   for (const g of Object.keys(s.market)) s.market[g] = clamp(s.market[g] + (1 - s.market[g]) * 0.05 + (rnd(s) - 0.5) * 0.06, 0.5, 2);
   if (pc.laws) s.inflation = r1((s.inflation + [0, 0.002, 0.006][pc.laws.mince] - (pc.laws.mince === 0 ? Math.max(0, s.inflation - 1) * 0.01 : 0)) * 1000) / 1000;
   scripted(s);
+  purgeChars(s);
   rollEvents(s);
   // posun času
   s.turn++; s.month = (s.month + 1) % 12; if (s.month === 0) s.year++;
@@ -1552,7 +1769,7 @@ function economy(s, C) {
     for (const c of officers(s, C.id)) c.loy -= 2; C.gold = 0;
   }
   // obilí
-  if (s.month === 8) { const h = sum(clanProvs(s, C.id).filter(p => !p.siege).map(p => provHarvest(s, p))); C.grain += h; C.last.harvest = Math.round(h); if (isPlayer(s, C.id)) log(s, `Žně: sklizeno ${Math.round(h)} obilí.`, "hospodarstvi", [C.id]); }
+  if (s.month === 8) { const h = sum(clanProvs(s, C.id).filter(p => !p.siege && !p.occ).map(p => provHarvest(s, p))); C.grain += h; C.last.harvest = Math.round(h); if (isPlayer(s, C.id)) log(s, `Žně: sklizeno ${Math.round(h)} obilí.`, "hospodarstvi", [C.id]); }
   const use = sum(clanProvs(s, C.id).map(garrisonGrain)); C.last.grainUse = r1(use);
   C.grain -= use;
   if (C.grain < 0) { C.grain = 0; for (const p of clanProvs(s, C.id)) { loseMen(p.troops, Math.round(men(p.troops) * 0.06)); p.loy -= 2; } if (isPlayer(s, C.id)) log(s, "Posádkám chybí obilí – muži utíkají.", "hospodarstvi", [C.id]); }
@@ -1670,7 +1887,7 @@ function heirSucceeds(s, cid, why) {
   }
   const hs = heirsOf(s, cid);
   if (hs.length) {
-    const H = hs[0]; C.leader = H.id; H.loy = 100; H.rank = 4; if (H.st === "cap") { /* vládce v zajetí */ }
+    const H = hs[0]; C.leader = H.id; H.loy = 100; H.rank = 4; if (C.stab != null) changeStab(s, cid, age(s, H) < 16 ? -2 : -1, "nástup nového vládce"); if (H.st === "cap") { /* vládce v zajetí */ }
     C.prestige = Math.round(C.prestige * 0.85);
     if (s.hre.kingClan === cid) {/* řeší hreTick */}
     for (const o of officers(s, cid)) o.loy -= H.st === "kid" ? 10 : 4;
@@ -1746,6 +1963,15 @@ function checkVictory(s) {
   if (!s.flags.won && mine >= Math.ceil(total * 0.5)) { s.flags.won = true; s.over = { win: true, cont: true, txt: `Ovládáš ${mine} z ${total} krajů střední Evropy (sám nebo skrze vazaly). Tvůj rod se stal nejmocnějším v Evropě!` }; news(s, s.over.txt, "rod", [s.player]); }
   if (!s.flags.wonEmp && s.hre.emperor && s.hre.kingClan === s.player && mine >= Math.ceil(total * 0.3)) { s.flags.wonEmp = true; s.over = { win: true, cont: true, txt: "Jsi císařem Svaté říše římské a vládneš třetině střední Evropy. Vítězství!" }; }
   if (s.year >= 1400 && !s.flags.end) { s.flags.end = true; s.over = { win: true, cont: true, txt: `Rok 1400 – konec hry. Tvůj rod drží ${mine} krajů.` }; }
+}
+
+// úklid: zemřelé postavy (kromě rodu hráče) a přebyteční potulní rytíři
+function purgeChars(s) {
+  if (s.turn % 6) return;
+  const keep = new Set(Object.values(s.clans).flatMap(C => [C.leader, ...Object.values(C.offices || {})]));
+  for (const [id, c] of Object.entries(s.chars)) if (c.st === "dead" && !(c.cl === s.player && c.dyn) && !keep.has(id)) delete s.chars[id];
+  const wand = Object.values(s.chars).filter(c => c.st === "wand");
+  if (wand.length > 70) for (const c of wand.sort((a, b) => sum(STAT_IDS.map(k => a[k])) - sum(STAT_IDS.map(k => b[k]))).slice(0, wand.length - 70)) delete s.chars[c.id];
 }
 
 // Obchodní cesty a Hanza, dvorské úřady, tatarské vpády, obtížnost, rozpisy příčin (spokojenost, věrnost).
@@ -1844,9 +2070,235 @@ function offLoyBreakdown(s, c) {
 // čas pochodu (hory, lesy a mokřady zdrží o měsíc)
 function marchTime(s, path) { return sum((path || []).map(id => (TERRAIN[s.provs[id].ter].slow ? 2 : 1))); }
 
+// Mechaniky ve stylu Europa Universalis.
+const ctrl = p => p.occ || p.owner;
+const sgn = n => (n > 0 ? "+" : "") + n;
+const dev = p => Math.round(p.agri + p.com);
+const clanDev = (s, cid) => sum(clanProvs(s, cid).map(dev));
+const hasIdea = (s, cid, id) => !!(s.clans[cid] && s.clans[cid].ideas && s.clans[cid].ideas[id]);
+const relig = (s, cid) => (s.clans[cid] && s.clans[cid].relig) || "kat";
+
+function initEU(s) {
+  for (const C of Object.values(s.clans)) {
+    C.mp = { adm: 60, dip: 60, mil: 60 }; C.stab = C.t === "král" ? 1 : 0; C.we = 0; C.ideas = {}; C.missions = {}; C.claims = {};
+    C.startProvs = clanProvs(s, C.id).length; C.relig = CLAN_RELIGION[C.id] || "kat"; C.wins = 0;
+  }
+  for (const p of Object.values(s.provs)) { p.cul = PROV_CULTURE[p.id] || s.clans[p.owner].cul; p.rel = PROV_RELIGION[p.id] || "kat"; p.cores = [p.owner]; p.occ = null; }
+  // jádra v roce 1273 dobytých krajů (Štýrsko a Korutany Přemysl drží teprve krátce)
+  if (s.opts && s.opts.scen == 1273) for (const id of ["korutany", "kransko"]) s.provs[id].cores = ["premysl"];
+}
+
+// ---------- body vlády ----------
+function mpGain(s, cid) {
+  const C = s.clans[cid], L = chr(s, C.leader), minor = L && age(s, L) < 16, out = {};
+  for (const k of MP_IDS) out[k] = 3 + (L && !minor ? Math.floor(st(L, MP[k].stat) / 25) : 0) + Math.floor(officeVal(s, cid, MP[k].off) / 40);
+  if (hasIdea(s, cid, "urad")) out.adm++; if (hasIdea(s, cid, "kancelar")) out.dip++;
+  return out;
+}
+function mpTick(s) { for (const C of aliveClans(s)) { const g = mpGain(s, C.id); for (const k of MP_IDS) C.mp[k] = Math.min(999, C.mp[k] + g[k]); } }
+
+// ---------- stabilita a válečné vyčerpání ----------
+const stabCost = (s, cid) => Math.round((100 + 30 * Math.max(0, s.clans[cid].stab)) * (hasIdea(s, cid, "desky") ? 0.75 : 1));
+function raiseStab(s, cid) { const C = s.clans[cid]; if (C.stab >= 3) return "Stabilita je nejvyšší."; const c = stabCost(s, cid); if (C.mp.adm < c) return `Potřebuješ ${c} bodů správy.`; C.mp.adm -= c; C.stab++; if (isPlayer(s, cid)) log(s, `Stabilita země vzrostla na ${sgn(C.stab)}.`, "politika", [cid]); return null; }
+function changeStab(s, cid, d, why) { const C = s.clans[cid]; if (!C) return; const o = C.stab; C.stab = clamp(C.stab + d, -3, 3); if (C.stab !== o && isPlayer(s, cid)) log(s, `Stabilita ${d > 0 ? "stoupla" : "klesla"} na ${sgn(C.stab)}: ${why}.`, "politika", [cid]); }
+function reduceWE(s, cid) { const C = s.clans[cid]; if (C.we < 0.5) return "Vyčerpání je zanedbatelné."; if (C.mp.dip < 75) return "Potřebuješ 75 bodů diplomacie."; C.mp.dip -= 75; C.we = Math.max(0, C.we - 2); return null; }
+function weTick(s) { for (const C of aliveClans(s)) { const war = enemiesOf(s, C.id).length > 0; C.we = r1(clamp(C.we + (war ? 0.15 : -0.25), 0, 20)); } }
+
+// ---------- rozvoj a začleňování ----------
+const devCost = (s, cid, p) => Math.round((40 + dev(p) / 4) * (hasIdea(s, cid, "lokace") ? 0.85 : 1));
+function develop(s, cid, pid, kind) {
+  const p = s.provs[pid], C = s.clans[cid]; if (!p || p.owner !== cid) return "Není tvůj kraj."; if (p.occ) return "Kraj je obsazen nepřítelem.";
+  const c = devCost(s, cid, p); if (C.mp[kind] < c) return `Potřebuješ ${c} bodů (${MP[kind].n.toLowerCase()}).`;
+  C.mp[kind] -= c;
+  if (kind === "adm") { p.agriMax += 4; p.agri += 4; } else if (kind === "dip") { p.comMax += 4; p.com += 4; } else { p.pop = r1(p.pop + 1.5); p.dur = Math.min(durMax(s, p), p.dur + 30); }
+  if (isPlayer(s, cid)) log(s, `Rozvoj kraje ${p.n} (${MP[kind].n.toLowerCase()}).`, "stavby", [cid]); return null;
+}
+const coreCost = (s, p) => Math.round(15 + dev(p) / 5);
+function startCore(s, cid, pid) {
+  const p = s.provs[pid], C = s.clans[cid]; if (!p || p.owner !== cid) return "Není tvůj kraj."; if (p.cores.includes(cid)) return "Kraj je už začleněn."; if (p.coring) return "Začleňování už probíhá."; if (p.occ) return "Kraj je obsazen.";
+  const c = coreCost(s, p); if (C.mp.adm < c) return `Potřebuješ ${c} bodů správy.`; C.mp.adm -= c; p.coring = { cl: cid, left: 6 };
+  if (isPlayer(s, cid)) log(s, `Začleňování kraje ${p.n} (6 měsíců).`, "politika", [cid]); return null;
+}
+function overext(s, cid) { const ps = clanProvs(s, cid), tot = sum(ps.map(dev)) || 1; return Math.round(sum(ps.filter(p => !p.cores.includes(cid)).map(dev)) / tot * 100); }
+function coreTick(s) {
+  for (const p of Object.values(s.provs)) if (p.coring) { if (p.owner !== p.coring.cl || p.occ) { p.coring = null; continue; } if (--p.coring.left <= 0) { if (!p.cores.includes(p.owner)) p.cores.push(p.owner); if (isPlayer(s, p.owner)) log(s, `Kraj ${p.n} je začleněn do říše.`, "politika", [p.owner]); p.coring = null; } }
+  for (const C of aliveClans(s)) if (overext(s, C.id) > 50 && chance(s, 0.03)) changeStab(s, C.id, -1, "přetažená říše (mnoho nezačleněných krajů)");
+}
+
+// ---------- nároky a záminky ----------
+function claimValid(s, cid, pid) { return (s.clans[cid].claims[pid] || 0) > s.turn; }
+function cbAgainst(s, a, b) {
+  const A = s.clans[a], B = s.clans[b], bp = clanProvs(s, b);
+  if (bp.some(p => claimValid(s, a, p.id))) return "narok";
+  if (bp.some(p => p.cores.includes(a))) return "jadro";
+  if (A.titles.some(t => CROWNS[t] && CROWNS[t].core.some(id => s.provs[id].owner === b))) return "koruna";
+  if ((B.ban || 0) > s.turn && A.hre) return "klatba";
+  if (B.excom > s.turn || relig(s, a) !== relig(s, b)) return "krizova";
+  return "zadna";
+}
+
+// ---------- okupace ----------
+function occupy(s, a, p) {
+  const C = s.clans[a.cl], owner = p.owner;
+  for (const k of TROOP_IDS) p.troops[k] = 0;
+  p.siege = null;
+  const friendly = owner === a.cl || allied(s, a.cl, owner) || s.clans[owner].vassalOf === a.cl || C.vassalOf === owner;
+  if (friendly) { if (p.occ) news(s, `${C.house} osvobodili kraj ${p.n}.`, "valka", [a.cl, owner, p.occ]); p.occ = null; return; }
+  const loot = Math.round((p.com * 2 + p.pop * 2) * (hasIdea(s, a.cl, "korist") ? 2 : 1)); C.gold += loot; s.clans[owner].gold = Math.max(0, s.clans[owner].gold - loot / 2);
+  for (const c of Object.values(s.chars).filter(x => x.st === "off" && x.loc === p.id && x.cl === owner && !x.army)) {
+    if (chance(s, 0.5 - st(c, "uda") / 250)) capture(s, c, a.cl);
+    else { const esc = clanProvs(s, owner).filter(q => q.id !== p.id && !q.occ); if (esc.length) c.loc = (esc.find(q => q.id === s.clans[owner].capital) || esc[0]).id; }
+  }
+  if (p.lord && chr(s, p.lord) && chr(s, p.lord).loc !== p.id) p.lord = null;
+  p.occ = a.cl; p.loy = Math.max(0, p.loy - 10); p.build = null;
+  for (const id of a.cmds) { const c = chr(s, id); if (c) c.merit += 20; }
+  C.prestige += 3 + p.v;
+  news(s, `${C.house} obsadili kraj ${p.n} (${s.clans[owner].house}). Kořist ${loot} zl.`, "valka", [a.cl, owner]);
+  if (isPlayer(s, owner) && !s.over) s.events.push({ id: "_lost", pid: p.id, by: a.cl });
+  assignLords(s, owner);
+}
+
+// ---------- válečné skóre ----------
+function warOf(s, a, b) { return s.wars.find(w => (w.a === a && w.b === b) || (w.a === b && w.b === a)); }
+function warScore(s, a, b) {
+  const w = warOf(s, a, b); if (!w) return 0;
+  const bat = (w.bs || 0) * (w.a === a ? 1 : -1);
+  const occ = (x, y) => { const yp = clanProvs(s, y), tot = sum(yp.map(dev)) || 1; let v = sum(yp.filter(p => p.occ === x).map(dev)) / tot * 80; if (yp.some(p => p.occ === x && p.id === s.clans[y].capital)) v += 15; return v; };
+  return Math.round(clamp(clamp(bat, -40, 40) + occ(a, b) - occ(b, a), -100, 100));
+}
+function addBattleScore(s, winner, loser, size) { const w = warOf(s, winner, loser); if (!w) return; const d = Math.min(12, 2 + size / 700); w.bs = (w.bs || 0) + (w.a === winner ? d : -d); s.clans[winner].wins = (s.clans[winner].wins || 0) + 1; }
+
+// ---------- mírová jednání ----------
+// položky: {t:"kraj", pid} | {t:"zlato", g} | {t:"vazal"} | {t:"pripojit"} | {t:"bila"}
+function provPeaceCost(s, winner, loser, p) { const tot = clanDev(s, loser) || 1; return Math.max(5, Math.round(100 * dev(p) / tot * (claimValid(s, winner, p.id) || p.cores.includes(winner) ? 0.7 : 1))); }
+function peaceItems(s, winner, loser) {
+  const items = [], lp = clanProvs(s, loser);
+  for (const p of lp) { const occd = p.occ === winner, cl = claimValid(s, winner, p.id) || p.cores.includes(winner); if (occd || cl) items.push({ t: "kraj", pid: p.id, cost: provPeaceCost(s, winner, loser, p) * (occd ? 1 : 1.5), n: `Postoupit ${p.n}${occd ? "" : " (nárok, neobsazeno)"}` }); }
+  const g = Math.round(Math.max(0, s.clans[loser].gold) * 0.5); if (g >= 50) items.push({ t: "zlato", g, cost: Math.min(30, Math.round(g / 20)), n: `Válečné odškodné ${g} zl` });
+  if (!s.clans[loser].vassalOf && s.clans[loser].type === "dyn" && s.clans[loser].t !== "král") items.push({ t: "vazal", cost: Math.min(95, 40 + clanDev(s, loser) / 15), n: "Stát se vazalem" });
+  if (lp.length && lp.every(p => p.occ === winner)) items.push({ t: "pripojit", cost: 100, n: "Připojit celou zemi" });
+  return items;
+}
+function peaceCostSum(items) { return sum(items.map(i => i.cost || 0)); }
+function aiAcceptsPeace(s, from, to, items, fromIsWinner) {
+  const ws = warScore(s, from, to), T = s.clans[to], months = (warOf(s, from, to) ? s.turn - warOf(s, from, to).start : 0);
+  if (!fromIsWinner) { // někdo nabízí ústupky nebo bílý mír
+    const give = peaceCostSum(items); return -ws + give + T.we * 2 + months / 2 >= 10;
+  }
+  return ws + T.we * 2 + (months > 24 ? 10 : 0) >= peaceCostSum(items) && ws > 0 || peaceCostSum(items) === 0 && ws + T.we * 2 + months / 2 >= 10;
+}
+function applyPeace(s, winner, loser, items) {
+  const W = s.clans[winner], L = s.clans[loser], got = []; let ae = 0;
+  for (const it of items) {
+    if (it.t === "kraj" && s.provs[it.pid].owner === loser) { transferProv(s, it.pid, winner, "mír"); got.push(s.provs[it.pid].n); ae += dev(s.provs[it.pid]); }
+    if (it.t === "zlato") { const g = Math.min(it.g, Math.max(0, L.gold)); L.gold -= g; W.gold += g; got.push(g + " zl"); }
+    if (it.t === "vazal" && L.alive) { makeVassal(s, loser, winner); got.push("vazalství"); ae += clanDev(s, loser) / 2; }
+    if (it.t === "pripojit" && L.alive) { ae += clanDev(s, loser); for (const p of clanProvs(s, loser)) transferProv(s, p.id, winner, "mír"); got.push("celá země"); }
+  }
+  if (atWar(s, winner, loser)) makePeace(s, winner, loser);
+  if (ae) aggressiveExpansion(s, winner, ae, items.filter(i => i.t === "kraj").map(i => i.pid));
+  W.prestige += Math.round(Math.min(50, ae / 6)) + 5; L.prestige = Math.max(0, L.prestige - 10);
+  news(s, `Mír: ${W.house} a ${L.house}${got.length ? ` – ${W.house} získávají: ${got.join(", ")}` : " – bílý mír"}.`, "valka", [winner, loser]);
+}
+function proposePeace(s, from, to, items, fromIsWinner) {
+  if (!atWar(s, from, to)) return "Nejste ve válce.";
+  if (isPlayer(s, to)) { s.events.push({ id: "_peaceOffer", from, items, win: fromIsWinner }); return null; }
+  if (aiAcceptsPeace(s, from, to, items, fromIsWinner)) { if (fromIsWinner) applyPeace(s, from, to, items); else applyPeace(s, to, from, items); return null; }
+  addRel(s, from, to, -3); return `${s.clans[to].house} podmínky odmítli (válečné skóre ${warScore(s, from, to)}, požadováno ${peaceCostSum(items)}).`;
+}
+function greedyDemand(s, winner, loser, ws) {
+  const all = peaceItems(s, winner, loser); if (all.some(i => i.t === "pripojit") && ws >= 95) return [all.find(i => i.t === "pripojit")];
+  const out = []; let left = ws;
+  for (const it of all.filter(i => i.t === "kraj").sort((a, b) => dev(s.provs[b.pid]) - dev(s.provs[a.pid]))) if (it.cost <= left) { out.push(it); left -= it.cost; }
+  const g = all.find(i => i.t === "zlato"); if (g && g.cost <= left) out.push(g);
+  return out;
+}
+function aiPeaceTick(s) {
+  for (const w of s.wars.slice()) {
+    if (!s.wars.includes(w)) continue;
+    const ws = warScore(s, w.a, w.b), months = s.turn - w.start, win = ws >= 0 ? w.a : w.b, lose = win === w.a ? w.b : w.a, aws = Math.abs(ws);
+    const allOcc = clanProvs(s, lose).length && clanProvs(s, lose).every(p => p.occ === win);
+    if (!(allOcc || (aws >= 25 && chance(s, 0.12 + s.clans[lose].we / 60)) || (months > 36 && chance(s, 0.08)))) continue;
+    if (isPlayer(s, win)) { if (aws >= 25 && !s.events.some(e => e.id === "_peaceOffer" && e.from === lose)) s.events.push({ id: "_peaceOffer", from: lose, items: greedyDemand(s, win, lose, aws), win: false }); continue; }
+    if (isPlayer(s, lose)) { if (!s.events.some(e => e.id === "_peaceOffer" && e.from === win)) s.events.push({ id: "_peaceOffer", from: win, items: aws >= 10 ? greedyDemand(s, win, lose, aws) : [], win: true }); continue; }
+    applyPeace(s, win, lose, aws >= 10 ? greedyDemand(s, win, lose, aws) : []);
+  }
+}
+
+// ---------- agresivní expanze a koalice ----------
+function aggressiveExpansion(s, cid, amount, pids) {
+  const k = hasIdea(s, cid, "smir") ? 0.67 : 1;
+  for (const o of aliveClans(s)) {
+    if (o.id === cid || o.vassalOf === cid) continue;
+    const near = pids && pids.length ? Math.min(...clanProvs(s, o.id).map(p => Math.min(...pids.map(id => dist(p, s.provs[id]))))) : 300;
+    const f = near < 150 ? 1 : near < 350 ? 0.6 : 0.3;
+    addRel(s, cid, o.id, -Math.round(amount / 6 * f * k));
+  }
+}
+function coalitionTick(s) {
+  if (s.turn % 3) return;
+  const top = aliveClans(s).sort((a, b) => realmProvs(s, b.id) - realmProvs(s, a.id)).slice(0, 4).map(c => c.id);
+  if (!top.includes(s.player)) top.push(s.player);
+  for (const X of top) {
+    if (!s.clans[X] || !s.clans[X].alive || (s.flags["coal_" + X] || 0) > s.turn) continue;
+    const angry = aliveClans(s).filter(o => o.id !== X && rel(s, X, o.id) < -50 && !allied(s, X, o.id) && o.vassalOf !== X && !atWar(s, X, o.id) && truceUntil(s, X, o.id) <= s.turn && clanProvs(s, o.id).some(p => p.nb.some(n => s.provs[n].owner === X) || dist(p, s.provs[s.clans[X].capital] || p) < 400));
+    if (angry.length < 3 || sum(angry.map(o => clanPower(s, o.id))) < clanPower(s, X) * 0.9 || !chance(s, 0.25)) continue;
+    s.flags["coal_" + X] = s.turn + 60;
+    for (const a of angry) for (const b of angry) if (a.id < b.id) s.alliances[pairKey(a.id, b.id)] = true;
+    news(s, `Proti rodu ${s.clans[X].house} se zformovala koalice: ${angry.map(o => o.house).join(", ")}!`, "valka", [X]);
+    for (const a of angry) declareWar(s, a.id, X, "koalice");
+  }
+}
+
+// ---------- ideje a úkoly ----------
+function nextIdea(s, cid, g) { return IDEAS[g].list.find(([id]) => !hasIdea(s, cid, id)); }
+function buyIdea(s, cid, g) {
+  const C = s.clans[cid], nx = nextIdea(s, cid, g); if (!nx) return "Skupina je hotová."; const k = IDEAS[g].mp;
+  if (C.mp[k] < IDEA_COST) return `Potřebuješ ${IDEA_COST} bodů (${MP[k].n.toLowerCase()}).`;
+  C.mp[k] -= IDEA_COST; C.ideas[nx[0]] = true; if (isPlayer(s, cid)) log(s, `Nová idea: ${nx[1]} (${nx[2]}).`, "politika", [cid]); return null;
+}
+function missionsFor(s, cid) { return MISSIONS.filter(m => !m.only || m.only === cid || (Array.isArray(m.only) && m.only.includes(cid))); }
+function missionTick(s) {
+  for (const C of aliveClans(s)) for (const m of missionsFor(s, C.id)) if (!C.missions[m.id] && m.t(s, C.id)) { C.missions[m.id] = s.turn; m.g(s, C.id); if (isPlayer(s, C.id)) { log(s, `Úkol splněn: ${m.n}! Odměna: ${m.r}.`, "rod", [C.id]); s.events.push({ id: "_mission", mid: m.id }); } }
+}
+
+// ---------- víra ----------
+function convertProv(s, cid, c, p) {
+  if (p.rel === relig(s, cid)) return "Kraj už vyznává tvou víru.";
+  const ch = (0.12 + st(c, "roz") / 300) * (hasIdea(s, cid, "misie") ? 2 : 1) * (cid === "rad" ? 1.5 : 1);
+  if (chance(s, ch)) { p.rel = relig(s, cid); p.loy = Math.max(0, p.loy - 5); return `kraj ${p.n} přijal víru ${RELIGIONS[p.rel].n}.`; }
+  return `misie v kraji ${p.n} zatím nepřinesla obrácení.`;
+}
+
+// ---------- měsíční tah a umělá inteligence ----------
+function euTick(s) {
+  mpTick(s); weTick(s); coreTick(s);
+  for (const C of aliveClans(s)) {
+    for (const k of Object.keys(C.claims)) if (C.claims[k] <= s.turn) delete C.claims[k];
+    if (hasIdea(s, C.id, "pout")) C.prestige += 0.5; if (hasIdea(s, C.id, "biskupove")) s.pope.op[C.id] = Math.min(100, (s.pope.op[C.id] || 0) + 0.5);
+    if (!isPlayer(s, C.id)) aiEU(s, C.id);
+  }
+  aiPeaceTick(s); coalitionTick(s); missionTick(s);
+}
+function aiEU(s, cid) {
+  const C = s.clans[cid];
+  if (C.stab < 1 && C.mp.adm >= stabCost(s, cid)) raiseStab(s, cid);
+  for (const p of clanProvs(s, cid)) if (!p.cores.includes(cid) && !p.coring && !p.occ && C.mp.adm >= coreCost(s, p) + 20) startCore(s, cid, p.id);
+  if (C.we > 6 && C.mp.dip > 120) reduceWE(s, cid);
+  for (const k of MP_IDS) if (C.mp[k] > 400) { const groups = Object.keys(IDEAS).filter(g => IDEAS[g].mp === k && nextIdea(s, cid, g)); if (groups.length && chance(s, 0.3)) buyIdea(s, cid, pick(s, groups)); else { const p = clanProvs(s, cid).filter(q => !q.occ).sort((a, b) => b.v - a.v)[0]; if (p) develop(s, cid, p.id, k); } }
+  // nečinná vojska táhnou dál nebo domů
+  for (const a of s.armies.filter(x => x.cl === cid && (!x.path || !x.path.length) && !x.engaged)) {
+    const p = s.provs[a.loc]; if (p.siege && p.siege.army === a.id) continue;
+    if (ctrl(p) === cid && p.owner !== cid) {
+      const t = p.nb.map(n => s.provs[n]).filter(q => atWar(s, cid, ctrl(q)) && provDefense(s, q) * (q.occ ? 0.2 : 1) < troopPower(s, cid, a.t, { train: a.train }) * 1.1).sort((x, y) => dev(y) - dev(x))[0];
+      if (t) orderArmy(s, cid, a.id, "tahnout", t.id); else armyHome(s, a);
+    }
+  }
+}
+
 // Umělá inteligence rodů (a správa svěřených krajů hráče).
 
-function borderEnemies(s, cid, p) { return p.nb.filter(n => atWar(s, cid, s.provs[n].owner)); }
+function borderEnemies(s, cid, p) { return p.nb.filter(n => atWar(s, cid, ctrl(s.provs[n]))); }
 function threatened(s, cid, p) { return p.nb.some(n => { const o = s.provs[n].owner; return o !== cid && (atWar(s, cid, o) || rel(s, cid, o) < -30); }); }
 
 function aiDomestic(s, cid, c, delegated) {
@@ -1872,7 +2324,7 @@ function aiDomestic(s, cid, c, delegated) {
   if (gold > 25 && p.dur < durMax(s, p) * 0.9 && tryCmd("hradby")) return;
   if (gold > 30 && men(p.troops) < troopCap(p) * 0.5 && !delegated) { const n = Math.min(maxRecruit(s, p, c), Math.floor(gold / 8 * 100 * 0.5)); if (n >= 100 && tryCmd("nabor", "pesi", n)) return; }
   if (!delegated && gold > 20 && chance(s, 0.4) && tryCmd("studium")) return;
-  if (gold > 10 && chance(s, 0.15)) tryCmd("hledat");
+  if (gold > 10 && chance(s, 0.15) && officers(s, cid).length < offCap(s, cid)) tryCmd("hledat");
 }
 
 function aiClan(s, cid) {
@@ -1898,7 +2350,7 @@ function aiMilitary(s, cid) {
   if (s.armies.filter(x => x.cl === cid && x.mode === "utok").length >= 1 + Math.floor(clanProvs(s, cid).length / 6)) return;
   const options = [];
   for (const p of clanProvs(s, cid)) {
-    if (p.siege) continue;
+    if (p.siege || p.occ) continue;
     for (const n of borderEnemies(s, cid, p)) {
       const q = s.provs[n]; if (busy.has(n)) continue;
       const avail = {}; for (const k of TROOP_IDS) avail[k] = Math.floor((p.troops[k] || 0) * (threatened(s, cid, p) ? 0.7 : 0.9));
@@ -1932,7 +2384,9 @@ function aiWarDecision(s, cid) {
   const cands = [...nbs].map(o => s.clans[o]).filter(T => T.alive && !allied(s, cid, T.id) && truceUntil(s, cid, T.id) <= s.turn && T.vassalOf !== cid && !(C.type !== "dyn" && T.type !== "dyn"))
     .map(T => ({ T, sc: powerRatio(s, cid, T.id) * (1 - rel(s, cid, T.id) / 150) * (married(s, cid, T.id) ? 0.6 : 1) * (T.type !== "dyn" ? 0.6 : 1) * ((T.ban || 0) > s.turn ? 1.5 : 1) * (isPlayer(s, T.id) ? 1 : 1) }))
     .filter(x => x.sc > 1.6 && rel(s, cid, x.T.id) < 15).sort((a, b) => b.sc - a.sc);
-  if (cands.length && enemiesOf(s, cid).length === 0) declareWar(s, cid, cands[0].T.id, null);
+  if (cands.length && enemiesOf(s, cid).length === 0 && (cbAgainst(s, cid, cands[0].T.id) !== "zadna" || chance(s, 0.35))) declareWar(s, cid, cands[0].T.id, null);
+  // AI si občas zfalšuje nárok na slabšího souseda
+  if (chance(s, 0.05)) { const c = officers(s, cid).find(x => x.acted !== s.turn && !x.army && s.provs[x.loc] && s.provs[x.loc].owner === cid && !s.provs[x.loc].occ); const t = [...nbs].map(o => s.clans[o]).filter(T => T.alive && powerRatio(s, cid, T.id) > 1.3 && !allied(s, cid, T.id)).map(T => clanProvs(s, T.id).find(q => q.nb.some(n => s.provs[n].owner === cid))).filter(Boolean)[0]; if (c && t) doCmd(s, cid, c.id, "narok", t.id); }
 }
 function aiDiplomacy(s, cid) {
   const C = s.clans[cid], envoy = officers(s, cid).filter(c => !c.army && c.acted !== s.turn).sort((a, b) => st(b, "roz") - st(a, "roz"))[0];
@@ -2040,6 +2494,12 @@ const SPECIAL = {
     txt: (s, e) => { const x = s.pend && s.pend[e.bid]; if (!x) return "Bitva skončila."; const b = x.b; return `${b.r + 1}. kolo z nejvýš 6.`; },
     ch: (s, e) => { const x = s.pend && s.pend[e.bid]; if (!x) return [{ t: "Pokračovat", e: () => "" }]; const b = x.b, used = b.ps === "A" ? b.resA : b.resB;
       return Object.entries(ORDERS).filter(([k]) => k !== "zaloha" || (!used && b.r >= 2)).map(([k, O]) => ({ t: O.n, d: O.d, e: (s, e) => { const err = manualRound(s, e.bid, k); if (s.pend && s.pend[e.bid]) e.keep = true; return err || ""; } })); } },
+  _mission: { t: "Úkol splněn", txt: (s, e) => { const m = MISSIONS.find(x => x.id === e.mid); return `${m.n}: ${m.d} Odměna: ${m.r}.`; }, ch: [{ t: "Výborně", e: () => "" }] },
+  _peaceOffer: { t: (s, e) => (e.win ? "Nepřítel žádá mír" : "Nepřítel nabízí mír") + " – " + s.clans[e.from].house,
+    txt: (s, e) => { const ws = warScore(s, s.player, e.from), list = e.items.length ? e.items.map(i => i.n).join("; ") : "bílý mír (vše jako před válkou)";
+      return e.win ? `${s.clans[e.from].house} vítězí (válečné skóre ${ws}) a za mír požadují: ${list}.` : `${s.clans[e.from].house} prohrávají (válečné skóre ${ws}) a nabízejí: ${list}.`; },
+    ch: [{ t: "Přijmout mír", e: (s, e) => { if (!atWar(s, s.player, e.from)) return "Válka už skončila."; const items = e.items.filter(i => i.t !== "kraj" || s.provs[i.pid].owner === (e.win ? s.player : e.from)); if (e.win) applyPeace(s, e.from, s.player, items); else applyPeace(s, s.player, e.from, items); return "Mír uzavřen."; } },
+      { t: "Odmítnout a bojovat dál", e: () => "Válka pokračuje." }] },
   _war: { t: "Válka!", txt: (s, e) => `${s.clans[e.by].house} (${s.clans[e.by].n}) ti vyhlásili válku. Jejich vojsko čítá asi ${Math.round(clanMen(s, e.by) / 1000)} tisíc mužů.`, ch: [{ t: "Do zbraně!", e: () => "Země se chystá k boji." }] },
   _lost: { t: "Ztráta kraje", txt: (s, e) => `Hrad v kraji ${pn(s, e.pid)} padl do rukou rodu ${s.clans[e.by].house}.`, ch: [{ t: "Pomstíme se", e: () => "" }] },
   _succ: { t: "Nový vládce", txt: (s, e) => e.txt, ch: [{ t: "Ať vládne dlouho!", e: () => "" }] },
@@ -2148,7 +2608,7 @@ const ACT = {
   newgame: () => { if (!SEL.ngConfirm) { SEL.ngConfirm = true; return "Opravdu? Rozehraná hra se přepíše – klikni znovu."; } SEL.ngConfirm = false; S = newGame({ clan: SEL.ng, scen: SEL.ngScen || 1256, diff: SEL.ngDiff != null ? SEL.ngDiff : 1, fog: SEL.ngFog !== false, seed: $("#ngSeed").value ? +$("#ngSeed").value : undefined }); TERR.key = null; TAB = "prehled"; SEL.prov = P(S).capital; },
   theme: () => { const r = document.documentElement; const t = r.dataset.theme === "dark" ? "light" : r.dataset.theme === "light" ? "" : "dark"; if (t) r.dataset.theme = t; else delete r.dataset.theme; try { localStorage.setItem("panovnik_theme", t); } catch (e) {} },
 };
-document.addEventListener("click", ev => { const el = ev.target.closest("[data-a]"); if (!el || el.disabled || el.tagName === "SELECT" || el.tagName === "INPUT") return; run(el.dataset.a, JSON.parse(el.dataset.x || "[]")); });
+document.addEventListener("click", ev => { if (window._noClick) return; const el = ev.target.closest("[data-a]"); if (!el || el.disabled || el.tagName === "SELECT" || el.tagName === "INPUT") return; run(el.dataset.a, JSON.parse(el.dataset.x || "[]")); });
 document.addEventListener("change", ev => { const el = ev.target.closest("select[data-a], input[data-a]"); if (!el) return; const args = JSON.parse(el.dataset.x || "[]"); args.push(el.type === "checkbox" ? el.checked : el.value); run(el.dataset.a, args); });
 document.addEventListener("keydown", ev => { if (ev.key === "Enter" && ev.ctrlKey) run("end", []); });
 function run(a, args) {
@@ -2167,30 +2627,6 @@ function exportSave() { const blob = new Blob([JSON.stringify(S)], { type: "appl
 function importFile(f) { const r = new FileReader(); r.onload = () => { try { const x = JSON.parse(r.result); if (!x.provs || !x.clans) throw 0; S = x; toast("Hra načtena."); autosave(); render(); } catch (e) { toast("Soubor není uložená hra."); } }; r.readAsText(f); }
 
 // ---------- hlavička ----------
-const TABS = [["prehled", "Přehled"], ["plan", "Plán měsíce"], ["mapa", "Mapa"], ["kraj", "Kraj a rozkazy"], ["vazalove", "Vazalové"], ["vojsko", "Vojsko a války"], ["diplo", "Diplomacie"], ["rise", "Říše a církev"], ["hosp", "Hospodářství"], ["stavy", "Stavy a zákony"], ["rod", "Rod"], ["objevy", "Objevy"], ["kronika", "Kronika"], ["hra", "Hra"]];
-function renderTop() {
-  const C = P(S), L = leaderOf(S, me()), b = clanBudget(S, me()), idle = officers(S, me()).filter(c => c.acted !== S.turn && !c.army && S.provs[c.loc] && S.provs[c.loc].owner === me() && !S.provs[c.loc].deleg).length;
-  $("#top").innerHTML = `<span class="realm">${shield(me(), 24)}<span>${esc(C.house)}</span></span>
-  <span class="st">${esc(cap(C.t))} <b>${esc(L ? L.n : "—")}</b>${L ? ` (${age(S, L)})` : ""}</span>
-  <span class="st"><b>${MONTHS[S.month]} ${S.year}</b></span>
-  <span class="st" title="Zlato (čistý měsíční příjem)">Zlato <b>${fmt(C.gold)}</b> <span class="${b.net < 0 ? "bad" : "good"}">${sg(b.net)}</span></span>
-  <span class="st" title="Obilí na skladě">Obilí <b>${fmt(C.grain)}</b></span>
-  <span class="st" title="Kraje vlastní / včetně vazalů">Kraje <b>${clanProvs(S, me()).length}</b>${vassalsOf(S, me()).length ? "/" + realmProvs(S, me()) : ""}</span>
-  <span class="st" title="Vojsko">Vojsko <b>${fmt(clanMen(S, me()))}</b></span>
-  <span class="st" title="Prestiž">Prestiž <b>${fmt(C.prestige)}</b></span>
-  ${enemiesOf(S, me()).length ? `<span class="st bad">Válka: ${enemiesOf(S, me()).map(e => esc(S.clans[e].house)).join(", ")}</span>` : ""}
-  <span class="sp"></span><span class="st muted small">${idle ? idle + " vazalů čeká na rozkaz" : ""}</span>
-  <button class="main" data-a="end" data-x="[]" ${S.over && !S.over.cont ? "disabled" : ""} title="Ctrl+Enter">Konec měsíce ▶</button>`;
-  $("#tabs").innerHTML = TABS.map(([id, n]) => `<button class="${TAB === id ? "on" : ""}" data-a="tab" data-x='["${id}"]'>${icon(id)}<span>${n}</span></button>`).join("");
-}
-function render() {
-  if (!S) return;
-  if (!SEL.prov || !S.provs[SEL.prov]) SEL.prov = P(S).capital || Object.keys(S.provs)[0];
-  renderTop();
-  const f = { prehled: tPrehled, plan: tPlan, mapa: tMapa, kraj: tKraj, vazalove: tVazalove, vojsko: tVojsko, diplo: tDiplo, rise: tRise, hosp: tHosp, stavy: tStavy, rod: tRod, objevy: tObjevy, kronika: tKronika, hra: tHra }[TAB];
-  $("#main").innerHTML = f();
-  renderModal();
-}
 function renderModal() {
   const m = $("#modal");
   if (S.events.length && S.events[0].id === "_battle" && battleModal(S.events[0])) { m.innerHTML = battleModal(S.events[0]); m.classList.remove("hidden"); return; }
@@ -2255,36 +2691,9 @@ function tPrehled() {
 const hreKingTxt = () => S.hre.kingClan ? esc(chr(S, S.hre.king).n) + " (" + esc(S.clans[S.hre.kingClan].house) + ")" + (S.hre.emperor ? ", císař" : "") : S.hre.king ? esc(S.hre.king.slice(4)) : "trůn je prázdný (interregnum)";
 
 // ---------- Mapa ----------
-const MX = lon => (lon - 6.6) * 38, MY = lat => (55.1 - lat) * 60;
-function svgMap(opts = {}) {
-  const ps = Object.values(S.provs), W = 720, H = 570;
-  let edges = "", nodes = "", labels = "", arm = "", names = "";
-  for (const p of ps) for (const n of p.nb) if (p.id < n) { const q = S.provs[n]; edges += `<line x1="${MX(p.lon).toFixed(1)}" y1="${MY(p.lat).toFixed(1)}" x2="${MX(q.lon).toFixed(1)}" y2="${MY(q.lat).toFixed(1)}" class="road"/>`; }
-  for (const p of ps) {
-    const x = MX(p.lon), y = MY(p.lat), r = 2.5 + p.castle * 0.9, C = S.clans[p.owner], mine = p.owner === me(), war = atWar(S, me(), p.owner), selp = p.id === SEL.prov;
-    nodes += `<g class="pv${selp ? " sel" : ""}" data-a="prov" data-x='["${p.id}"]'><title>${esc(p.n)} – ${esc(C.house)}${knows(S, p) ? `, posádka ${estimate(S, p, men(p.troops))}` : ""}</title><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="11" class="hit"/>${C.capital === p.id ? `<path d="M${x - 5} ${y + 3} v-6 l2.5 2 l2.5 -4 l2.5 4 l2.5 -2 v6z" class="capm" fill="${C.col}"/>` : `<rect x="${(x - r).toFixed(1)}" y="${(y - r).toFixed(1)}" width="${(2 * r).toFixed(1)}" height="${(2 * r).toFixed(1)}" class="castle${mine ? " mine" : war ? " war" : ""}" fill="${C.col}"/>`}${p.siege ? `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="9" class="siege"/>` : ""}${selp ? `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="12" class="selring"/>` : ""}</g>`;
-    if (p.v >= 3 || mine || selp || C.capital === p.id) labels += `<text x="${(x + 6).toFixed(1)}" y="${(y + 3).toFixed(1)}" class="lbl${mine ? " lm" : ""}">${esc(p.n.split(" a ")[0].replace("Vídeňské Nové Město", "Vídeň. N. Město").replace("Vladimir Volyňský", "Vladimir"))}</text>`;
-  }
-  for (const c of aliveClans(S)) { const cp = clanProvs(S, c.id); if (cp.length < 4) continue; const x = sum(cp.map(p => MX(p.lon))) / cp.length, y = sum(cp.map(p => MY(p.lat))) / cp.length; names += `<text x="${x.toFixed(0)}" y="${y.toFixed(0)}" class="realmname" text-anchor="middle">${esc(c.house.split(" (")[0].toUpperCase())}</text>`; }
-  let routes = "", arrows = "";
-  if (SEL.routes) for (const R of ROUTES) { const pts = R.provs.map(id => `${MX(S.provs[id].lon).toFixed(1)},${MY(S.provs[id].lat).toFixed(1)}`).join(" "); routes += `<polyline points="${pts}" class="route${routeState(S, R) < 0.6 ? " cut" : ""}" stroke="${R.col}"><title>${esc(R.n)} – průchodnost ${Math.round(routeState(S, R) * 100)} %</title></polyline>`; }
-  for (const a of S.armies) { if (!a.path || !a.path.length) continue; const own = a.cl === me(), foeA = atWar(S, me(), a.cl); if (!own && !(foeA && knows(S, S.provs[a.loc]))) continue;
-    const pts = [a.loc, ...a.path].map(id => `${MX(S.provs[id].lon).toFixed(1)},${MY(S.provs[id].lat).toFixed(1)}`).join(" "); arrows += `<polyline points="${pts}" class="march ${own ? "own" : "foe"}" marker-end="url(#${own ? "arO" : "arF"})"/>`; }
-  for (const a of S.armies) { const p = S.provs[a.loc]; const x = MX(p.lon) - 10, y = MY(p.lat) - 8; arm += `<g class="army"><title>Vojsko ${esc(S.clans[a.cl].house)}${a.cl === me() || knows(S, p) ? ": " + Math.round(men(a.t) / 100) * 100 + " mužů" : ""}</title><path d="M${x} ${y} v-10 l9 3.5 l-9 3.5" fill="${S.clans[a.cl].col}"/><line x1="${x}" y1="${y + 2}" x2="${x}" y2="${y - 11}"/></g>`; }
-  return `<svg viewBox="0 0 ${W} ${H}" class="map" role="img" aria-label="Politická mapa střední Evropy"><rect width="${W}" height="${H}" class="sea"/><defs><marker id="arO" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" class="mo"/></marker><marker id="arF" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" class="mf"/></marker></defs><image href="${territoryImage(W, H, MX, MY)}" width="${W}" height="${H}" preserveAspectRatio="none"/>${edges}${routes}${names}${nodes}${arrows}${arm}${labels}</svg>`;
-}
 function provRow(p) {
   const k = knows(S, p);
   return tr([btn(esc(p.n), "provOnly", [p.id]), chip(p.owner), TERRAIN[p.ter].n, k ? fmt(p.pop * 1000) : "?", k ? `${p.agri}/${agriCap(S, p)}` : "?", k ? `${p.com}/${comCap(S, p)}` : "?", `<td class="n">${k ? estimate(S, p, men(p.troops)) : "?"}</td>`, `${p.castle} (${k ? Math.round(p.dur) : "?"})`, k ? Math.round(p.loy) : "?", p.res.map(r => RES[r]).join(", ") || "—", p.siege ? `<span class="bad">obléhán (${S.clans[p.siege.by].house})</span>` : ""], p.id === SEL.prov ? "sel" : "");
-}
-function tMapa() {
-  const p = S.provs[SEL.prov], f = SEL.provF;
-  let ps = Object.values(S.provs); if (f === "moje") ps = ps.filter(x => x.owner === me()); else if (f === "sousede") ps = ps.filter(x => x.owner !== me() && x.nb.some(n => S.provs[n].owner === me())); else if (f === "nepratele") ps = ps.filter(x => atWar(S, me(), x.owner));
-  const legend = aliveClans(S).sort((a, b) => clanProvs(S, b.id).length - clanProvs(S, a.id).length).map(c => chip(c.id, c.house.split(" (")[0] + " " + clanProvs(S, c.id).length)).join(" ");
-  return `<div class="grid map2">${card("Politická mapa", svgMap() + `<p class="small muted">Barvy = území rodů, tmavé čáry = hranice říší. Čtvereček = hrad (velikost podle úrovně), korunka = sídlo rodu, praporec = vojsko v poli, šipka = pochod (tvůj modře, nepřátelský červeně), přerušovaný kruh = obléhání. Klikni na kraj.</p><div class="row">${btn(SEL.routes ? "<b>Skrýt obchodní cesty</b>" : "Ukázat obchodní cesty", "routes")} ${SEL.routes ? ROUTES.map(R => `<span class="small"><span class="rdot" style="background:${R.col}"></span>${R.n}</span>`).join(" ") : ""}</div>`)}
-  ${card(`${shield(p.owner, 22)} ${esc(p.n)}`, provDetail(p))}
-  ${card("Rody", `<div class="legend">${legend}</div>`, "wide")}
-  ${card("Kraje", `<div class="row">${[["moje", "moje"], ["sousede", "sousední"], ["nepratele", "nepřátelské"], ["vse", "všechny"]].map(([k, n]) => btn(f === k ? `<b>${n}</b>` : n, "provF", [k])).join("")}</div>` + tbl(["Kraj", "Pán", "Terén", "#Obyvatel", "#Pole", "#Obchod", "#Posádka", "Hrad", "#Spokoj.", "Suroviny", ""], ps.sort((a, b) => a.owner.localeCompare(b.owner) || b.v - a.v).map(provRow)), "wide")}</div>`;
 }
 function provDetail(p) {
   const k = knows(S, p), L = chr(S, p.lord), C = S.clans[p.owner];
@@ -2301,6 +2710,7 @@ function cmdParams(c, k, p) {
   switch (k) {
     case "nabor": { const mx = maxRecruit(S, p, c); return sel("a1_" + id, TROOP_IDS.map(t => [t, `${TROOPS[t].n} (${TROOPS[t].cost} zl/100${Object.keys(TROOPS[t].goods).length ? ", " + Object.entries(TROOPS[t].goods).map(([g, q]) => q + " " + GOODS[g].n.toLowerCase()).join(", ") : ""})`]), "pesi") + ` <input type="number" id="a2_${id}" value="${Math.floor(mx / 100) * 100}" min="0" step="100" title="max ${mx}"> <span class="small muted">max ${mx}</span>`; }
     case "stavba": return sel("a1_" + id, Object.entries(BUILD).filter(([b, B]) => !B.need || B.need(p)).map(([b, B]) => [b, `${B.n} – ${buildCost(S, me(), b, p)} zl, ${B.time} měs. (nyní ${buildLevel(p, b)}/${B.max})`]), "hrad");
+    case "narok": return sel("a1_" + id, near.filter(q => q.nb.some(n => S.provs[n].owner === me())).map(q => [q.id, `${q.n} (${S.clans[q.owner].house})${claimValid(S, me(), q.id) ? " – nárok už máš" : ""}`]), "");
     case "zvedy": case "podnecovat": return sel("a1_" + id, near.map(q => [q.id, `${q.n} (${S.clans[q.owner].house})`]), "");
     case "naklonit": { const targets = Object.values(S.chars).filter(x => x.st === "off" && x.cl && x.cl !== me() && !x.dyn && S.clans[x.cl].leader !== x.id && S.provs[x.loc] && (S.provs[x.loc].nb.some(n => S.provs[n].owner === me()))); return sel("a1_" + id, targets.map(x => [x.id, `${x.n} – ${S.clans[x.cl].house}, ${S.provs[x.loc].n}${Object.values(S.provs).some(q => q.lord === x.id) ? ", purkrabí" : ""}`]), ""); }
     case "poselstvo": return sel("a1_" + id, aliveClans(S).filter(x => x.id !== me()).map(x => [x.id, x.house]), "") + sel("a2_" + id, Object.entries(DIPLO).map(([k2, d]) => [k2, d.n]), "dar");
@@ -2399,6 +2809,7 @@ function tDiplo() {
       <div>${relStatus(T) || '<span class="muted small">žádné smlouvy</span>'}</div>
       ${meter("Vztah k tobě", Math.round(rel(S, me(), T.id)) + 100, 200, rel(S, me(), T.id) < 0 ? "var(--bad)" : "var(--good)")}
       <div class="kv"><span>Kraje</span><span>${clanProvs(S, T.id).map(p => esc(p.n)).join(", ")}</span><span>Vojsko</span><span>asi ${fmt(Math.round(clanMen(S, T.id) / 500) * 500)} mužů</span><span>Prestiž</span><span>${fmt(T.prestige)}</span><span>Válčí s</span><span>${foes.map(f => chip(f)).join(" ") || "—"}</span><span>Spojenci</span><span>${friends.map(f => chip(f.id)).join(" ") || "—"}</span><span>Spřízněni s</span><span>${kin.map(f => chip(f.id)).join(" ") || "—"}</span><span>Přátelé</span><span>${best.slice(0, 2).map(f => chip(f.id)).join(" ")}</span><span>Nepřátelé</span><span>${best.slice(-2).map(f => chip(f.id)).join(" ")}</span></div>
+      ${warPeaceBlock(T)}
       <h4>Poselstvo</h4><div class="kv"><span>Vyslanec</span>${sel("env_" + T.id, [["", "— vyber —"]].concat(envoys.map(c => [c.id, `${c.n} (rozum ${st(c, "roz")})`])), envoys[0] ? envoys[0].id : "")}<span>Jednání</span>${sel("dt_" + T.id, Object.entries(DIPLO).map(([k, d]) => [k, d.n]), atWar(S, me(), T.id) ? "mir" : "dar")}</div>
       <div class="row">${btn("Vyslat poselstvo", "dip", [T.id], envoys.length ? null : "Žádný volný vazal", "go")} ${atWar(S, me(), T.id) ? "" : btn(SEL.warConfirm === T.id ? "<b>Opravdu vyhlásit válku?</b>" : "Vyhlásit válku", "war", [T.id], null, "danger")}</div>
       <p class="small muted">Poselstvo spotřebuje měsíční rozkaz vyslance; jeho rozum zvyšuje šanci. Porušení příměří či spojenectví stojí prestiž a přízeň papeže, útok na církevní zemi papeže rozzlobí. Vymře-li spřízněný rod, zdědíš jeho země.</p>`, "sticky");
@@ -2496,6 +2907,9 @@ function tHra() {
   ${card("Vzhled", btn("Přepnout světlý / tmavý vzhled", "theme"))}
   <section class="card wide help"><h3>Jak hrát</h3>
   <p>Jsi hlavou panovnického rodu ve střední Evropě po pádu Štaufů (od ledna 1256). Kolo je jeden měsíc. <b>Cíl:</b> ovládnout polovinu krajů (sám nebo skrze vazaly), nebo se stát císařem a vládnout třetině krajů. Prohraješ, když přijdeš o všechny kraje.</p>
+  <h4>Mapa</h4><p>Hlavní obrazovkou je mapa. Kolečkem myši přibližuješ, tažením posouváš. Dole přepínáš mapové režimy (terén, rozvoj, spokojenost, vztahy, kultura, víra, obchod, začlenění). Klikni na kraj – vpravo se ukáže jeho panel. Klikni na žeton svého vojska a pak na kraj: vojsko tam potáhne. Mezerník spustí a zastaví běh času, Esc zavře okno.</p>
+  <h4>Body vlády a stabilita</h4><p>Každý měsíc získáváš body správy, diplomacie a vojska podle schopností panovníka a rádců v úřadech. Utrácíš je za rozvoj krajů, stabilitu, začleňování nově získaných krajů, ideje a snižování válečného vyčerpání (okno Vláda).</p>
+  <h4>Válka a mír</h4><p>Bez záminky (nárok, jádro, koruna, klatba) válka stojí stabilitu a prestiž. Dobytý hrad se jen obsadí. Válečné skóre roste vítězstvími a obsazenými kraji; v Diplomacii pak požaduješ kraje, odškodné, vazalství nebo připojení celé země. Kdo se rozpíná příliš rychle, rozzlobí sousedy – mohou proti němu uzavřít koalici.</p>
   <h4>Měsíc</h4><p>V záložce <b>Kraj a rozkazy</b> dáš každému vazalovi jeden rozkaz: rozvoj polí a trhů, opravy hradeb, nábor, výcvik, péči o lid, stavby, hledání schopných mužů, zvědy, podněcování, naklonění cizích vazalů, poselstva nebo přesun. Kraje, které „svěříš purkrabímu“, spravuje umělá inteligence sama. Pak stiskni <b>Konec měsíce</b>.</p>
   <h4>Hospodářství</h4><p>Zlato plyne každý měsíc z obchodu a obyvatel, obilí jednou za rok při žních v září. Obilím se živí posádky a vojska v poli. Stříbrné doly (Jihlava, Kutná Hora a Čáslavsko, Štiavnica, Freiberg…) jsou pokladem.</p>
   <h4>Válka</h4><p>Vyhlas válku (Diplomacie), vyšli vojsko s veliteli (Kraj a rozkazy → Vyslat vojsko). Vojsko táhne kraj za měsíc. U cíle obléhá hrad – vyhladovění trvá podle úrovně hradu, zteč je rychlá, ale krvavá. Bitva má až šest kol; rozhoduje počet, druh vojska, výcvik, terén, morálka a schopnosti velitelů. Poražení velitelé mohou padnout nebo být zajati.</p>
@@ -2699,6 +3113,255 @@ function routesCard() {
     (hz.length ? `<div class="row">Hanza: ${hz.map(p => btn(`${esc(p.n)} do Hanzy (150 zl)`, "hanza", [p.id], p.b.mesto || p.city ? null : "Nejdřív lokuj město")).join(" ")}</div>` : ""), "wide");
 }
 ACT.hanza = pid => joinHanza(S, me(), pid);
+
+// Rozhraní ve stylu Europa Universalis: mapa jako hlavní obrazovka, mapové režimy, přiblížení,
+// žetony vojsk, boční panel, přehled (outliner), lišta zdrojů, běh času, okno Vláda.
+
+const RAIL = [["mapa", "Mapa"], ["vlada", "Vláda"], ["plan", "Plán měsíce"], ["kraj", "Kraj a rozkazy"], ["vazalove", "Vazalové"], ["vojsko", "Vojsko a války"], ["diplo", "Diplomacie"], ["rise", "Říše a církev"], ["hosp", "Hospodářství"], ["stavy", "Stavy a zákony"], ["rod", "Rod"], ["objevy", "Objevy"], ["kronika", "Kronika"], ["prehled", "Přehled"], ["hra", "Hra"]];
+Object.assign(ICON, {
+  mapa: "M2 5l6-2 6 2 6-2v14l-6 2-6-2-6 2z M8 3v14 M14 5v14",
+  vlada: "M4 18h14 M5 18l-1-9 5 4 2-6 2 6 5-4-1 9 M11 3v2",
+  gold: "M11 4a7 3 0 1 0 .1 0z M4 7v4c0 1.7 3 3 7 3s7-1.3 7-3V7 M4 11v4c0 1.7 3 3 7 3s7-1.3 7-3v-4",
+  grain: "M11 20V8 M11 8c-3-1-4-4-4-6 3 1 4 3 4 6z M11 8c3-1 4-4 4-6-3 1-4 3-4 6z M11 13c-3-1-4-3-4-5 3 1 4 2 4 5z M11 13c3-1 4-3 4-5-3 1-4 2-4 5z",
+  men: "M5 19l12-12 M14 5l3 2 2 3 M8 13l-3 3 M5 16l1 1",
+  crown: "M4 17h14 M5 17l-1-9 5 4 2-6 2 6 5-4-1 9",
+  scale: "M11 3v16 M5 19h12 M4 8h14 M4 8l-2 6h4z M18 8l-2 6h4z",
+  fire: "M11 20c-4 0-6-3-5-6 1-2 3-3 2-6 3 1 4 3 4 5 1-1 1-2 1-3 2 2 3 4 3 6 0 2-2 4-5 4z",
+  play: "M7 4l11 7-11 7z", pause: "M6 4h4v14H6z M12 4h4v14h-4z",
+});
+
+// ---------- lišta zdrojů ----------
+function chipTop(ic, label, val, sub, cls_ = "", title = "") { return `<span class="res ${cls_}" title="${esc(title || label)}">${icon(ic)}<span class="rl">${label}</span><b>${val}</b>${sub ? `<small>${sub}</small>` : ""}</span>`; }
+function mpChip(k) { const C = P(S), g = mpGain(S, me())[k]; return `<span class="res mp" title="${MP[k].n}: ${Math.round(C.mp[k])} bodů, +${g} měsíčně"><i class="mpdot" style="background:${MP[k].col}">${MP[k].n[0]}</i><b>${Math.round(C.mp[k])}</b><small>+${g}</small></span>`; }
+function renderTop() {
+  const C = P(S), L = leaderOf(S, me()), b = clanBudget(S, me());
+  $("#top").innerHTML = `<span class="realm">${shield(me(), 30)}<span><b>${esc(C.house)}</b><small>${esc(cap(C.t))} ${esc(L ? L.n : "—")}${L ? ` (${age(S, L)})` : ""}</small></span></span>
+  <span class="resbar">${chipTop("gold", "Zlato", fmt(C.gold), `<span class="${b.net < 0 ? "bad" : "good"}">${sg(b.net)}</span>`, "", "Zlato a čistý měsíční příjem")}${chipTop("grain", "Obilí", fmt(C.grain))}${chipTop("men", "Vojsko", fmt(Math.round(clanMen(S, me()) / 100) / 10) + "k", "", "", "Muži ve zbrani")}${chipTop("crown", "Prestiž", fmt(C.prestige))}
+  ${chipTop("scale", "Stabilita", sg(C.stab), "", C.stab < 0 ? "bad" : C.stab > 0 ? "good" : "", "Stabilita země (−3 až +3)")}${MP_IDS.map(mpChip).join("")}${C.we >= 1 ? chipTop("fire", "Vyčerpání", r1(C.we), "", C.we > 8 ? "bad" : "warn", "Válečné vyčerpání") : ""}${overext(S, me()) > 0 ? chipTop("scale", "Přetížení", overext(S, me()) + " %", "", overext(S, me()) > 50 ? "bad" : "warn", "Podíl nezačleněných krajů na rozvoji říše") : ""}</span>
+  <span class="sp"></span>
+  <span class="clock"><b>${S.month + 1}. ${MONTHS2[S.month]} ${S.year}</b><span class="speed">${btn(icon(SEL.play ? "pause" : "play"), "play", [], null, "ico-b")}${[1, 2, 3].map(v => btn("›".repeat(v), "speed", [v], null, (SEL.speed || 1) === v ? "on" : "")).join("")}</span></span>
+  <button class="main" data-a="end" data-x="[]" ${S.over && !S.over.cont ? "disabled" : ""} title="Ctrl+Enter">Konec měsíce ▶</button>`;
+  $("#tabs").innerHTML = RAIL.map(([id, n]) => `<button class="${TAB === id ? "on" : ""}" data-a="tab" data-x='["${id}"]' title="${n}">${icon(id)}<span>${n}</span>${id === "plan" ? idleBadge() : id === "vojsko" && enemiesOf(S, me()).length ? '<i class="badge bad">!</i>' : ""}</button>`).join("");
+}
+function idleBadge() { const n = officers(S, me()).filter(c => c.acted !== S.turn && !c.army && S.provs[c.loc] && S.provs[c.loc].owner === me() && !S.provs[c.loc].deleg && !S.provs[c.loc].occ).length; return n ? `<i class="badge">${n}</i>` : ""; }
+
+// ---------- hlavní vykreslení ----------
+function render() {
+  if (!S) return;
+  if (!SEL.prov || !S.provs[SEL.prov]) SEL.prov = P(S).capital || Object.keys(S.provs)[0];
+  renderTop();
+  const stage = $("#main");
+  if (!$("#mapwrap")) stage.innerHTML = `<div id="mapwrap"></div><aside id="side"></aside><div id="outl"></div><section id="win" class="hidden"></section>`;
+  $("#mapwrap").innerHTML = mapView(); bindMap();
+  $("#side").innerHTML = sidePanel();
+  $("#outl").innerHTML = outliner();
+  const w = $("#win"); stage.classList.toggle("haswin", TAB !== "mapa");
+  if (TAB === "mapa") { w.classList.add("hidden"); w.innerHTML = ""; }
+  else {
+    const f = { prehled: tPrehled, plan: tPlan, vlada: tVlada, kraj: tKraj, vazalove: tVazalove, vojsko: tVojsko, diplo: tDiplo, rise: tRise, hosp: tHosp, stavy: tStavy, rod: tRod, objevy: tObjevy, kronika: tKronika, hra: tHra }[TAB];
+    const title = (RAIL.find(r => r[0] === TAB) || [0, ""])[1];
+    w.classList.remove("hidden");
+    w.innerHTML = `<div class="winbar">${icon(TAB)}<b>${title}</b><span class="sp"></span><button class="b" data-a="tab" data-x='["mapa"]'>✕ Zpět na mapu</button></div><div class="winbody">${f ? f() : ""}</div>`;
+  }
+  renderModal();
+}
+
+// ---------- mapa ----------
+const MAPNAME = { premysl: "Čechy", arpad: "Uhry", wittL: "Dolní Bavorsko", wittH: "Bavorsko a Falc", habsburg: "Habsburk", wurttemberg: "Württembersko", norimberk: "Norimberk", wurzburg: "Würzburg", salcburk: "Salcburk", pasov: "Pasov", sponheim: "Korutany", gorice: "Gorice", wettin: "Míšeň", brandenburg: "Braniborsko", sasko: "Sasko", welf: "Brunšvik", magdeburg: "Magdeburk", pomorany: "Pomořany", pomori: "Pomoří", rad: "Řád", velkopolsko: "Velkopolsko", kujavsko: "Kujavsko", mazovsko: "Mazovsko", krakov: "Malopolsko", vratislav: "Vratislav", lehnice: "Lehnice", hlohov: "Hlohov", opoli: "Opolí", halic: "Halič" };
+const mapName = C => (MAPNAME[C.id] || C.n.replace(/^(Panství|Úděl) /, "")).toUpperCase();
+const MW = 720, MH = 570;
+const MX = lon => (lon - 6.6) * 38, MY = lat => (55.1 - lat) * 60;
+function clampView() { const v = SEL.view; v.w = clamp(v.w, 110, MW); v.h = v.w * MH / MW; v.x = clamp(v.x, -40, MW - v.w + 40); v.y = clamp(v.y, -40, MH - v.h + 40); }
+function provColor(p, mode) {
+  const C = S.clans[p.owner]; let c = hexRgb(C.col), a = 150;
+  switch (mode) {
+    case "teren": c = hexRgb(TERRAIN_COL[p.ter]); a = 220; break;
+    case "rozvoj": { const f = clamp(dev(p) / 240, 0, 1); c = [Math.round(240 - 180 * f), Math.round(220 - 90 * f), Math.round(120 - 80 * f)]; a = 220; break; }
+    case "spokoj": { if (!knows(S, p)) { c = [160, 160, 160]; a = 120; break; } const f = clamp(p.loy / 100, 0, 1); c = [Math.round(220 - 160 * f), Math.round(70 + 140 * f), 60]; a = 210; break; }
+    case "vztahy": { const o = p.owner; if (o === me()) c = [230, 190, 60]; else if (atWar(S, me(), o)) c = [200, 50, 40]; else if (allied(S, me(), o)) c = [60, 160, 70]; else if (S.clans[o].vassalOf === me()) c = [110, 170, 220]; else if (truceUntil(S, me(), o) > S.turn) c = [150, 150, 190]; else { const r = rel(S, me(), o); c = r >= 0 ? [Math.round(170 - r * 0.6), Math.round(170 + r * 0.4), 150] : [Math.round(170 - r * 0.5), Math.round(150 + r * 0.6), 140]; } a = 210; break; }
+    case "kultura": c = hexRgb(CULT_COL[p.cul] || "#999"); a = 200; break;
+    case "vira": c = hexRgb(RELIGIONS[p.rel].col); a = 200; break;
+    case "obchod": { const R = provRoutes(p)[0]; c = R ? hexRgb(R.col) : [170, 165, 150]; a = R ? 190 : 110; break; }
+    case "jadra": { if (p.owner === me()) c = p.cores.includes(me()) ? [70, 150, 70] : [230, 140, 40]; else if (claimValid(S, me(), p.id)) c = [230, 200, 60]; else if (p.cores.includes(me())) c = [200, 90, 60]; else c = [175, 170, 160]; a = 200; break; }
+    default: a = p.owner === me() ? 205 : 165;
+  }
+  return [c, a];
+}
+let EUTERR = { key: null, url: null };
+function pointInPoly(x, y, pts) { let ins = false; for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) { const [xi, yi] = pts[i], [xj, yj] = pts[j]; if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) ins = !ins; } return ins; }
+function euTerrain(mode) {
+  const key = mode + "|" + Object.values(S.provs).map(p => p.owner + (p.occ || "") + (mode === "spokoj" ? Math.round(p.loy / 10) : mode === "rozvoj" ? Math.round(dev(p) / 20) : mode === "jadra" ? p.cores.join() : mode === "vira" ? p.rel : "")).join(",") + (mode === "vztahy" ? S.turn : "");
+  if (EUTERR.key === key) return EUTERR.url;
+  if (typeof document === "undefined") return "";
+  const sc = 1.5, w = Math.round(MW / sc), h = Math.round(MH / sc), ps = Object.values(S.provs), n = ps.length;
+  const px = ps.map(p => MX(p.lon) / sc), py = ps.map(p => MY(p.lat) / sc), idx = new Int16Array(w * h), lim = (60 / sc) ** 2;
+  const seas = SEAS.map(poly => poly.map(([lo, la]) => [MX(lo) / sc, MY(la) / sc])), lakes = LAKES.map(([lo, la, rx, ry]) => [MX(lo) / sc, MY(la) / sc, rx * 38 / sc, ry * 60 / sc]);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    if (seas.some(poly => pointInPoly(x, y, poly)) || lakes.some(([cx, cy, rx, ry]) => ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 < 1)) { idx[y * w + x] = -2; continue; }
+    let best = -1, bd = lim; const jx = x + Math.sin(y * 0.3) * 1.4, jy = y + Math.cos(x * 0.27) * 1.4;
+    for (let i = 0; i < n; i++) { const dx = px[i] - jx, dy = py[i] - jy, d = dx * dx + dy * dy; if (d < bd) { bd = d; best = i; } }
+    idx[y * w + x] = best;
+  }
+  const cols = ps.map(p => provColor(p, mode)), own = ps.map(p => p.owner), occ = ps.map(p => p.occ ? hexRgb(S.clans[p.occ].col) : null);
+  const cv = document.createElement("canvas"); cv.width = w; cv.height = h; const ctx = cv.getContext("2d"), img = ctx.createImageData(w, h), D = img.data;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const k = y * w + x, i = idx[k], o = k * 4, noise = ((x * 73856093 ^ y * 19349663) & 15) - 8;
+    if (i === -2) { const shore = [idx[k - 1], idx[k + 1], idx[k - w], idx[k + w]].some(j => j >= 0 || j === -1); D[o] = shore ? 120 : 132 + noise / 2; D[o + 1] = shore ? 160 : 170 + noise / 2; D[o + 2] = shore ? 180 : 196 + noise / 2; D[o + 3] = 255; continue; }
+    if (i === -1) { D[o] = 214 + noise; D[o + 1] = 202 + noise; D[o + 2] = 170 + noise; D[o + 3] = 255; if ((x + y) % 7 === 0) { D[o] -= 25; D[o + 1] -= 25; D[o + 2] -= 25; } continue; }
+    const nb = [x > 0 ? idx[k - 1] : -1, x < w - 1 ? idx[k + 1] : -1, y > 0 ? idx[k - w] : -1, y < h - 1 ? idx[k + w] : -1];
+    const realm = nb.some(j => j >= 0 && j !== i && own[j] !== own[i]) && mode !== "teren", prov = nb.some(j => j >= 0 && j !== i);
+    let [c, a] = cols[i];
+    if (occ[i] && mode === "polit" && ((x + y) >> 2) % 2 === 0) c = occ[i];
+    const base = [222 + noise, 210 + noise, 178 + noise], f = a / 255;
+    let r = base[0] * (1 - f) + c[0] * f, g = base[1] * (1 - f) + c[1] * f, b = base[2] * (1 - f) + c[2] * f;
+    if (realm) { r *= 0.35; g *= 0.35; b *= 0.35; } else if (prov) { r *= 0.8; g *= 0.8; b *= 0.8; }
+    D[o] = r; D[o + 1] = g; D[o + 2] = b; D[o + 3] = 255;
+  }
+  ctx.putImageData(img, 0, 0);
+  EUTERR = { key, url: cv.toDataURL() };
+  return EUTERR.url;
+}
+const ll = ([lo, la]) => `${MX(lo).toFixed(1)},${MY(la).toFixed(1)}`;
+function mapDecor(z, mode) {
+  let o = RIVERS.map(([n, pts]) => `<polyline points="${pts.map(ll).join(" ")}" class="river" style="stroke-width:${(1.6 * Math.max(z, 0.5)).toFixed(2)}"><title>${n}</title></polyline>`).join("");
+  if (mode === "polit" || mode === "teren") {
+    for (const [n, pts] of RANGES) { for (let i = 1; i < pts.length; i++) { const [a, b] = [pts[i - 1], pts[i]].map(q => [MX(q[0]), MY(q[1])]); const L = Math.hypot(b[0] - a[0], b[1] - a[1]), k = Math.max(1, Math.round(L / 11)); for (let j = 0; j < k; j++) { const x = a[0] + (b[0] - a[0]) * j / k + ((j * 7) % 5 - 2), y = a[1] + (b[1] - a[1]) * j / k + ((j * 11) % 5 - 2); o += `<path d="M${(x - 5).toFixed(1)} ${(y + 3).toFixed(1)} L${x.toFixed(1)} ${(y - 5).toFixed(1)} L${(x + 5).toFixed(1)} ${(y + 3).toFixed(1)}" class="mtn"/>`; } } }
+    for (const p of Object.values(S.provs)) if (p.ter === "l" || p.ter === "b") { const x = MX(p.lon), y = MY(p.lat); for (const [dx, dy] of [[-12, 8], [10, 10], [-4, 14]]) o += p.ter === "l" ? `<path d="M${x + dx} ${y + dy} l3 -7 l3 7z M${x + dx + 3} ${y + dy} v2" class="tree"/>` : `<path d="M${x + dx} ${y + dy} h6 M${x + dx + 1} ${y + dy + 2} h4" class="marsh"/>`; }
+  }
+  return o;
+}
+function mapView() {
+  if (!SEL.view) SEL.view = { x: 0, y: 0, w: MW, h: MH };
+  const v = SEL.view, z = v.w / MW, mode = SEL.mode || "polit", ps = Object.values(S.provs);
+  let nodes = "", labels = "", names = "", arm = "", arrows = "", routes = "";
+  for (const c of aliveClans(S)) { const cp = clanProvs(S, c.id); if (cp.length < 2) continue; const x = sum(cp.map(p => MX(p.lon))) / cp.length, y = sum(cp.map(p => MY(p.lat))) / cp.length; const fs = clamp(5 + Math.sqrt(cp.length) * 3.2, 7, 20) * Math.max(0.55, z); names += `<text x="${x.toFixed(0)}" y="${y.toFixed(0)}" class="realmname" style="font-size:${fs.toFixed(1)}px" text-anchor="middle">${esc(mapName(c))}</text>`; }
+  for (const p of ps) {
+    const x = MX(p.lon), y = MY(p.lat), C = S.clans[p.owner], selp = p.id === SEL.prov, r = (2 + p.castle * 0.8) * Math.max(0.6, z);
+    nodes += `<g class="pv${selp ? " sel" : ""}" data-a="prov" data-x='["${p.id}"]'><title>${esc(p.n)} – ${esc(C.house)}${p.occ ? `, obsazeno: ${esc(S.clans[p.occ].house)}` : ""}</title><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(12 * Math.max(0.5, z)).toFixed(1)}" class="hit"/>${C.capital === p.id ? `<path transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${Math.max(0.6, z).toFixed(2)})" d="M-5 3 v-6 l2.5 2 l2.5 -4 l2.5 4 l2.5 -2 v6z" class="capm"/>` : `<rect x="${(x - r).toFixed(1)}" y="${(y - r).toFixed(1)}" width="${(2 * r).toFixed(1)}" height="${(2 * r).toFixed(1)}" class="castle"/>`}${p.siege ? `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(9 * Math.max(0.6, z)).toFixed(1)}" class="siege"/>` : ""}${selp ? `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(13 * Math.max(0.5, z)).toFixed(1)}" class="selring"/>` : ""}</g>`;
+    if (z < 0.7 || p.v >= 4 || selp || C.capital === p.id) labels += `<text x="${(x + 6 * Math.max(0.5, z)).toFixed(1)}" y="${(y + 3 * z).toFixed(1)}" class="lbl" style="font-size:${(8.5 * Math.max(0.45, z)).toFixed(2)}px">${esc(p.n.split(" a ")[0].replace("Vídeňské Nové Město", "Vídeň. N. Město").replace("Vladimir Volyňský", "Vladimir"))}</text>`;
+  }
+  if (mode === "obchod" || SEL.routes) for (const R of ROUTES) routes += `<polyline points="${R.provs.map(id => `${MX(S.provs[id].lon).toFixed(1)},${MY(S.provs[id].lat).toFixed(1)}`).join(" ")}" class="route${routeState(S, R) < 0.6 ? " cut" : ""}" stroke="${R.col}" style="stroke-width:${(3.5 * Math.max(0.5, z)).toFixed(1)}"><title>${esc(R.n)} – průchodnost ${Math.round(routeState(S, R) * 100)} %</title></polyline>`;
+  const byLoc = {};
+  for (const a of S.armies) { const own = a.cl === me(); if (!own && !knows(S, S.provs[a.loc])) continue; (byLoc[a.loc] = byLoc[a.loc] || []).push(a);
+    if (a.path && a.path.length && (own || atWar(S, me(), a.cl))) arrows += `<polyline points="${[a.loc, ...a.path].map(id => `${MX(S.provs[id].lon).toFixed(1)},${MY(S.provs[id].lat).toFixed(1)}`).join(" ")}" class="march ${own ? "own" : "foe"}" style="stroke-width:${(2.4 * Math.max(0.5, z)).toFixed(1)}" marker-end="url(#${own ? "arO" : "arF"})"/>`; }
+  const k = Math.max(0.55, z);
+  for (const [loc, list] of Object.entries(byLoc)) list.forEach((a, i) => { const p = S.provs[loc], own = a.cl === me(), x = MX(p.lon) - 13 * k + i * 5 * k, y = MY(p.lat) - 19 * k - i * 4 * k, n = men(a.t), txt = n >= 1000 ? r1(n / 1000) + "k" : String(Math.round(n / 100) * 100);
+    arm += `<g class="atok${own ? " own" : ""}${SEL.armySel === a.id ? " sel" : ""}${atWar(S, me(), a.cl) ? " foe" : ""}" data-a="${own ? "selArmy" : "prov"}" data-x='["${own ? a.id : loc}"]' transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${k.toFixed(2)})"><title>${esc(S.clans[a.cl].house)}: ${fmt(n)} mužů${a.cmds.length ? ", " + esc(chr(S, a.cmds[0]).n) : ""}</title><rect width="27" height="11" rx="2" fill="${S.clans[a.cl].col}"/><rect width="27" height="2" y="9" class="mor" style="width:${(clamp(a.morale, 0, 100) * 0.27).toFixed(1)}px"/><text x="13.5" y="8" text-anchor="middle">${txt}</text></g>`; });
+  return `<svg id="msvg" viewBox="${v.x.toFixed(1)} ${v.y.toFixed(1)} ${v.w.toFixed(1)} ${v.h.toFixed(1)}" class="map eu" role="img" aria-label="Mapa střední Evropy">
+    <defs><marker id="arO" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" class="mo"/></marker><marker id="arF" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" class="mf"/></marker></defs>
+    <rect x="-200" y="-200" width="${MW + 400}" height="${MH + 400}" class="sea"/><image href="${euTerrain(mode)}" width="${MW}" height="${MH}" preserveAspectRatio="none"/>${mapDecor(z, mode)}${routes}${names}${nodes}${arrows}${arm}${labels}</svg>
+    <div class="mmodes">${MAPMODES.map(([k, n]) => btn(n, "mode", [k], null, mode === k ? "on" : "")).join("")}${mode !== "obchod" ? btn(SEL.routes ? "Cesty ✓" : "Cesty", "routes", [], null, SEL.routes ? "on" : "") : ""}</div>
+    <div class="zoom">${btn("+", "zoom", [0.7])}${btn("−", "zoom", [1.4])}${btn("⌂", "zoomReset")}</div>${mapLegend(mode)}`;
+}
+function mapLegend(mode) {
+  const L = { teren: Object.entries(TERRAIN).map(([k, T]) => [TERRAIN_COL[k], T.n]), kultura: Object.entries(CULTURES).map(([k, c]) => [CULT_COL[k], c.n]), vira: Object.entries(RELIGIONS).map(([k, r]) => [r.col, r.n]),
+    vztahy: [["#e6be3c", "ty"], ["#3ca046", "spojenec"], ["#6eaadc", "vazal"], ["#c83228", "válka"], ["#9696be", "příměří"]], jadra: [["#469646", "začleněný"], ["#e68c28", "nezačleněný"], ["#e6c83c", "tvůj nárok"], ["#c85a3c", "tvé jádro u cizích"]],
+    rozvoj: [["#f0dc78", "nízký"], ["#3c8228", "vysoký rozvoj"]], spokoj: [["#dc4632", "nespokojený"], ["#3cd23c", "spokojený"]] }[mode];
+  return L ? `<div class="mlegend">${L.map(([c, n]) => `<span><i style="background:${c}"></i>${esc(n)}</span>`).join("")}</div>` : "";
+}
+function zoomBy(f, cx, cy) { const v = SEL.view; const nw = clamp(v.w * f, 110, MW); const px = cx != null ? cx : v.x + v.w / 2, py = cy != null ? cy : v.y + v.h / 2; v.x = px - (px - v.x) * nw / v.w; v.y = py - (py - v.y) * nw / v.w; v.w = nw; clampView(); }
+function centerOn(pid) { const p = S.provs[pid], v = SEL.view; if (!p) return; v.x = MX(p.lon) - v.w / 2; v.y = MY(p.lat) - v.h / 2; clampView(); }
+let DRAG = null;
+function bindMap() {
+  const svg = $("#msvg"); if (!svg) return;
+  svg.addEventListener("wheel", e => { e.preventDefault(); const r = svg.getBoundingClientRect(), v = SEL.view; zoomBy(e.deltaY < 0 ? 0.8 : 1.25, v.x + (e.clientX - r.left) / r.width * v.w, v.y + (e.clientY - r.top) / r.height * v.h); $("#mapwrap").innerHTML = mapView(); bindMap(); }, { passive: false });
+  svg.addEventListener("pointerdown", e => { DRAG = { x: e.clientX, y: e.clientY, v: Object.assign({}, SEL.view), moved: false, id: e.pointerId }; });
+  svg.addEventListener("pointermove", e => { if (!DRAG) return; const dx = e.clientX - DRAG.x, dy = e.clientY - DRAG.y; if (!DRAG.moved && Math.abs(dx) + Math.abs(dy) < 5) return; DRAG.moved = true; const r = svg.getBoundingClientRect(), kk = DRAG.v.w / r.width; SEL.view = Object.assign({}, DRAG.v, { x: DRAG.v.x - dx * kk, y: DRAG.v.y - dy * kk }); clampView(); const v = SEL.view; svg.setAttribute("viewBox", `${v.x} ${v.y} ${v.w} ${v.h}`); });
+}
+document.addEventListener("pointerup", () => { if (DRAG && DRAG.moved) { window._noClick = true; setTimeout(() => { window._noClick = false; }, 50); } DRAG = null; });
+
+// ---------- boční panel ----------
+function sidePanel() {
+  const a = SEL.armySel && S.armies.find(x => x.id === SEL.armySel && x.cl === me());
+  if (a) return armyPanel(a);
+  SEL.armySel = null;
+  return provPanel(S.provs[SEL.prov]);
+}
+function armyPanel(a) {
+  const p = S.provs[a.loc], here = p.siege && p.siege.army === a.id;
+  return `<div class="sph">${shield(me(), 34)}<div><b>Vojsko</b><div class="small muted">${esc(a.cmds.map(id => chr(S, id).n).join(", ") || "bez velitele")}</div></div>${btn("✕", "deselect")}</div>
+  ${meter("Muži", men(a.t), Math.max(men(a.t), armyLimit(S, a.cmds)), P(S).col)}${troopBar(a.t)}${meter("Morálka", Math.round(a.morale), 100, a.morale < 40 ? "var(--bad)" : "var(--accent2)")}
+  <div class="kv"><span>Poloha</span><span>${esc(p.n)}</span><span>Cíl</span><span>${a.path && a.path.length ? `${esc(S.provs[a.to].n)} (${marchTime(S, a.path) - (a.slow ? 1 : 0)} měs.)` : "stojí"}</span><span>Zásoby</span><span>${Math.round(a.grain)} obilí (${Math.floor(a.grain / Math.max(1, men(a.t) / 1000 * 12))} měs.)</span>${here ? `<span>Obléhání</span><span>${p.siege.months}. měs., hradby ${Math.round(p.dur)}</span>` : ""}</div>
+  <div class="hint">Klikni na mapě na kraj, kam má vojsko táhnout.</div>
+  <div class="row">${sel("tac_" + a.id, Object.entries(TACTICS).map(([k, T]) => [k, T.n]), a.tac || "vyvazena", `data-a="tac" data-x='["${a.id}"]'`)} <label><input type="checkbox" data-a="manual" data-x='["${a.id}"]' ${a.manual ? "checked" : ""}> velet osobně</label></div>
+  <div class="row">${btn(a.siegeMode === "ztec" ? "<b>Zteč</b>" : "Zteč", "army", [a.id, "ztec"])}${btn(a.siegeMode === "obleh" ? "<b>Obléhat</b>" : "Obléhat", "army", [a.id, "obleh"])}${btn("Domů", "army", [a.id, "domu"])}</div>`;
+}
+function provPanel(p) {
+  const C = S.clans[p.owner], mine = p.owner === me(), k = knows(S, p), cb = !mine ? cbAgainst(S, me(), p.owner) : null;
+  const tags = [TERRAIN[p.ter].n, CULTURES[p.cul].n + " kultura", RELIGIONS[p.rel].n + " víra"].concat(mine && !p.cores.includes(me()) ? ['<b class="warn">nezačleněný</b>'] : []).concat(p.occ ? [`<b class="bad">obsadili ${esc(S.clans[p.occ].house.split(" (")[0])}</b>`] : []).concat(claimValid(S, me(), p.id) ? ['<b class="warn">tvůj nárok</b>'] : []);
+  let html = `<div class="sph">${shield(p.owner, 34)}<div><b>${esc(p.n)}</b><div class="small muted">${esc(C.house)}${C.capital === p.id ? " · sídlo" : ""}</div></div></div><div class="tags">${tags.map(t => `<span class="pill">${t}</span>`).join("")}</div>`;
+  if (k) html += `${meter("Pole", p.agri, agriCap(S, p), "#7f9a3c")}${meter("Obchod", p.com, comCap(S, p), "#b08a2e")}${meter("Hradby", Math.round(p.dur), durMax(S, p), "#777")}${meter("Spokojenost", Math.round(p.loy), 100, p.loy < 30 ? "var(--bad)" : "var(--accent2)")}<div class="kv"><span>Obyvatel</span><span>${fmt(p.pop * 1000)}</span><span>Posádka</span><span>${estimate(S, p, men(p.troops))}</span><span>Rozvoj</span><span>${dev(p)}</span></div>`;
+  else html += `<p class="small muted">Vzdálený kraj – víš jen to, co vyprávějí kupci. Pošli zvědy.</p>`;
+  if (mine && !p.occ) {
+    const c = devCost(S, me(), p);
+    html += `<h4>Rozvoj kraje (${c} bodů)</h4><div class="row">${btn("+ Pole", "develop", [p.id, "adm"], P(S).mp.adm >= c ? null : "Málo bodů správy", "mpb adm")}${btn("+ Obchod", "develop", [p.id, "dip"], P(S).mp.dip >= c ? null : "Málo bodů diplomacie", "mpb dip")}${btn("+ Muži", "develop", [p.id, "mil"], P(S).mp.mil >= c ? null : "Málo bodů vojska", "mpb mil")}</div>`;
+    if (!p.cores.includes(me())) html += `<div class="row">${p.coring ? `<span class="small">Začleňování: zbývá ${p.coring.left} měs.</span>` : btn(`Začlenit kraj (${coreCost(S, p)} správy)`, "core", [p.id], P(S).mp.adm >= coreCost(S, p) ? null : "Málo bodů správy")}</div><p class="small muted">Nezačleněný kraj dává polovinu daní a lid je nespokojený.</p>`;
+    html += `<div class="row">${btn("Spravovat kraj a vazaly", "openKraj", [p.id], null, "go")}</div>`;
+  } else if (!mine) {
+    const war = atWar(S, me(), p.owner);
+    html += `<div class="kv"><span>Vztah</span><span class="${cls(rel(S, me(), p.owner), -20, 30)}">${Math.round(rel(S, me(), p.owner))}</span><span>Záminka</span><span class="${cb === "zadna" ? "bad" : "good"}">${CB[cb].n}</span>${war ? `<span>Válečné skóre</span><span>${warScore(S, me(), p.owner)}</span>` : ""}</div><div class="row">${btn("Diplomacie s rodem", "openDip", [p.owner], null, "go")}</div>`;
+  }
+  return html;
+}
+
+// ---------- přehled (outliner) ----------
+function outliner() {
+  if (SEL.olHide) return `<button class="b olt" data-a="olToggle">▸ Přehled</button>`;
+  const arms = S.armies.filter(a => a.cl === me()).map(a => `<div class="olr${SEL.armySel === a.id ? " sel" : ""}" data-a="selArmy" data-x='["${a.id}"]'><i class="dot" style="background:${P(S).col}"></i>${esc(a.cmds[0] ? chr(S, a.cmds[0]).n.split(" ")[0] : "Vojsko")}<span class="sp"></span>${r1(men(a.t) / 1000)}k · ${esc(S.provs[a.loc].n.split(" ")[0])}</div>`);
+  const wars = enemiesOf(S, me()).map(e => { const ws = warScore(S, me(), e); return `<div class="olr" data-a="openDip" data-x='["${e}"]'>${shield(e, 12)} ${esc(S.clans[e].house.split(" (")[0])}<span class="sp"></span><b class="${ws >= 0 ? "good" : "bad"}">${ws > 0 ? "+" : ""}${ws}</b></div>`; });
+  const sieges = Object.values(S.provs).filter(p => p.siege && (p.siege.by === me() || p.owner === me())).map(p => `<div class="olr" data-a="prov" data-x='["${p.id}"]'>${p.siege.by === me() ? "⚔" : "🛡"} ${esc(p.n)}<span class="sp"></span>${p.siege.months}. m.</div>`);
+  const occ = Object.values(S.provs).filter(p => p.owner === me() && p.occ).map(p => `<div class="olr bad" data-a="prov" data-x='["${p.id}"]'>obsazeno: ${esc(p.n)}</div>`);
+  return `<div class="olbox"><div class="olh">Přehled ${btn("▾", "olToggle")}</div>${wars.length ? `<div class="olt2">Války</div>${wars.join("")}` : ""}${arms.length ? `<div class="olt2">Vojska</div>${arms.join("")}` : '<div class="small muted">Žádné vojsko v poli.</div>'}${sieges.length ? `<div class="olt2">Obléhání</div>${sieges.join("")}` : ""}${occ.join("")}</div>`;
+}
+
+// ---------- okno Vláda ----------
+function tVlada() {
+  const C = P(S), L = leaderOf(S, me()), g = mpGain(S, me());
+  const mpRows = MP_IDS.map(k => { const off = officeHolder(S, me(), MP[k].off); return `<div class="mprow"><i class="mpdot big" style="background:${MP[k].col}">${MP[k].n[0]}</i><div><b>${MP[k].n}: ${Math.round(C.mp[k])}</b> <span class="small muted">+${g[k]} měsíčně (panovník: ${STATS[MP[k].stat].toLowerCase()} ${L ? st(L, MP[k].stat) : 0}${off ? `, ${OFFICES[MP[k].off].n.toLowerCase()} ${esc(off.n)}` : ""})</span>${meter("", Math.round(C.mp[k]), 999, MP[k].col)}</div></div>`; }).join("");
+  const stabScale = [-3, -2, -1, 0, 1, 2, 3].map(v => `<i class="${v === C.stab ? "on" : ""} ${v < 0 ? "neg" : v > 0 ? "pos" : ""}">${v > 0 ? "+" : ""}${v}</i>`).join("");
+  const unc = clanProvs(S, me()).filter(p => !p.cores.includes(me()));
+  const ideas = Object.entries(IDEAS).map(([gid, G]) => { const nx = nextIdea(S, me(), gid); return `<div class="idea"><div class="ih"><i class="mpdot" style="background:${MP[G.mp].col}">${MP[G.mp].n[0]}</i><b>${G.n}</b></div>${G.list.map(([id, n, d]) => `<div class="il ${hasIdea(S, me(), id) ? "done" : nx && nx[0] === id ? "next" : ""}"><b>${hasIdea(S, me(), id) ? "✔ " : ""}${n}</b><div class="small muted">${d}</div></div>`).join("")}${nx ? btn(`Přijmout ideu (${IDEA_COST})`, "idea", [gid], C.mp[G.mp] >= IDEA_COST ? null : "Málo bodů", "mpb " + G.mp) : '<span class="good small">Skupina hotová</span>'}</div>`; }).join("");
+  const miss = missionsFor(S, me()).map(m => `<div class="mis ${C.missions[m.id] ? "done" : ""}"><b>${C.missions[m.id] ? "✔ " : ""}${m.n}</b><div class="small">${m.d}</div><div class="small muted">Odměna: ${m.r}</div></div>`).join("");
+  return `<div class="grid">
+  ${card("Panovník", `<div class="crest">${shield(me(), 56)}<div><div class="big">${esc(L ? L.n : "—")}</div><div class="muted">${esc(cap(C.t))}, ${L ? age(S, L) + " let" : ""} · ${esc(C.house)}</div><div class="muted">${traitsTxt(L || { traits: [] })}</div></div></div>${L ? STAT_IDS.map(k2 => meter(STATS[k2], st(L, k2), 100)).join("") : ""}`)}
+  ${card("Body vlády", mpRows + `<p class="small muted">Body se utrácejí za rozvoj krajů (boční panel kraje), stabilitu, začleňování krajů, ideje a snižování válečného vyčerpání. Přibývají podle schopností panovníka a rádců v úřadech (Vazalové → Dvůr a úřady). Strop je 999.</p>`)}
+  ${card("Stabilita a vyčerpání", `<div class="stab">${stabScale}</div><p class="small">Stabilita zvyšuje příjmy (+5 % za bod), spokojenost lidu i věrnost vazalů. Klesá při válce bez záminky, nástupu nového vládce, klatbě a přetížení říše.</p><div class="row">${btn(`Zvýšit stabilitu (${stabCost(S, me())} správy)`, "stab", [], C.stab < 3 && C.mp.adm >= stabCost(S, me()) ? null : "Nelze", "mpb adm")}</div>
+    ${meter("Válečné vyčerpání", r1(C.we), 20, C.we > 8 ? "var(--bad)" : "var(--warn)")}<p class="small">Vyčerpání roste ve válce a s ztrátami, snižuje spokojenost lidu a ochotu bojovat dál.</p><div class="row">${btn("Snížit vyčerpání o 2 (75 diplomacie)", "reduceWE", [], C.we >= 0.5 && C.mp.dip >= 75 ? null : "Nelze", "mpb dip")}</div>`)}
+  ${card(`Začlenění říše – přetížení ${overext(S, me())} %`, unc.length ? tbl(["Kraj", "#Rozvoj", ""], unc.map(p => tr([btn(esc(p.n), "prov", [p.id]), dev(p), p.coring ? `začleňuje se, ${p.coring.left} měs.` : btn(`Začlenit (${coreCost(S, p)})`, "core", [p.id], C.mp.adm >= coreCost(S, p) && !p.occ ? null : "Nelze", "mpb adm")]))) + '<p class="small muted">Přetížení nad 50 % ohrožuje stabilitu.</p>' : '<p class="good">Všechny kraje jsou začleněné.</p>')}
+  ${card("Ideje", `<div class="ideas">${ideas}</div>`, "wide")}
+  ${card("Úkoly rodu", `<div class="missions">${miss}</div>`, "wide")}</div>`;
+}
+
+// ---------- akce ----------
+Object.assign(ACT, {
+  prov: id => { const a = SEL.armySel && S.armies.find(x => x.id === SEL.armySel && x.cl === me()); if (a && id !== a.loc) { const e = orderArmy(S, me(), a.id, "tahnout", id); if (!e) toast(`Vojsko táhne na ${S.provs[id].n} (${marchTime(S, a.path)} měs.).`); return e; } SEL.prov = id; SEL.armySel = null; },
+  selArmy: id => { SEL.armySel = SEL.armySel === id ? null : id; const a = S.armies.find(x => x.id === id); if (a && SEL.armySel) { SEL.prov = a.loc; } },
+  deselect: () => { SEL.armySel = null; }, mode: m => { SEL.mode = m; }, zoom: f => { zoomBy(+f); }, zoomReset: () => { SEL.view = { x: 0, y: 0, w: MW, h: MH }; },
+  olToggle: () => { SEL.olHide = !SEL.olHide; }, openKraj: id => { SEL.prov = id; TAB = "kraj"; }, openDip: id => { SEL.dip = id; TAB = "diplo"; },
+  develop: (id, k) => develop(S, me(), id, k), core: id => startCore(S, me(), id), stab: () => raiseStab(S, me()), reduceWE: () => reduceWE(S, me()), idea: g => buyIdea(S, me(), g),
+  play: () => { SEL.play = !SEL.play; if (SEL.play) setTimeout(playTick, 50); }, speed: v => { SEL.speed = +v; },
+  peaceDemand: foe => { const items = peaceItems(S, me(), foe).filter((it, i) => { const el = $("#pi_" + i); return el && el.checked; }); if (!items.length) return "Zaškrtni aspoň jeden požadavek."; return proposePeace(S, me(), foe, items, true); },
+  peaceWhite: foe => proposePeace(S, me(), foe, [], false),
+  peaceAccept: foe => { const ws = warScore(S, me(), foe); applyPeace(S, foe, me(), greedyDemand(S, foe, me(), Math.max(10, -ws))); },
+});
+function playTick() {
+  if (!SEL.play) return;
+  if (S.events.length || (S.over && !S.over.cont) || TAB !== "mapa") { SEL.play = false; render(); return; }
+  run("end", []);
+  setTimeout(playTick, [0, 1700, 800, 300][SEL.speed || 1]);
+}
+document.addEventListener("keydown", ev => { if (ev.key === "Escape") { if (S && (SEL.armySel || TAB !== "mapa")) { SEL.armySel = null; TAB = "mapa"; render(); } } if (ev.key === " " && ev.target === document.body) { ev.preventDefault(); run("play", []); } });
+
+// ---------- válka a mír v diplomacii ----------
+function warPeaceBlock(T) {
+  if (!atWar(S, me(), T.id)) { const cb = cbAgainst(S, me(), T.id); return `<div class="kv"><span>Záminka k válce</span><span class="${cb === "zadna" ? "bad" : "good"}">${CB[cb].n} – <span class="small">${CB[cb].d}</span></span></div>`; }
+  const ws = warScore(S, me(), T.id), items = peaceItems(S, me(), T.id), w = warOf(S, me(), T.id);
+  const enemyWants = ws < 0 ? greedyDemand(S, T.id, me(), Math.max(10, -ws)) : [];
+  return `<h4>Válka (${CB[w.cb] ? CB[w.cb].n : "—"})</h4><div class="wsbar"><i style="left:50%;width:${Math.abs(ws) / 2}%;${ws < 0 ? `transform:translateX(-100%);background:var(--bad)` : "background:var(--good)"}"></i><b style="left:50%"></b><span>${ws > 0 ? "+" : ""}${ws}</span></div>
+    <p class="small muted">Válečné skóre: vítězné bitvy a obsazené kraje (sídlo se počítá dvojnásob). Jejich vyčerpání ${r1(T.we)}, tvoje ${r1(P(S).we)}.</p>
+    ${items.length ? `<h4>Mírové požadavky</h4>${items.map((it, i) => `<label class="pitem"><input type="checkbox" id="pi_${i}"> ${esc(it.n)} <span class="muted">(${Math.round(it.cost)})</span></label>`).join("")}` : '<p class="small muted">Zatím nemáš co požadovat – obsaď jejich kraje.</p>'}
+    <div class="row">${items.length ? btn("Požadovat mír", "peaceDemand", [T.id], null, "go") : ""}${btn("Nabídnout bílý mír", "peaceWhite", [T.id])}${ws < 0 ? btn(`Přijmout jejich podmínky: ${enemyWants.map(i => i.n).join(", ") || "bílý mír"}`, "peaceAccept", [T.id], null, "danger") : ""}</div>`;
+}
 </script>
 </body>
 </html>

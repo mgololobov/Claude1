@@ -45,6 +45,16 @@ const OUT = path.join(__dirname, "out"); fs.mkdirSync(OUT, { recursive: true });
     if (await ev(() => Object.keys(S.pend || {}).length)) throw new Error("bitva neskončila");
     await clearEvents();
   });
+  await step("mapové režimy", async () => { await tab("mapa"); for (const m of ["teren", "rozvoj", "spokoj", "vztahy", "kultura", "vira", "obchod", "jadra", "polit"]) { await pg.click(`.mmodes [data-a=mode][data-x='["${m}"]']`); if (m === "kultura" || m === "vztahy") await pg.screenshot({ path: path.join(OUT, "rezim-" + m + ".png") }); } });
+  await step("přiblížení mapy", async () => { await pg.click(".zoom [data-a=zoom]"); const w = await ev(() => SEL.view.w); if (!(w < 720)) throw new Error("zoom " + w); await pg.screenshot({ path: path.join(OUT, "mapa-zoom.png") }); await pg.click(".zoom [data-a=zoomReset]"); });
+  await step("vojsko: výběr žetonu a pochod kliknutím", async () => {
+    await clearEvents(); const id = await ev(() => { const a = S.armies.find(x => x.cl === S.player); return a && a.id; }); if (!id) return;
+    await pg.click(`.atok.own[data-x='["${id}"]']`); await pg.waitForSelector("#side .hint");
+    const tgt = await ev(() => { const a = S.armies.find(x => x.cl === S.player); return S.provs[a.loc].nb.find(n => S.provs[n].owner === S.player) || P(S).capital; });
+    await pg.click(`.pv[data-x='["${tgt}"]']`, { force: true }); const ok = await ev(id2 => { const a = S.armies.find(x => x.id === id2); return !a || (a.path && a.path.length) || a.to; }, id); if (!ok) throw new Error("rozkaz k pochodu");
+    await pg.screenshot({ path: path.join(OUT, "vojsko-pochod.png") }); await pg.keyboard.press("Escape");
+  });
+  await step("okno Vláda: stabilita a idea", async () => { await ev(() => { P(S).mp = { adm: 500, dip: 500, mil: 500 }; render(); }); await tab("vlada"); const st0 = await ev(() => P(S).stab); await pg.click("[data-a=stab]"); await pg.click(`[data-a=idea][data-x='["vojsko"]']`); if ((await ev(() => P(S).stab)) !== st0 + 1 || !(await ev(() => P(S).ideas.rytiri))) throw new Error("vláda"); await pg.screenshot({ path: path.join(OUT, "vlada.png"), fullPage: true }); });
   await step("24 měsíců", async () => { for (let i = 0; i < 24; i++) { await clearEvents(); await pg.click("button.main"); } await clearEvents(); if (await ev(() => S.turn) < 20) throw new Error("tah"); });
   await step("všechny záložky po hře + snímky", async () => { for (const t of tabs) { await clearEvents(); await tab(t); await pg.screenshot({ path: path.join(OUT, t + ".png"), fullPage: true }); } });
   await step("uložení a načtení", async () => { await pg.click(`[data-a=save][data-x='[1]']`); const t = await ev(() => S.turn); await clearEvents(); await pg.click("button.main"); await clearEvents(); await tab("hra"); await pg.click(`[data-a=load][data-x='[1]']`); if (await ev(() => S.turn) !== t) throw new Error("načtení"); });

@@ -25,7 +25,7 @@ function cmdCheck(s, cid, c) {
   if (!c || c.cl !== cid || c.st !== "off") return "Není to tvůj vazal.";
   if (c.army) return "Vazal je s vojskem v poli.";
   if (c.acted === s.turn) return "Vazal už v tomto měsíci jedná.";
-  const p = s.provs[c.loc]; if (!p || p.owner !== cid) return "Vazal není ve vlastním kraji.";
+  const p = s.provs[c.loc]; if (!p || p.owner !== cid) return "Vazal není ve vlastním kraji."; if (p.occ) return "Kraj je obsazen nepřítelem.";
   if (p.siege) return "Kraj je obléhán.";
   return null;
 }
@@ -75,6 +75,7 @@ function doCmd(s, cid, offId, cmd, arg, arg2) {
       say(`Rozdáno ${g} obilí v kraji ${p.n}, spokojenost +${v}.`); break;
     }
     case "hledat": {
+      if (officers(s, cid).length >= offCap(s, cid)) return `Dvůr je plný – víc než ${offCap(s, cid)} vazalů neuživíš (2 na kraj + 4).`;
       if (!pay(s, cid, cost)) return "Nedostatek zlata.";
       const w = Object.values(s.chars).filter(x => x.st === "wand" && x.loc === p.id);
       c.merit += 2;
@@ -83,6 +84,7 @@ function doCmd(s, cid, offId, cmd, arg, arg2) {
         if (chance(s, 0.5 + C.prestige / 1500 + st(c, "roz") / 400)) { x.st = "off"; x.cl = cid; x.loy = rint(s, 55, 80); x.rank = 0; x.merit = 0; return say(`našel muže jménem ${x.n} a ten vstoupil do služby! (${STAT_IDS.map(k => STATS[k].slice(0, 3) + " " + st(x, k)).join(", ")})`); }
         return say(`našel ${x.n}, ale ten službu odmítl.`);
       }
+      if (wandCount(s) > 60) return say("nikoho schopného nenašel.");
       if ((p.b.mesto || p.city) && chance(s, 0.25 + (p.b.mesto || 0) * 0.08)) { const x = genOfficer(s, null, C.cul, p.id, { st: "wand", rank: 0, loy: 0, burgher: 1, ved: rint(s, 10, 35), uda: rint(s, 10, 35), roz: rint(s, 50, 80), spr: rint(s, 55, 88) }); x.n = pick(s, (NAMES[C.cul] || NAMES.de).m) + " " + pick(s, ["Kramář", "Soukeník", "Mincíř", "Kupec", "Zlatník", "Sladovník", "Rychtář"]) + " (" + p.n + ")"; x.traits = ["hospodar"]; return say(`ve městě se ozval schopný měšťan ${x.n} – hledej dál a přijmi ho do služby.`); }
       if (chance(s, 0.12 + st(c, "roz") / 500)) { const x = genOfficer(s, null, C.cul, p.id, { st: "wand", rank: 0, loy: 0 }); return say(`zaslechl o schopném muži (${x.n}), který se potuluje krajem.`); }
       say("nikoho schopného nenašel."); break;
@@ -126,6 +128,12 @@ function doCmd(s, cid, offId, cmd, arg, arg2) {
       break;
     }
     case "poselstvo": { const e = diplomacy(s, cid, c, arg, arg2); if (e) return e; break; }
+    case "narok": {
+      const t = s.provs[arg]; if (!t || t.owner === cid || !t.nb.some(n => s.provs[n].owner === cid)) return "Vyber cizí kraj sousedící s tvým územím."; if (!pay(s, cid, cost)) return "Nedostatek zlata.";
+      if (chance(s, 0.35 + st(c, "roz") / 200)) { C.claims[t.id] = s.turn + 120; say(`našel listiny prokazující nárok na kraj ${t.n} (platí 10 let).`); } else { if (chance(s, 0.3)) addRel(s, cid, t.owner, -10); say(`padělání listin na kraj ${t.n} se zatím nepodařilo.`); }
+      c.merit += 4; break;
+    }
+    case "misie": { const r = convertProv(s, cid, c, p); if (r.startsWith("Kraj už")) return r; if (!pay(s, cid, cost)) return "Nedostatek zlata."; say(r); c.merit += 3; break; }
     case "obchodovat": {
       const rs = provRoutes(p); if (!rs.length && !(p.b.mesto || p.city)) return "Kraj neleží na obchodní cestě ani nemá město.";
       if (!pay(s, cid, cost)) return "Nedostatek zlata.";
@@ -141,6 +149,8 @@ function doCmd(s, cid, offId, cmd, arg, arg2) {
   }
   c.acted = s.turn; return null;
 }
+const offCap = (s, cid) => clanProvs(s, cid).length * 2 + 4;
+const wandCount = s => Object.values(s.chars).filter(c => c.st === "wand").length;
 function defect(s, x, to) { const from = x.cl; for (const p of Object.values(s.provs)) if (p.lord === x.id) p.lord = null; x.cl = to; x.loy = 55; x.rank = Math.min(x.rank, 2); x.loc = s.clans[to].capital || x.loc; x.acted = s.turn; if (from) assignLords(s, from); assignLords(s, to); }
 function capture(s, c, by) { for (const p of Object.values(s.provs)) if (p.lord === c.id) p.lord = null; const from = c.cl; c.st = "cap"; c.capBy = by; c.loc = s.clans[by].capital; c.army = null; if (from) assignLords(s, from); }
 

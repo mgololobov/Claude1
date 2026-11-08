@@ -8,6 +8,7 @@ function endTurn(s) {
   for (const p of clanProvs(s, s.player)) if (p.deleg) for (const c of officersIn(s, p.id)) if (c.acted !== s.turn && !c.army && c.id !== pc.leader) aiDomestic(s, s.player, c, true);
   for (const C of aliveClans(s)) if (!isPlayer(s, C.id)) aiClan(s, C.id);
   armiesTurn(s);
+  euTick(s);
   for (const C of aliveClans(s)) economy(s, C);
   provincesTurn(s);
   officersTurn(s);
@@ -18,6 +19,7 @@ function endTurn(s) {
   for (const g of Object.keys(s.market)) s.market[g] = clamp(s.market[g] + (1 - s.market[g]) * 0.05 + (rnd(s) - 0.5) * 0.06, 0.5, 2);
   if (pc.laws) s.inflation = r1((s.inflation + [0, 0.002, 0.006][pc.laws.mince] - (pc.laws.mince === 0 ? Math.max(0, s.inflation - 1) * 0.01 : 0)) * 1000) / 1000;
   scripted(s);
+  purgeChars(s);
   rollEvents(s);
   // posun času
   s.turn++; s.month = (s.month + 1) % 12; if (s.month === 0) s.year++;
@@ -36,7 +38,7 @@ function economy(s, C) {
     for (const c of officers(s, C.id)) c.loy -= 2; C.gold = 0;
   }
   // obilí
-  if (s.month === 8) { const h = sum(clanProvs(s, C.id).filter(p => !p.siege).map(p => provHarvest(s, p))); C.grain += h; C.last.harvest = Math.round(h); if (isPlayer(s, C.id)) log(s, `Žně: sklizeno ${Math.round(h)} obilí.`, "hospodarstvi", [C.id]); }
+  if (s.month === 8) { const h = sum(clanProvs(s, C.id).filter(p => !p.siege && !p.occ).map(p => provHarvest(s, p))); C.grain += h; C.last.harvest = Math.round(h); if (isPlayer(s, C.id)) log(s, `Žně: sklizeno ${Math.round(h)} obilí.`, "hospodarstvi", [C.id]); }
   const use = sum(clanProvs(s, C.id).map(garrisonGrain)); C.last.grainUse = r1(use);
   C.grain -= use;
   if (C.grain < 0) { C.grain = 0; for (const p of clanProvs(s, C.id)) { loseMen(p.troops, Math.round(men(p.troops) * 0.06)); p.loy -= 2; } if (isPlayer(s, C.id)) log(s, "Posádkám chybí obilí – muži utíkají.", "hospodarstvi", [C.id]); }
@@ -154,7 +156,7 @@ function heirSucceeds(s, cid, why) {
   }
   const hs = heirsOf(s, cid);
   if (hs.length) {
-    const H = hs[0]; C.leader = H.id; H.loy = 100; H.rank = 4; if (H.st === "cap") { /* vládce v zajetí */ }
+    const H = hs[0]; C.leader = H.id; H.loy = 100; H.rank = 4; if (C.stab != null) changeStab(s, cid, age(s, H) < 16 ? -2 : -1, "nástup nového vládce"); if (H.st === "cap") { /* vládce v zajetí */ }
     C.prestige = Math.round(C.prestige * 0.85);
     if (s.hre.kingClan === cid) {/* řeší hreTick */}
     for (const o of officers(s, cid)) o.loy -= H.st === "kid" ? 10 : 4;
@@ -230,4 +232,13 @@ function checkVictory(s) {
   if (!s.flags.won && mine >= Math.ceil(total * 0.5)) { s.flags.won = true; s.over = { win: true, cont: true, txt: `Ovládáš ${mine} z ${total} krajů střední Evropy (sám nebo skrze vazaly). Tvůj rod se stal nejmocnějším v Evropě!` }; news(s, s.over.txt, "rod", [s.player]); }
   if (!s.flags.wonEmp && s.hre.emperor && s.hre.kingClan === s.player && mine >= Math.ceil(total * 0.3)) { s.flags.wonEmp = true; s.over = { win: true, cont: true, txt: "Jsi císařem Svaté říše římské a vládneš třetině střední Evropy. Vítězství!" }; }
   if (s.year >= 1400 && !s.flags.end) { s.flags.end = true; s.over = { win: true, cont: true, txt: `Rok 1400 – konec hry. Tvůj rod drží ${mine} krajů.` }; }
+}
+
+// úklid: zemřelé postavy (kromě rodu hráče) a přebyteční potulní rytíři
+function purgeChars(s) {
+  if (s.turn % 6) return;
+  const keep = new Set(Object.values(s.clans).flatMap(C => [C.leader, ...Object.values(C.offices || {})]));
+  for (const [id, c] of Object.entries(s.chars)) if (c.st === "dead" && !(c.cl === s.player && c.dyn) && !keep.has(id)) delete s.chars[id];
+  const wand = Object.values(s.chars).filter(c => c.st === "wand");
+  if (wand.length > 70) for (const c of wand.sort((a, b) => sum(STAT_IDS.map(k => a[k])) - sum(STAT_IDS.map(k => b[k]))).slice(0, wand.length - 70)) delete s.chars[c.id];
 }

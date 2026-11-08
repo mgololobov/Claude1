@@ -127,6 +127,7 @@ function newGame(opts = {}) {
   s.pope.op.premysl = 45; s.pope.op.krakov = 50; s.pope.op.halic = -10;
   for (const e of EXT_ELECTORS) { s.hre.ext[e.id] = {}; for (const c of cl) s.hre.ext[e.id][c.id] = rint(s, -10, 10); }
   applyScenario(s, s.opts.scen); s.events = [];
+  initEU(s);
   for (const C of Object.values(s.clans)) if (C.alive) aiOffices(s, C.id);
   if (!s.clans[s.player] || !s.clans[s.player].alive) s.player = "premysl";
   // hráč
@@ -158,6 +159,8 @@ function provGold(s, p) {
   if (hasTech(s, p.owner, "ucetnictvi")) g *= 1.1;
   g *= 1 + officeVal(s, p.owner, "komori") / 1500;
   if (isPlayer(s, p.owner)) g *= diffIncome(s);
+  if (p.cores && !p.cores.includes(p.owner)) g *= 0.5;
+  g *= 1 + (C.stab || 0) * 0.05 + (hasIdea(s, p.owner, "komora") ? 0.1 : 0) + (hasIdea(s, p.owner, "mincovna") ? 0.05 : 0);
   if (isPlayer(s, p.owner)) g *= [0.85, 1, 1.25][C.laws.mesta] * (0.85 + C.estates.mestane / 333) * [1, 1.08, 1.18][C.laws.mince];
   if (p.b.vinice) g += p.b.vinice * 3;
   return g;
@@ -178,7 +181,7 @@ function provHarvest(s, p) {
 const garrisonGrain = p => men(p.troops) / 1000 * 8;
 function clanGrainUse(s, cid) { return sum(clanProvs(s, cid).map(garrisonGrain)) + sum(s.armies.filter(a => a.cl === cid).map(a => men(a.t) / 1000 * 12)); }
 function clanBudget(s, cid) {
-  const C = s.clans[cid], ps = clanProvs(s, cid).filter(p => !p.siege);
+  const C = s.clans[cid], ps = clanProvs(s, cid).filter(p => !p.siege && !p.occ);
   const inc = { domeny: ps.length ? 12 : 0, kraje: sum(ps.map(p => provGold(s, p))), obchod: sum(ps.map(p => routeIncomeProv(s, p))), doly: sum(ps.map(p => provMines(s, p).gold)), dan_vazalu: 0, rise: 0, cirkev: 0 };
   for (const v of vassalsOf(s, cid)) inc.dan_vazalu += sum(clanProvs(s, v.id).map(p => provGold(s, p))) * 0.15;
   if (C.vassalOf) inc.dan_vazalu -= sum(ps.map(p => provGold(s, p))) * 0.15;

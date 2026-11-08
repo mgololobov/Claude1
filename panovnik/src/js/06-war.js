@@ -13,7 +13,7 @@ function armyLimit(s, ids) { return Math.max(500, sum(ids.map(id => RANKS[chr(s,
 // Vyslání vojska z kraje. t = {pesi, strelci, jizda, zoldneri}, cmds = id vazalů (první velí), months = zásoby obilí
 function dispatch(s, cid, from, to, t, cmds, months, mode) {
   const p = s.provs[from], C = s.clans[cid];
-  if (!p || p.owner !== cid) return "Vojsko lze vyslat jen z vlastního kraje."; if (p.siege) return "Kraj je obléhán.";
+  if (!p || p.owner !== cid || p.occ) return "Vojsko lze vyslat jen z vlastního neobsazeného kraje."; if (p.siege) return "Kraj je obléhán.";
   cmds = (cmds || []).filter(Boolean).slice(0, 3);
   for (const id of cmds) { const c = chr(s, id); if (!c || c.cl !== cid || c.st !== "off" || c.loc !== from || c.army || c.acted === s.turn) return `${c ? c.n : "Vazal"} nemůže velet (musí být v kraji a volný).`; }
   const tt = {}; for (const k of TROOP_IDS) { tt[k] = Math.max(0, Math.min(Math.floor(+t[k] || 0), p.troops[k] || 0)); }
@@ -22,7 +22,7 @@ function dispatch(s, cid, from, to, t, cmds, months, mode) {
   if (!transfer && !cmds.length) return "Vojsko potřebuje velitele.";
   if (!transfer && n > armyLimit(s, cmds)) return `Velitelé zvládnou nejvýš ${armyLimit(s, cmds)} mužů (podle hodnosti).`;
   const path = pathTo(s, cid, from, to, transfer ? "own" : null); if (!path || !path.length) return transfer ? "Do kraje nevede cesta přes vlastní území." : "Tam nelze táhnout (cíl musí být nepřátelský nebo vlastní kraj a cesta volná).";
-  if (!transfer && !atWar(s, cid, s.provs[to].owner) && s.provs[to].owner !== cid) return "S pánem cílového kraje nejsi ve válce.";
+  if (!transfer && !atWar(s, cid, ctrl(s.provs[to])) && s.provs[to].owner !== cid) return "S pánem cílového kraje nejsi ve válce.";
   months = clamp(Math.floor(+months || 3), 1, 12); const grain = Math.ceil(n / 1000 * 12 * months);
   if (C.grain < grain) return `Na ${months} měsíců zásob je třeba ${grain} obilí.`;
   C.grain -= grain;
@@ -140,6 +140,8 @@ function battleFinish(s, b) {
   s.clans[A.cl].warLoss = (s.clans[A.cl].warLoss || 0) + start.a - men(A.t); s.clans[B.cl].warLoss = (s.clans[B.cl].warLoss || 0) + start.b - men(B.t);
   s.clans[aWins ? A.cl : B.cl].prestige += Math.round(Math.min(30, (start.a + start.b) / 400));
   s.battles.unshift(rep); if (s.battles.length > 80) s.battles.length = 80;
+  addBattleScore(s, rep.win, aWins ? B.cl : A.cl, start.a + start.b);
+  for (const [cl, lost] of [[A.cl, start.a - men(A.t)], [B.cl, start.b - men(B.t)]]) if (s.clans[cl].we != null) s.clans[cl].we = Math.min(20, s.clans[cl].we + lost / 2500);
   news(s, `${kind === "zteč" ? "Zteč hradu" : "Bitva"} – ${rep.place}: ${s.clans[A.cl].house} (${start.a}→${rep.aEnd}) proti ${s.clans[B.cl].house} (${start.b}→${rep.bEnd}). Vítězí ${s.clans[rep.win].house}${b.retreat ? " (protivník ustoupil)" : ""}.${rep.fate.length ? " " + rep.fate.join(", ") + "." : ""}`, "valka", [A.cl, B.cl]);
   return { aWins, rep };
 }
@@ -184,7 +186,8 @@ function transferProv(s, pid, to, how) {
     else { const esc = clanProvs(s, from).filter(q => q.id !== pid); if (esc.length) c.loc = (esc.find(q => q.id === s.clans[from].capital) || esc[0]).id; else if (how !== "připojení") { c.st = "wand"; c.cl = null; } }
   }
   for (const c of Object.values(s.chars).filter(x => (x.st === "fam" || x.st === "kid") && x.loc === pid && x.cl === from)) { const esc = clanProvs(s, from).filter(q => q.id !== pid); if (esc.length) c.loc = esc[0].id; else if (how === "dobytí") capture(s, c, to); }
-  p.owner = to; p.lord = null; p.siege = null; p.deleg = true; p.build = null; p.conq = s.turn;
+  p.owner = to; p.lord = null; p.siege = null; p.deleg = true; p.build = null; p.conq = s.turn; p.occ = null; p.coring = null;
+  if (p.cores && (how === "připojení" || how === "úděl" || how === "dědictví") && !p.cores.includes(to)) p.cores.push(to);
   if (how === "dobytí") { p.loy = Math.max(10, p.loy - 25); p.dur = Math.round(p.dur * 0.5); p.com = Math.round(p.com * 0.85); }
   if (from && s.clans[from]) {
     if (s.clans[from].capital === pid) { const rest = clanProvs(s, from); s.clans[from].capital = rest.length ? rest.sort((a, b) => b.v - a.v)[0].id : null; if (rest.length) for (const c of Object.values(s.chars)) if (c.cl === from && (c.st === "fam" || c.st === "kid") && c.loc === pid) c.loc = s.clans[from].capital; }
@@ -228,8 +231,8 @@ function armiesTurn(s) {
     // střet s nepřátelským vojskem v kraji
     const foe = s.armies.find(x => x !== a && x.loc === a.loc && atWar(s, x.cl, a.cl) && !x.engaged);
     if (foe) { fieldBattle(s, a, foe); if (!s.armies.includes(a) || a.engaged) continue; }
-    if (p.owner === a.cl) { if (a.mode === "presun" && (!a.path || !a.path.length)) mergeArmy(s, a, p.id); continue; }
-    if (!atWar(s, a.cl, p.owner)) { if (!a.path || !a.path.length) armyHome(s, a); continue; }
+    if (ctrl(p) === a.cl) { if (p.owner === a.cl && a.mode === "presun" && (!a.path || !a.path.length)) mergeArmy(s, a, p.id); continue; }
+    if (!atWar(s, a.cl, ctrl(p))) { if (!a.path || !a.path.length) armyHome(s, a); continue; }
     if (a.path && a.path.length) continue; // jen průchod (cíl je dál)
     siegeTurn(s, a, p);
   }
@@ -250,7 +253,7 @@ function fieldAfter(s, a, b, aWins) {
 }
 function garrisonSide(s, p, castle) {
   const C = s.clans[p.owner];
-  return { cl: p.owner, t: Object.assign({}, p.troops), train: p.train, morale: 85 + Math.round(officeVal(s, p.owner, "marsal") / 20), cmds: p.lord ? [p.lord] : [], def: true, ter: p.ter, tac: isPlayer(s, p.owner) ? C.defTac || "sik" : null, castle: castle ? p.castle + (hasTech(s, p.owner, "gotika") ? 1 : 0) : 0, dur: castle ? p.dur : 0 };
+  return { cl: ctrl(p), t: Object.assign({}, p.troops), train: p.train, morale: 85 + Math.round(officeVal(s, p.owner, "marsal") / 20), cmds: p.lord && !p.occ ? [p.lord] : [], def: true, ter: p.ter, tac: isPlayer(s, p.owner) ? C.defTac || "sik" : null, castle: castle ? p.castle + (hasTech(s, p.owner, "gotika") ? 1 : 0) : 0, dur: castle ? p.dur : 0 };
 }
 function siegeTurn(s, a, p) {
   const C = s.clans[a.cl];
@@ -284,15 +287,7 @@ function assaultAfter(s, a, p, aWins) {
 }
 
 function conquer(s, a, p) {
-  const from = p.owner, C = s.clans[a.cl];
-  for (const k of TROOP_IDS) p.troops[k] = 0;
-  const loot = Math.round(p.com * 2 + p.pop * 2); C.gold += loot; s.clans[from].gold = Math.max(0, s.clans[from].gold - loot / 2);
-  news(s, `${C.house} dobyli kraj ${p.n} (dosud ${s.clans[from].house}). Kořist ${loot} zl.`, "valka", [a.cl, from]);
-  C.prestige += 8 + p.v * 3;
-  for (const id of a.cmds) { const c = chr(s, id); if (c) c.merit += 25; }
-  transferProv(s, p.id, a.cl, "dobytí");
-  if (!s.clans[a.cl].alive) return;
-  // vojsko zůstane jako posádka
-  mergeArmy(s, a, p.id);
-  if (from && isPlayer(s, from) && !s.over) s.events.push({ id: "_lost", pid: p.id, by: a.cl });
+  occupy(s, a, p);
+  if (!s.armies.includes(a)) return;
+  if (p.owner === a.cl && !p.occ) mergeArmy(s, a, p.id); // osvobozený vlastní kraj – vojsko se stane posádkou
 }

@@ -1,6 +1,6 @@
 // Umělá inteligence rodů (a správa svěřených krajů hráče).
 
-function borderEnemies(s, cid, p) { return p.nb.filter(n => atWar(s, cid, s.provs[n].owner)); }
+function borderEnemies(s, cid, p) { return p.nb.filter(n => atWar(s, cid, ctrl(s.provs[n]))); }
 function threatened(s, cid, p) { return p.nb.some(n => { const o = s.provs[n].owner; return o !== cid && (atWar(s, cid, o) || rel(s, cid, o) < -30); }); }
 
 function aiDomestic(s, cid, c, delegated) {
@@ -26,7 +26,7 @@ function aiDomestic(s, cid, c, delegated) {
   if (gold > 25 && p.dur < durMax(s, p) * 0.9 && tryCmd("hradby")) return;
   if (gold > 30 && men(p.troops) < troopCap(p) * 0.5 && !delegated) { const n = Math.min(maxRecruit(s, p, c), Math.floor(gold / 8 * 100 * 0.5)); if (n >= 100 && tryCmd("nabor", "pesi", n)) return; }
   if (!delegated && gold > 20 && chance(s, 0.4) && tryCmd("studium")) return;
-  if (gold > 10 && chance(s, 0.15)) tryCmd("hledat");
+  if (gold > 10 && chance(s, 0.15) && officers(s, cid).length < offCap(s, cid)) tryCmd("hledat");
 }
 
 function aiClan(s, cid) {
@@ -52,7 +52,7 @@ function aiMilitary(s, cid) {
   if (s.armies.filter(x => x.cl === cid && x.mode === "utok").length >= 1 + Math.floor(clanProvs(s, cid).length / 6)) return;
   const options = [];
   for (const p of clanProvs(s, cid)) {
-    if (p.siege) continue;
+    if (p.siege || p.occ) continue;
     for (const n of borderEnemies(s, cid, p)) {
       const q = s.provs[n]; if (busy.has(n)) continue;
       const avail = {}; for (const k of TROOP_IDS) avail[k] = Math.floor((p.troops[k] || 0) * (threatened(s, cid, p) ? 0.7 : 0.9));
@@ -86,7 +86,9 @@ function aiWarDecision(s, cid) {
   const cands = [...nbs].map(o => s.clans[o]).filter(T => T.alive && !allied(s, cid, T.id) && truceUntil(s, cid, T.id) <= s.turn && T.vassalOf !== cid && !(C.type !== "dyn" && T.type !== "dyn"))
     .map(T => ({ T, sc: powerRatio(s, cid, T.id) * (1 - rel(s, cid, T.id) / 150) * (married(s, cid, T.id) ? 0.6 : 1) * (T.type !== "dyn" ? 0.6 : 1) * ((T.ban || 0) > s.turn ? 1.5 : 1) * (isPlayer(s, T.id) ? 1 : 1) }))
     .filter(x => x.sc > 1.6 && rel(s, cid, x.T.id) < 15).sort((a, b) => b.sc - a.sc);
-  if (cands.length && enemiesOf(s, cid).length === 0) declareWar(s, cid, cands[0].T.id, null);
+  if (cands.length && enemiesOf(s, cid).length === 0 && (cbAgainst(s, cid, cands[0].T.id) !== "zadna" || chance(s, 0.35))) declareWar(s, cid, cands[0].T.id, null);
+  // AI si občas zfalšuje nárok na slabšího souseda
+  if (chance(s, 0.05)) { const c = officers(s, cid).find(x => x.acted !== s.turn && !x.army && s.provs[x.loc] && s.provs[x.loc].owner === cid && !s.provs[x.loc].occ); const t = [...nbs].map(o => s.clans[o]).filter(T => T.alive && powerRatio(s, cid, T.id) > 1.3 && !allied(s, cid, T.id)).map(T => clanProvs(s, T.id).find(q => q.nb.some(n => s.provs[n].owner === cid))).filter(Boolean)[0]; if (c && t) doCmd(s, cid, c.id, "narok", t.id); }
 }
 function aiDiplomacy(s, cid) {
   const C = s.clans[cid], envoy = officers(s, cid).filter(c => !c.army && c.acted !== s.turn).sort((a, b) => st(b, "roz") - st(a, "roz"))[0];

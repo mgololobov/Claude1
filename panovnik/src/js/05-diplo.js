@@ -62,7 +62,7 @@ function diplomacy(s, cid, envoy, to, typ, extra) {
     case "poddat": if (C.vassalOf) return "Už jsi vazal."; if (willing(s, cid, to, typ, envoy) > 0) { makeVassal(s, cid, to); return say("přijali tě za vazala a budou tě chránit."); } return say("tvou službu odmítli.");
     case "pomoc": { const foes = enemiesOf(s, cid).filter(e => !atWar(s, to, e) && !allied(s, to, e) && s.clans[e].vassalOf !== to); if (!foes.length) return "Nemáš válku, do které by mohli vstoupit.";
       if (willing(s, cid, to, typ, envoy) > 0) { declareWar(s, to, foes[0], "pomoc spojenci"); return say(`vstupují do války proti rodu ${s.clans[foes[0]].house}!`); } return say("pomoc odmítli."); }
-    case "pripojit": if (T.vassalOf !== cid) return "Nejsou tvými vazaly."; if (s.turn - T.vassalSince < 24) return `Vazalem musí být aspoň 2 roky (zbývá ${24 - (s.turn - T.vassalSince)} měsíců).`; if (rel(s, cid, to) < 70) return "Vztah musí být aspoň 70.";
+    case "pripojit": if (T.vassalOf !== cid) return "Nejsou tvými vazaly."; if (s.turn - T.vassalSince < 24) return `Vazalem musí být aspoň 2 roky (zbývá ${24 - (s.turn - T.vassalSince)} měsíců).`; if (rel(s, cid, to) < 70) return "Vztah musí být aspoň 70."; { const dc = Math.round(clanDev(s, to) * 0.6); if (C.mp && C.mp.dip < dc) return `Připojení stojí ${dc} bodů diplomacie.`; if (C.mp) C.mp.dip -= dc; }
       annex(s, to, cid); return null;
   }
   return "Neznámé jednání.";
@@ -73,7 +73,8 @@ function wed(s, a, b) {
   const k = pairKey(a.origin || a.cl, b.origin || b.cl); if (a.origin !== b.origin || true) s.marriages[pairKey(husband.cl, wife.origin)] = true;
   addRel(s, husband.cl, wife.origin, 25); s.clans[husband.cl].prestige += 10;
 }
-function makePeace(s, a, b) { s.wars = s.wars.filter(w => !((w.a === a && w.b === b) || (w.a === b && w.b === a))); s.truces[pairKey(a, b)] = s.turn + 24; addRel(s, a, b, 10); for (const ar of s.armies.filter(x => (x.cl === a && s.provs[x.loc].owner === b) || (x.cl === b && s.provs[x.loc].owner === a))) armyHome(s, ar); news(s, `Mír mezi rody ${s.clans[a].house} a ${s.clans[b].house}.`, "valka", [a, b]); }
+function makePeace(s, a, b) { s.wars = s.wars.filter(w => !((w.a === a && w.b === b) || (w.a === b && w.b === a)));
+  for (const p of Object.values(s.provs)) if ((p.owner === a && p.occ === b) || (p.owner === b && p.occ === a)) { p.occ = null; p.siege = null; } s.truces[pairKey(a, b)] = s.turn + 24; addRel(s, a, b, 10); for (const ar of s.armies.filter(x => (x.cl === a && s.provs[x.loc].owner === b) || (x.cl === b && s.provs[x.loc].owner === a))) armyHome(s, ar); news(s, `Mír mezi rody ${s.clans[a].house} a ${s.clans[b].house}.`, "valka", [a, b]); }
 function makeVassal(s, v, lord) {
   const V = s.clans[v]; V.vassalOf = lord; V.vassalSince = s.turn; addRel(s, v, lord, 20); s.clans[lord].prestige += 20 + clanProvs(s, v).length * 5;
   for (const w of s.wars.slice()) if (w.a === v && w.b === lord || w.b === v && w.a === lord) makePeace(s, v, lord);
@@ -97,7 +98,9 @@ function declareWar(s, a, b, why) {
   if (B.type !== "dyn" && !(B.excom > s.turn)) s.pope.op[a] -= 35;
   if (A.vassalOf === b) { A.vassalOf = null; news(s, `${A.house} se vzbouřili proti svému lennímu pánovi!`, "valka", [a, b]); }
   addRel(s, a, b, -50);
-  s.wars.push({ a, b, start: s.turn });
+  const cb = why ? (why === "koalice" ? "koalice" : "pomoc") : cbAgainst(s, a, b);
+  if (cb === "zadna") { changeStab(s, a, isPlayer(s, a) ? -2 : -1, "válka bez záminky"); A.prestige -= 30; for (const c of aliveClans(s)) if (c.id !== a && c.id !== b) addRel(s, a, c.id, -5); }
+  s.wars.push({ a, b, start: s.turn, cb, bs: 0 });
   news(s, `${A.house} (${A.n}) vyhlásili válku rodu ${B.house} (${B.n})${why ? " – " + why : ""}.`, "valka", [a, b]);
   // spojenci a vazalové obránce
   for (const c of aliveClans(s)) {
@@ -204,6 +207,6 @@ function popeTick(s) {
   for (const c of aliveClans(s)) {
     const o = s.pope.op[c.id] || 0;
     s.pope.op[c.id] = clamp(o + (c.type !== "dyn" ? 0.5 : 0) + (c.laws && c.laws.cirkev === 0 ? 0.5 : 0) - (c.laws && c.laws.cirkev === 2 ? 0.5 : 0) + (o < 0 ? 0.3 : -0.1), -100, 100);
-    if (s.pope.op[c.id] < -60 && !(c.excom > s.turn)) { c.excom = s.turn + 36; c.prestige -= 40; news(s, `Papež dal do klatby rod ${c.house}!`, "cirkev", [c.id]); }
+    if (s.pope.op[c.id] < -60 && !(c.excom > s.turn)) { c.excom = s.turn + 36; c.prestige -= 40; changeStab(s, c.id, -1, "papežská klatba"); news(s, `Papež dal do klatby rod ${c.house}!`, "cirkev", [c.id]); }
   }
 }

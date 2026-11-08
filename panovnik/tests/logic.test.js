@@ -132,3 +132,30 @@ test("sňatek s věnem", () => {
   assert.equal(E.clanProvs(s, "habsburg").length, n0 - 1, "kraj odešel jako věno");
   assert.ok(kid.spouse);
 });
+
+test("EU: body vlády, stabilita, rozvoj, začlenění, ideje, úkoly", () => {
+  const s = E.newGame({ seed: 21 }); const C = s.clans.premysl; s.events = [];
+  const mp0 = C.mp.adm; E.endTurn(s); s.events = []; assert.ok(C.mp.adm > mp0, "body přibývají");
+  C.mp = { adm: 900, dip: 900, mil: 900 };
+  const a0 = s.provs.plzen.agri; assert.equal(E.develop(s, "premysl", "plzen", "adm"), null); assert.equal(s.provs.plzen.agri, a0 + 4);
+  const st0 = C.stab; assert.equal(E.raiseStab(s, "premysl"), null); assert.equal(C.stab, st0 + 1);
+  assert.equal(E.buyIdea(s, "premysl", "sprava"), null); assert.ok(C.ideas.komora);
+  s.provs.plzen.cores = []; assert.ok(E.overext(s, "premysl") > 0); assert.equal(E.startCore(s, "premysl", "plzen"), null);
+  for (let i = 0; i < 7; i++) { s.events = []; E.endTurn(s); } assert.ok(s.provs.plzen.cores.includes("premysl"), "kraj začleněn");
+  assert.ok(E.missionsFor(s, "premysl").some(m => m.id === "styrsko"));
+});
+
+test("EU: záminka, okupace, válečné skóre a mírová smlouva", () => {
+  const s = E.newGame({ seed: 22 }); s.events = [];
+  assert.equal(E.cbAgainst(s, "premysl", "wittL"), "zadna");
+  s.clans.premysl.claims.landshut = s.turn + 100; assert.equal(E.cbAgainst(s, "premysl", "wittL"), "narok");
+  const stab = s.clans.premysl.stab; E.declareWar(s, "premysl", "wittL", null); assert.equal(s.clans.premysl.stab, stab, "s nárokem stabilita neklesá");
+  const army = { id: "aT", cl: "premysl", t: { pesi: 3000 }, cmds: [], loc: "straubing", path: [], grain: 100, train: 50, morale: 90 };
+  s.armies.push(army); E.occupy(s, army, s.provs.straubing);
+  assert.equal(s.provs.straubing.occ, "premysl"); assert.equal(s.provs.straubing.owner, "wittL");
+  assert.ok(E.warScore(s, "premysl", "wittL") > 0);
+  const items = E.peaceItems(s, "premysl", "wittL"); const kraj = items.find(i => i.t === "kraj" && i.pid === "straubing"); assert.ok(kraj);
+  E.applyPeace(s, "premysl", "wittL", [kraj]);
+  assert.equal(s.provs.straubing.owner, "premysl"); assert.ok(!E.atWar(s, "premysl", "wittL"));
+  assert.ok(!s.provs.straubing.cores.includes("premysl"), "nový kraj není začleněn");
+});
