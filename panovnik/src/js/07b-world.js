@@ -16,7 +16,7 @@ function routeState(s, R) { let open = 0; for (let i = 1; i < R.provs.length; i+
 function routeIncomeProv(s, p) {
   let g = 0;
   for (const R of ROUTES) if (R.provs.includes(p.id)) g += R.v * 0.5 * routeState(s, R) * (1 + (p.b.mesto || 0) * 0.3) * (R.hanza && p.hanza ? 1.6 : 1);
-  return g;
+  const C = s.clans[p.owner]; return g * (1 + (hasTechSafe(s, p.owner, "smenka") ? 0.15 : 0) + ((C && C.tradeBonus) || 0));
 }
 const provRoutes = p => ROUTES.filter(R => R.provs.includes(p.id));
 function joinHanza(s, cid, pid) {
@@ -51,6 +51,7 @@ function aiOffices(s, cid) {
 const EAST = ["halic", "lvov", "vladimir", "chelm", "premysl_r", "lublin", "sandomer", "krakov", "czersk", "kosice", "spis", "eger", "varadin", "sedmihradsko", "segedin"];
 function mongolRaid(s, targets) {
   if (!targets) { const start = pick(s, EAST); targets = [start, ...s.provs[start].nb.filter(n => EAST.includes(n))].slice(0, rint(s, 2, 4)); }
+  targets = targets.filter(id => !((s.clans[s.provs[id].owner] || {}).tatarPeace > s.turn)); if (!targets.length) return;
   const mine = targets.filter(id => s.provs[id].owner === s.player);
   for (const id of targets.filter(x => s.provs[x].owner !== s.player)) raidDamage(s, s.provs[id], 1);
   news(s, `Tatarský vpád z Pole: ${targets.map(id => s.provs[id].n).join(", ")}. Vsi hoří, lid prchá do lesů.`, "svet");
@@ -74,6 +75,7 @@ function loyBreakdown(s, p) {
   if (C.excom > s.turn) rows.push(["Papežská klatba", -10]);
   if (p.siege) rows.push(["Obléhání", -20]);
   const sudi = officeVal(s, p.owner, "sudi"); if (sudi) rows.push(["Zemský sudí", Math.round(sudi / 20)]);
+  if (hasTech(s, p.owner, "chmelnice")) rows.push(["Pivovary a chmelnice", 2]);
   if (isPlayer(s, p.owner) && C.estates) { rows.push(["Nálada sedláků", Math.round((C.estates.sedlaci - 50) / 5)]); const rb = [4, 0, -6][C.laws.robota]; if (rb) rows.push(["Robota: " + LAWS.robota.opts[C.laws.robota], rb]); }
   return { rows, val: clamp(sum(rows.map(r => r[1])), 0, 100) };
 }
@@ -88,6 +90,9 @@ function offLoyBreakdown(s, c) {
   if (hasTech(s, c.cl, "zakonik")) rows.push(["Zemský zákoník", 5]);
   const sudi = officeVal(s, c.cl, "sudi"); if (sudi) rows.push(["Zemský sudí", 3]);
   if (isPlayer(s, c.cl) && C.estates) rows.push(["Nálada šlechty", Math.round((C.estates.slechta - 50) / 4)]);
+  if (hasTech(s, c.cl, "kuryri")) rows.push(["Kurýrní služba", 2]);
+  if (hasCourt(s, c.cl, "pevec")) rows.push(["Dvorní pěvec", 2]);
+  if (hasTrea(s, c.cl, "kozesiny")) rows.push(["Dary sobolích kožešin", 2]);
   if (C.gold <= 0) rows.push(["Prázdná komora", -10]);
   return { rows, val: clamp(sum(rows.map(r => r[1])), 0, 100) };
 }

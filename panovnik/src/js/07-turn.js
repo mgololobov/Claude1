@@ -10,6 +10,7 @@ function endTurn(s) {
   armiesTurn(s);
   euTick(s);
   funTick(s);
+  discoverTick(s);
   for (const C of aliveClans(s)) economy(s, C);
   provincesTurn(s);
   officersTurn(s);
@@ -114,7 +115,7 @@ function dynastyTurn(s) {
     const a = age(s, c);
     // smrt
     let pd = a < 5 ? 0.012 : a < 16 ? 0.002 : a < 40 ? 0.0015 : a < 55 ? 0.004 : a < 65 ? 0.01 : a < 75 ? 0.022 : 0.045;
-    if (c.hp < 30) pd *= 3; if (c.traits.includes("nemocny")) pd *= 1.6; if (c.cl && hasTechSafe(s, c.cl, "medicina")) pd *= 0.8;
+    if (c.hp < 30) pd *= 3; if (c.traits.includes("nemocny")) pd *= 1.6; if (c.cl && hasTechSafe(s, c.cl, "medicina")) pd *= 0.8; if (c.cl && hasCourt(s, c.cl, "lekar")) pd *= 0.85;
     if (chance(s, pd)) { const wasLeader = c.cl && s.clans[c.cl] && s.clans[c.cl].leader === c.id; kill(s, c, "zemřel"); if (c.spouse && chr(s, c.spouse)) chr(s, c.spouse).spouse = null;
       if (c.cl && (isPlayer(s, c.cl) && (c.dyn || c.rank >= 2)) || wasLeader && c.cl && rel(s, s.player, c.cl) > -200 && (c.hist || s.clans[c.cl].t === "král")) news(s, `Zemřel(a) ${c.n} (${a} let)${wasLeader ? ", hlava rodu " + (s.clans[c.cl] ? s.clans[c.cl].house : "") : ""}.`, "rod", [c.cl]);
       continue; }
@@ -209,7 +210,7 @@ function researchTurn(s) {
     if (!isPlayer(s, C.id)) { C.res.pts += clanProvs(s, C.id).length * 0.35 + rnd(s); if (!C.res.cur || C.techs[C.res.cur]) C.res.cur = TECH_IDS.find(t => techAvail(s, C.id, t)) || null; }
     C.res.pts += sum(clanProvs(s, C.id).map(p => (p.b.klaster || 0) * 0.4)) + officeVal(s, C.id, "kancler") / 40;
     if (!isPlayer(s, C.id) && s.month === 0) aiOffices(s, C.id);
-    const t = C.res.cur; if (t && C.res.pts >= TECHS[t].cost) { C.res.pts -= TECHS[t].cost; C.techs[t] = true; if (t === "gotika") for (const p of clanProvs(s, C.id)) p.dur = Math.min(durMax(s, p), p.dur); if (isPlayer(s, C.id)) { log(s, `Objev: ${TECHS[t].n}! (${TECHS[t].d})`, "objevy", [C.id]); C.res.cur = TECH_IDS.find(x => techAvail(s, C.id, x)) || null; } else C.res.cur = null; }
+    const t = C.res.cur; if (t && C.res.pts >= TECHS[t].cost) { C.res.pts -= TECHS[t].cost; C.techs[t] = true; if (t === "gotika") for (const p of clanProvs(s, C.id)) p.dur = Math.min(durMax(s, p), p.dur); if (isPlayer(s, C.id)) { log(s, `Objev: ${TECHS[t].n}! (${TECHS[t].d})`, "objevy", [C.id]); C.res.cur = TECH_IDS.find(x => techAvail(s, C.id, x)) || null; s.events.push({ id: "_objev", t }); } else C.res.cur = null; }
   }
 }
 

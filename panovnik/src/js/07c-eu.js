@@ -21,7 +21,7 @@ function mpGain(s, cid) {
   const C = s.clans[cid], L = chr(s, C.leader), minor = L && age(s, L) < 16, out = {};
   for (const k of MP_IDS) out[k] = 3 + (L && !minor ? Math.floor(st(L, MP[k].stat) / 25) : 0) + Math.floor(officeVal(s, cid, MP[k].off) / 40);
   if (hasIdea(s, cid, "urad")) out.adm++; if (hasIdea(s, cid, "kancelar")) out.dip++;
-  return out;
+  return discoverMpBonus(s, cid, out);
 }
 function mpTick(s) { for (const C of aliveClans(s)) { const g = mpGain(s, C.id); for (const k of MP_IDS) C.mp[k] = Math.min(999, C.mp[k] + g[k]); } }
 

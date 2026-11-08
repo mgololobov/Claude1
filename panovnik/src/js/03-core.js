@@ -142,7 +142,7 @@ function newGame(opts = {}) {
 }
 
 // ---------- správa krajů ----------
-function durMax(s, p) { return p.castle * 100 + (s && hasTechSafe(s, p.owner, "gotika") ? 50 : 0); }
+function durMax(s, p) { return p.castle * 100 + (s && hasTechSafe(s, p.owner, "gotika") ? 50 : 0) + (s && hasTechSafe(s, p.owner, "soustredne") ? 50 : 0); }
 function hasTechSafe(s, cid, t) { return !!(s.clans[cid] && s.clans[cid].techs && s.clans[cid].techs[t]); }
 function assignLords(s, cid) {
   for (const p of clanProvs(s, cid)) {
@@ -157,17 +157,18 @@ function provGold(s, p) {
   const L = chr(s, p.lord), spr = L ? st(L, "spr") : 30;
   let g = (p.com * 0.55 + p.pop * 0.18) * TAX_MULT[C.tax] * (0.5 + p.loy / 200) * (0.85 + spr / 400);
   if (hasTech(s, p.owner, "ucetnictvi")) g *= 1.1;
+  g *= techGoldMult(s, p);
   g *= 1 + officeVal(s, p.owner, "komori") / 1500;
   if (isPlayer(s, p.owner)) g *= diffIncome(s);
   if (p.cores && !p.cores.includes(p.owner)) g *= 0.5;
   g *= 1 + (C.stab || 0) * 0.05 + (hasIdea(s, p.owner, "komora") ? 0.1 : 0) + (hasIdea(s, p.owner, "mincovna") ? 0.05 : 0);
   if (isPlayer(s, p.owner)) g *= [0.85, 1, 1.25][C.laws.mesta] * (0.85 + C.estates.mestane / 333) * [1, 1.08, 1.18][C.laws.mince];
   if (p.b.vinice) g += p.b.vinice * 3;
-  return g;
+  return g + techGoldFlat(s, p);
 }
 function provMines(s, p) {
   if (!p.b.dul) return { gold: 0, zbroj: 0 };
-  let gold = 0, zbroj = 0; const m = hasTech(s, p.owner, "hornictvi") ? 1.5 : 1;
+  let gold = 0, zbroj = 0; const m = (hasTech(s, p.owner, "hornictvi") ? 1.5 : 1) * (hasTechSafe(s, p.owner, "alchymie") ? 1.15 : 1);
   if (p.res.includes("stribro")) gold += 14 * p.b.dul * m * (hasTech(s, p.owner, "mince") ? 1.5 : 1);
   if (p.res.includes("sul")) gold += 7 * p.b.dul * m;
   if (p.res.includes("zelezo")) zbroj += 3 * p.b.dul * m;
@@ -176,6 +177,7 @@ function provMines(s, p) {
 function provHarvest(s, p) {
   let h = p.agri * 5.5 * (0.6 + p.loy / 250);
   if (hasTech(s, p.owner, "trojpole")) h *= 1.1;
+  h *= techHarvestMult(s, p);
   return h * (s.flags.harvest || 1);
 }
 const garrisonGrain = p => men(p.troops) / 1000 * 8;

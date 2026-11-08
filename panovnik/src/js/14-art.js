@@ -83,11 +83,11 @@ const EVENT_ART = { neuroda: "neuroda", uroda: "uroda", mor: "mor", kacir: "cirk
   babenberk: "dvur", rozvod: "rod", kutnahora: "dul", konradin: "valka", kresenbrunn: "valka", _tatari: "tatari", _war: "valka", _lost: "pozar", _succ: "rod", _victory: "rod", _callToArms: "valka", _proposal: "dvur", _ransom: "dvur", _vote: "volba",
   _joust: "turnaj", _duel: "turnaj", _rada: "dvur", _cernasmrt: "mor", _work: "stavba", _kriz: "valka", krize_slechta: "dvur", krize_duchovni: "cirkev", krize_mestane: "obchod", krize_sedlaci: "pozar", _mission: "rod", _peaceOffer: "mir", _battle: "bitva" };
 function scene(kind, w = 640, h = 170) {
-  const id = "sc" + (ART_N++), night = kind === "kometa" || kind === "mor", storm = kind === "neuroda" || kind === "pozar" || kind === "tatari";
-  const sky = night ? ["#0e1530", "#2b3557"] : storm ? ["#4a4a52", "#8a7a6a"] : kind === "rod" || kind === "dvur" || kind === "volba" || kind === "uceni" ? ["#3a2416", "#6a4428"] : ["#7fa8c9", "#e9d9b0"];
+  const id = "sc" + (ART_N++), night = kind === "kometa" || kind === "mor" || SCENE_NIGHT.includes(kind), storm = kind === "neuroda" || kind === "pozar" || kind === "tatari" || SCENE_STORM.includes(kind);
+  const sky = night ? ["#0e1530", "#2b3557"] : storm ? ["#4a4a52", "#8a7a6a"] : kind === "rod" || kind === "dvur" || kind === "volba" || kind === "uceni" || SCENE_IN.includes(kind) ? ["#3a2416", "#6a4428"] : kind === "sucho" || kind === "karavana" ? ["#e9b86a", "#f6e3b0"] : ["#7fa8c9", "#e9d9b0"];
   let g = `<defs><linearGradient id="${id}s" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="${sky[0]}"/><stop offset="1" stop-color="${sky[1]}"/></linearGradient></defs><rect width="${w}" height="${h}" fill="url(#${id}s)"/>`;
   const R = prng(hashStr(kind)), hills = (y, col) => { let d = `M0 ${h} L0 ${y}`; for (let x = 0; x <= w; x += 40) d += ` Q${x + 20} ${y - 10 - R() * 25} ${x + 40} ${y + (R() - 0.5) * 10}`; return `<path d="${d} L${w} ${h} Z" fill="${col}"/>`; };
-  const indoor = ["rod", "dvur", "volba", "uceni"].includes(kind);
+  const indoor = ["rod", "dvur", "volba", "uceni"].includes(kind) || SCENE_IN.includes(kind);
   if (indoor) {
     g += `<rect y="${h - 30}" width="${w}" height="30" fill="#2a1a10"/>`; for (let x = 20; x < w; x += 120) g += `<path d="M${x} ${h - 30} V40 Q${x + 40} 0 ${x + 80} 40 V${h - 30}" fill="none" stroke="#7a5a3a" stroke-width="6"/><rect x="${x + 25}" y="50" width="30" height="60" fill="#c9a35a" opacity=".25"/>`;
     for (let x = 60; x < w; x += 160) g += `<path d="M${x} 30 h26 v60 l-13 -10 l-13 10 z" fill="#8c2f1f"/><path d="M${x + 13} 45 l4 8 h-8z" fill="#e2b13c"/>`;
@@ -122,6 +122,7 @@ function scene(kind, w = 640, h = 170) {
       const knight = (x, dir, col) => `<g transform="translate(${x} ${h - 30}) scale(${dir} 1)"><ellipse cx="0" cy="0" rx="22" ry="9" fill="#5a3a22"/><path d="M-14 6 v14 M14 6 v14 M20 -4 l10 -8" stroke="#3a2a1a" stroke-width="4"/><path d="M-20 -6 h40 v10 h-40z" fill="${col}"/><rect x="-5" y="-30" width="12" height="24" fill="${col}"/><circle cx="1" cy="-35" r="6" fill="#9a9da1"/><path d="M8 -22 L70 -30" stroke="#d9c38a" stroke-width="3"/><path d="M-8 -26 h-8 v14 h8z" fill="#e2b13c"/></g>`;
       g += knight(w * 0.36, 1, "#b3261e") + knight(w * 0.64, -1, "#1f4e8c"); break; }
     case "zima": for (let i = 0; i < 60; i++) g += `<circle cx="${R() * w}" cy="${R() * h}" r="1.5" fill="#fff"/>`; break;
+    default: if (SCENE_X[kind]) g += SCENE_X[kind](w, h, R, { castle, banner, soldier });
   }
   return `<svg class="scene" viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${g}</svg>`;
 }

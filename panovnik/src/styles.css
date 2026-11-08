@@ -349,3 +349,16 @@ header#top .realm svg.portrait { border: 1px solid var(--gold2); }
 .contract.acc { border-style: solid; border-color: #b08a2e; }
 .evport.r { left: auto; right: 14px; }
 .plague { pointer-events: auto; }
+
+/* výpravy, pokladnice, objevy */
+.worldmap { width: 100%; height: auto; display: block; border-radius: 6px; border: 1px solid var(--line); }
+.worldmap .wdest:hover circle { stroke-width: 3; }
+.worldmap .wdest.gone { opacity: .4; }
+.expdet { display: flex; flex-direction: column; gap: 6px; } .expdet .dd h3 { display: flex; align-items: center; gap: 6px; margin: 6px 0; }
+.expdet .scene { width: 100%; height: auto; border-radius: 6px; }
+.treas { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.trea { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px; padding: 8px; border: 1px dashed var(--line); border-radius: 8px; opacity: .55; filter: grayscale(.8); }
+.trea.have { opacity: 1; filter: none; border-style: solid; border-color: #b08a2e; background: rgba(226, 177, 60, .08); }
+.ttile .tg { float: right; margin: 0 0 4px 6px; }
+.ttile.lock .tg { filter: grayscale(1); opacity: .5; }
+.glyphport { background: var(--panel); border-radius: 50%; padding: 4px; border: 3px solid var(--panel); box-shadow: 0 1px 4px rgba(0,0,0,.3); }

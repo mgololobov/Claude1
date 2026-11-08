@@ -176,3 +176,19 @@ test("Herní nápady: činy, turnaj, mor a karanténa, velká díla, zakázky", 
   C.kone = 50; const g0 = C.gold; assert.equal(E.deliverContract(s, "kX"), null); assert.equal(C.gold, g0 + 500); assert.equal(s.contracts.length, 0);
   assert.equal(E.dispName({ n: "Václav", epi: "Dobrý" }), "Václav Dobrý");
 });
+
+test("Objevy, výpravy, pokladnice a historické události", () => {
+  const s = E.newGame({ seed: 41 }); const C = s.clans.premysl; s.events = []; C.gold = 5000;
+  assert.ok(E.TECH_IDS.length >= 32); assert.ok(!E.techAvail(s, "premysl", "prach"), "střelný prach až od 1330");
+  const c = E.expCandidates(s, "premysl")[0]; assert.ok(c);
+  assert.equal(E.startExpedition(s, "premysl", "benatky", c.id), null); assert.equal(c.st, "exp");
+  assert.ok(E.startExpedition(s, "premysl", "benatky", c.id), "stejný cíl dvakrát nelze");
+  C.exps[0].back = s.turn; s.rng = 12345; E.expeditionTick(s);
+  assert.ok(c.st === "off" || c.st === "dead"); assert.ok(s.events.some(e => e.id === "_exp"));
+  assert.ok(/pokladnice/.test(E.addTreasure(s, "premysl", "astrolab"))); assert.ok(E.hasTrea(s, "premysl", "astrolab"));
+  const p0 = C.res.pts; E.discoverTick(s); assert.ok(C.res.pts > p0, "astroláb přidává učenost");
+  E.addCourt(s, "premysl", "lekar"); assert.ok(E.hasCourt(s, "premysl", "lekar"));
+  C.techs.urbar = true; const g0 = E.provGold(s, s.provs.praha); delete C.techs.urbar; assert.ok(g0 > E.provGold(s, s.provs.praha), "urbáře zvyšují zlato");
+  s.events = []; s.year = 1291; s.month = 4; E.discoverTick(s); assert.ok(s.events.some(e => e.id === "_hist" && e.k === "akkon"));
+  for (const [id, D] of Object.entries(E.EVENTS)) { if (D.c && !D.c(s)) continue; const ev = Object.assign({ id }, D.init ? D.init(s) : {}); if ("pid" in ev && !ev.pid) continue; const v = E.eventView(s, ev); assert.ok(v.ch.length && typeof v.txt === "string", id); }
+});

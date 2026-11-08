@@ -87,7 +87,7 @@ function sidePower(s, side, round) {
   const L = chr(s, side.cmds[0]), ved = L ? st(L, "ved") : 30, uda = Math.max(30, ...side.cmds.map(id => st(chr(s, id), "uda")));
   let p = troopPower(s, side.cl, side.t, { def: side.def, ter: side.ter, train: side.train });
   if (round === 0) p += (side.t.strelci || 0) / 100 * 0.8 * (hasTech(s, side.cl, "kuse") ? 1.3 : 1); // první salva
-  p *= (1 + ved / 220 + uda / 400) * (side.morale / 100) * (hasTech(s, side.cl, "taktika") ? 1.1 : 1);
+  p *= (1 + ved / 220 + uda / 400) * (side.morale / 100) * (hasTech(s, side.cl, "taktika") ? 1.1 : 1) * techBattleMult(s, side);
   if (side.def) p *= TERRAIN[side.ter].def * (side.castle ? 1 + side.castle * 0.15 + side.dur / 400 : 1);
   return p;
 }
@@ -268,7 +268,7 @@ function siegeTurn(s, a, p) {
     if (!aWins) { p.siege = null; armyHome(s, a); return; }
   }
   p.siege.months++;
-  p.dur = Math.max(0, p.dur - (hasTech(s, a.cl, "trebuchet") ? 25 : 8) - men(a.t) / 1000 * 2);
+  p.dur = Math.max(0, p.dur - (hasTech(s, a.cl, "trebuchet") ? 25 : 8) * (hasTechSafe(s, a.cl, "prach") ? 1.6 : 1) - men(a.t) / 1000 * 2);
   if (a.siegeMode === "ztec" || (p.dur <= 0 && men(a.t) > men(p.troops) * 1.5)) {
     const Aside = sideOf(s, a), Dside = garrisonSide(s, p, true);
     if (manualOf(s, a)) { startManual(s, Aside, Dside, p.id, "zteč", { type: "assault", aid: a.id, pid: p.id, aSide: "A" }); return; }

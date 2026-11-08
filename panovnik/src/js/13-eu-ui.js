@@ -42,7 +42,7 @@ function render() {
   const w = $("#win"); stage.classList.toggle("haswin", TAB !== "mapa");
   if (TAB === "mapa") { w.classList.add("hidden"); w.innerHTML = ""; }
   else {
-    const f = { prehled: tPrehled, plan: tPlan, vlada: tVlada, kraj: tKraj, vazalove: tVazalove, vojsko: tVojsko, diplo: tDiplo, rise: tRise, hosp: tHosp, stavy: tStavy, rod: tRod, objevy: tObjevy, kronika: tKronika, hra: tHra }[TAB];
+    const f = { prehled: tPrehled, plan: tPlan, vlada: tVlada, kraj: tKraj, vazalove: tVazalove, vojsko: tVojsko, diplo: tDiplo, rise: tRise, hosp: tHosp, stavy: tStavy, rod: tRod, objevy: tObjevy, vypravy: tVypravy, kronika: tKronika, hra: tHra }[TAB];
     const title = (RAIL.find(r => r[0] === TAB) || [0, ""])[1];
     w.classList.remove("hidden");
     w.innerHTML = `<div class="winbar">${icon(TAB)}<b>${title}</b><span class="sp"></span><button class="b" data-a="tab" data-x='["mapa"]'>✕ Zpět na mapu</button></div><div class="winbody">${f ? f() : ""}</div>`;

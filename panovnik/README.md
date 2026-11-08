@@ -75,6 +75,13 @@ Je to samostatný projekt, s Herní dílnou (`herni-dilna/`) nesdílí žádný 
 - **Kupecké zakázky** (Hospodářství): kupci poptávají obilí, koně nebo zbroj za odměnu; nedodání stojí prestiž.
 - **Křížová výprava do Pruska**, **přídomky panovníků** (Veliký, Vítězný, Stavitel, Zlatý, Pobožný, Ukrutný, Moudrý) a **roční období** na mapě (zimní sníh, podzimní barvy).
 
+## Objevy, výpravy a poklady
+- **32 objevů** v pěti oborech, každý s vlastní kresbou. Nové jsou například rybníkářství, větrný mlýn (od 1270), papírna (od 1290), směnka a banka, urbáře, kurýrní služba, astronomie, alchymie, kartografie, karanténní řád, pavézy, chov destriérů a střelný prach (od 1330). Po každém objevu se otevře okno s volbou dalšího zkoumání.
+- **Výpravy do dalekých krajů** (okno Výpravy a poklady): mapa známého světa s deseti cíli od Benátek, Paříže a Říma po Novgorod, Konstantinopol, Akkon a Saraj u Zlaté hordy. Výpravu vede vazal; podle rozumu a udatnosti přiveze poznatky, objevy, vzácnosti nebo učence – anebo se nevrátí.
+- **Pokladnice vzácností** (12 předmětů, např. arabský astroláb, byzantská ikona, mongolský luk, portolánová mapa, mechanické hodiny) a **dvorní učenci a umělci** (lékař, astrolog, alchymista, kronikář, stavitel, kartograf, pěvec) s trvalými účinky.
+- **Asi 25 nových událostí** (vlčí zima, povodeň, sucho, výroční trh, penezokaz, alchymista, dračí kosti, vyoraný poklad, cisterciáci, zatmění, loupeživý rytíř, kupec z Orientu, brýle, mechanické hodiny…) a **historické mezníky**: kometa 1264, cesta Polů 1271, pád Akkonu 1291, svatý rok 1300, zatčení templářů 1307, papež v Avignonu 1309, Kresčak 1346, zemětřesení v Korutanech 1348 a flagelanti 1349.
+- **17 nových kreseb scén** (např. noční les s vlky, povodeň, trh, alchymistická dílna, loď, karavana, hvězdárna, zemětřesení, relikviář).
+
 ## Struktura
 
 ```

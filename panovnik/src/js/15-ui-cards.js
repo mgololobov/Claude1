@@ -86,7 +86,7 @@ const TECH_ICON = { "Zemědělství": "grain", "Řemesla": "kraj", "Správa": "s
 function tObjevy() {
   const C = P(S), cats = [...new Set(TECH_IDS.map(t => TECHS[t].cat))], cur = C.res.cur;
   return `${cur ? `<div class="curtech">${scene("uceni", 640, 120)}<div class="ct"><b>Zkoumá se: ${TECHS[cur].n}</b>${meter("Učenost", Math.round(C.res.pts), TECHS[cur].cost, "#3f6fa8")}<span class="small">Body přinášejí rozkazy „Podporovat učence“, kláštery a kancléř.</span></div></div>` : '<p class="alert warn">Učenci nemají zadaný objev – vyber některý níže.</p>'}
-  ${cats.map(cat => `<h3 class="cath">${icon(TECH_ICON[cat] || "objevy")} ${cat}</h3><div class="ttiles">${TECH_IDS.filter(t => TECHS[t].cat === cat).map(t => { const T = TECHS[t], done = C.techs[t], av = techAvail(S, me(), t); return `<div class="ttile ${done ? "done" : cur === t ? "cur" : av ? "av" : "lock"}"><b>${done ? "✔ " : cur === t ? "▶ " : av ? "" : "🔒 "}${T.n}</b><div class="small">${T.d}</div>${T.req ? `<div class="small muted">vyžaduje: ${T.req.map(r => TECHS[r].n).join(", ")}</div>` : ""}<div class="row"><span class="small muted">${T.cost} bodů</span><span class="sp"></span>${done || cur === t ? "" : btn("Zkoumat", "research", [t], av ? null : "Chybí předpoklady")}</div></div>`; }).join("")}</div>`).join("")}`;
+  ${cats.map(cat => `<h3 class="cath">${icon(TECH_ICON[cat] || "objevy")} ${cat}</h3><div class="ttiles">${TECH_IDS.filter(t => TECHS[t].cat === cat).map(t => { const T = TECHS[t], done = C.techs[t], av = techAvail(S, me(), t); return `<div class="ttile ${done ? "done" : cur === t ? "cur" : av ? "av" : "lock"}">${glyph(TECH_GLYPH[t], 34, "tg")}<b>${done ? "✔ " : cur === t ? "▶ " : av ? "" : "🔒 "}${T.n}</b>${T.year && S.year < T.year ? `<div class="small bad">známo až od roku ${T.year}</div>` : ""}<div class="small">${T.d}</div>${T.req ? `<div class="small muted">vyžaduje: ${T.req.map(r => TECHS[r].n).join(", ")}</div>` : ""}<div class="row"><span class="small muted">${T.cost} bodů</span><span class="sp"></span>${done || cur === t ? "" : btn("Zkoumat", "research", [t], av ? null : "Chybí předpoklady")}</div></div>`; }).join("")}</div>`).join("")}`;
 }
 
 // ---------- hospodářství ----------
@@ -108,6 +108,7 @@ function tHosp() {
 // ---------- ilustrované události a bitva ----------
 function eventPerson(ev) {
   if (ev.cid && chr(S, ev.cid)) return chr(S, ev.cid);
+  if (ev.id === "_exp" && chr(S, ev.c)) return chr(S, ev.c);
   if (ev.a && chr(S, ev.a)) return chr(S, ev.a);
   const cl = ev.from || ev.by || ev.ally; if (cl && S.clans[cl]) return leaderOf(S, cl);
   if (["_succ", "nemoc", "rozvod", "_mission", "vdovec"].includes(ev.id)) return leaderOf(S, me());
@@ -118,7 +119,7 @@ function renderModal() {
   if (S.events.length && S.events[0].id === "_battle" && battleModal(S.events[0])) { m.innerHTML = battleModal(S.events[0]); m.classList.remove("hidden"); return; }
   if (S.events.length) {
     const ev = S.events[0], v = eventView(S, ev), who = eventPerson(ev);
-    m.innerHTML = `<div class="box evbox"><div class="evart">${scene(EVENT_ART[ev.id] || "dvur")}${who ? `<div class="evport">${portrait(who, 78)}</div>` : ""}${ev.id === "_rada" || ev.id === "_duel" ? `<div class="evport r">${portrait(chr(S, ev.b), 78)}</div>` : ""}</div><div class="evbody"><div class="muted small">${dateStr(S)}${S.events.length > 1 ? ` · čeká ${S.events.length} zpráv` : ""}</div><h2>${esc(v.t)}</h2><p>${esc(v.txt)}</p>${v.ch.map(c => `<button class="b ch" data-a="event" data-x="[0,${c.i}]" ${c.ok ? "" : "disabled"}>${esc(c.t)}</button>`).join("")}</div></div>`;
+    m.innerHTML = `<div class="box evbox"><div class="evart">${scene(eventArt(ev))}${who ? `<div class="evport">${portrait(who, 78)}</div>` : ev.id === "_objev" ? `<div class="evport glyphport">${glyph(TECH_GLYPH[ev.t], 70)}</div>` : ""}${ev.id === "_rada" || ev.id === "_duel" ? `<div class="evport r">${portrait(chr(S, ev.b), 78)}</div>` : ""}</div><div class="evbody"><div class="muted small">${dateStr(S)}${S.events.length > 1 ? ` · čeká ${S.events.length} zpráv` : ""}</div><h2>${esc(v.t)}</h2><p>${esc(v.txt)}</p>${v.ch.map(c => `<button class="b ch" data-a="event" data-x="[0,${c.i}]" ${c.ok ? "" : "disabled"}>${esc(c.t)}</button>`).join("")}</div></div>`;
     m.classList.remove("hidden");
   } else if (S.over && !S.overSeen) {
     m.innerHTML = `<div class="box evbox"><div class="evart">${scene(S.over.win ? "rod" : "pozar")}</div><div class="evbody"><h2>${S.over.win ? "Vítězství" : "Konec"}</h2><p>${esc(S.over.txt)}</p><button class="b ch" onclick="S.overSeen=true;render()">${S.over.cont ? "Hrát dál" : "Zavřít"}</button></div></div>`;

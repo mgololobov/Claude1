@@ -103,7 +103,7 @@ function plagueTick(s) {
   for (const p of Object.values(s.provs)) {
     if (!p.plague) continue;
     p.pop = r1(Math.max(2, p.pop * (black ? 0.965 : 0.985))); loseMen(p.troops, Math.round(men(p.troops) * 0.02)); p.loy = Math.max(0, p.loy - 1);
-    if (!((p.quar || 0) > s.turn)) for (const n of p.nb) { const q = s.provs[n]; if (!q.plague && !((q.immune || 0) > s.turn) && !((q.quar || 0) > s.turn) && chance(s, black ? 0.2 : 0.05)) { q.plague = black ? rint(s, 8, 14) : rint(s, 4, 9); if (q.owner === s.player) log(s, `Mor se rozšířil do kraje ${q.n}!`, "svet", [s.player]); } }
+    if (!((p.quar || 0) > s.turn)) for (const n of p.nb) { const q = s.provs[n]; if (!q.plague && !((q.immune || 0) > s.turn) && !((q.quar || 0) > s.turn) && chance(s, (black ? 0.2 : 0.05) * (hasTechSafe(s, q.owner, "karantena") ? 0.5 : 1))) { q.plague = black ? rint(s, 8, 14) : rint(s, 4, 9); if (q.owner === s.player) log(s, `Mor se rozšířil do kraje ${q.n}!`, "svet", [s.player]); } }
     if (--p.plague <= 0) { p.plague = 0; p.immune = s.turn + (black ? 120 : 60); if (p.owner === s.player) log(s, `Mor v kraji ${p.n} ustal.`, "svet", [s.player]); }
   }
   if (chance(s, 0.008)) { const p = pick(s, Object.values(s.provs)); p.plague = rint(s, 4, 8); news(s, `V kraji ${p.n} propukl mor.`, "svet", [p.owner]); }

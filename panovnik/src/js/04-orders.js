@@ -4,7 +4,7 @@ function agriCap(s, p) { let m = p.agriMax; if (hasTech(s, p.owner, "pluh") && p
 function comCap(s, p) { let m = p.comMax + (p.b.mesto || 0) * 25 + (p.b.pristav || 0) * 20 + (p.b.vinice || 0) * 5; if (hasTech(s, p.owner, "cechy") && (p.city || p.b.mesto)) m += 10; return m; }
 function troopCap(p) { return Math.round(p.pop * 80 + p.castle * 300); }
 function costMult(s, cid) { const C = s.clans[cid]; return C.laws ? [1.15, 1, 0.85][C.laws.robota] : 1; }
-function buildCost(s, cid, b, p) { const B = BUILD[b]; const lvl = b === "hrad" ? p.castle : (p.b[b] || 0); return Math.round(B.cost * (1 + lvl * 0.5) * costMult(s, cid) * (hasTech(s, cid, "gotika") ? 0.8 : 1)); }
+function buildCost(s, cid, b, p) { const B = BUILD[b]; const lvl = b === "hrad" ? p.castle : (p.b[b] || 0); return Math.round(B.cost * (1 + lvl * 0.5) * costMult(s, cid) * (hasTech(s, cid, "gotika") ? 0.8 : 1) * (hasCourt(s, cid, "stavitel") ? 0.9 : 1)); }
 function buildLevel(p, b) { return b === "hrad" ? p.castle : (p.b[b] || 0); }
 function canBuild(s, cid, p, b) {
   const B = BUILD[b]; if (p.owner !== cid) return "Kraj ti nepatří.";
@@ -200,8 +200,8 @@ function setDeleg(s, cid, pid, v) { const p = s.provs[pid]; if (!p || p.owner !=
 function maxLoan(s, cid) { return Math.round(300 + clanProvs(s, cid).length * 80); }
 function borrow(s, cid, amt) { const C = s.clans[cid]; amt = Math.floor(amt); const d = sum(C.debts.map(x => x.amount)); if (amt <= 0) return "Zadej částku."; if (d + amt > maxLoan(s, cid)) return `Lombardští bankéři víc nepůjčí (strop ${maxLoan(s, cid)} zl).`; const rate = 0.015 + C.debts.length * 0.003; C.debts.push({ amount: amt, rate }); C.gold += amt; log(s, `Půjčka ${amt} zl, úrok ${r1(rate * 100)} % měsíčně.`, "hospodarstvi", [cid]); return null; }
 function repay(s, cid, i) { const C = s.clans[cid], d = C.debts[i]; if (!d) return "Není."; if (C.gold < d.amount) return "Nedostatek zlata."; C.gold -= d.amount; C.debts.splice(i, 1); return null; }
-function setResearch(s, cid, t) { const C = s.clans[cid]; if (C.techs[t] || !(TECHS[t].req || []).every(r => C.techs[r])) return "Nelze."; C.res.cur = t; return null; }
-const techAvail = (s, cid, t) => !s.clans[cid].techs[t] && (TECHS[t].req || []).every(r => s.clans[cid].techs[r]);
+function setResearch(s, cid, t) { const C = s.clans[cid]; if (!techAvail(s, cid, t)) return "Nelze."; C.res.cur = t; return null; }
+const techAvail = (s, cid, t) => !s.clans[cid].techs[t] && (TECHS[t].req || []).every(r => s.clans[cid].techs[r]) && (!TECHS[t].year || s.year >= TECHS[t].year);
 
 // ---------- zákony a stavy (jen hráč) ----------
 const LAW_EST = {
