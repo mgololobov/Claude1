@@ -73,6 +73,8 @@ function mechTick(s) {
     if (C.horus === "wahanch" && C.maat > 50) C.maat = Math.min(100, C.maat + (C.maat - 50) * 0.01);
     if (C.horus === "necer") { C.maat = Math.min(100, C.maat + 0.1); if (C.estates) C.estates.knezi = Math.min(100, C.estates.knezi + 0.1); }
     if (C.horus === "nacht") for (const p of clanProvs(s, C.id)) if (p.train < 60) p.train = Math.min(60, p.train + 0.8);
+    if (lw(s, C.id, "soudy") === 0) C.maat = Math.min(100, C.maat + 0.06); else if (lw(s, C.id, "soudy") === 2) C.maat = Math.max(0, C.maat - 0.04);
+    if (lw(s, C.id, "cizinci") === 2) for (const x of aliveClans(s)) if (x.cul === "aam" && x.id !== C.id && chance(s, 0.1)) addRel(s, C.id, x.id, 1);
     if (hasTech(s, C.id, "protosin")) for (const x of aliveClans(s)) if (x.cul === "aam" && x.id !== C.id && chance(s, 0.1)) addRel(s, C.id, x.id, 1);
     if (g === "sutech") for (const x of aliveClans(s)) if (x.cul === "aam" || x.cul === "hyk") if (x.id !== C.id && chance(s, 0.1)) addRel(s, C.id, x.id, 1);
   }

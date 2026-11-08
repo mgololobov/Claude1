@@ -23,7 +23,7 @@ function doCmd(s, cid, offId, cmd, arg, arg2) {
       const key = cmd === "zavlaha" ? "agri" : "com", capv = cmd === "zavlaha" ? agriCap(s, p) : comCap(s, p);
       if (p[key] >= capv) return "Nom už je plně rozvinutý.";
       if (!pay(s, cid, cost, gcost)) return `Nedostatek debenů nebo obilí (${cost} debenů, ${gcost} charů).`;
-      let g = (st(c, "spr") / 12 + rnd(s) * 3) * (1 - p[key] / capv * 0.45);
+      let g = (st(c, "spr") / 12 + rnd(s) * 3) * (1 - p[key] / capv * 0.45) * (cmd === "zavlaha" ? [1, 1, 1.1][lw(s, cid, "tresty")] : 1);
       if (cmd === "zavlaha") { g *= [0.85, 1, 1.2][C.laws.robota]; if (s.month < 4) g *= 1.3; }
       g = Math.max(1, Math.round(g));
       p[key] = Math.min(capv, p[key] + g); c.merit += 4; if (cmd === "zavlaha" && C.laws.robota === 2) p.loy = Math.max(0, p.loy - 2);
@@ -77,7 +77,7 @@ function doCmd(s, cid, offId, cmd, arg, arg2) {
       if (!pay(s, cid, cost)) return "Nedostatek debenů.";
       const w = Object.values(s.chars).filter(x => x.st === "wand" && x.loc === p.id);
       c.merit += 2; c.acted = s.turn;
-      if (w.length && chance(s, 0.35 + st(c, "roz") / 180)) {
+      if (w.length && chance(s, 0.35 + st(c, "roz") / 180 + (lw(s, cid, "skoly") === 2 ? 0.1 : 0))) {
         const x = w.sort((a, b) => sum(STAT_IDS.map(k => st(b, k))) - sum(STAT_IDS.map(k => st(a, k))))[0];
         if (chance(s, 0.5 + C.prestige / 1500 + st(c, "roz") / 400)) { x.st = "off"; x.cl = cid; x.loy = rint(s, 55, 80); x.rank = 0; x.merit = 0; return say(`našel muže jménem ${x.n} a ten vstoupil do služby! (${STAT_IDS.map(k => STATS[k].slice(0, 3) + " " + st(x, k)).join(", ")})`); }
         return say(`našel ${x.n}, ale ten službu odmítl.`);
@@ -140,7 +140,7 @@ function doCmd(s, cid, offId, cmd, arg, arg2) {
   return "Neznámý rozkaz.";
 }
 const fmtN = v => Math.round(v).toLocaleString("cs-CZ");
-function researchMult(s, cid) { const C = s.clans[cid]; let m = (hasTech(s, cid, "matematika") ? 1.25 : 1) * (hasTech(s, cid, "papyrdilny") ? 1.1 : 1); if (isPlayer(s, cid) && C.estates) m *= 0.8 + C.estates.pisari / 250; return m; }
+function researchMult(s, cid) { const C = s.clans[cid]; let m = (hasTech(s, cid, "matematika") ? 1.25 : 1) * (hasTech(s, cid, "papyrdilny") ? 1.1 : 1) * [0.9, 1, 1.15][lw(s, cid, "skoly")]; if (isPlayer(s, cid) && C.estates) m *= 0.8 + C.estates.pisari / 250; return m; }
 
 function capture(s, c, by) { c.st = "cap"; c.capBy = by; c.army = null; for (const p of Object.values(s.provs)) if (p.lord === c.id) p.lord = null; for (const C of Object.values(s.clans)) for (const k in C.offices) if (C.offices[k] === c.id) C.offices[k] = null; }
 
@@ -172,7 +172,8 @@ function expeditionReturn(s, c) {
     if (me) log(s, E.tech === "namorni" ? `${c.n} se po bouři vrátil z výpravy „${E.n}“ jen s hrstkou mužů a bez nákladu – jako hrdina příběhu o ztroskotaném námořníkovi ze Střední říše.` : `${c.n} se vrátil z výpravy „${E.n}“ s prázdnou – přepadli je ${E.foe}.`, "vypravy", [c.cl]); return;
   }
   const g = Math.round(rrange(s, E.deben[0], E.deben[1]) * (0.8 + st(c, "spr") / 250) * (E === EXPED.sinaj && hasTech(s, c.cl, "protosin") ? 1.2 : 1));
-  s.flags["exp_" + c.cl] = 1; C.deben += g; C.prestige += E.prestige; if (E.maat) C.maat = Math.min(100, C.maat + E.maat); if (E.cedar) C.cedar += 2; c.merit += 15;
+  const gq = Math.round(g * [1.2, 1, 0.85][lw(s, c.cl, "obchod")]);
+  s.flags["exp_" + c.cl] = 1; C.deben += gq - g; C.deben += g; C.prestige += E.prestige; if (E.maat) C.maat = Math.min(100, C.maat + E.maat); if (E.cedar) C.cedar += 2; c.merit += 15;
   if (me) log(s, `${c.n} se vrátil z výpravy „${E.n}“: ${fmtN(g)} debenů${E.cedar ? ", cedrové dřevo pro dvě stavby" : ""}, sláva +${E.prestige}${E.maat ? ", maat +" + E.maat : ""}.`, "vypravy", [c.cl]);
   else if (E.prestige >= 30) log(s, `${clanName(s, c.cl)}: výprava do země Punt se vrátila s kadidlem a myrhou.`, "svet", [c.cl]);
 }
@@ -203,6 +204,12 @@ const LAW_EST = {
   chramy: [{ knezi: 15, pisari: -4 }, {}, { knezi: -20, pisari: 6 }],
   vojsko: [{ nomarchove: 6, lid: -3 }, {}, { nomarchove: -6, lid: 3 }],
   nastupnictvi: [{}, { knezi: 3 }, { nomarchove: 6, knezi: -6 }],
+  cizinci: [{ lid: 3, pisari: -2 }, {}, { lid: -5, pisari: 4 }],
+  soudy: [{ lid: 5, nomarchove: -10, pisari: 6 }, {}, { nomarchove: 12, lid: -6 }],
+  tresty: [{ lid: 8, nomarchove: -4 }, {}, { lid: -10, nomarchove: 4 }],
+  sypky: [{ pisari: 4, lid: -6 }, {}, { lid: 8, pisari: -3 }],
+  obchod: [{ nomarchove: -4, pisari: 3 }, {}, { knezi: 5, nomarchove: 3 }],
+  skoly: [{ nomarchove: 8, pisari: -6 }, {}, { pisari: 12, nomarchove: -8 }],
 };
 function setLaw(s, cid, law, v) {
   const C = s.clans[cid]; v = +v; if (C.laws[law] === v) return null;
@@ -240,7 +247,7 @@ function trade(s, cid, q) {
   const used = C.last.traded === s.turn ? C.last.tradedQ || 0 : 0, capQ = marketCap(s, cid);
   if (Math.abs(q) + used > capQ) return `Kupci letos tolik nesmění – zbývá ${fmtN(capQ - used)} charů tento měsíc.`;
   if (q > 0) { const d = Math.round(q * s.market.p * 1.25); if (C.deben < d) return `Nákup stojí ${fmtN(d)} debenů.`; C.deben -= d; C.grain += q; if (isPlayer(s, cid)) log(s, `Nakoupeno ${fmtN(q)} charů obilí za ${fmtN(d)} debenů.`, "hospodarstvi", [cid]); }
-  else { q = -q; if (C.grain < q) return "Tolik obilí v sýpkách nemáš."; const d = Math.round(q * s.market.p * 0.8); C.grain -= q; C.deben += d; if (isPlayer(s, cid)) log(s, `Prodáno ${fmtN(q)} charů obilí za ${fmtN(d)} debenů.`, "hospodarstvi", [cid]); }
+  else { q = -q; if (C.grain < q) return "Tolik obilí v sýpkách nemáš."; const d = Math.round(q * s.market.p * (lw(s, cid, "sypky") === 0 ? 1.0 : 0.8)); C.grain -= q; C.deben += d; if (isPlayer(s, cid)) log(s, `Prodáno ${fmtN(q)} charů obilí za ${fmtN(d)} debenů.`, "hospodarstvi", [cid]); }
   C.last.traded = s.turn; C.last.tradedQ = used + Math.abs(q); return null;
 }
 

@@ -40,6 +40,7 @@ function genOfficer(s, cl, cul, loc, o = {}) {
 }
 
 // ---------- dotazy ----------
+const lw = (s, cid, k) => { const C = s.clans[cid]; const v = C && C.laws ? C.laws[k] : undefined; return v == null ? 1 : v; };
 const clanProvs = (s, cid) => Object.values(s.provs).filter(p => p.owner === cid);
 const officers = (s, cid) => Object.values(s.chars).filter(c => c.cl === cid && c.st === "off");
 const officersIn = (s, pid) => Object.values(s.chars).filter(c => c.st === "off" && c.loc === pid && c.cl === s.provs[pid].owner && !c.army && !c.away && !c.moving);
@@ -75,7 +76,7 @@ function newGame(opts = {}) {
     opts: { diff: opts.diff != null ? +opts.diff : 1, fog: opts.fog !== false }, clans: {}, provs: {}, chars: {}, armies: [], wars: [], truces: {}, alliances: {}, marriages: {}, trade: {},
     events: [], log: [], battles: [], history: [], flags: {}, over: null, flood: { h: null, next: null, hist: [] }, market: { p: 2, cap: 0 }, nextArmy: 1 };
   for (const c of Sc.clans) s.clans[c.id] = Object.assign({}, c, { provs: undefined, techs: Object.fromEntries((c.techs || []).map(t => [t, 1])), alive: true, leader: null, capital: c.cap, deben: 0, grain: 0, kone: 0, cedar: 0,
-    tombN: c.tomb || "hrobka", tax: 2, rel: {}, res: { cur: null, pts: 0 }, vassalOf: c.vassalOf || null, tributeTo: null, reign: 0, tomb: { stage: 0, left: 0, active: false }, laws: { robota: 1, nomarchove: 1, chramy: 1, vojsko: 1, nastupnictvi: 0 }, lawCd: {},
+    tombN: c.tomb || "hrobka", tax: 2, rel: {}, res: { cur: null, pts: 0 }, vassalOf: c.vassalOf || null, tributeTo: null, reign: 0, tomb: { stage: 0, left: 0, active: false }, laws: { robota: 1, nomarchove: 1, chramy: 1, vojsko: 1, nastupnictvi: 0, cizinci: 1, soudy: c.type === "nom" ? 2 : 1, tresty: 1, sypky: 1, obchod: 1, skoly: 1 }, lawCd: {},
     offices: {}, last: {}, medjay: !!c.medjay, census: 0, hebsed: 0, mods: [] });
   for (const C of Object.values(s.clans)) if (C.cul === "eg" || C.cul === "hyk") for (const t of OLD_TECHS) C.techs[t] = 1;
   if (scen === "sip") { for (const id of ["thebes", "hyksos"]) for (const t of ["zapas", "sklady", "clun"]) s.clans[id].techs[t] = 1; s.clans.hyksos.techs.protosin = 1; }
@@ -187,7 +188,7 @@ function taxMult(s, cid) {
   m *= 1 + officeVal(s, cid, "sypky") / 1200 + officeVal(s, cid, "vezir") / 2500;
   m *= [0.95, 1, 1.08][C.laws.nomarchove];
   if (stateGod(s, cid) === "herisef") m *= 1.04;
-  if (hasTech(s, cid, "clun")) m *= 1.02;
+  if (hasTech(s, cid, "clun")) m *= 1.02; if (lw(s, cid, "sypky") === 2) m *= 0.95;
   if (isPlayer(s, cid)) m *= diffIncome(s);
   return m;
 }
@@ -200,7 +201,7 @@ function provDeben(s, p) {
   const L = chr(s, p.lord), spr = L ? st(L, "spr") : 30;
   let g = (40 + p.com * 4 + p.pop * 1.5) * (0.55 + p.loy / 220) * (0.85 + spr / 400);
   if (hasTech(s, p.owner, "pisari")) g *= 1.1;
-  if (hasTech(s, p.owner, "vcelarstvi")) g *= 1.04; if (hasTech(s, p.owner, "tkalci")) g *= 1.05; if (hasTech(s, p.owner, "pecete")) g *= 1.03;
+  if (hasTech(s, p.owner, "vcelarstvi")) g *= 1.04; if (lw(s, p.owner, "cizinci") === 2 && p.ter === "delta") g *= 1.05; if (hasTech(s, p.owner, "tkalci")) g *= 1.05; if (hasTech(s, p.owner, "pecete")) g *= 1.03;
   g *= 1 + officeVal(s, p.owner, "pokladnik") / 800;
   g *= [0.92, 1, 1.1][C.laws.nomarchove];
   if (isPlayer(s, p.owner)) g *= diffIncome(s) * (0.9 + (C.estates ? C.estates.pisari : 50) / 500);
@@ -223,8 +224,9 @@ function clanBudget(s, cid) {
   const allT = ps.map(p => p.troops).concat(s.armies.filter(a => a.cl === cid).map(a => a.t));
   const offs = officers(s, cid);
   const ex = { dvur: 30 + (C.t === "král" ? Math.min(170, ps.length * 45) : 0), platy: sum(offs.map(c => (c.id === C.leader ? 0 : c.rank * 10))), vojsko: Math.round(sum(allT.map(t => men(t) * 0.04 + (t.vozy || 0) * 0.4))), zoldneri: sum(allT.map(t => (t.medzajove || 0) * TROOPS.medzajove.upd)),
+    soudy: lw(s, cid, "soudy") === 0 ? 150 : 0, skoly: lw(s, cid, "skoly") === 2 ? 100 : 0,
     stavby: sum(ps.map(p => (p.b.chram || 0) * 30 + Math.max(0, p.castle - 1) * 10)) + (C.laws.chramy === 0 ? sum(ps.map(p => (p.b.chram || 0) * 40)) : 0), tribut: 0 };
-  if (C.type === "kmen") { ex.platy = 0; ex.vojsko = 0; ex.stavby = 0; }
+  if (C.type === "kmen") { ex.platy = 0; ex.vojsko = 0; ex.stavby = 0; ex.soudy = 0; ex.skoly = 0; }
   if (C.vassalOf) ex.tribut += inc.zupy * 0.12;
   if (C.tributeTo) ex.tribut += inc.zupy * 0.1;
   for (const k in inc) inc[k] = Math.round(inc[k]); for (const k in ex) ex[k] = Math.round(ex[k]);

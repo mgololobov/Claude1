@@ -17,9 +17,9 @@ function routeState(s, R) {
   return { open: true, owners };
 }
 function routeIncome(s, cid) {
-  let g = 0; for (const R of ROUTES) { const st_ = routeState(s, R); if (!st_.open) continue; const mine = R.provs.filter(id => s.provs[id].owner === cid).length; if (!mine) continue;
+  let g = 0; const lm = [0.85, 1, 1.2][lw(s, cid, "obchod")] * (lw(s, cid, "cizinci") === 0 ? 0.9 : 1); for (const R of ROUTES) { const st_ = routeState(s, R); if (!st_.open) continue; const mine = R.provs.filter(id => s.provs[id].owner === cid).length; if (!mine) continue;
     const allFriendly = st_.owners.every(o => o === cid || friendly(s, cid, o) || (s.trade[pairKey(cid, o)])); g += R.base * (R.id === "jih" && hasTech(s, cid, "sehel") ? 1.3 : 1) * mine / R.provs.length * (allFriendly ? 1.25 : 1) * (mine === R.provs.length ? 1.2 : 1); }
-  return g;
+  return g * lm;
 }
 
 // ---------- úkoly rádců ----------

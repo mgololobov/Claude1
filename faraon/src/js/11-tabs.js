@@ -1,5 +1,5 @@
 // Záložky hry.
-const TABS = [["mapa", "Mapa"], ["plan", "Plán měsíce"], ["prehled", "Palác"], ["zupy", "Nomy"], ["urednici", "Úředníci"], ["vojsko", "Vojsko"], ["diplo", "Diplomacie"], ["hosp", "Hospodářství"], ["chramy", "Chrámy a stavy"], ["rod", "Rod"], ["vedeni", "Vědění"], ["kronika", "Kronika"], ["hra", "Hra"]];
+const TABS = [["mapa", "Mapa"], ["plan", "Plán měsíce"], ["prehled", "Palác"], ["zupy", "Nomy"], ["urednici", "Úředníci"], ["vojsko", "Vojsko"], ["diplo", "Diplomacie"], ["hosp", "Hospodářství"], ["chramy", "Chrámy a stavy"], ["zakony", "Zákony"], ["rod", "Rod"], ["vedeni", "Vědění"], ["kronika", "Kronika"], ["hra", "Hra"]];
 const myProvs = () => clanProvs(S, me());
 const freeOffs = () => officers(S, me()).filter(c => !cmdCheck(S, me(), c));
 function provLink(p) { return `<a class="lnk" data-a="selProv" data-x='["${p.id}"]' style="cursor:pointer;text-decoration:underline dotted">${esc(p.n)}</a>`; }
@@ -162,7 +162,6 @@ function tChramy() {
   ${card(`${hg("necer")} Státní bůh`, `<div class="people">${Object.entries(STATE_GODS).map(([k, G]) => { const cur = stateGod(S, me()) === k, own = S.provs[G.at].owner === me();
       return `<div class="person${cur ? "" : own ? "" : " done"}" style="${cur ? "outline:3px solid var(--gold)" : ""}"><div class="pn">${esc(G.n)}${cur ? " – <span class=\"good\">uctíván dvorem</span>" : ""}</div><div class="pr">kultovní centrum: ${esc(S.provs[G.at].n)}</div><div class="small">${esc(G.d)}</div><div class="small"><b>${esc(G.eff)}</b></div>${cur ? "" : `<div class="acts">${btn("Povýšit jeho kult", "god", [k], own ? null : "Musíš držet kultovní centrum")}</div>`}</div>`; }).join("")}</div><p class="small muted">Změna kultu stojí maat −6 a přízeň kněží −12 a lze ji opakovat nejdřív po třech letech.${(P(S).lawCd.god || 0) > S.turn ? ` Znovu za ${P(S).lawCd.god - S.turn} měs.` : ""}</p>`, "wide")}
   ${card("Zádušní nadace", `<p>Nadací: <b>${C.nadace || 0}</b> z ${NADACE_MAX}. Každá stojí 400 charů obilí měsíčně, přidává maat a po smrti panovníka zajistí nástupci maat +2 a důstojný pohřeb i bez hotové hrobky.</p><div class="row">${btn("Založit nadaci (3 000 d., 10 tis. ch.)", "nadace", [], (C.nadace || 0) >= NADACE_MAX ? "Víc nadací kněží neudrží" : null, "go")}</div><p class="small muted">Nomarcha Hapdžefai z Asjútu (12. dynastie) dal do své hrobky vytesat deset smluv s kněžími, kteří mu za pole a příděly měli navěky přinášet obětiny.</p>`)}
-  ${card("Zákony", tbl(["Zákon", "Nastavení"], laws), "wide")}
   ${card("Chrámy", tbl(["Nom", "Bůh", "#Úroveň"], temples) + '<p class="small muted">Chrám staví úředník rozkazem „Řídit stavbu“. Každá úroveň dává maat, spokojenost a body vědění.</p>')}</div>`;
 }
 

@@ -33,6 +33,7 @@ Hra je jeden soubor `dist/index.html`: stačí ho otevřít v prohlížeči, fun
 - V období záplavy pěší vojsko bez lodí často nepostoupí.
 - Další události: zpustlá svatyně předků, dopis mrtvému, spor o hranici nomů (Chnumhotep II.), poutníci v Abydu, posel z Byblu, výchova prince.
 - Zádušní nadace podle smluv nomarchy Hapdžefaje z Asjútu; převoz obilí lodí mezi obecními sýpkami nomů; zajatci z bitev jako pracovní síla nebo osadníci (papyrus Brooklyn); postoj vojska (útočný, vyvážený, opatrný); svátek Mina při sklizni.
+- Jedenáct zákonů ve vlastní záložce, podle oblastí: robota, hranice a cizinci (stéla ze Semny), soudnictví (vezír, kenbet, nomarchové), tresty a útěky z roboty (papyrus Brooklyn), postavení nomarchů, výchova písařů, nástupnictví, chrámové statky, státní sýpky, výpravy a obchod, vojsko; u každé možnosti účinek a dopad na stavy.
 - Odkaz rodu: bodové hodnocení vlády pro porovnání her.
 - Rod, sňatky, nástupnictví (i spoluvláda), vědění od nilometru po válečný vůz a námořní lodě.
 

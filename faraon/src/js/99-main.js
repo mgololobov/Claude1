@@ -59,7 +59,7 @@ ACT.theme = () => { const r = document.documentElement, dark = r.dataset.theme ?
 function slotInfo(n) { try { const t = localStorage.getItem(SLOT(n)); if (!t) return null; const x = JSON.parse(t); return `${x.clans[x.player].n} – ${monthShort(x.month)} ${x.bce} př. n. l.`; } catch (e) { return null; } }
 function importFile(file) { const r = new FileReader(); r.onload = () => { try { const x = JSON.parse(r.result); if (!x.provs || !x.clans) throw 0; S = x; TERR.key = null; render(); toast("Hra nahrána."); } catch (e) { toast("Soubor není uložená hra."); } }; r.readAsText(file); }
 
-const TAB_FN = { prehled: tPrehled, plan: tPlan, mapa: tMapa, zupy: tZupy, urednici: tUrednici, vojsko: tVojsko, diplo: tDiplo, hosp: tHosp, chramy: tChramy, rod: tRod, vedeni: tVedeni, kronika: tKronika, hra: tHra };
+const TAB_FN = { prehled: tPrehled, plan: tPlan, mapa: tMapa, zupy: tZupy, urednici: tUrednici, vojsko: tVojsko, diplo: tDiplo, hosp: tHosp, chramy: tChramy, zakony: tZakony, rod: tRod, vedeni: tVedeni, kronika: tKronika, hra: tHra };
 function render() {
   EMB_N = 0;
   if (!TAB_FN[SEL.tab]) SEL.tab = "prehled";
@@ -84,6 +84,7 @@ function boot() {
   try { const t = localStorage.getItem(THEME_KEY); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
   try { const t = localStorage.getItem(SAVE_KEY); if (t) S = JSON.parse(t); } catch (e) { S = null; }
   if (!S || !S.provs || S.v !== 1) S = newGame({ scen: "sip", clan: "thebes" });
+  for (const C of Object.values(S.clans)) if (C.laws) for (const k of Object.keys(LAWS)) if (C.laws[k] == null) C.laws[k] = 1; // starší uložené hry
   SEL.prov = P(S).capital; SEL.ngScen = S.scen; SEL.ngClan = S.player;
   const tip = document.createElement("div"); tip.id = "tip"; document.body.appendChild(tip);
   const f = document.createElement("input"); f.type = "file"; f.id = "impFile"; f.accept = ".json,application/json"; f.style.display = "none"; f.onchange = () => f.files[0] && importFile(f.files[0]); document.body.appendChild(f);

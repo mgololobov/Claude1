@@ -88,7 +88,7 @@ function offLoyTarget(s, c) {
   let t = 50 + c.rank * 4 + (C.maat - 50) / 3 + Math.min(15, C.prestige / 60) + (c.dyn ? 35 : 0);
   for (const k of c.traits) t += (TRAITS[k] && TRAITS[k].loy) || 0;
   if (Object.values(C.offices || {}).includes(c.id)) t += 8;
-  if (stateGod(s, c.cl) === "re") t += 3; if (C.horus === "sehertaui") t += 4; if (C.horus === "sema") t += 6;
+  if (stateGod(s, c.cl) === "re") t += 3; t += [-2, 0, 4][lw(s, c.cl, "soudy")]; if (C.horus === "sehertaui") t += 4; if (C.horus === "sema") t += 6;
   t += [10, 0, -12][C.laws.nomarchove] + (hasTech(s, c.cl, "vezir") ? 5 : 0) + officeVal(s, c.cl, "vezir") / 12;
   if (isPlayer(s, c.cl) && C.estates) t += (C.estates.nomarchove - 50) / 5;
   if (C.deben < 0 || C.grain < 0) t -= 15;
@@ -121,7 +121,7 @@ function loyaltyTick(s) {
   for (const p of Object.values(s.provs)) {
     p.loy = clamp(p.loy + (provLoyTarget(s, p) - p.loy) * 0.15, 0, 100);
     p.hunger = Math.max(0, p.hunger - 0.03);
-    if (p.loy < 14 && !isKmen(s, p.owner) && chance(s, 0.12) && p.unrest < s.turn) {
+    if (p.loy < 14 && !isKmen(s, p.owner) && chance(s, 0.12 * [1.3, 1, 0.6][lw(s, p.owner, "tresty")]) && p.unrest < s.turn) {
       p.unrest = s.turn + 3; lossApply(p.troops, men(p.troops) * 0.15);
       if (isPlayer(s, p.owner)) queueEvent(s, "nepokoje", { pid: p.id }); else p.loy += 10;
       log(s, `V nomu ${p.n} se bouří lid (spokojenost ${Math.round(p.loy)}).`, "zupy", [p.owner]);
@@ -158,7 +158,7 @@ function economyTick(s) {
   // stavby
   for (const p of Object.values(s.provs)) {
     if (!p.build || p.siege) continue; const C = s.clans[p.owner];
-    p.build.left -= (s.month < 4 ? 1.5 : 1) * (C.laws.robota === 2 ? 1.25 : C.laws.robota === 0 ? 0.85 : 1);
+    p.build.left -= (s.month < 4 ? 1.5 : 1) * (C.laws.robota === 2 ? 1.25 : C.laws.robota === 0 ? 0.85 : 1) * [0.95, 1, 1.1][lw(s, p.owner, "tresty")];
     if (p.build.left <= 0) { const b = p.build.b; if (b === "pevnost") { p.castle++; p.dur = durMax(s, p); } else p.b[b] = (p.b[b] || 0) + 1; if (b === "chram") C.maat = Math.min(100, C.maat + 3); C.prestige += 5; if (isPlayer(s, p.owner)) log(s, `Dokončena stavba v nomu ${p.n}: ${BUILD[b].n} (úroveň ${buildLevel(p, b)}).`, "stavby", [p.owner]); p.build = null; }
   }
   // obecní zásoby se pomalu kazí
@@ -183,7 +183,7 @@ function harvestTick(s) {
     const H = provHarvest(s, p), food = provFood(s, p), tax = C.type === "kmen" ? 0 : provTax(s, p);
     C.grain += tax;
     const left = food - tax - provNeed(p);
-    if (left >= 0) { p.stock = Math.min(Math.round(p.pop * 1000 * (1.5 + (p.b.sypka || 0) * 0.7) * (hasTech(s, p.owner, "klenba") ? 1.3 : 1)), p.stock + Math.round(left * 0.6)); p.hunger = Math.max(0, p.hunger - 0.2); p.pop = r1(p.pop * (p.loy > 35 ? 1.015 : 1.005)); }
+    if (left >= 0) { p.stock = Math.min(Math.round(p.pop * 1000 * (1.5 + (p.b.sypka || 0) * 0.7) * (hasTech(s, p.owner, "klenba") ? 1.3 : 1) * [0.8, 1, 1.4][lw(s, p.owner, "sypky")]), p.stock + Math.round(left * 0.6)); p.hunger = Math.max(0, p.hunger - 0.2); p.pop = r1(p.pop * (p.loy > 35 ? 1.015 : 1.005) * (lw(s, p.owner, "cizinci") === 2 && p.ter === "delta" ? 1.005 : 1)); }
     else {
       const def = -left, fromStock = Math.min(p.stock, def); p.stock -= fromStock; const rest = def - fromStock;
       if (rest >= 1) { let d = rest / provNeed(p); if (hasTech(s, p.owner, "nilometr")) d *= 0.67; p.hunger = clamp(p.hunger + d * 1.5, 0, 1); p.pop = r1(Math.max(0.5, p.pop * (1 - d * 0.22))); p.loy = Math.max(0, p.loy - d * 50); (hungry[p.owner] = hungry[p.owner] || []).push([p.id, Math.round(rest)]); }

@@ -59,7 +59,7 @@ Object.assign(EVENT_Q, { spiknuti: "amenemhat", vdova: "rolnik", odmena: "ebana_
 function moreEventOpts(s) {
   const C = P(s), opts = [], L = leaderOf(s, s.player);
   const nile = someOwnProv(s, p => TERRAIN[p.ter].nile && p.ter !== "katarakt"); if (nile) opts.push(["hroch", { pid: nile.id }], ["skudci", { pid: nile.id }]);
-  const east = someOwnProv(s, p => p.ter === "delta" || p.nb.some(n => s.provs[n].owner === "aamu")); if (east) opts.push(["osadnici", { pid: east.id }]);
+  const east = someOwnProv(s, p => p.ter === "delta" || p.nb.some(n => s.provs[n].owner === "aamu")); if (east && lw(s, s.player, "cizinci") !== 0) opts.push(["osadnici", { pid: east.id }]);
   if (C.grain > 60000) opts.push(["pozar", {}]);
   if (L && C.t === "král" && age(s, L) >= 20 && (!s.flags.spiknuti_t || s.turn - s.flags.spiknuti_t > 120)) opts.push(["spiknuti", {}]);
   if (s.provs.l1.owner === s.player && !s.flags.apis) opts.push(["apis", {}]);

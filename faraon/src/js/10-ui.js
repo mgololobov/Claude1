@@ -48,7 +48,7 @@ const ICON = {
   prehled: "M3 3h7v7H3zM12 3h7v4h-7zM12 9h7v10h-7zM3 12h7v7H3z", plan: "M4 5h2v2H4z M9 6h10 M4 11h2v2H4z M9 12h10 M4 17h2v2H4z M9 18h10", mapa: "M2 5l6-2 6 2 6-2v14l-6 2-6-2-6 2z M8 3v14 M14 5v14",
   zupy: "M3 19V10l8-6 8 6v9z M9 19v-5h4v5", urednici: "M8 8a3 3 0 1 0 0-.1z M2 19c0-4 3-6 6-6s6 2 6 6 M16 9a2.5 2.5 0 1 0 0-.1z M14 13c3 0 6 2 6 5",
   vojsko: "M4 20L18 6 M15 3h6v6 M20 20L6 6 M3 9V3h6", diplo: "M3 12l5-5 4 4 4-4 5 5-5 5-4-4-4 4z", hosp: "M4 19h14 M6 19V9 M10 19V6 M14 19V11 M18 19V8", chramy: "M3 19h16 M5 19V9 M9 19V9 M13 19V9 M17 19V9 M3 9h16 M4 9l7-5 7 5",
-  rod: "M11 3v5 M5 12v-2h12v2 M5 12v3 M17 12v3 M11 8v7 M3 15h4v4H3z M9 15h4v4H9z M15 15h4v4h-4z", vedeni: "M5 4h10l3 3v13H5z M8 9h7 M8 13h7 M8 17h4", kronika: "M5 3h11l3 3v15H5z M8 8h8 M8 12h8 M8 16h5", hra: "M11 8a3 3 0 1 0 0 .1z M11 2v3 M11 17v3 M2 11h3 M17 11h3",
+  rod: "M11 3v5 M5 12v-2h12v2 M5 12v3 M17 12v3 M11 8v7 M3 15h4v4H3z M9 15h4v4H9z M15 15h4v4h-4z", vedeni: "M5 4h10l3 3v13H5z M8 9h7 M8 13h7 M8 17h4", zakony: "M11 3v16 M4 19h14 M5 6h12 M5 6l-3 6a3 3 0 0 0 6 0z M17 6l-3 6a3 3 0 0 0 6 0z", kronika: "M5 3h11l3 3v15H5z M8 8h8 M8 12h8 M8 16h5", hra: "M11 8a3 3 0 1 0 0 .1z M11 2v3 M11 17v3 M2 11h3 M17 11h3",
 };
 const icon = k => ICON[k] ? `<svg class="ico" viewBox="0 0 22 22" aria-hidden="true"><path d="${ICON[k]}"/></svg>` : "";
 

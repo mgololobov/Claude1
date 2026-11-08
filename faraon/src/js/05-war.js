@@ -167,7 +167,7 @@ function raids(s) {
     const [from, q] = pick(s, targets); const n = Math.round(men(from.troops) * 0.45); if (n < 150) continue;
     if (hasTech(s, q.owner, "hlidky") && chance(s, 0.5)) { if (isPlayer(s, q.owner)) log(s, `Pouštní hlídky včas zahlédly nájezdníky (${T.n}) a ti se stáhli.`, "valka", [q.owner]); continue; }
     const t = {}; for (const k of TROOP_IDS) if (from.troops[k]) { t[k] = Math.round(from.troops[k] * 0.45); from.troops[k] -= t[k]; }
-    const b = battle(s, { cl: T.id, t, train: from.train, cmd: 1 }, { cl: q.owner, t: q.troops, train: q.train, cmd: 1, fort: (1 + q.castle * 0.08) * monRaidWall(s, q) }, q.id, { kind: "nájezd" });
+    const b = battle(s, { cl: T.id, t, train: from.train, cmd: 1 }, { cl: q.owner, t: q.troops, train: q.train, cmd: 1, fort: (1 + q.castle * 0.08) * monRaidWall(s, q) * [1.3, 1, 0.85][lw(s, q.owner, "cizinci")] }, q.id, { kind: "nájezd" });
     for (const k of TROOP_IDS) if (t[k]) from.troops[k] = (from.troops[k] || 0) + t[k];
     const O = s.clans[q.owner];
     if (b.win === "A") { const loot = Math.round(Math.min(O.deben * 0.06, 2500)), gl = Math.round(Math.min(q.stock * 0.3, 15000)); O.deben -= loot; q.stock -= gl; q.loy = Math.max(0, q.loy - 6); q.pop = r1(q.pop * 0.985); T.deben += loot; T.grain += gl;

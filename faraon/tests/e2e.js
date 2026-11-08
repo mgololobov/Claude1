@@ -6,7 +6,7 @@ const tabSel = t => `[data-a="tab"][data-x='["${t}"]']`;
   const b = await chromium.launch(); const pg = await b.newPage({ viewport: { width: 1280, height: 900 } });
   pg.on("pageerror", e => errors.push("pageerror: " + e.message)); pg.on("console", m => { if (m.type() === "error") errors.push("console: " + m.text()); });
   await pg.goto("file://" + path.join(__dirname, "..", "dist", "index.html"));
-  const tabs = ["prehled", "plan", "mapa", "zupy", "urednici", "vojsko", "diplo", "hosp", "chramy", "rod", "vedeni", "kronika", "hra"];
+  const tabs = ["prehled", "plan", "mapa", "zupy", "urednici", "vojsko", "diplo", "hosp", "chramy", "zakony", "rod", "vedeni", "kronika", "hra"];
   const clearModal = async () => { for (let i = 0; i < 8; i++) { const ch = await pg.$("#modal:not(.hidden) .ch"); if (!ch) break; await ch.click(); } };
   const checkTab = async (label) => { const bad = await pg.$$eval("main .bad", els => els.map(e => e.textContent).filter(t => t.includes("Chyba"))); if (bad.length) errors.push(`${label}: ${bad[0]}`); };
   for (const scen of ["sip", "fip", "anch"]) {
@@ -31,6 +31,7 @@ const tabSel = t => `[data-a="tab"][data-x='["${t}"]']`;
     for (const t of tabs) { await pg.click(tabSel(t)); await checkTab(scen + "/po válce/" + t); }
     for (const z of ["horni", "delta", "nubie", "cele"]) { await pg.click(tabSel("mapa")); await pg.click(`[data-a="zoom"][data-x='["${z}"]']`); }
     await pg.click(tabSel("chramy")); const mb = await pg.$('[data-a="mon"]:not([disabled])'); if (mb) await mb.click(); await checkTab(scen + "/stavby");
+    await pg.click(tabSel("zakony")); for (const lb of (await pg.$$('[data-a="law"]:not([disabled])')).slice(0, 3)) { await lb.click().catch(() => {}); } await checkTab(scen + "/zakony"); await pg.click(tabSel("chramy"));
     const gb = await pg.$('[data-a="god"]:not([disabled])'); if (gb) await gb.click(); await checkTab(scen + "/buh");
     await pg.click(tabSel("rod")); const hb = await pg.$('[data-a="horus"]:not([disabled])'); if (hb) await hb.click(); await checkTab(scen + "/horus");
     await pg.click(tabSel("zupy")); const ln = await pg.$$("main a.lnk"); if (ln.length > 1) { await ln[1].click(); const cb = await pg.$('[data-a="capital"]:not([disabled])'); if (cb) await cb.click(); await clearModal(); await checkTab(scen + "/sidlo"); }

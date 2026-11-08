@@ -247,3 +247,6 @@ svg.map .army { cursor: pointer; }
 header { gap: 6px 10px; }
 .res { padding: 2px 8px 2px 3px; } .res b { font-size: 14px; }
 @media (max-width: 1450px) { header .realm .rk { display: none; } .season .sd { display: none; } }
+
+.lawopt { border-top: 1px dotted var(--line); padding: 4px 0 2px; }
+.lawopt.on { background: color-mix(in srgb, var(--gold) 14%, transparent); border-radius: 4px; padding: 4px 6px 2px; }
