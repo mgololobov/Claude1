@@ -7,7 +7,7 @@ const SCENARIOS = {
     n: "≈ 2070 př. n. l. – Válka Obou zemí (První přechodné období)",
     bce: 2070,
     d: "Stará říše se rozpadla. Na severu vládnou z Hérakleopole králové z rodu Chetiho, na jihu se Thébané pod Intefem II. prohlásili králi Horního i Dolního Egypta. Mezi nimi stojí mocní nomarchové Asjútu, Hermopole a Beni Hasanu. Nápisy té doby líčí nízké záplavy a hlad. O Thinidu a posvátný Abydos se bojuje.",
-    climate: -0.9,
+    climate: -0.6,
     clans: [
       { id: "thebes", n: "Thébské království", house: "Intefovci (11. dynastie)", t: "král", type: "dyn", cul: "eg", col: "#b5452c", emb: "was", aggr: 0.65, cap: "u4", tomb: "saff hrobka v et-Tárifu",
         provs: ["u1", "u2", "u3", "u4", "u5", "u6", "u7", "u8", "u9", "o_kha"], techs: ["pisari", "nilometr"], maat: 50, prestige: 160 },
@@ -107,7 +107,7 @@ const SCENARIOS = {
     n: "≈ 2120 př. n. l. – Anchtifi z Moally (První přechodné období)",
     bce: 2120,
     d: "Nomarcha Anchtifi z Hefatu (Moally) píše ve své hrobce, že ho „Hor přivedl do nomu Edfu“, aby v něm obnovil pořádek, a že se spojil s Elefantinou. Proti němu stojí Théby a Koptos, kde se rod Intefů právě prohlásil králi. Na severu vládne Hérakleopolis, které Anchtifi uznává. Záplavy jsou nízké a podle Anchtifiho „celý Horní Egypt umírá hladem“.",
-    climate: -1.3,
+    climate: -1.0,
     clans: [
       { id: "anch", n: "Nomy Hefat a Edfu", house: "Anchtifi z Moally", t: "nomarcha", type: "nom", cul: "eg", col: "#c9a227", emb: "star", aggr: 0.6, cap: "u3", tomb: "skalní hrobka v Moalle", vassalOf: "herak",
         provs: ["u2", "u3"], techs: ["pisari", "nilometr"], maat: 50, prestige: 90 },
@@ -128,6 +128,41 @@ const SCENARIOS = {
       { n: "Intef (I.)", cl: "thebes", by: 2160, r: "leader", s: [66, 64, 60, 64], t: ["ctizadostivy"], note: "první z Intefů s královským titulem (Sehertaui), vládl ≈ 2125–2112 př. n. l." },
       { n: "Intef (II.)", cl: "thebes", by: 2150, r: "off", dyn: 1, rank: 4, s: [78, 70, 68, 74], t: ["vojevudce"], note: "budoucí Intef II. Wahanch; pokládá se za bratra Intefa I. (příbuzenství není jisté)" },
       { n: "Neferkare", cl: "herak", by: 2165, r: "leader", s: [52, 46, 60, 58], t: [], note: "král jmenovaný v Anchtifiho hrobce, obvykle řazený k hérakleopolským králům; ztotožnění je nejisté" },
+    ],
+  };
+})();
+
+// Čtvrtý scénář: poslední fáze sjednocení za Montuhotepa II. (≈ 2040 př. n. l.).
+(() => {
+  const base = id => Object.assign({}, SCENARIOS.fip.clans.find(c => c.id === id));
+  SCENARIOS.mt2 = {
+    n: "≈ 2040 př. n. l. – Montuhotep II. (sjednocení)",
+    bce: 2040,
+    d: "Thébský král Montuhotep II. (vládl ≈ 2055–2004) drží jih od Elefantiny po Per-Nemtej a chystá rozhodující tažení na sever. Hérakleopolští králové slábnou, Asjút stále stojí při nich, nomarchové Hermopole a Beni Hasanu váhají. Jména posledních hérakleopolských králů a přesný průběh války nejsou jisté.",
+    climate: -0.5,
+    clans: [
+      Object.assign(base("thebes"), { provs: ["u1", "u2", "u3", "u4", "u5", "u6", "u7", "u8", "u9", "u10", "u11", "u12", "o_kha", "o_dak"], techs: ["pisari", "nilometr", "texty", "flotila", "pevnosti", "kamenictvi", "bronz"], maat: 60, prestige: 260, aggr: 0.7 }),
+      Object.assign(base("herak"), { provs: ["u14", "u17", "u18", "u19", "u20", "u21", "u22", "fa", "l1", "l2", "l13", "l3", "l5", "l6", "lx", "l12", "l16", "l18", "lav", "o_bah"], maat: 40, prestige: 170 }),
+      Object.assign(base("asjut"), { provs: ["u13"] }),
+      Object.assign(base("hermo"), { vassalOf: null }), Object.assign(base("oryx"), {}),
+      base("kerma"), base("wawat"), base("medzaj"), base("aamu"), base("lib"),
+    ],
+    sizes: { u4: 5 },
+    rel: [["thebes", "herak", -60], ["thebes", "asjut", -60], ["herak", "asjut", 60], ["thebes", "hermo", 25], ["thebes", "oryx", 30], ["herak", "hermo", 0], ["herak", "aamu", -40], ["herak", "lib", -30], ["thebes", "medzaj", 30]],
+    wars: [["thebes", "herak"], ["thebes", "asjut"]],
+    hist: [
+      { n: "Montuhotep II. (Nebhepetre)", cl: "thebes", by: 2076, r: "leader", s: [86, 78, 74, 82], t: ["vojevudce", "ctizadostivy"], note: "vládl ≈ 2055–2004 př. n. l.; sjednotil Egypt a postavil terasovitý zádušní chrám v Dér el-Bahrí" },
+      { n: "Tem", cl: "thebes", by: 2070, r: "fam", sex: "f", sp: "Montuhotep II. (Nebhepetre)", note: "hlavní manželka, matka Montuhotepa III." },
+      { n: "Neferu (II.)", cl: "thebes", by: 2072, r: "fam", sex: "f", note: "královna, sestra a manželka Montuhotepa II.; hrobka v Dér el-Bahrí" },
+      { n: "Montuhotep (III.)", cl: "thebes", by: 2046, r: "kid", sex: "m", father: "Montuhotep II. (Nebhepetre)", note: "budoucí Montuhotep III. (Sanchkare), vyslal výpravu do Puntu" },
+      { n: "Dagi", cl: "thebes", by: 2085, r: "off", rank: 4, s: [45, 40, 72, 84], t: ["hospodar"], note: "vezír Montuhotepa II. (hrobka v Thébách)" },
+      { n: "Cheti (pokladník)", cl: "thebes", by: 2090, r: "off", rank: 3, s: [42, 38, 70, 82], t: ["verny"], note: "kancléř a pokladník Montuhotepa II., vedl výpravu do Asuánu" },
+      { n: "Henenu", cl: "thebes", by: 2090, r: "off", rank: 3, s: [58, 52, 60, 74], t: [], note: "správce Montuhotepa II. a III.; později vedl výpravu přes Vádí Hammámát k Rudému moři" },
+      { n: "Meketre", cl: "thebes", by: 2070, r: "off", rank: 2, s: [40, 35, 68, 78], t: ["hospodar"], note: "mladý správce, později vrchní správce; z jeho hrobky pocházejí slavné dřevěné modely" },
+      { n: "Merikare", cl: "herak", by: 2095, r: "leader", s: [56, 50, 64, 60], t: [], note: "hérakleopolský král; zda vládl až do konce války, není jisté" },
+      { n: "Cheti (II.)", cl: "asjut", by: 2095, r: "leader", s: [66, 64, 58, 62], t: ["stateny"], note: "nomarcha Asjútu, věrný Hérakleopoli" },
+      { n: "Džehutinacht", cl: "hermo", by: 2085, r: "leader", s: [55, 52, 62, 64], t: [], note: "nomarcha Zaječího nomu, syn Nehriho (datace přibližná)" },
+      { n: "Baket (II.)", cl: "oryx", by: 2080, r: "leader", s: [55, 55, 58, 62], t: [], note: "nomarcha Oryxového nomu (hrobka v Beni Hasanu, datace přibližná)" },
     ],
   };
 })();

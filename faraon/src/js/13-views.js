@@ -51,6 +51,7 @@ function tPrehled() {
   </div>
   <div class="grid">
     ${card(`${ricon("urednici", 20)} Úkoly rádců`, missionsHtml())}
+    ${card(`${hg("sema")} Úspěchy`, `<div class="row">${Object.entries(ACH).map(([k, A]) => `<span class="pill ${(C.ach || {})[k] != null ? "good" : ""}" title="${esc(A.d)}">${(C.ach || {})[k] != null ? "✔ " : ""}${esc(A.n)}</span>`).join("")}</div><p class="small muted">Najetím myší uvidíš, co je potřeba.</p>`)}
     ${card(`${ricon("vojsko", 20)} Zajatci`, `<p>Zajatců: <b>${fmt(C.zajatci || 0)}</b>. Získáš je ve vítězných bitvách.</p><div class="row">${btn("Poslat na stavby (300 na stavbu)", "capBuild", [], (C.zajatci || 0) >= 300 ? null : "Málo zajatců")} ${btn("Usadit u sídla jako rolníky", "capSettle", [], (C.zajatci || 0) >= 200 ? null : "Málo zajatců")}</div><p class="small muted">Vítězové odváděli zajatce jako pracovní sílu: Ahmose, syn Ebany, si zapsal každého, koho odvedl, a papyrus Brooklyn (13. dynastie) uvádí v jedné domácnosti desítky asijských služebníků.</p>`)}
     ${card(`${ricon("urednici", 20)} Rádci hlásí`, alertsHtml())}
     ${card(`${hg("sema")} Síla rodů (počet nomů)`, lineChart(series, world.map(e => e.d)))}
@@ -153,6 +154,6 @@ function renderModal() {
   const m = document.getElementById("modal"); const ev = S.events[0];
   if (!ev) { m.classList.add("hidden"); m.innerHTML = ""; return; }
   const v = eventView(S, ev), who = eventPerson(ev);
-  m.innerHTML = `<div class="box" role="dialog" aria-modal="true"><div class="ehead">${who ? portrait(who, 72) : ""}<div><div class="muted small">${esc(dateStr(S))}</div><h2>${esc(v.t)}</h2></div></div><p class="etx">${esc(v.tx)}</p>${v.q ? `<blockquote class="papyr">„${esc(v.q.t)}“<cite>${esc(v.q.src)}</cite></blockquote>` : ""}${v.ch.map((c, i) => `<button class="b ch" data-a="event" data-x="[${i}]"><b>${esc(c.t)}</b>${c.d ? `<br><span class="small muted">${esc(c.d)}</span>` : ""}</button>`).join("")}${S.events.length > 1 ? `<p class="small muted">Další zprávy čekají: ${S.events.length - 1}</p>` : ""}</div>`;
+  m.innerHTML = `<div class="box" role="dialog" aria-modal="true"><div class="ehead">${who ? portrait(who, 72) : ""}<div><div class="muted small">${esc(dateStr(S))}</div><h2>${esc(v.t)}</h2></div></div><p class="etx">${esc(v.tx)}</p>${v.battle ? battleChart(v.battle) : ""}${v.q ? `<blockquote class="papyr">„${esc(v.q.t)}“<cite>${esc(v.q.src)}</cite></blockquote>` : ""}${v.ch.map((c, i) => `<button class="b ch" data-a="event" data-x="[${i}]"><b>${esc(c.t)}</b>${c.d ? `<br><span class="small muted">${esc(c.d)}</span>` : ""}</button>`).join("")}${S.events.length > 1 ? `<p class="small muted">Další zprávy čekají: ${S.events.length - 1}</p>` : ""}</div>`;
   m.classList.remove("hidden");
 }

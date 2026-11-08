@@ -12,12 +12,13 @@ ACT.play = () => { AUTO.on = !AUTO.on; clearTimeout(AUTO.timer); if (AUTO.on) AU
 ACT.speed = v => { AUTO.ms = +v || 1600; };
 ACT.zoom = k => { setZoom(k); };
 ACT.cmdSel = (id, v) => { SEL.cmd[id] = v; };
-ACT.cmd = id => { const k = SEL.cmd[id] || val("cs_" + id); const a1 = val("p1_" + id), a2 = val("p2_" + id); if (a1 != null) SEL["p1_" + id] = a1; return doCmd(S, me(), id, k, a1, a2); };
+ACT.cmd = id => { S.flags.tut_cmd = 1; const k = SEL.cmd[id] || val("cs_" + id); const a1 = val("p1_" + id), a2 = val("p2_" + id); if (a1 != null) SEL["p1_" + id] = a1; return doCmd(S, me(), id, k, a1, a2); };
 ACT.advise = id => { const c = chr(S, id); if (!c || c.acted === S.turn) return "Úředník už jedná."; aiDomestic(S, me(), c, true); if (c.acted !== S.turn) return "Rádce nic rozumného nenašel (málo debenů nebo obilí?)."; };
-ACT.adviseAll = () => { let n = 0; for (const c of freeOffs()) { aiDomestic(S, me(), c, true); if (c.acted === S.turn) n++; } toast(`Rádce zadal ${n} rozkazů.`); };
+ACT.adviseAll = () => { S.flags.tut_cmd = 1; let n = 0; for (const c of freeOffs()) { aiDomestic(S, me(), c, true); if (c.acted === S.turn) n++; } toast(`Rádce zadal ${n} rozkazů.`); };
 ACT.planDone = () => { SEL.planDone = !SEL.planDone; };
 ACT.deleg = (pid, v, el) => { const p = S.provs[pid]; if (p && p.owner === me()) p.deleg = !!(el && el.checked); };
-ACT.send = pid => { const t = val("at_" + pid), f = val("ap_" + pid), c = val("ac_" + pid), st_ = val("as_" + pid); SEL["at_" + pid] = t; SEL["ap_" + pid] = f; SEL["as_" + pid] = st_; return sendArmy(S, me(), pid, t, f, c ? [c] : [], st_); };
+ACT.send = pid => { const t = val("at_" + pid), f = val("ap_" + pid), c = val("ac_" + pid), st_ = val("as_" + pid), tc = val("at2_" + pid); SEL["at_" + pid] = t; SEL["ap_" + pid] = f; SEL["as_" + pid] = st_; SEL["at2_" + pid] = tc; return sendArmy(S, me(), pid, t, f, c ? [c] : [], st_, tc); };
+ACT.tutOff = () => { S.flags.tutOff = 1; };
 ACT.nadace = () => foundNadace(S, me());
 ACT.ship = pid => { const t = val("gt_" + pid), q = val("gq_" + pid); SEL["gt_" + pid] = t; return shipGrain(S, me(), pid, t, q); };
 ACT.capBuild = () => captivesBuild(S, me());

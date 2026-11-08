@@ -172,7 +172,7 @@ function floodFactor(h) {
 }
 function floodWord(h) { if (h == null) return "neznámá"; return h < 12 ? "hladová" : h < 13 ? "nouzová" : h < 14 ? "slabá" : h < 15 ? "dobrá" : h < 17 ? "hojná" : h < 18 ? "vysoká" : "ničivá"; }
 const PASTORAL = { udoli: 0.2, delta: 0.45, fajjum: 0.35, nubie: 1.6, katarakt: 1.4, oaza: 1.4, poust: 3.0 };
-const NEED_PER_PERSON = 3.2; // charů obilí na osobu a rok
+const NEED_PER_PERSON = 3.1; // charů obilí na osobu a rok
 function agriCap(s, p) { let m = 60; const o = p.owner; if (hasTech(s, o, "hraze") && (p.ter === "udoli" || p.ter === "delta")) m += 10; if (hasTech(s, o, "fajjum")) m += p.ter === "fajjum" ? 30 : 5; return m + (typeof monAgri === "function" ? monAgri(s, p) : 0) + (o && s.clans[o] && stateGod(s, o) === "sobek" && (p.ter === "fajjum" || p.ter === "delta") ? 5 : 0); }
 function comCap(s, p) { let m = p.comMax + (p.b.dilny || 0) * 20 + (p.b.pristav || 0) * 15; if (hasTech(s, p.owner, "fajans") && p.flags.includes("c")) m += 5; if (p.id === "u1" && hasTech(s, p.owner, "sehel")) m += 5; if (p.owner && s.clans[p.owner] && stateGod(s, p.owner) === "ptah") m += 4; return m; }
 function provHarvest(s, p, h) {
@@ -223,7 +223,8 @@ function clanBudget(s, cid) {
   for (const x of aliveClans(s)) if (x.tributeTo === cid) inc.tribut += sum(clanProvs(s, x.id).map(p => provDeben(s, p))) * 0.1;
   const allT = ps.map(p => p.troops).concat(s.armies.filter(a => a.cl === cid).map(a => a.t));
   const offs = officers(s, cid);
-  const ex = { dvur: 30 + (C.t === "král" ? Math.min(170, ps.length * 45) : 0), platy: sum(offs.map(c => (c.id === C.leader ? 0 : c.rank * 10))), vojsko: Math.round(sum(allT.map(t => men(t) * 0.04 + (t.vozy || 0) * 0.4))), zoldneri: sum(allT.map(t => (t.medzajove || 0) * TROOPS.medzajove.upd)),
+  // čím víc pokladů dvůr hromadí, tím víc stojí dary dvořanům, chrámům a cizím posům
+  const ex = { dvur: 30 + (C.t === "král" ? Math.min(170, ps.length * 45) : 0) + Math.round(Math.max(0, C.deben - 25000) * 0.025), platy: sum(offs.map(c => (c.id === C.leader ? 0 : c.rank * 10))), vojsko: Math.round(sum(allT.map(t => men(t) * 0.04 + (t.vozy || 0) * 0.4))), zoldneri: sum(allT.map(t => (t.medzajove || 0) * TROOPS.medzajove.upd)),
     soudy: lw(s, cid, "soudy") === 0 ? 150 : 0, skoly: lw(s, cid, "skoly") === 2 ? 100 : 0,
     stavby: sum(ps.map(p => (p.b.chram || 0) * 30 + Math.max(0, p.castle - 1) * 10)) + (C.laws.chramy === 0 ? sum(ps.map(p => (p.b.chram || 0) * 40)) : 0), tribut: 0 };
   if (C.type === "kmen") { ex.platy = 0; ex.vojsko = 0; ex.stavby = 0; ex.soudy = 0; ex.skoly = 0; }
@@ -236,7 +237,7 @@ function clanBudget(s, cid) {
   const gex = { vojsko: Math.round(soldiers * RATION_SOLDIER * (C.cul === "eg" || C.cul === "hyk" ? 1 : 0.5) * (hasTech(s, cid, "pekarny") ? 0.9 : 1)), urednici: sum(offs.map(c => (c.id === C.leader ? 0 : RANKS[c.rank].pay))), dvur: 300 + ps.length * 100 + (C.t === "král" ? Math.min(1000, ps.length * 250) : 0), ztraty: Math.round(C.grain * spoilRate(s, cid)) };
   return { inc, ex, net, gex, gnet: -sum(Object.values(gex)) };
 }
-function spoilRate(s, cid) { const lv = sum(clanProvs(s, cid).map(p => p.b.sypka || 0)); return Math.max(0.003, 0.012 - lv * 0.0012 - officeVal(s, cid, "sypky") / 10000 - (hasTech(s, cid, "klenba") ? 0.002 : 0)); }
+function spoilRate(s, cid) { const lv = sum(clanProvs(s, cid).map(p => p.b.sypka || 0)); return Math.max(0.003, 0.012 - lv * 0.0012 - officeVal(s, cid, "sypky") / 10000 - (hasTech(s, cid, "klenba") ? 0.002 : 0)) + clamp((s.clans[cid].grain - 500000) / 50e6, 0, 0.02); } // obrovské zásoby se špatně hlídají a kazí
 function yearTaxEstimate(s, cid, h) { return sum(clanProvs(s, cid).map(p => provTax(s, p, h))); }
 
 // ---------- úřady ----------

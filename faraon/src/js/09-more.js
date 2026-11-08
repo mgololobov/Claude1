@@ -49,6 +49,8 @@ const MISSIONS = {
   theby2: { n: "Hnízdo Intefovců", d: "Dobýt Théby", ok: s => owns(s, "u4"), r: "sláva +80", rf: s => { P(s).prestige += 80; } },
   // 2120 Anchtifi a ostatní
   elef: { n: "Spojenec z Elefantiny", d: "Ovládnout Elefantinu nebo ji mít za poddanou", ok: s => owns(s, "u1"), r: "sláva +30", rf: s => { P(s).prestige += 30; } },
+  buhenk: { n: "Pevnosti kataraktu", d: "Držet Buhen i Semnu", ok: s => owns(s, "n_buhen") && owns(s, "n_semna"), r: "sláva +40", rf: s => { P(s).prestige += 40; } },
+  deffufak: { n: "Chrám Kermy", d: "Dokončit Západní deffufu", ok: s => monDone(s, "deffufa") && monState(s, "deffufa").by === s.player, r: "maat +5, sláva +50", rf: s => { P(s).maat = Math.min(100, P(s).maat + 5); P(s).prestige += 50; } },
   elefk: { n: "Brána Egypta", d: "Ovládnout Elefantinu", ok: s => owns(s, "u1"), r: "sláva +60, 3 000 debenů", rf: s => { P(s).prestige += 60; P(s).deben += 3000; } },
 };
 function missionList(s) {
@@ -58,7 +60,8 @@ function missionList(s) {
   if (sc !== "sip" && p === "thebes") L.unshift("asjut", "herakl", "memfis");
   if (sc !== "sip" && p === "herak") L.unshift("thinis", "delta", "theby2");
   if (sc === "anch" && p === "anch") L.unshift("elef", "theby2");
-  if (p === "kush" || p === "kerma") L.unshift("elefk");
+  if (p === "kush" || p === "kerma") L.unshift("elefk", "buhenk", "deffufak");
+  if (sc === "mt2" && p === "thebes") L.unshift("thinis");
   return L;
 }
 function missionTick(s) {

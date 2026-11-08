@@ -16,6 +16,8 @@ const MONUMENTS = {
   obelisk: { n: "Obelisk v Iunu (Heliopoli)", at: "l13", stages: 2, deben: 5000, grain: 20000, maat: 5, prestige: 80, need2: "kamen",
     d: "Obelisk z asuánské žuly, jaký dal Senusret I. vztyčit v Heliopoli (stojí dodnes).", eff: "maat +5, sláva +80; potřebuješ i Elefantinu (žulové lomy)" },
 };
+MONUMENTS.deffufa = { n: "Západní deffufa", at: "n_kerma", stages: 4, deben: 5000, grain: 25000, maat: 8, prestige: 100,
+  d: "Obří chrám z nepálených cihel v Kermě, dodnes vysoký kolem 18 metrů – srdce kultu kušitských vládců.", eff: "maat +8, sláva +100, Kerma +10 spokojenosti" };
 const MON_IDS = Object.keys(MONUMENTS);
 function monState(s, id) { const p = s.provs[MONUMENTS[id].at]; return (p.mons && p.mons[id]) || { stage: 0, left: 0, active: false, by: null }; }
 function monDone(s, id) { return monState(s, id).stage >= MONUMENTS[id].stages; }
@@ -46,7 +48,7 @@ function monTick(s) {
     st_.active = false; st_.stage++; const C = s.clans[st_.by];
     if (st_.stage < M.stages) { C.prestige += 10; if (isPlayer(s, st_.by)) log(s, `${M.n}: dokončena ${st_.stage}. fáze z ${M.stages}.`, "stavby", [st_.by]); continue; }
     C.maat = Math.min(100, C.maat + M.maat); C.prestige += M.prestige; if (M.knezi && C.estates) C.estates.knezi = Math.min(100, C.estates.knezi + M.knezi);
-    if (id === "delbahri") p.loy = Math.min(100, p.loy + 10);
+    if (id === "delbahri" || id === "deffufa") p.loy = Math.min(100, p.loy + 10);
     if (id === "fajjum") p.pop = r1(p.pop + 10);
     if (id === "katarakt") for (const q of ["n_buhen", "n_semna"]) { const x = s.provs[q]; x.castle = Math.min(6, x.castle + 2); x.dur = durMax(s, x); }
     if (id === "zdi") for (const q of ["l14", "l20"]) { const x = s.provs[q]; x.castle = Math.min(6, x.castle + 2); x.dur = durMax(s, x); }
@@ -59,6 +61,6 @@ function monRaidWall(s, p) { return (monDone(s, "zdi") && (p.id === "l14" || p.i
 function monResearch(s, cid) { return monDone(s, "karnak") && s.provs.u4.owner === cid ? 2 : 0; }
 function monCount(s, cid) { return sum(MON_IDS.map(id => { const st_ = monState(s, id); return st_.by === cid ? st_.stage : 0; })); }
 function aiMonuments(s, cid) {
-  const C = s.clans[cid]; if (C.t !== "král" || C.deben < 15000) return;
+  const C = s.clans[cid]; if ((C.t !== "král" && C.cul !== "nub") || C.deben < 15000) return;
   for (const id of MON_IDS) if (!monCheck(s, cid, id)) { const c = monCost(s, cid, id); if (C.deben > c.deben * 3 && C.grain > c.grain * 4) { startMon(s, cid, id); return; } }
 }

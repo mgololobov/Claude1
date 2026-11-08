@@ -17,6 +17,8 @@ jobs:
           node-version: 20
       - name: Sestavení
         run: python3 build.py
+      - name: Testy pravidel
+        run: node tests/rules.test.js
       - name: Simulace (20 let za každý rod)
         run: node tests/sim.test.js 240
       - name: Instalace prohlížeče

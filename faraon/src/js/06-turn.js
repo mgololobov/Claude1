@@ -190,6 +190,7 @@ function harvestTick(s) {
     }
     p._lastH = Math.round(H); p._lastTax = Math.round(tax);
   }
+  s.flags.nohunger = hungry[s.player] ? 0 : (s.flags.nohunger || 0) + 1;
   for (const [cid, list] of Object.entries(hungry)) {
     if (isPlayer(s, cid)) queueEvent(s, "hlad", { list });
     else { const C = s.clans[cid]; for (const [pid, d] of list) { if (C.grain > d * 2) { C.grain -= d; s.provs[pid].stock += d; s.provs[pid].loy += 8; } } }
@@ -363,6 +364,7 @@ function aiDomestic(s, cid, c, adviser) {
 }
 function aiClan(s, cid) {
   const C = s.clans[cid]; if (!C.alive) return;
+  aiMech(s, cid);
   if (C.type !== "kmen") for (const c of officers(s, cid)) if (c.acted !== s.turn) aiDomestic(s, cid, c);
   if (s.turn % 12 === 0) aiOffices(s, cid);
   if (C.type === "kmen") return;
@@ -378,7 +380,7 @@ function aiClan(s, cid) {
   for (const e of enemies) {
     if (s.armies.filter(a => a.cl === cid).length >= 2) break;
     const opts = [];
-    for (const p of clanProvs(s, cid)) for (const n of p.nb) { const q = s.provs[n]; if (q.owner !== e && !(atWar(s, cid, q.owner))) continue; if (q.siege) continue; const myP = troopPower(s, cid, p.troops, { train: p.train }) * 0.7, def = provDefense(s, q) + sum(s.armies.filter(a => a.loc === q.id && atWar(s, a.cl, cid)).map(a => troopPower(s, a.cl, a.t, { def: true, train: a.train }))); if (men(p.troops) > 900 && (myP > def * 1.1 || (myP > def * 0.85 && realmPower(s, cid) > realmPower(s, e) * 1.5))) opts.push([p, q, myP / Math.max(1, def)]); }
+    for (const p of clanProvs(s, cid)) for (const n of p.nb) { const q = s.provs[n]; if (q.owner !== e && !(atWar(s, cid, q.owner))) continue; if (q.siege) continue; const myP = troopPower(s, cid, p.troops, { train: p.train }) * 0.7, def = provDefense(s, q) + sum(s.armies.filter(a => a.loc === q.id && atWar(s, a.cl, cid)).map(a => troopPower(s, a.cl, a.t, { def: true, train: a.train }))); if (men(p.troops) > 700 && (myP > def * 1.1 || (myP > def * 0.85 && realmPower(s, cid) > realmPower(s, e) * 1.5))) opts.push([p, q, myP / Math.max(1, def)]); }
     if (opts.length) { opts.sort((x, y) => y[2] - x[2]); const [p, q] = opts[0]; const cm = officersIn(s, p.id).filter(c => c.id !== C.leader || chance(s, 0.3)).sort((a, b) => st(b, "ved") - st(a, "ved")).slice(0, 2).map(c => c.id); sendArmy(s, cid, p.id, q.id, 0.7, cm); }
   }
   // posily ze zázemí do frontových nomů (sousední nomy, pochod do měsíce)
@@ -399,7 +401,7 @@ function aiClan(s, cid) {
     if (C.tributeTo === o && realmPower(s, cid) < realmPower(s, o) * 1.1) continue;
     const ratio = realmPower(s, cid) / Math.max(1, realmPower(s, o)), r = rel(s, cid, o);
     const ppl = isPlayer(s, o) ? [1.2, 1, 0.85][s.opts.diff] : 1;
-    if (ratio > 1.4 && r < 5 && chance(s, C.aggr * 0.05 * ppl * (O.type === "kmen" ? 0.6 : 1))) { declareWar(s, cid, o, ratio > 2.5 ? "ze síly" : "o hranice"); break; }
+    if (ratio > 1.3 && r < 5 && chance(s, C.aggr * 0.05 * ppl * (O.type === "kmen" ? 0.6 : 1))) { declareWar(s, cid, o, ratio > 2.5 ? "ze síly" : "o hranice"); break; }
   }
   // mír
   for (const e of enemies) {
@@ -444,7 +446,7 @@ function endTurn(s) {
   delegated(s);
   for (const C of aliveClans(s)) if (!isPlayer(s, C.id)) aiClan(s, C.id);
   moveArmies(s); siegeTick(s); raids(s);
-  economyTick(s); monTick(s); mechTick(s); nadaceTick(s); missionTick(s);
+  economyTick(s); monTick(s); mechTick(s); nadaceTick(s); missionTick(s); achTick(s);
   if (s.month === 0) { s.flood.next = rollFlood(s); }
   if (s.month === FLOOD_MONTH) floodTick(s);
   if (s.month === HARVEST_MONTH) harvestTick(s);
@@ -464,8 +466,8 @@ function endTurn(s) {
   scriptedEvents(s);
   // posun kalendáře
   s.turn++; s.month++;
-  if (s.month >= 12) { s.month = 0; s.bce--; log(s, `Pět dní navíc (epagomenální): slaví se narození Usira, Hora, Sutecha, Eset a Nebthet. Začíná nový rok.`, "nil"); yearLife(s); if (C) { if (hasTech(s, s.player, "hvezdy")) C.maat = Math.min(100, C.maat + 2); if (hasTech(s, s.player, "sothis")) C.maat = Math.min(100, C.maat + 1); } }
-  randomEvents(s);
+  if (s.month >= 12) { s.month = 0; s.bce--; yearAnnal(s); log(s, `Pět dní navíc (epagomenální): slaví se narození Usira, Hora, Sutecha, Eset a Nebthet. Začíná nový rok.`, "nil"); yearLife(s); if (C) { if (hasTech(s, s.player, "hvezdy")) C.maat = Math.min(100, C.maat + 2); if (hasTech(s, s.player, "sothis")) C.maat = Math.min(100, C.maat + 1); } }
+  randomEvents(s); xaiEvents(s);
   checkEnd(s);
   snapshot(s);
 }

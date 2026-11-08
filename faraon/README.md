@@ -11,6 +11,8 @@ Hra je jeden soubor `dist/index.html`: stačí ho otevřít v prohlížeči, fun
 
 - **≈ 2120 př. n. l. – Anchtifi z Moally**: nomarcha Hefatu, který podle nápisů ve své hrobce ovládl Edfu a bojoval s Thébami a Koptem za velkého hladu; Intef I. v Thébách, Hérakleopolis na severu.
 
+- **≈ 2040 př. n. l. – Montuhotep II.**: poslední fáze sjednocení; vezír Dagi, pokladník Cheti, správci Henenu a Meketre, královny Tem a Neferu, vzpoura Thinidy ve 14. roce vlády.
+
 ## Co hra obsahuje
 
 - 48 nomů od Kermy po Deltu s egyptskými jmény, bohy a surovinami; mapa se skutečným tokem Nilu a ramen v Deltě.
@@ -34,6 +36,11 @@ Hra je jeden soubor `dist/index.html`: stačí ho otevřít v prohlížeči, fun
 - Další události: zpustlá svatyně předků, dopis mrtvému, spor o hranici nomů (Chnumhotep II.), poutníci v Abydu, posel z Byblu, výchova prince.
 - Zádušní nadace podle smluv nomarchy Hapdžefaje z Asjútu; převoz obilí lodí mezi obecními sýpkami nomů; zajatci z bitev jako pracovní síla nebo osadníci (papyrus Brooklyn); postoj vojska (útočný, vyvážený, opatrný); svátek Mina při sklizni.
 - Jedenáct zákonů ve vlastní záložce, podle oblastí: robota, hranice a cizinci (stéla ze Semny), soudnictví (vezír, kenbet, nomarchové), tresty a útěky z roboty (papyrus Brooklyn), postavení nomarchů, výchova písařů, nástupnictví, chrámové statky, státní sýpky, výpravy a obchod, vojsko; u každé možnosti účinek a dopad na stavy.
+- Bitevní taktiky (šik kopiníků, salvy lučištníků, rychlý útok, léčka) a zpráva o bitvě s průběhem po kolech.
+- Soupeři používají bohy, Horova jména, zákony, nadace, zajatce i taktiky; sami nabízejí sňatky, spojenectví a obchod, posílají dary a žádají tribut.
+- Kuš: Západní deffufa jako velká stavba, egyptské sochy v Kermě, lučištníci Ta-Seti, pohřeb v mohyle, vlastní úkoly.
+- Letopis po letech (výška Nilu a hlavní události jako na Palermské desce), úspěchy, průvodce prvními měsíci.
+- Na mapě plují lodě po Nilu, v období achet je vidět zaplavená niva, chrámy a dokončené stavby.
 - Odkaz rodu: bodové hodnocení vlády pro porovnání her.
 - Rod, sňatky, nástupnictví (i spoluvláda), vědění od nilometru po válečný vůz a námořní lodě.
 
@@ -54,5 +61,6 @@ Citáty z dochovaných textů (Ponaučení pro Merikarea, Ptahhotep, Výmluvný 
 - `src/js/0*.js` – pravidla (data, scénáře, hospodářství, rozkazy, válka, běh měsíce), bez prohlížeče
 - `src/js/1*.js`, `99-main.js` – rozhraní
 - `python3 build.py` – sestaví `dist/index.html`
+- `node tests/rules.test.js` – testy jednotlivých pravidel
 - `node tests/sim.test.js 240` – odehraje 20 let za každý hratelný rod v obou scénářích a hlídá chyby
 - `node tests/e2e.js` – proklikání v prohlížeči (Playwright)

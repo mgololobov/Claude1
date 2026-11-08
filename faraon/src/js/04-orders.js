@@ -173,8 +173,9 @@ function expeditionReturn(s, c) {
   }
   const g = Math.round(rrange(s, E.deben[0], E.deben[1]) * (0.8 + st(c, "spr") / 250) * (E === EXPED.sinaj && hasTech(s, c.cl, "protosin") ? 1.2 : 1));
   const gq = Math.round(g * [1.2, 1, 0.85][lw(s, c.cl, "obchod")]);
+  if (E === EXPED.punt && me) s.flags.punt_ok = 1;
   s.flags["exp_" + c.cl] = 1; C.deben += gq - g; C.deben += g; C.prestige += E.prestige; if (E.maat) C.maat = Math.min(100, C.maat + E.maat); if (E.cedar) C.cedar += 2; c.merit += 15;
-  if (me) log(s, `${c.n} se vrátil z výpravy „${E.n}“: ${fmtN(g)} debenů${E.cedar ? ", cedrové dřevo pro dvě stavby" : ""}, sláva +${E.prestige}${E.maat ? ", maat +" + E.maat : ""}.`, "vypravy", [c.cl]);
+  if (me) log(s, `${c.n} se vrátil z výpravy „${E.n}“: ${fmtN(gq)} debenů${E.cedar ? ", cedrové dřevo pro dvě stavby" : ""}, sláva +${E.prestige}${E.maat ? ", maat +" + E.maat : ""}.`, "vypravy", [c.cl]);
   else if (E.prestige >= 30) log(s, `${clanName(s, c.cl)}: výprava do země Punt se vrátila s kadidlem a myrhou.`, "svet", [c.cl]);
 }
 

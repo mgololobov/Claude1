@@ -77,6 +77,7 @@ function provPanel(p) {
       h += `<h4>Vyslat vojsko</h4>` + (targets.length ? `<div class="row">${sel("at_" + p.id, targets.map(([q, path]) => [q.id, `${q.n} – ${q.owner === me() ? "vlastní" : S.clans[q.owner].n} (${path.length} ${path.length === 1 ? "pochod" : "pochody"})`]), SEL["at_" + p.id])}
         ${sel("ap_" + p.id, [["0.25", "čtvrtina"], ["0.5", "polovina"], ["0.75", "tři čtvrtiny"], ["1", "všichni"]], SEL["ap_" + p.id] || "0.75")}
         ${sel("ac_" + p.id, [["", "bez velitele"]].concat(cmds.map(c => [c.id, `${c.n} (velení ${st(c, "ved")})`])), SEL["ac_" + p.id] || (cmds.sort((a, b) => st(b, "ved") - st(a, "ved"))[0] || {}).id || "")}
+        ${sel("at2_" + p.id, Object.entries(TACTICS).map(([k, x]) => [k, "taktika: " + x.n]), SEL["at2_" + p.id] || "sik", `title="Šik zastaví vozy, salvy rozstřílí šik, rychlý útok rozpráší lučištníky; léčka závisí na moudrosti velitele."`)}
         ${sel("as_" + p.id, Object.entries(STANCES).map(([k, x]) => [k, "postoj: " + x.n]), SEL["as_" + p.id] || "vyvazeny")}
         ${btn("Vyslat", "send", [p.id], null, "go")}</div><div class="small muted">Útočný postoj: silnější úder, ale větší ztráty a vytrvá déle. Opatrný: menší ztráty, ale ustoupí dřív.</div><p class="small muted">Cíle: vlastní a spojenecké nomy (přesun) a nomy nepřátel, se kterými válčíš. Válku vyhlásíš v Diplomacii.</p>` : '<p class="small muted">Žádný dosažitelný cíl – nejsi ve válce.</p>');
     }
@@ -148,7 +149,6 @@ function tHosp() {
 // ---------- Chrámy a stavy ----------
 function tChramy() {
   const C = P(S), tc = tombCost(S, me());
-  const laws = Object.entries(LAWS).map(([k, Lw]) => tr([`<b>${Lw.n}</b><div class="small muted">${Lw.d}</div>`, sel("law_" + k, Lw.opts.map((o, i) => [i, o]), C.laws[k], `data-a="law" data-x='["${k}"]'`) + ((C.lawCd[k] || 0) > S.turn ? `<div class="small muted">změna možná za ${C.lawCd[k] - S.turn} měs.</div>` : "")]));
   const temples = myProvs().filter(p => p.b.chram).map(p => tr([provLink(p), esc(p.god), tdn(p.b.chram)]));
   const EST_D = { knezi: "maat a chrámová kázeň", nomarchove: "věrnost úředníků", pisari: "výnos debenů a vědění", lid: "spokojenost nomů" };
   return `<div class="grid">
@@ -199,9 +199,13 @@ function tVedeni() {
 }
 
 // ---------- Kronika ----------
+function annalsCard() {
+  const A = (S.annals || []).slice().reverse();
+  return card(`${hg("pan")} Letopis po letech`, (A.length ? `<div class="log" style="max-height:420px"><table><thead><tr><th>Rok</th><th>Panovník</th><th class="n">Nil</th><th class="n">Nomy</th><th>Události</th></tr></thead><tbody>${A.map(a => `<tr><td class="n">≈ ${a.y}</td><td>${esc(a.r)}<div class="small muted">${a.ry}. rok vlády</div></td><td class="n">${a.h ? dec(a.h) + " l." : "?"}</td><td class="n">${a.n}</td><td class="small">${a.ev.map(esc).join("<br>") || "—"}</td></tr>`).join("")}</tbody></table></div>` : '<p class="muted small">První zápis přibude na konci roku.</p>') + '<p class="small muted">Tak vedli Egypťané své letopisy: Palermská deska zapisuje ke každému roku vlády hlavní události a výšku záplavy v loktech.</p>', "wide");
+}
 function tKronika() {
   const f = SEL.logF; const l = S.log.filter(x => f === "vse" || (f === "moje" ? x.cl && x.cl.includes(me()) : f === "svet" ? !x.cl || !x.cl.includes(me()) : x.cat === f)).slice(0, 400);
-  return card("Kronika", `<div class="row">${[["moje", "můj rod"], ["svet", "svět"], ["vse", "vše"], ["valka", "války"], ["nil", "Nil"], ["rod", "rody"], ["diplomacie", "diplomacie"], ["rozkazy", "rozkazy"], ["intriky", "intriky"]].map(([k, n]) => btn(f === k ? `<b>${n}</b>` : n, "logF", [k])).join("")}</div><div class="log">${l.map(x => `<div class="lg c-${x.cat}"><span class="tag">${monthShort(x.m)} ${x.y}</span>${esc(x.txt)}</div>`).join("")}</div>`, "wide");
+  return annalsCard() + card("Kronika", `<div class="row">${[["moje", "můj rod"], ["svet", "svět"], ["vse", "vše"], ["valka", "války"], ["nil", "Nil"], ["rod", "rody"], ["diplomacie", "diplomacie"], ["rozkazy", "rozkazy"], ["intriky", "intriky"]].map(([k, n]) => btn(f === k ? `<b>${n}</b>` : n, "logF", [k])).join("")}</div><div class="log">${l.map(x => `<div class="lg c-${x.cat}"><span class="tag">${monthShort(x.m)} ${x.y}</span>${esc(x.txt)}</div>`).join("")}</div>`, "wide");
 }
 
 // ---------- Hra ----------
@@ -219,7 +223,7 @@ function tHra() {
     <span>Semínko</span><input id="ngSeed" type="number" placeholder="náhodné"></div>
     <div class="row">${btn(SEL.ngConfirm ? "<b>Ano, začít</b>" : "Začít novou hru", "newgame", [], null, "go")}</div>
     <p class="small muted">Thébané a Hérakleopolští (2070), Hérakleopolští (2120) nebo Thébané a Hyksósové (1560) jsou velké říše. Anchtifi (2120) má dva nomy a válku se dvěma sousedy. Nomarchové Asjútu, Hermopole, Beni Hasanu nebo kníže Teti začínají s jediným nomem – to je výzva.</p>`)}
-  ${card("Uložené hry", tbl(["#", "Obsah", ""], slots) + `<p class="small muted">Hra se sama ukládá po každém kroku (v tomto prohlížeči).</p><div class="row">${btn("Stáhnout do souboru", "exportSave")} ${btn("Nahrát ze souboru", "importSave")} ${btn("Světlý / tmavý vzhled", "theme")}</div>
+  ${card("Uložené hry", tbl(["#", "Obsah", ""], slots) + `<p class="small muted">Hra se sama ukládá po každém kroku (v tomto prohlížeči).</p><div class="row">${window.self !== window.top ? "" : btn("Stáhnout do souboru", "exportSave")} ${btn("Nahrát ze souboru", "importSave")} ${btn("Světlý / tmavý vzhled", "theme")}</div>
     <h4>Uložení jako text</h4><p class="small muted">Kde stahování nefunguje (např. ve sdílené stránce), zkopíruj hru jako text a ulož si ji kamkoli; vložením textu ji později obnovíš.</p>
     <textarea id="saveTxt" rows="3" style="width:100%;font:12px monospace;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:4px" placeholder="sem se vloží nebo zkopíruje uložená hra">${esc(SEL.saveTxt || "")}</textarea>
     <div class="row">${btn("Zkopírovat hru jako text", "copySave")} ${btn("Načíst hru z textu", "pasteSave")}</div>`)}

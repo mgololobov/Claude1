@@ -250,3 +250,8 @@ header { gap: 6px 10px; }
 
 .lawopt { border-top: 1px dotted var(--line); padding: 4px 0 2px; }
 .lawopt.on { background: color-mix(in srgb, var(--gold) 14%, transparent); border-radius: 4px; padding: 4px 6px 2px; }
+
+.ov-tut { left: 50%; transform: translateX(-50%); top: 12px; width: 340px; max-height: 45%; font-size: 13px; border-color: var(--gold); }
+svg.map .boat { pointer-events: none; }
+@media (prefers-reduced-motion: reduce) { svg.map .boat { display: none; } }
+@media (max-width: 900px) { .ov-tut { order: 0; } }

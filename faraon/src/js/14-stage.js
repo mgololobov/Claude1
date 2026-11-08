@@ -67,6 +67,9 @@ function mapSvg() {
   g += `<ellipse cx="${MX(30.8)}" cy="${MY(29.35)}" rx="13" ry="8" fill="var(--kemet)" opacity="${kemOp * 0.9}"/>`;
   for (const [la, lo, rx, ry] of [[28.35, 28.86, 9, 5], [25.55, 29.2, 12, 4], [25.44, 30.55, 5, 11]]) g += `<ellipse cx="${MX(lo)}" cy="${MY(la)}" rx="${rx}" ry="${ry}" fill="var(--kemet)" opacity="${kemOp * 0.8}"/>`;
   g += `<ellipse cx="${MX(30.62)}" cy="${MY(29.47)}" rx="10" ry="3.5" fill="var(--sea)"/>`;
+  if (S.month < 4) { for (const L of [NILE, BAHR]) g += `<polyline points="${pts(L)}" fill="none" stroke="#3f7fb8" stroke-width="${(L === NILE ? 7 : 4) * f}" stroke-linecap="round" stroke-linejoin="round" opacity=".45"><title>Období achet: Nil zaplavil nivu</title></polyline>`; g += `<polygon points="${pts(DELTA_FAN)}" fill="#3f7fb8" opacity=".22"/>`; }
+  g += `<path id="nilepath" d="M${NILE.slice().reverse().map(([la, lo]) => MX(lo).toFixed(1) + " " + MY(la).toFixed(1)).join(" L")}" fill="none" stroke="none"/>`;
+  for (let i = 0; i < 4; i++) g += `<g class="boat"><path d="M-5 0 L5 0 L3 2 L-3 2Z" fill="#6d4a1f" transform="scale(${Math.max(0.6, f)})"/><path d="M0 0 L0 -7 L4 -1Z" fill="#f3e6c4" stroke="#6d4a1f" stroke-width=".4" transform="scale(${Math.max(0.6, f)})"/><animateMotion dur="${150 + i * 25}s" begin="-${i * 37}s" repeatCount="indefinite" ${i % 2 ? 'keyPoints="1;0" keyTimes="0;1" calcMode="linear"' : ""}><mpath href="#nilepath"/></animateMotion></g>`;
   for (const L of [NILE, NILE_W, NILE_E, NILE_M]) g += `<polyline class="nile" points="${pts(L)}" stroke-width="${L === NILE ? 2.6 * f : 1.6 * f}"/>`;
   g += `<polyline class="nile" points="${pts(BAHR)}" stroke-width="${0.9 * f}" opacity=".7"/>`;
   const reg = [["Středozemní moře", 31.75, 28.0], ["Rudé moře", 25.6, 34.9], ["Libyjská poušť", 27.0, 27.4], ["Východní poušť", 24.6, 33.8], ["SINAJ", 29.6, 33.9], ["NÚBIE", 21.0, 32.6], ["DELTA", 31.25, 31.45], ["HORNÍ EGYPT", 26.6, 33.7], ["DOLNÍ EGYPT", 30.0, 32.4]];
@@ -82,6 +85,8 @@ function mapSvg() {
     // standarta nomu: tyč se znakem rodu
     g += `<line x1="${x}" y1="${y + R * 0.9}" x2="${x}" y2="${y - R * (capf ? 2.1 : 1.6)}" stroke="#2b1d12" stroke-width="${0.9 * f}"/>`;
     g += `<rect class="std" x="${x - R * (capf ? 0.95 : 0.75)}" y="${y - R * (capf ? 2.6 : 2.0)}" width="${R * (capf ? 1.9 : 1.5)}" height="${R * (capf ? 1.4 : 1.1)}" rx="${R * 0.25}" fill="${C.col}" stroke="${war ? "#c4361c" : mine ? "#fff6d8" : "#2b1d12"}" stroke-width="${(war || mine ? 1.4 : 0.7) * f}"/>`;
+    if ((p.b.chram || 0) >= 2) g += `<path d="M${x - R * 2.3} ${y + R * 0.9} l${R * 0.25} -${R * 1.1} h${R * 0.5} l${R * 0.25} ${R * 1.1}z" fill="#efe1bd" stroke="#2b1d12" stroke-width="${0.5 * f}"><title>chrám (úroveň ${p.b.chram})</title></path>`;
+    if (p.mons && MON_IDS.some(id => p.mons[id] && p.mons[id].stage >= MONUMENTS[id].stages)) g += `<path d="M${x + R * 1.0} ${y + R * 0.9} l${R * 0.7} -${R * 1.2} l${R * 0.7} ${R * 1.2}z" fill="#d9b04a" stroke="#2b1d12" stroke-width="${0.5 * f}"><title>dokončená velká stavba</title></path>`;
     if (capf) g += `<circle cx="${x}" cy="${y - R * 1.9}" r="${R * 0.35}" fill="#f2d27a"/>`;
     g += `<circle class="dot" cx="${x}" cy="${y + R * 0.9}" r="${R * 0.35}" fill="#2b1d12"/>`;
     if (p.siege) g += `<circle class="siege" cx="${x}" cy="${y}" r="${R * 2}" stroke-width="${1.6 * f}"/>`;
@@ -118,13 +123,27 @@ function rulerBox() {
 }
 function quoteBar() { const all = Object.values(QUOTES).filter(q => q.od >= S.bce && (!q.tags.includes("sip") || S.scen === "sip")), q = all[(S.turn * 5 + 3) % all.length]; return `<span class="qt">„${esc(q.t)}“</span> <span class="qs">— ${esc(q.src)}</span>`; }
 function alertIcons() { const al = alerts(); if (!al.length) return ""; return `<details class="ov ov-alerts"><summary>${ricon("urednici", 18)} Rádci hlásí <b>${al.length}</b></summary>${alertsHtml(10)}</details>`; }
+function tutorialHtml() {
+  if (S.flags.tutOff || S.turn > 30) return "";
+  const C = P(S), steps = [
+    ["Vyber vědění, které budou písaři zkoumat", !!C.res.cur || Object.keys(C.techs).length > 12 && S.turn > 0, "vedeni"],
+    ["Dej rozkazy úředníkům v Plánu měsíce (nebo nech rozhodnout rádce)", !!S.flags.tut_cmd, "plan"],
+    ["Klepni na nom na mapě a prohlédni si jeho panel", !!SEL.prov, null],
+    ["Ukonči měsíc tlačítkem vpravo nahoře", S.turn >= 1, null],
+    ["Ve 2. měsíci období achet ukáže nilometr výšku záplavy – sleduj ji v Hospodářství", S.turn >= 2, "hosp"],
+    ["Prohlédni si zákony a státního boha", S.turn >= 3 && (!!C.lawCd && Object.keys(C.lawCd).length > 0 || S.flags.tut_laws), "zakony"],
+    ["V Paláci najdeš úkoly rádců a úspěchy", S.turn >= 4, "prehled"],
+  ];
+  const done = steps.filter(x => x[1]).length;
+  return `<div class="ol-h">Průvodce (${done}/${steps.length})</div>${steps.map(([t, ok, tab]) => `<div class="ol-i ${ok ? "" : "warn"}" ${tab ? `data-a="tab" data-x='["${tab}"]'` : ""}>${ok ? "✔" : "○"} ${esc(t)}</div>`).join("")}<div class="row">${btn("Skrýt průvodce", "tutOff")}</div>`;
+}
 function tMapa() {
   if (!SEL.vb) setZoom(SEL.zoom || "cele");
   const p = SEL.prov && S.provs[SEL.prov];
   const mode = SEL.mapMode || "polit";
   return `<div class="stage" id="stage">${mapSvg()}
     ${p ? `<section class="ov ov-left">${btn("✕", "closeProv", [], null, "close")}${provPanel(p)}</section>` : ""}
-    <section class="ov ov-right"><div class="ol-title">Přehled dění</div>${outliner()}</section>
+    <section class="ov ov-right"><div class="ol-title">Přehled dění</div>${tutorialHtml()}${outliner()}</section>
     ${alertIcons()}
     <section class="ov ov-bl">${rulerBox()}</section>
     <section class="ov ov-modes"><div class="mm">${Object.entries(MAP_MODES).map(([k, M]) => `<button class="b${mode === k ? " on" : ""}" data-a="mapMode" data-x='["${k}"]' title="${esc(M.d)}">${M.n}</button>`).join("")}</div>
