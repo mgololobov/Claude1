@@ -3,9 +3,13 @@
 
 function rodsHtml() {
   if (P(S).type === "kmen") return "";
-  const R = rodsOf(S, me()), C = P(S), law = lw(S, me(), "nomarchove");
-  const rows = R.map(r => tr([`${esc(r.n)}${C.rodPriv && C.rodPriv[r.n] ? ' <span title="potvrzená dědičná práva">✦</span>' : ""}`, r.m.length, r.provs.map(id => esc(S.provs[id].n)).join(", ") || "–", r.offs.map(k => esc((OFFICES[k] || { n: k }).n)).join(", ") || "–", r.loy, r.pow]));
-  return `<div class="grid">${card("Rody úředníků", `<p class="small muted">Úředníci patří k rodům; po smrti otce může úřad i správu nomu zdědit syn. Šance na dědění podle zákona o nomarších: ${["dědičné úřady – téměř vždy", "jmenování panovníkem – asi v polovině případů", "omezení moci – jen výjimečně"][law]}. Silné rody se přou mezi sebou a příliš mocný rod se chová jako malý král – tak tomu bylo u nomarchů v Beni Hasanu, Asjútu či Dér el-Berše.</p>${tbl(["Rod (předek)", "#Členů", "Nomy", "Úřady", "#Věrnost", "#Síla"], rows)}`)}</div>`;
+  const R = rodsOf(S, me()), C = P(S), law = lw(S, me(), "nomarchove"), mx = Math.max(1, ...R.map(r => r.pow));
+  const cards = R.map(r => { const head = r.m.slice().sort((a, b) => b.rank - a.rank)[0];
+    return `<div class="rodc"><div class="rodh">${portrait(head, 46)}<div><b>Rod ${esc(r.n)}</b>${C.rodPriv && C.rodPriv[r.n] ? ' <span title="potvrzená dědičná práva">✦</span>' : ""}<div class="small muted">${nPlural(r.m.length, "člen", "členové", "členů")} · hlava ${esc(head.n)}</div></div></div>
+      <div class="rodm">${r.m.map(c => portrait(c, 26)).join("")}</div>
+      ${meter("Síla", r.pow, mx, PG.y)}${meter("Věrnost", r.loy, 100, r.loy < 40 ? PG.r : PG.g)}
+      <div class="small">${r.provs.length ? "Nomy: " + r.provs.map(id => provLink(S.provs[id])).join(", ") : '<span class="muted">bez nomu</span>'}${r.offs.length ? " · úřady: " + r.offs.map(k => esc((OFFICES[k] || { n: k }).n)).join(", ") : ""}</div></div>`; }).join("");
+  return `<div class="grid">${card("Rody úředníků", `<p class="small muted">Po smrti otce může úřad i správu nomu zdědit syn – ${["při dědičných úřadech téměř vždy", "při jmenování panovníkem asi v polovině případů", "při omezení moci nomarchů jen výjimečně"][law]}. Silné rody se přou a příliš mocný rod se chová jako malý král (nomarchové v Beni Hasanu, Asjútu či Dér el-Berše).</p><div class="rods">${cards || '<p class="muted small">Zatím žádné rody.</p>'}</div>`, "wide")}</div>`;
 }
 function goalsHtml() {
   const rows = aliveClans(S).filter(c => c.id !== me() && c.type !== "kmen").map(O => [O, goalProgress(S, O.id)]).filter(([, g]) => g).sort((a, b) => b[1].pct - a[1].pct);
@@ -39,8 +43,8 @@ function marketHtml() {
     <p class="small muted">Ceny v debenech mědi známe hlavně z Nové říše (osada Dér el-Medína): char obilí stál obvykle 1–2 debeny a ke konci 20. dynastie několikanásobně podražil. Pro starší dobu jde o odhad.</p>`)}</div>`;
 }
 function festHtml() {
-  const rows = FESTIVALS.map(f => { const p = S.provs[f.pid]; return tr([esc(f.n), provLink(p), esc(monthName(f.m)), `${emblem(p.owner, 12)} ${esc(S.clans[p.owner].n)}`, `<span class="small">${esc(f.d)}</span>`]); });
-  return `<div class="grid">${card("Kalendář místních svátků", `<p class="small muted">Když svátek připadne na tvůj nom, rozhodneš, jak ho vystrojíš. Svátky v cizích nomech posilují věrnost jejich pánům.</p>${tbl(["Svátek", "Nom", "Měsíc", "Pán nomu", "Doklady"], rows)}`)}</div>`;
+  const legend = FESTIVALS.map((f, i) => { const p = S.provs[f.pid], mine = p.owner === me(); return `<div class="festi${f.m === S.month ? " now" : ""}"><span class="fnum" style="background:${S.clans[p.owner].col}">${i + 1}</span><div><b>${esc(f.n)}</b> <span class="small muted">· ${esc(monthName(f.m))} · ${provLink(p)}${mine ? " · tvůj nom" : ""}</span><div class="small muted">${esc(f.d)}</div></div></div>`; }).join("");
+  return `<div class="grid">${card("Kalendář místních svátků", `<div class="festwrap">${festWheel()}<div class="festlist">${legend}</div></div><p class="small muted">Kolo ukazuje tři období roku (achet – záplava, peret – setí, šemu – sklizeň) po čtyřech měsících; ručička je současný měsíc, barva značky pán nomu. Když svátek připadne na tvůj nom, rozhodneš, jak ho vystrojíš.</p>`, "wide")}</div>`;
 }
 function liveHtml() {
   const on = S.opts.live !== false, last = S.battles.find(b => b.live && (b.a === me() || b.b === me()));

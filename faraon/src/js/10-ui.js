@@ -11,7 +11,13 @@ const ax = a => esc(JSON.stringify(a));
 function btn(label, act, args = [], dis = null, cls = "") { return `<button class="b ${cls}" data-a="${act}" data-x="${ax(args)}"${dis ? ` disabled title="${esc(dis)}"` : ""}>${label}</button>`; }
 function sel(id, opts, val, attrs = "") { return `<select id="${id}" ${attrs}>${opts.map(([v, t]) => `<option value="${esc(v)}"${String(v) === String(val) ? " selected" : ""}>${esc(t)}</option>`).join("")}</select>`; }
 const card = (t, body, cls = "") => `<section class="card ${cls}"><h3>${t}</h3>${body}</section>`;
-const tbl = (head, rows) => rows.length ? `<table><thead><tr>${head.map(h => h.startsWith("#") ? `<th class="n">${h.slice(1)}</th>` : `<th>${h}</th>`).join("")}</tr></thead><tbody>${rows.join("")}</tbody></table>` : '<p class="muted small">Nic.</p>';
+// Tabulky se vykreslují jako karty: první buňka je nadpis, ostatní štítky s popiskem ze záhlaví.
+function tbl(head, rows) {
+  if (!rows.length) return '<p class="muted small">Nic.</p>';
+  return `<div class="rows">${rows.map(r => { const m = r.match(/^<tr class="([^"]*)" ([^>]*)>/) || [], cells = [...r.matchAll(/<td([^>]*)>([\s\S]*?)<\/td>/g)].map(x => x[2]);
+    return `<div class="rowcard ${m[1] || ""}" ${m[2] || ""}><div class="rc-t">${cells[0]}</div><div class="rc-f">${cells.slice(1).map((v, i) => { const h = (head[i + 1] || "").replace(/^#/, ""); return h ? `<span class="rc-i"><small>${h}</small><span>${v}</span></span>` : `<span class="rc-a">${v}</span>`; }).join("")}</div></div>`; }).join("")}</div>`;
+}
+const tblRaw = (head, rows) => rows.length ? `<table><thead><tr>${head.map(h => h.startsWith("#") ? `<th class="n">${h.slice(1)}</th>` : `<th>${h}</th>`).join("")}</tr></thead><tbody>${rows.join("")}</tbody></table>` : '<p class="muted small">Nic.</p>';
 const tr = (cells, cls = "", attrs = "") => `<tr class="${cls}" ${attrs}>${cells.map(c => (String(c).startsWith("<td") ? c : `<td>${c}</td>`)).join("")}</tr>`;
 const tdn = v => `<td class="n">${v}</td>`;
 function tile(label, value, sub, spark) { return `<div class="tile"><div class="tl">${label}</div><div class="tv">${value}</div><div class="ts">${sub || ""}</div>${spark || ""}</div>`; }

@@ -60,7 +60,7 @@ ACT.theme = () => { const r = document.documentElement, dark = r.dataset.theme ?
 function slotInfo(n) { try { const t = localStorage.getItem(SLOT(n)); if (!t) return null; const x = JSON.parse(t); return `${x.clans[x.player].n} – ${monthShort(x.month)} ${x.bce} př. n. l.`; } catch (e) { return null; } }
 function importFile(file) { const r = new FileReader(); r.onload = () => { try { const x = migrate(JSON.parse(r.result)); if (!x) throw 0; S = x; TERR.key = null; render(); toast("Hra nahrána."); } catch (e) { toast("Soubor není uložená hra."); } }; r.readAsText(file); }
 
-const TAB_FN = { prehled: tPrehled, plan: tPlan, mapa: tMapa, zupy: tZupy, urednici: () => tUrednici() + rodsHtml(), vojsko: () => liveHtml() + tVojsko(), diplo: () => `<div class="grid">${goalsHtml()}${spyHtml()}${serveHtml()}</div>` + tDiplo(), hosp: () => tHosp() + marketHtml(), chramy: () => tChramy() + festHtml(), zakony: tZakony, rod: tRod, vedeni: tVedeni, kronika: tKronika, hra: tHra };
+const TAB_FN = { prehled: tPrehled, plan: tPlan, mapa: tMapa, zupy: tZupyArt, urednici: () => tUrednici() + rodsHtml(), vojsko: () => liveHtml() + tVojsko(), diplo: () => `<div class="grid">${goalsHtml()}${spyHtml()}${serveHtml()}</div>` + tDiplo(), hosp: () => tHosp() + marketHtml(), chramy: () => tChramy() + festHtml(), zakony: tZakony, rod: tRod, vedeni: tVedeni, kronika: tKronika, hra: tHra };
 function render() {
   EMB_N = 0;
   if (!TAB_FN[SEL.tab]) SEL.tab = "prehled";

@@ -268,3 +268,53 @@ svg.map .boat { pointer-events: none; }
   .modal .box, #modal .box { max-height: 92vh; }
   #modal .b.ch { min-height: 44px; }
 }
+
+/* ---------- ilustrace a karty místo tabulek ---------- */
+#modal .box > svg.vign { display: block; width: calc(100% + 2px); height: 130px; margin: -1px -1px 10px; border-radius: 4px 4px 0 0; }
+svg.field, svg.senet { display: block; width: 100%; max-width: 640px; margin: 8px auto 2px; border: 1px solid var(--line); border-radius: 6px; }
+svg.field .fo, svg.senet .fo { font: bold 12px Georgia, serif; fill: #2a2420; }
+svg.senet .hg { font: 20px "Noto Sans Egyptian Hieroglyphs", serif; fill: #2a2420; }
+.flegend { text-align: center; margin-bottom: 6px; }
+.rows { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 8px; }
+.rowcard { background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--accent2, #c9a227); border-radius: 6px; padding: 8px 10px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.rowcard.sel, .rowcard.on { border-left-color: var(--accent, #b5452c); }
+.rowcard .rc-t { font-weight: bold; }
+.rowcard .rc-f { display: flex; flex-wrap: wrap; gap: 6px; align-items: flex-start; }
+.rowcard .rc-i { display: inline-flex; flex-direction: column; background: rgba(201, 162, 39, .1); border-radius: 4px; padding: 2px 7px; min-width: 0; }
+.rowcard .rc-i small { font-size: 10px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.rowcard .rc-a { flex-basis: 100%; }
+.rowcard .rc-a:empty { display: none; }
+.flow .fb { margin: 8px 0 12px; }
+.flow .fbl { margin-bottom: 3px; }
+.flow .fbb { display: flex; height: 22px; border-radius: 4px; overflow: hidden; box-shadow: inset 0 0 0 1px rgba(0,0,0,.15); }
+.flow .fbb i { display: block; min-width: 2px; }
+.flow .fbk { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; margin-top: 4px; }
+.flow .fbk i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
+.nomes { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+.nomec { background: var(--panel); border: 1px solid var(--line); border-top: 5px solid var(--c); border-radius: 6px; padding: 8px 10px; cursor: pointer; display: flex; flex-direction: column; gap: 4px; box-shadow: var(--shadow); transition: transform .12s; }
+.nomec:hover { transform: translateY(-2px); }
+.nomec.hungry { background: linear-gradient(var(--panel), rgba(181, 69, 44, .12)); }
+.nomec .nch { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center; }
+.nomec .nn { font-weight: bold; font-size: 15px; }
+.nomec .nterr { font-size: 12px; padding: 2px 6px; border-radius: 3px; background: rgba(61, 127, 176, .12); }
+.nomec .nterr.t-poust, .nomec .nterr.t-oaza, .nomec .nterr.t-kenaan { background: rgba(217, 191, 138, .35); }
+.nomec .nterr.t-delta, .nomec .nterr.t-fajjum { background: rgba(79, 138, 91, .15); }
+.nomec .nb { display: grid; grid-template-columns: 80px 1fr 30px; gap: 6px; align-items: center; font-size: 12px; }
+.nomec .nbt { height: 8px; background: rgba(0,0,0,.08); border-radius: 4px; overflow: hidden; }
+.nomec .nbt i { display: block; height: 100%; }
+.nomec .nb b { text-align: right; }
+.nomec .nchips { display: flex; flex-wrap: wrap; gap: 8px; font-size: 12px; }
+.nomec .nchips span { display: inline-flex; align-items: center; gap: 3px; }
+.nomec .nwarn { color: #fff; background: #b5452c; border-radius: 3px; padding: 1px 6px; font-size: 12px; align-self: flex-start; }
+.festwrap { display: grid; grid-template-columns: minmax(200px, 320px) 1fr; gap: 16px; align-items: center; }
+.fwheel { width: 100%; max-width: 320px; }
+.fwheel .fw { font: bold 11px Georgia, serif; fill: #fff; }
+.fwheel .fn { font: italic 13px Georgia, serif; fill: var(--ink, #2a2420); }
+.festi { display: grid; grid-template-columns: 26px 1fr; gap: 8px; padding: 5px 0; border-bottom: 1px dotted var(--line); }
+.festi.now { background: rgba(201, 162, 39, .15); }
+.fnum { display: inline-flex; width: 22px; height: 22px; border-radius: 50%; color: #fff; font-size: 12px; font-weight: bold; align-items: center; justify-content: center; }
+.rods { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; }
+.rodc { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; display: flex; flex-direction: column; gap: 5px; }
+.rodh { display: grid; grid-template-columns: auto 1fr; gap: 8px; align-items: center; }
+.rodm { display: flex; flex-wrap: wrap; gap: 2px; }
+@media (max-width: 700px) { .festwrap { grid-template-columns: 1fr; } #modal .box > svg.vign { height: 96px; } }

@@ -53,6 +53,9 @@ Hra je jeden soubor `dist/index.html`: stačí ho otevřít v prohlížeči, fun
 - Výzvědná síť: stálí zvědové (kupci a lodníci, médžajští stopaři) v zemi soupeře, hlášení o pohybu jeho vojsk, odhalování cizích zvědů (popravit, obrátit, vyhostit).
 - Místní svátky nomů: Wag v Abydu, Thovtův svátek v Hermopoli, Upuautův v Asjútu (Hepdžefovy smlouvy), Hathořin v Dendeře, Sokarův v Memfidu, Sobkův v Šedetu, oběti záplavě na Elefantině – u každého je uvedeno, jak dobře je doložen.
 - Hlad je méně častý a víc o rozhodování: drobné nedostatky rozdělí správci sýpek sami, při větším hladu lze převézt obilí lodí z nomů s přebytkem nebo snížit příděly vojákům.
+- Ilustrace v egyptském stylu u každé události (Nil, bitva, chrám, dvůr, hrobka, karavana, lov v bažinách, sýpky, svátek, kouzla), bojiště se šiky vojáků při osobně vedené bitvě, kolo kalendáře svátků, karty nomů a rodů a barevné pruhy příjmů a výdajů místo tabulek.
+- Senet jako malá hra o debeny nebo o čest: vrhací hůlky, třicet polí a „dům vody“ (pravidla podle moderní rekonstrukce, původní se nedochovala).
+- Další události: královský lov (gazely, hroch, ptáci), navrátilec z Retjenu (jako v Příběhu Sinuhetově), trpaslík z jihu (dopis Pepiho II. Harchufovi), kupci z Keftiu, kouzelník z papyru Westcar, bodnutí štírem a zaklínači Selkety, sen panovníka, vykradený hrob, krokodýl v kanálu, hostina s harfeníkem.
 - Uložené hry mají číslo verze a starší se při načtení převedou; mapa se překresluje jen při změně.
 
 Jména vládců a doložených hodnostářů odpovídají pramenům; roky narození, schopnosti a ostatní postavy jsou herní. Letopočty podle střední chronologie (I. Shaw, The Oxford History of Ancient Egypt, 2000).
