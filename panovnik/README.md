@@ -23,6 +23,19 @@ Je to samostatný projekt, s Herní dílnou (`herni-dilna/`) nesdílí žádný 
 - **Objevy:** 16 objevů v pěti oborech. **Události:** přes 25 událostí s volbami a historické zprávy.
 - **Cíl:** ovládnout polovinu krajů, nebo být císařem a vládnout třetině krajů.
 
+## Rozšíření
+
+- **Tři scénáře:** leden 1256 (interregnum), leden 1260 (boj o Štýrsko, válka Čech s Uhry), leden 1273 (Zlatý král na vrcholu moci, volba římského krále v říjnu). Vládci, rodiny a hranice odpovídají době.
+- **Historické události:** babenberské dědictví, rozvod s Markétou a sňatek s Kunhutou, uherské tažení roku 1260, Konradinova výprava, stříbro v Kutné Hoře, tatarské vpády (1259, 1285, 1287 a náhodné).
+- **Taktická bitva:** sestavy vojsk (klín jízdy, střelci vpředu, obranný šik, záloha, opatrný postup) a osobní velení – rozkaz pro každé kolo bitvy (útok, držet, úder jízdy, salva, záloha, ústup) na bojové obrazovce.
+- **Obchod:** osm obchodních cest (Podunají, Jantarová stezka, Via Regia, Zlatá stezka, Hanza…), jejich průchodnost přerušují války, vstup měst do Hanzy, měšťané jako vazalové, kupecké výpravy.
+- **Sňatky s věnem:** dát věnem pohraniční kraj, nebo žádat zlato. Rodům bez dědice nastoupí vedlejší linie, jinak dědí spřízněný rod.
+- **Terén a zima:** hory, lesy a mokřady zdrží pochod o měsíc, v zimě v horách vojsko strádá.
+- **Dvůr:** nejvyšší maršálek, komoří, kancléř a zemský sudí.
+- **Obtížnost a mlha války** při založení hry.
+- **Plán měsíce:** všichni vazalové na jedné obrazovce s doporučeným rozkazem; rádce může zadat rozkazy za všechny.
+- **Mapa:** šipky pochodů a obchodní cesty. **Vysvětlivky:** proč je lid (ne)spokojený, proč je vazal (ne)věrný, proč bitva dopadla, jak dopadla.
+
 ## Grafika
 
 - Politická mapa s územími rodů a hranicemi říší, hrady, sídly, vojsky a obléháním.
@@ -35,21 +48,24 @@ Je to samostatný projekt, s Herní dílnou (`herni-dilna/`) nesdílí žádný 
 ```
 src/js/01-data.js      pravidla a číselníky (terén, vojsko, hodnosti, rozkazy, stavby, objevy, zákony, jména)
 src/js/02-world.js     kraje, rody a historické postavy roku 1256
+src/js/02b-scenarios.js scénáře 1260 a 1273
 src/js/03-core.js      založení světa, výpočty hospodářství a síly
 src/js/04-orders.js    rozkazy vazalům, správa vazalů, zajatci, trh, zákony a stavy
 src/js/05-diplo.js     diplomacie, sňatky, vazalství, volba krále, papež, koruny
 src/js/06-war.js       vojska, pochody, bitvy, obléhání, dobývání
 src/js/07-turn.js      měsíční tah, rod a nástupnictví, výzkum, konec hry
+src/js/07b-world.js    obchodní cesty a Hanza, úřady, tatarské vpády, obtížnost, rozpisy příčin
 src/js/08-ai.js        umělá inteligence rodů
 src/js/09-events.js    události
 src/js/10-ui.js        rozhraní (záložky, ukládání)
 src/js/11-gfx.js       grafika: erby, politická mapa, grafy, pruhy, ikony
+src/js/12-ui-ext.js    plán měsíce, bojová obrazovka, úřady, obchodní cesty
 ```
 
 ## Sestavení a testy
 
 ```
 python3 build.py                  # vytvoří dist/index.html
-node --test tests/*.test.js       # logika: svět, rozkazy, dobytí hradu, volba krále, 20 let světa
+node --test tests/*.test.js       # logika: svět, scénáře, rozkazy, dobytí hradu, bitvy a sestavy, volba krále, obchod, věno, 20 let světa
 node tests/e2e.js                 # proklikání v prohlížeči (Playwright)
 ```

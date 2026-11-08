@@ -2,6 +2,7 @@
 
 const DIPLO = {
   dar: { n: "Poslat dary (100 zl)" }, spojenectvi: { n: "Nabídnout spojenectví" }, snatek: { n: "Dohodnout sňatek" },
+  snatek_veno: { n: "Sňatek – věnem dát pohraniční kraj" }, snatek_zlato: { n: "Sňatek – žádat věno (zlato)" },
   mir: { n: "Uzavřít mír (příměří na 2 roky)" }, mir_zlato: { n: "Koupit mír (zaplatit 2× jejich měsíční příjem)" },
   vazalstvi: { n: "Žádat lenní hold (ať se stanou vazaly)" }, poddat: { n: "Nabídnout se jim za vazala" },
   pomoc: { n: "Žádat o pomoc ve válce" }, vypovedet: { n: "Vypovědět spojenectví" }, pripojit: { n: "Připojit vazala k říši" },
@@ -11,11 +12,13 @@ function marriageable(s, cid) { return Object.values(s.chars).filter(c => c.cl =
 function powerRatio(s, a, b) { return (clanPower(s, a) + 1) / (clanPower(s, b) + 1); }
 // ochota rodu `to` přijmout návrh od `from` (kladné = přijme)
 function willing(s, from, to, typ, envoy) {
-  const T = s.clans[to], F = s.clans[from], r = rel(s, from, to), dip = envoy ? st(envoy, "roz") / 5 : 5, pr = (F.prestige - T.prestige) / 60;
+  const T = s.clans[to], F = s.clans[from], r = rel(s, from, to), dip = (envoy ? st(envoy, "roz") / 5 : 5) + officeVal(s, from, "kancler") / 10, pr = (F.prestige - T.prestige) / 60;
   const ratio = powerRatio(s, from, to), commonEnemy = enemiesOf(s, from).some(e => enemiesOf(s, to).includes(e)) ? 20 : 0, mar = married(s, from, to) ? 12 : 0;
   switch (typ) {
     case "spojenectvi": return r + dip + pr + commonEnemy + mar + Math.min(15, (ratio - 1) * 10) - 60 - (enemiesOf(s, from).length ? 10 : 0);
     case "snatek": return r + dip + pr / 2 + 15 - (T.type !== "dyn" ? 999 : 0);
+    case "snatek_veno": return r + dip + pr / 2 + 45 - (T.type !== "dyn" ? 999 : 0);
+    case "snatek_zlato": return r + dip + pr / 2 + 15 - 25 - (T.type !== "dyn" ? 999 : 0);
     case "mir": { const w = s.wars.find(x => (x.a === from && x.b === to) || (x.a === to && x.b === from)); const months = w ? s.turn - w.start : 0; return r / 2 + dip + months * 1.5 + (ratio - 1) * 40 + (T.warLoss || 0) / 200 - 15; }
     case "mir_zlato": return 30 + dip + r / 3;
     case "vazalstvi": return (ratio - 3) * 18 + r / 3 + dip + pr / 2 - (T.type === "dyn" && T.t === "král" ? 60 : 0) - (atWar(s, from, to) ? 0 : 10) + (s.hre.kingClan === from && T.hre ? 25 : 0);
@@ -37,12 +40,17 @@ function diplomacy(s, cid, envoy, to, typ, extra) {
   switch (typ) {
     case "spojenectvi": if (allied(s, cid, to)) return "Už jste spojenci."; if (atWar(s, cid, to)) return "Jste ve válce.";
       if (willing(s, cid, to, typ, envoy) > 0) { s.alliances[pairKey(cid, to)] = true; addRel(s, cid, to, 10); return say("spojenectví uzavřeno!"); } addRel(s, cid, to, -2); return say("spojenectví odmítli.");
-    case "snatek": {
-      if (atWar(s, cid, to)) return "Jste ve válce."; const mine = extra ? chr(s, extra) : marriageable(s, cid)[0]; if (!mine || mine.cl !== cid || mine.spouse) return "Nemáš svobodného člena rodu (13–45 let).";
+    case "snatek": case "snatek_veno": case "snatek_zlato": {
+      if (atWar(s, cid, to)) return "Jste ve válce.";
+      const dowry = typ === "snatek_veno" ? clanProvs(s, cid).filter(p => p.id !== C.capital && !p.siege && p.nb.some(n => s.provs[n].owner === to)).sort((a, b) => a.v - b.v)[0] : null;
+      if (typ === "snatek_veno" && !dowry) return "Nemáš pohraniční kraj, který bys mohl dát věnem."; const mine = extra ? chr(s, extra) : marriageable(s, cid)[0]; if (!mine || mine.cl !== cid || mine.spouse) return "Nemáš svobodného člena rodu (13–45 let).";
       if (willing(s, cid, to, typ, envoy) <= 0) { return say("sňatek odmítli."); }
+      let extra2 = "";
+      if (dowry) { transferProv(s, dowry.id, to, "věno"); addRel(s, cid, to, 20); extra2 = ` Věnem dostávají kraj ${dowry.n}.`; }
+      if (typ === "snatek_zlato") { const g = Math.round(Math.max(50, T.gold * 0.3)); T.gold -= g; C.gold += g; extra2 = ` Věno: ${g} zl.`; }
       let theirs = marriageable(s, to).find(c => c.sex !== mine.sex);
       if (!theirs) theirs = makeChar(s, { n: pick(s, mine.sex === "m" ? FEMALE[T.cul] : SONS[T.cul]) + " (" + T.house.split(" (")[0] + ")", sex: mine.sex === "m" ? "f" : "m", by: s.year - clamp(age(s, mine) + rint(s, -6, 3), 14, 40), cl: to, st: "fam", dyn: 1, loc: T.capital });
-      wed(s, mine, theirs); return say(`${mine.n} a ${theirs.n} budou oddáni. Rody jsou spřízněny.`);
+      wed(s, mine, theirs); return say(`${mine.n} a ${theirs.n} budou oddáni. Rody jsou spřízněny.${extra2}`);
     }
     case "mir": case "mir_zlato": {
       if (!atWar(s, cid, to)) return "Nejste ve válce.";
@@ -113,20 +121,23 @@ function electorHolders(s) {
   return out;
 }
 function candidates(s) {
-  const out = EXT_CANDIDATES.map(c => ({ id: c.id, n: c.n, ext: true, gold: c.gold }));
-  for (const c of aliveClans(s)) if (c.hre && c.type === "dyn" && !c.vassalOf && (c.prestige >= 180 || c.candidate)) out.push({ id: c.id, n: leaderOf(s, c.id).n + " (" + c.house + ")" });
+  const out = EXT_CANDIDATES.filter(c => s.year <= c.until).map(c => ({ id: c.id, n: c.n, ext: true, gold: c.gold - Math.max(0, s.year - 1257) * 2 }));
+  const inner = aliveClans(s).filter(c => c.hre && c.type === "dyn" && !c.vassalOf && leaderOf(s, c.id) && age(s, leaderOf(s, c.id)) >= 18)
+    .sort((a, b) => (b.candidate ? 999 : 0) + b.prestige / 10 + st(leaderOf(s, b.id), "ved") + st(leaderOf(s, b.id), "roz") - (a.candidate ? 999 : 0) - a.prestige / 10 - st(leaderOf(s, a.id), "ved") - st(leaderOf(s, a.id), "roz")).slice(0, 5);
+  for (const c of inner) out.push({ id: c.id, n: leaderOf(s, c.id).n + " (" + c.house + ")" });
   return out;
 }
 function voteScore(s, voter, cand, extVoter) {
   if (cand.ext) return (extVoter ? cand.gold + 10 : cand.gold - 10) + (s.hre.ext.extCand && s.hre.ext.extCand[cand.id] || 0) + rnd(s) * 25;
   const C = s.clans[cand.id];
-  let v = C.prestige / 15 + (s.pope.op[cand.id] || 0) / (extVoter ? 3 : 8) + rnd(s) * 25 - Math.max(0, realmProvs(s, cand.id) - 8) * 2;
+  const L = leaderOf(s, cand.id);
+  let v = Math.min(30, C.prestige / 25) + (st(L, "ved") + st(L, "roz")) / 8 + (s.pope.op[cand.id] || 0) / (extVoter ? 3 : 8) + rnd(s) * 25 - Math.max(0, realmProvs(s, cand.id) - 5) * 4 - (age(s, L) < 25 ? 15 : 0);
   if (extVoter) v += s.hre.ext[voter][cand.id] || 0; else v += voter === cand.id ? 60 : rel(s, voter, cand.id) / 2;
   return v;
 }
 function runElection(s) {
   const cands = candidates(s), votes = [];
-  for (const e of EXT_ELECTORS) { const best = cands.slice().sort((a, b) => voteScore(s, e.id, b, true) - voteScore(s, e.id, a, true))[0]; votes.push([e.n, best]); }
+  for (const e of EXT_ELECTORS) { const best = cands.slice().sort((a, b) => voteScore(s, e.id, b, true) - voteScore(s, e.id, a, true))[0]; votes.push([extElectorName(s, e), best]); }
   const holders = electorHolders(s);
   for (const [title, cid] of Object.entries(holders)) {
     if (!s.clans[cid] || !s.clans[cid].alive) continue;
@@ -155,9 +166,9 @@ function hreTick(s) {
   if (H.election && s.turn === H.election - 1 && Object.values(electorHolders(s)).includes(s.player) && P(s).alive) s.events.push({ id: "_vote" });
   if (H.election && s.turn >= H.election) runElection(s);
   // cizí kandidáti uplácejí arcibiskupy
-  if (H.election) { H.ext.extCand = H.ext.extCand || {}; for (const c of EXT_CANDIDATES) H.ext.extCand[c.id] = (H.ext.extCand[c.id] || 0) + rnd(s) * 1.5; }
+  if (H.election) { H.ext.extCand = H.ext.extCand || {}; for (const c of EXT_CANDIDATES.filter(x => s.year <= x.until)) H.ext.extCand[c.id] = (H.ext.extCand[c.id] || 0) + rnd(s) * 1.5; }
 }
-function bribeElector(s, cid, eid, g) { if (!s.hre.election) return "Volba není vypsána."; if (!pay(s, cid, g)) return "Nedostatek zlata."; s.hre.ext[eid][cid] = (s.hre.ext[eid][cid] || 0) + g / 10; log(s, `Dary pro ${EXT_ELECTORS.find(e => e.id === eid).n}: ${g} zl.`, "rise", [cid]); return null; }
+function bribeElector(s, cid, eid, g) { if (!s.hre.election) return "Volba není vypsána."; if (!pay(s, cid, g)) return "Nedostatek zlata."; s.hre.ext[eid][cid] = (s.hre.ext[eid][cid] || 0) + g / 10; log(s, `Dary pro ${extElectorName(s, EXT_ELECTORS.find(e => e.id === eid))}: ${g} zl.`, "rise", [cid]); return null; }
 function standForElection(s, cid) { const C = s.clans[cid]; if (!C.hre) return "Tvůj rod nepatří do říše."; if (C.prestige < 120) return "Potřebuješ aspoň 120 prestiže."; C.candidate = true; log(s, `${leaderOf(s, cid).n} se uchází o římskou korunu.`, "rise", [cid]); return null; }
 function imperialBan(s, cid, target) { if (s.hre.kingClan !== cid) return "Nejsi římský král."; const T = s.clans[target]; if (!T.hre) return "Rod nepatří do říše."; if (C_prestige(s, cid) < 50) return "Nedostatek prestiže."; s.clans[cid].prestige -= 50; T.ban = s.turn + 36; for (const c of aliveClans(s)) if (c.hre) addRel(s, c.id, target, -15); news(s, `Římský král uvalil na rod ${T.house} říšskou klatbu!`, "rise", [cid, target]); return null; }
 const C_prestige = (s, cid) => s.clans[cid].prestige;

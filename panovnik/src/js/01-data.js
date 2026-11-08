@@ -6,9 +6,9 @@ const START_YEAR = 1256;
 const TERRAIN = {
   n: { n: "Nížina", agri: 1.2, def: 1.0, cav: 1.25, move: 1 },
   k: { n: "Pahorkatina", agri: 1.0, def: 1.15, cav: 1.0, move: 1 },
-  h: { n: "Hory", agri: 0.6, def: 1.45, cav: 0.65, move: 1 },
-  l: { n: "Lesy", agri: 0.8, def: 1.25, cav: 0.8, move: 1 },
-  b: { n: "Mokřady", agri: 0.7, def: 1.3, cav: 0.6, move: 1 },
+  h: { n: "Hory", agri: 0.6, def: 1.45, cav: 0.65, move: 1, slow: 1 },
+  l: { n: "Lesy", agri: 0.8, def: 1.25, cav: 0.8, move: 1, slow: 1 },
+  b: { n: "Mokřady", agri: 0.7, def: 1.3, cav: 0.6, move: 1, slow: 1 },
   p: { n: "Pobřeží", agri: 0.9, def: 1.05, cav: 1.0, move: 1 },
 };
 
@@ -60,6 +60,7 @@ const CMDS = {
   podnecovat: { n: "Podněcovat nepokoje", d: "sníží spokojenost a posádku v cizím kraji", cost: 40, stat: "roz" },
   naklonit: { n: "Naklonit si cizího vazala", d: "úplatky a sliby – sníží jeho věrnost, případně přejde k tobě", cost: 50, stat: "roz" },
   poselstvo: { n: "Vést poselstvo", d: "diplomatické jednání s jiným rodem", cost: 0, stat: "roz" },
+  obchodovat: { n: "Vést obchodní výpravu", d: "výnos podle obchodních cest kraje (správa a rozum)", cost: 20, stat: "spr" },
   presun: { n: "Odjet do jiného kraje", d: "přesun vazala (dorazí příští měsíc)", cost: 0, stat: null },
 };
 

@@ -167,11 +167,13 @@ const HIST = [
 
 // Kurfiřti mimo mapu (rýnští arcibiskupové)
 const EXT_ELECTORS = [
-  { id: "mohuc", n: "arcibiskup mohučský Gerhard z Dhaunu" },
-  { id: "kolin", n: "arcibiskup kolínský Konrád z Hochstadenu" },
-  { id: "trevir", n: "arcibiskup trevírský Arnold z Isenburgu" },
+  { id: "mohuc", t: "arcibiskup mohučský", names: [[1251, 1259, "Gerhard z Dhaunu"], [1259, 1284, "Werner z Eppsteinu"], [1286, 1288, "Jindřich z Isny"], [1289, 1305, "Gerhard z Eppsteinu"]] },
+  { id: "kolin", t: "arcibiskup kolínský", names: [[1238, 1261, "Konrád z Hochstadenu"], [1261, 1274, "Engelbert z Falkenburku"], [1275, 1297, "Siegfried z Westerburgu"]] },
+  { id: "trevir", t: "arcibiskup trevírský", names: [[1242, 1259, "Arnold z Isenburgu"], [1260, 1286, "Jindřich z Finstingenu"], [1286, 1300, "Boemund z Warsbergu"]] },
 ];
+function extElectorName(s, e) { const x = e.names.find(([a, b]) => s.year >= a && s.year <= b); return e.t + (x ? " " + x[2] : ""); }
+// cizí kandidáti na římskou korunu (do kdy mohli kandidovat)
 const EXT_CANDIDATES = [
-  { id: "ext_richard", n: "Richard Cornwallský", gold: 45 },
-  { id: "ext_alfons", n: "Alfons X. Kastilský", gold: 35 },
+  { id: "ext_richard", n: "Richard Cornwallský", gold: 45, until: 1271 },
+  { id: "ext_alfons", n: "Alfons X. Kastilský", gold: 35, until: 1275 },
 ];

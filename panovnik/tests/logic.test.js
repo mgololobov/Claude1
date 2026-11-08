@@ -69,3 +69,66 @@ test("dvacet let světa bez chyb (víc semínek a rodů)", () => {
     assert.ok(E.aliveClans(s).length >= 5);
   }
 });
+
+test("scénáře 1260 a 1273", () => {
+  const a = E.newGame({ seed: 5, scen: 1260 });
+  assert.equal(a.year, 1260); assert.ok(E.atWar(a, "premysl", "arpad"), "válka o Štýrsko");
+  assert.equal(E.leaderOf(a, "velkopolsko").n, "Boleslav Pobožný");
+  const b = E.newGame({ seed: 5, scen: 1273 });
+  assert.equal(E.clanProvs(b, "premysl").length, 23, "Otakar drží Štýrsko a Korutany");
+  assert.ok(!b.clans.sponheim.alive);
+  assert.equal(E.leaderOf(b, "arpad").n, "Ladislav IV. Kumánský");
+  assert.ok(Object.values(b.chars).some(c => c.n === "Václav" && c.cl === "premysl"), "syn Václav");
+  assert.equal(b.hre.election, 9);
+  for (const sc of [1256, 1260, 1273]) assert.ok(E.scenarioClans(sc).length >= 15);
+});
+
+test("osobně vedená bitva kolo po kole", () => {
+  const s = E.newGame({ seed: 6 }); s.events = [];
+  E.declareWar(s, "premysl", "wittL", null); s.events = [];
+  const cmd = E.officersIn(s, "plzen")[0]; s.provs.plzen.troops.pesi = 3000;
+  assert.equal(E.dispatch(s, "premysl", "plzen", "rezno", { pesi: 2500 }, [cmd.id], 6), null);
+  const a = s.armies.find(x => x.cl === "premysl"); a.manual = true; a.tac = "klin";
+  // nepřátelské vojsko do stejného kraje
+  s.armies.push({ id: "aX", cl: "wittL", t: { pesi: 1500, strelci: 300, jizda: 100, zoldneri: 0 }, cmds: [], loc: "plzen", to: "plzen", path: [], grain: 100, train: 40, morale: 80, mode: "utok", siegeMode: "obleh", from: "rezno" });
+  a.path = []; a.loc = "plzen";
+  E.endTurn(s);
+  const ev = s.events.find(e => e.id === "_battle"); assert.ok(ev, "čeká bitva");
+  let n = 0; while (s.pend[ev.bid] && n++ < 10) { const v = E.eventView(s, ev); const i = s.events.indexOf(ev); E.resolveEvent(s, i, v.ch.findIndex(c => c.t === "Útok celou silou")); }
+  assert.ok(!s.pend[ev.bid], "bitva skončila"); assert.ok(!s.events.includes(ev));
+  assert.ok(s.battles[0].rounds.length >= 1 && s.battles[0].rounds[0][4] === "utok");
+});
+
+test("sestavy mění výsledek bitvy", () => {
+  const s = E.newGame({ seed: 8 }); let klin = 0, sik = 0;
+  for (let i = 0; i < 40; i++) {
+    const side = tac => ({ cl: "premysl", t: { pesi: 1000, strelci: 200, jizda: 400, zoldneri: 0 }, train: 50, morale: 80, cmds: [], def: false, ter: "n", tac });
+    const foe = tac => ({ cl: "arpad", t: { pesi: 1600, strelci: 350, jizda: 100, zoldneri: 0 }, train: 50, morale: 80, cmds: [], def: false, ter: "n", tac });
+    if (E.battle(s, side("klin"), foe("strelci"), "brno", "bitva").aWins) klin++;
+    if (E.battle(s, side("klin"), foe("sik"), "brno", "bitva").aWins) sik++;
+  }
+  assert.ok(klin > sik + 10, `klín proti střelcům ${klin}× vs. proti šiku ${sik}×`);
+});
+
+test("obchodní cesty, Hanza, úřady, tatarský vpád", () => {
+  const s = E.newGame({ seed: 9 });
+  assert.ok(E.routeIncomeProv(s, s.provs.viden) > 0, "Vídeň leží na Podunajské cestě");
+  const before = E.routeState(s, E.ROUTES.find(r => r.id === "dunaj"));
+  E.declareWar(s, "premysl", "arpad", null);
+  assert.ok(E.routeState(s, E.ROUTES.find(r => r.id === "dunaj")) < before, "válka přeruší cestu");
+  s.clans.pomorany.gold = 1000; s.provs.stetin.b.mesto = 1; assert.equal(E.joinHanza(s, "pomorany", "stetin"), null); assert.ok(s.provs.stetin.hanza);
+  const c = E.officers(s, "premysl").find(x => x.id !== s.clans.premysl.leader); assert.equal(E.setOffice(s, "premysl", "komori", c.id), null); assert.ok(E.officeVal(s, "premysl", "komori") > 0);
+  assert.ok(E.loyBreakdown(s, s.provs.praha).rows.length >= 3); assert.ok(E.offLoyBreakdown(s, c).rows.length >= 3);
+  const pop = s.provs.halic.pop; s.events = []; E.mongolRaid(s, ["halic", "lvov"]); assert.ok(s.provs.halic.pop < pop);
+  const t = E.newGame({ seed: 9, clan: "krakov" }); t.events = []; E.mongolRaid(t, ["krakov"]); assert.ok(t.events.some(e => e.id === "_tatari"), "hráč dostane volbu");
+});
+
+test("sňatek s věnem", () => {
+  const s = E.newGame({ seed: 10, clan: "habsburg" }); s.clans.habsburg.rel.wurttemberg = 80; s.clans.wurttemberg.rel.habsburg = 80;
+  const kid = Object.values(s.chars).find(c => c.n === "Matylda Habsburská"); kid.by = 1236; kid.st = "fam";
+  const envoy = E.officers(s, "habsburg")[0];
+  const n0 = E.clanProvs(s, "habsburg").length;
+  E.diplomacy(s, "habsburg", envoy, "wurttemberg", "snatek_veno");
+  assert.equal(E.clanProvs(s, "habsburg").length, n0 - 1, "kraj odešel jako věno");
+  assert.ok(kid.spouse);
+});

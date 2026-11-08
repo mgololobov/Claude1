@@ -111,7 +111,7 @@ function territoryImage(W, H, MXf, MYf) {
 
 // ---------- ikony (jednoduché obrysové) ----------
 const ICON = {
-  prehled: "M3 3h7v7H3zM12 3h7v4h-7zM12 9h7v10h-7zM3 12h7v7H3z", mapa: "M2 5l6-2 6 2 6-2v14l-6 2-6-2-6 2z M8 3v14 M14 5v14",
+  prehled: "M3 3h7v7H3zM12 3h7v4h-7zM12 9h7v10h-7zM3 12h7v7H3z", plan: "M4 5h2v2H4z M9 6h10 M4 11h2v2H4z M9 12h10 M4 17h2v2H4z M9 18h10", mapa: "M2 5l6-2 6 2 6-2v14l-6 2-6-2-6 2z M8 3v14 M14 5v14",
   kraj: "M3 19V9l3-3 3 3V6h2v3h2V6h2v3l3-3 3 3v10z M10 19v-5h2v5", vazalove: "M8 8a3 3 0 1 0 0-.1z M2 19c0-4 3-6 6-6s6 2 6 6 M16 9a2.5 2.5 0 1 0 0-.1z M14 13c3 0 6 2 6 5",
   vojsko: "M4 20L18 6 M15 3h6v6 M20 20L6 6 M3 9V3h6", diplo: "M3 12l5-5 4 4 4-4 5 5-5 5-4-4-4 4z", rise: "M4 18h16 M5 18l-1-9 5 4 3-7 3 7 5-4-1 9z",
   hosp: "M12 3a8 8 0 1 0 .1 0z M9 9h5a2 2 0 0 1 0 4h-4a2 2 0 0 0 0 4h5 M12 6v2 M12 17v2", stavy: "M12 3v18 M5 7h14 M3 14l2-7 2 7a2 2 0 0 1-4 0z M17 14l2-7 2 7a2 2 0 0 1-4 0z",

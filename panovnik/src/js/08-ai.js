@@ -39,6 +39,7 @@ function aiClan(s, cid) {
   aiMilitary(s, cid);
   for (const c of officers(s, cid)) if (c.acted !== s.turn && !c.army) aiDomestic(s, cid, c, false);
   aiDiplomacy(s, cid);
+  if (C.gold > 450 && chance(s, 0.05)) { const p = clanProvs(s, cid).find(q => !q.hanza && (q.b.mesto || q.city) && ROUTES.find(R => R.hanza).provs.includes(q.id)); if (p) joinHanza(s, cid, p.id); }
   aiCaptives(s, cid);
 }
 
@@ -80,7 +81,7 @@ function aiReinforce(s, cid) {
 function aiWarDecision(s, cid) {
   const C = s.clans[cid]; if (s.turn < 4) return;
   if (C.vassalOf) { const L = C.vassalOf; if (rel(s, cid, L) < -30 && powerRatio(s, cid, L) > 0.9 && chance(s, 0.02)) declareWar(s, cid, L, "vzpoura vazala"); return; }
-  if (!chance(s, C.aggr * 0.05)) return;
+  if (!chance(s, C.aggr * 0.05 * diffAggr(s))) return;
   const nbs = new Set(); for (const p of clanProvs(s, cid)) for (const n of p.nb) { const o = s.provs[n].owner; if (o !== cid) nbs.add(o); }
   const cands = [...nbs].map(o => s.clans[o]).filter(T => T.alive && !allied(s, cid, T.id) && truceUntil(s, cid, T.id) <= s.turn && T.vassalOf !== cid && !(C.type !== "dyn" && T.type !== "dyn"))
     .map(T => ({ T, sc: powerRatio(s, cid, T.id) * (1 - rel(s, cid, T.id) / 150) * (married(s, cid, T.id) ? 0.6 : 1) * (T.type !== "dyn" ? 0.6 : 1) * ((T.ban || 0) > s.turn ? 1.5 : 1) * (isPlayer(s, T.id) ? 1 : 1) }))

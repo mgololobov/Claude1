@@ -53,14 +53,13 @@ function provincesTurn(s) {
     // stavby
     if (p.build && !p.siege) { p.build.left--; if (p.build.left <= 0) { const b = p.build.b; if (b === "hrad") { p.castle++; p.dur = Math.min(durMax(s, p), p.dur + 100); } else p.b[b] = (p.b[b] || 0) + 1; if (b === "mesto") p.pop = r1(p.pop + 2); if (b === "klaster") s.pope.op[p.owner] = (s.pope.op[p.owner] || 0) + 3; if (isPlayer(s, p.owner)) log(s, `Dokončeno: ${BUILD[b].n} v kraji ${p.n}.`, "stavby", [p.owner]); p.build = null; } }
     // spokojenost lidu
-    let t = 50 + (L ? st(L, "spr") / 6 : -5) - (C.tax - 2) * 8 + (p.b.klaster || 0) * 4 + (hasTech(s, p.owner, "zakonik") ? 5 : 0) - (s.turn - p.conq < 24 ? 15 : 0) - (C.excom > s.turn ? 10 : 0) - (p.siege ? 20 : 0);
-    if (isPlayer(s, p.owner)) t += (pc.estates.sedlaci - 50) / 5 - [0, 4, 10][pc.laws.robota] + 4;
+    const t = loyBreakdown(s, p).val;
     p.loy = r1(clamp(p.loy + (t - p.loy) * 0.06, 0, 100));
     // obyvatelé
     const g = 0.0009 + (p.loy - 50) * 0.00002 + (hasTech(s, p.owner, "kolonizace") ? 0.0004 : 0) - (p.siege ? 0.004 : 0);
     p.pop = r1(Math.max(2, Math.min(p.v * 18 + (p.b.mesto || 0) * 4, p.pop * (1 + g))));
     // výcvik pomalu klesá, hradby se drolí jen při obléhání
-    p.train = Math.max(10, p.train - 0.3);
+    p.train = Math.max(10, p.train - (officeVal(s, p.owner, "marsal") > 60 ? 0.1 : 0.3));
     if (p.siege) { const a = s.armies.find(x => x.id === p.siege.army); if (!a || a.loc !== p.id) p.siege = null; }
     // vzpoura lidu
     if (p.loy < 15 && !p.siege && chance(s, 0.06)) {
@@ -77,9 +76,7 @@ function officersTurn(s) {
       c.hp = Math.min(100, c.hp + 1);
       if (c.id === C.leader || c.dyn) { c.loy = 100; continue; }
       const lordOf = Object.values(s.provs).some(p => p.lord === c.id);
-      let t = 52 + c.rank * 5 + (lordOf ? 6 : 0) + Math.min(15, C.prestige / 40) - (C.excom > s.turn ? 10 : 0) + sum(c.traits.map(k => (TRAITS[k] && TRAITS[k].loy) || 0)) - Math.max(0, (sum(STAT_IDS.map(k => st(c, k))) / 4 - 50 - c.rank * 8) / 2) + (hasTech(s, c.cl, "zakonik") ? 5 : 0);
-      if (isPlayer(s, c.cl)) t += (C.estates.slechta - 50) / 4;
-      if (C.gold <= 0) t -= 10;
+      const t = offLoyBreakdown(s, c).val;
       c.loy = r1(clamp(c.loy + (t - c.loy) * 0.04, 0, 100));
       if (lordOf) c.merit += 1;
       // nevěrný purkrabí se může vzbouřit
@@ -169,6 +166,12 @@ function heirSucceeds(s, cid, why) {
     if (H.st === "kid") { H.st = "off"; H.minor = true; }
     return;
   }
+  // vzdálený příbuzný z vedlejší linie rodu
+  if (!isPlayer(s, cid) && chance(s, 0.65)) {
+    const H = genOfficer(s, cid, C.cul, C.capital, { dyn: 1, rank: 4, loy: 100, by: s.year - rint(s, 18, 45) });
+    H.n = pick(s, SONS[C.cul] || SONS.de) + " (" + C.house.split(" (")[0] + ", vedlejší linie)"; C.leader = H.id; C.prestige = Math.round(C.prestige * 0.75);
+    news(s, `${C.house}: ${old ? old.n : "vládce"} zemřel bez synů. Vlády se ujímá vzdálený příbuzný ${H.n}.`, "rod", [cid]); return;
+  }
   // rod vymřel – dědictví přes sňatky
   const kin = aliveClans(s).filter(o => o.id !== cid && married(s, o.id, cid) && o.type === "dyn").sort((a, b) => rel(s, cid, b.id) - rel(s, cid, a.id));
   if (kin.length && !(isPlayer(s, cid) && officers(s, cid).length)) {
@@ -201,7 +204,8 @@ function appanage(s, cid, son) {
 function researchTurn(s) {
   for (const C of aliveClans(s)) {
     if (!isPlayer(s, C.id)) { C.res.pts += clanProvs(s, C.id).length * 0.35 + rnd(s); if (!C.res.cur || C.techs[C.res.cur]) C.res.cur = TECH_IDS.find(t => techAvail(s, C.id, t)) || null; }
-    C.res.pts += sum(clanProvs(s, C.id).map(p => (p.b.klaster || 0) * 0.4));
+    C.res.pts += sum(clanProvs(s, C.id).map(p => (p.b.klaster || 0) * 0.4)) + officeVal(s, C.id, "kancler") / 40;
+    if (!isPlayer(s, C.id) && s.month === 0) aiOffices(s, C.id);
     const t = C.res.cur; if (t && C.res.pts >= TECHS[t].cost) { C.res.pts -= TECHS[t].cost; C.techs[t] = true; if (t === "gotika") for (const p of clanProvs(s, C.id)) p.dur = Math.min(durMax(s, p), p.dur); if (isPlayer(s, C.id)) { log(s, `Objev: ${TECHS[t].n}! (${TECHS[t].d})`, "objevy", [C.id]); C.res.cur = TECH_IDS.find(x => techAvail(s, C.id, x)) || null; } else C.res.cur = null; }
   }
 }
@@ -216,7 +220,10 @@ function estatesTurn(s) {
 
 function scripted(s) {
   if (s.turn === 0) news(s, "Ludvík II. Bavorský dal v Donauwörthu popravit svou manželku Marii Brabantskou pro domnělou nevěru. Pověst „Přísného“ ho bude provázet.", "svet");
-  if (s.year === 1259 && s.month === 11) { for (const id of ["sandomer", "krakov", "lublin"]) { const p = s.provs[id]; p.pop = r1(p.pop * 0.8); loseMen(p.troops, Math.round(men(p.troops) * 0.35)); p.loy -= 10; } news(s, "Tataři Zlaté hordy pod Burundajem vpadli do Malopolska a vypálili Sandoměř a okolí Krakova.", "svet"); }
+  if (s.year === 1259 && s.month === 11) { mongolRaid(s, ["sandomer", "krakov", "lublin"]); news(s, "Vpád vedl Burundaj; Sandoměř lehl popelem.", "svet"); }
+  else if (s.year === 1285 && s.month === 11) { mongolRaid(s, ["sedmihradsko", "varadin", "segedin", "eger", "kosice"]); news(s, "Nogaj a Tula-Buga táhnou na Uhry.", "svet"); }
+  else if (s.year === 1287 && s.month === 11) { mongolRaid(s, ["sandomer", "krakov", "lublin"]); news(s, "Druhý velký vpád do Malopolska.", "svet"); }
+  else if (s.year > 1257 && chance(s, 0.004)) mongolRaid(s);
 }
 function checkVictory(s) {
   const total = Object.keys(s.provs).length, mine = realmProvs(s, s.player);

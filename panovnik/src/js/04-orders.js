@@ -83,6 +83,7 @@ function doCmd(s, cid, offId, cmd, arg, arg2) {
         if (chance(s, 0.5 + C.prestige / 1500 + st(c, "roz") / 400)) { x.st = "off"; x.cl = cid; x.loy = rint(s, 55, 80); x.rank = 0; x.merit = 0; return say(`našel muže jménem ${x.n} a ten vstoupil do služby! (${STAT_IDS.map(k => STATS[k].slice(0, 3) + " " + st(x, k)).join(", ")})`); }
         return say(`našel ${x.n}, ale ten službu odmítl.`);
       }
+      if ((p.b.mesto || p.city) && chance(s, 0.25 + (p.b.mesto || 0) * 0.08)) { const x = genOfficer(s, null, C.cul, p.id, { st: "wand", rank: 0, loy: 0, burgher: 1, ved: rint(s, 10, 35), uda: rint(s, 10, 35), roz: rint(s, 50, 80), spr: rint(s, 55, 88) }); x.n = pick(s, (NAMES[C.cul] || NAMES.de).m) + " " + pick(s, ["Kramář", "Soukeník", "Mincíř", "Kupec", "Zlatník", "Sladovník", "Rychtář"]) + " (" + p.n + ")"; x.traits = ["hospodar"]; return say(`ve městě se ozval schopný měšťan ${x.n} – hledej dál a přijmi ho do služby.`); }
       if (chance(s, 0.12 + st(c, "roz") / 500)) { const x = genOfficer(s, null, C.cul, p.id, { st: "wand", rank: 0, loy: 0 }); return say(`zaslechl o schopném muži (${x.n}), který se potuluje krajem.`); }
       say("nikoho schopného nenašel."); break;
     }
@@ -125,6 +126,14 @@ function doCmd(s, cid, offId, cmd, arg, arg2) {
       break;
     }
     case "poselstvo": { const e = diplomacy(s, cid, c, arg, arg2); if (e) return e; break; }
+    case "obchodovat": {
+      const rs = provRoutes(p); if (!rs.length && !(p.b.mesto || p.city)) return "Kraj neleží na obchodní cestě ani nemá město.";
+      if (!pay(s, cid, cost)) return "Nedostatek zlata.";
+      const base = (st(c, "spr") + st(c, "roz")) / 7 * (c.burgher ? 1.4 : 1), routeV = sum(rs.map(R => R.v * routeState(s, R)));
+      let g = Math.round(base * (0.6 + routeV / 4) + rnd(s) * 15 + (p.b.mesto || 0) * 6);
+      if (chance(s, 0.08)) { g = 0; say("výpravu přepadli lapkové – zboží je ztraceno."); } else { C.gold += g; say(`obchodní výprava${rs.length ? " po cestě " + rs.map(R => R.n).join(", ") : ""} vynesla ${g} zl (zisk ${g - cost}).`); }
+      c.merit += 4; break;
+    }
     case "presun": {
       const t = s.provs[arg]; if (!t || t.owner !== cid || t.id === p.id) return "Vyber jiný vlastní kraj.";
       c.loc = t.id; if (p.lord === c.id) p.lord = null; assignLords(s, cid); say(`odjíždí do kraje ${t.n}.`); break;

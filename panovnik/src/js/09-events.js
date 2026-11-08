@@ -47,7 +47,39 @@ const EVENTS = {
       { t: "Zbavit ho úřadu a uvěznit", e: (s, e) => { const c = chr(s, e.cid); for (const p of Object.values(s.provs)) if (p.lord === c.id) p.lord = null; c.st = "cap"; c.capBy = s.player; c.cl = null; assignLords(s, s.player); for (const o of officers(s, s.player)) o.loy -= 2; return "Zrádce sedí v žaláři."; } }, { t: "Nevěřit pomluvám", e: () => "Snad je to jen pomluva." }] },
 };
 
+
+Object.assign(EVENTS, {
+  // ---------- historické události ----------
+  babenberk: { t: "Babenberské dědictví", w: 6, c: s => !s.flags.babenberk && s.provs.viden.owner === s.player && (() => { const g = Object.values(s.chars).find(c => c.n === "Gertruda Babenberská" && c.st !== "dead"); return g && g.cl && g.cl !== s.player && s.clans[g.cl].alive; })(),
+    init: s => { const g = Object.values(s.chars).find(c => c.n === "Gertruda Babenberská"); s.flags.babenberk = 1; return { gcl: g.cl }; },
+    txt: (s, e) => `Gertruda Babenberská, neteř posledního Babenberka, uplatňuje nárok na Rakousy a Štýrsko. Podporuje ji rod ${s.clans[e.gcl].house} a část rakouské šlechty.`,
+    ch: [{ t: "Vyplatit jí odstupné a statky (−300 zl)", ok: s => P(s).gold >= 300, e: (s, e) => { P(s).gold -= 300; addRel(s, s.player, e.gcl, 20); return "Gertruda se vzdala nároků výměnou za statky."; } },
+      { t: "Odmítnout – Rakousy jsou naše", e: (s, e) => { addRel(s, s.player, e.gcl, -30); for (const id of ["viden", "kremze", "linec", "pitten"]) if (s.provs[id].owner === s.player) s.provs[id].loy -= 8; return "Rakouští páni reptají a Romanovci hledají spojence."; } }] },
+  rozvod: { t: "Rozvod s Markétou Babenberskou", w: 8, c: s => !s.flags.rozvod && s.year >= 1260 && P(s).alive && leaderOf(s, s.player) && leaderOf(s, s.player).spouse && chr(s, leaderOf(s, s.player).spouse).n === "Markéta Babenberská",
+    init: s => { s.flags.rozvod = 1; return {}; }, txt: s => `Královna Markéta je o třicet let starší než ${leaderOf(s, s.player).n} a dědice mu nedá. Rádci radí rozvod – a nový sňatek s neteří uherského krále by mohl skončit válku o Štýrsko.`,
+    ch: [{ t: "Rozvést se a oženit s Kunhutou Haličskou (Uhři +40, papež −10)", e: s => { const L = leaderOf(s, s.player), m = chr(s, L.spouse); m.spouse = null; m.st = "dead"; m.died = "odešla do Kremže"; const k = makeChar(s, { n: "Kunhuta Haličská", sex: "f", by: 1245, cl: s.player, st: "fam", dyn: 1, loc: P(s).capital, hist: 1, origin: "arpad" }); wed(s, L, k); addRel(s, s.player, "arpad", 40); s.pope.op[s.player] -= 10; return "Svatba v Prešpurku se slavila s velkou nádherou."; } },
+      { t: "Zůstat s Markétou", e: s => { P(s).prestige += 5; return "Král drží slovo, ale rod je bez dědice."; } }] },
+  kutnahora: { t: "Stříbro v Kutné Hoře", w: 10, c: s => !s.flags.kutnahora && s.year >= 1285 && s.provs.caslav.owner === s.player, init: s => { s.flags.kutnahora = 1; return {}; },
+    txt: () => "U kláštera v Sedlci havíři narazili na mimořádně bohaté stříbrné žíly. Do kraje se hrnou horníci z celé říše.",
+    ch: [{ t: "Vyhlásit horní svobodu (důl +1, obchod +15, obyvatelé +3000)", e: s => { const p = s.provs.caslav; p.b.dul = Math.min(3, (p.b.dul || 0) + 1); p.com += 15; p.comMax += 15; p.pop = r1(p.pop + 3); P(s).gold += 400; return "Kutná Hora roste jako z vody."; } }] },
+  konradin: { t: "Konradinova výprava", w: 8, c: s => !s.flags.konradin && s.year >= 1266 && (() => { const k = Object.values(s.chars).find(c => c.n === "Konradin Štaufský"); return k && k.cl === s.player && k.st !== "dead" && age(s, k) >= 14; })(), init: s => { s.flags.konradin = 1; return {}; },
+    txt: () => "Mladý Konradin, poslední ze Štaufů, chce táhnout do Itálie a dobýt zpět Sicílii od Karla z Anjou. Žádá vojsko a peníze.",
+    ch: [{ t: "Podpořit výpravu (−400 zl, −1500 mužů)", ok: s => P(s).gold >= 400, e: s => { P(s).gold -= 400; loseMen(s.provs[P(s).capital].troops, 1500); const k = Object.values(s.chars).find(c => c.n === "Konradin Štaufský"); if (chance(s, 0.75)) { k.st = "dead"; k.died = "popraven v Neapoli"; P(s).prestige -= 20; return "Výprava skončila porážkou u Tagliacozza a Konradin byl popraven v Neapoli."; } P(s).prestige += 150; return "Zázrak! Konradin porazil Anjouovce a usedl na sicilský trůn."; } },
+      { t: "Odmítnout", e: s => { P(s).prestige -= 5; return "Konradin zůstává na dvoře."; } }] },
+  kresenbrunn: { t: "Uherské vojsko táhne na Moravu", w: 12, c: s => !s.flags.kressenbrunn && s.year === 1260 && atWar(s, s.player, "arpad") && s.player === "premysl", init: s => { s.flags.kressenbrunn = 1; return {}; },
+    txt: () => "Béla IV. a jeho syn Štěpán shromáždili mohutné vojsko i s kumánskými jezdci. Štýrští páni posílají posly, že se přidají ke králi, který je ochrání.",
+    ch: [{ t: "Svolat zemskou hotovost (−200 zl, +2500 pěších a +300 jízdy v Brně)", ok: s => P(s).gold >= 200 && s.provs.brno.owner === s.player, e: s => { P(s).gold -= 200; s.provs.brno.troops.pesi += 2500; s.provs.brno.troops.jizda += 300; return "Zemská hotovost se schází u Brna."; } },
+      { t: "Získat štýrské pány sliby (vztahy se Štýrskem)", e: s => { for (const id of ["stajhradec", "leoben", "ptuj"]) { s.provs[id].loy -= 20; } return "Štýrsko se bouří proti uherské vládě."; } }] }
+});
 const SPECIAL = {
+  _tatari: { t: "Tatarský vpád", txt: (s, e) => `Tatarští jezdci se valí do krajů ${e.pids.map(id => pn(s, id)).join(", ")}. Pálí vsi a odvlékají lidi do zajetí.`,
+    ch: [{ t: "Postavit se jim (boj s posádkami)", e: (s, e) => { let won = 0; for (const id of e.pids) { const p = s.provs[id]; const pw = troopPower(s, p.owner, p.troops, { def: true, ter: p.ter, train: p.train }) * (1 + p.castle * 0.2); if (pw * (0.7 + rnd(s) * 0.6) > 30 + s.turn / 12) { won++; loseMen(p.troops, Math.round(men(p.troops) * 0.12)); P(s).prestige += 6; } else raidDamage(s, p, 1.2); } return won === e.pids.length ? "Tataři byli odraženi!" : `Odraženi v ${won} z ${e.pids.length} krajů.`; } },
+      { t: "Ukrýt lid na hradech (škody poloviční)", e: (s, e) => { for (const id of e.pids) raidDamage(s, s.provs[id], 0.5); return "Lid přečkal za hradbami, vsi ale lehly popelem."; } },
+      { t: "Zaplatit výpalné (−250 zl, bez škod)", ok: s => P(s).gold >= 250, e: s => { P(s).gold -= 250; P(s).prestige -= 10; return "Tataři vzali zlato a odtáhli."; } }] },
+  _battle: { t: (s, e) => { const x = s.pend && s.pend[e.bid]; return x ? (x.b.kind === "zteč" ? "Zteč hradu – " : "Bitva – ") + s.provs[x.b.place].n : "Bitva"; },
+    txt: (s, e) => { const x = s.pend && s.pend[e.bid]; if (!x) return "Bitva skončila."; const b = x.b; return `${b.r + 1}. kolo z nejvýš 6.`; },
+    ch: (s, e) => { const x = s.pend && s.pend[e.bid]; if (!x) return [{ t: "Pokračovat", e: () => "" }]; const b = x.b, used = b.ps === "A" ? b.resA : b.resB;
+      return Object.entries(ORDERS).filter(([k]) => k !== "zaloha" || (!used && b.r >= 2)).map(([k, O]) => ({ t: O.n, d: O.d, e: (s, e) => { const err = manualRound(s, e.bid, k); if (s.pend && s.pend[e.bid]) e.keep = true; return err || ""; } })); } },
   _war: { t: "Válka!", txt: (s, e) => `${s.clans[e.by].house} (${s.clans[e.by].n}) ti vyhlásili válku. Jejich vojsko čítá asi ${Math.round(clanMen(s, e.by) / 1000)} tisíc mužů.`, ch: [{ t: "Do zbraně!", e: () => "Země se chystá k boji." }] },
   _lost: { t: "Ztráta kraje", txt: (s, e) => `Hrad v kraji ${pn(s, e.pid)} padl do rukou rodu ${s.clans[e.by].house}.`, ch: [{ t: "Pomstíme se", e: () => "" }] },
   _succ: { t: "Nový vládce", txt: (s, e) => e.txt, ch: [{ t: "Ať vládne dlouho!", e: () => "" }] },
@@ -55,7 +87,7 @@ const SPECIAL = {
   _callToArms: { t: "Spojenec žádá pomoc", txt: (s, e) => `${s.clans[e.ally].house} byli napadeni rodem ${s.clans[e.enemy].house} a žádají tě o pomoc.`,
     ch: [{ t: "Vstoupit do války", e: (s, e) => { if (!atWar(s, s.player, e.enemy)) { s.wars.push({ a: s.player, b: e.enemy, start: s.turn }); addRel(s, s.player, e.enemy, -40); addRel(s, s.player, e.ally, 15); } return "Jsme ve válce."; } },
       { t: "Odmítnout (spojenectví zanikne)", e: (s, e) => { delete s.alliances[pairKey(s.player, e.ally)]; addRel(s, s.player, e.ally, -40); P(s).prestige -= 25; return "Spojenec je zrazen."; } }] },
-  _proposal: { t: (s, e) => "Poselstvo: " + s.clans[e.from].house, txt: (s, e) => { const F = s.clans[e.from], m = { spojenectvi: "nabízejí spojenectví", snatek: "navrhují sňatek mezi rody", mir: "žádají o mír", mir_zlato: "nabízejí zlato za mír", vazalstvi: "žádají, abys jim složil lenní hold", poddat: "nabízejí, že se stanou tvými vazaly", pomoc: "žádají o pomoc ve válce", pripojit: "" }[e.typ];
+  _proposal: { t: (s, e) => "Poselstvo: " + s.clans[e.from].house, txt: (s, e) => { const F = s.clans[e.from], m = { spojenectvi: "nabízejí spojenectví", snatek: "navrhují sňatek mezi rody", snatek_veno: "navrhují sňatek a jako věno nabízejí pohraniční kraj", snatek_zlato: "navrhují sňatek a žádají věno", mir: "žádají o mír", mir_zlato: "nabízejí zlato za mír", vazalstvi: "žádají, abys jim složil lenní hold", poddat: "nabízejí, že se stanou tvými vazaly", pomoc: "žádají o pomoc ve válce", pripojit: "" }[e.typ];
       return `Přijelo poselstvo rodu ${F.house} (${F.n}, vztah ${Math.round(rel(s, s.player, e.from))}). ${cap(m)}.`; },
     ch: (s, e) => [{ t: "Přijmout", e: (s, e) => acceptProposal(s, e) }, { t: "Odmítnout", e: (s, e) => { addRel(s, s.player, e.from, e.typ === "vazalstvi" ? -5 : -8); return "Poselstvo odjelo s nepořízenou."; } }] },
   _ransom: { t: "Výkupné", txt: (s, e) => `${s.clans[e.from].house} drží v zajetí ${chr(s, e.cid).n} a žádají výkupné ${e.amt} zl.`,
@@ -79,7 +111,7 @@ function acceptProposal(s, e) {
   const from = e.from, me = s.player, F = s.clans[from]; if (!F.alive) return "Rod už neexistuje.";
   switch (e.typ) {
     case "spojenectvi": s.alliances[pairKey(from, me)] = true; addRel(s, from, me, 10); return "Spojenectví uzavřeno.";
-    case "snatek": { const theirs = marriageable(s, from)[0], mine = marriageable(s, me).find(c => !theirs || c.sex !== theirs.sex); if (!theirs || !mine) { addRel(s, from, me, 5); return "Vhodní snoubenci se nenašli, ale vztah se zlepšil."; } wed(s, mine, theirs); return `${mine.n} a ${theirs.n} jsou oddáni.`; }
+    case "snatek": case "snatek_veno": case "snatek_zlato": { const theirs = marriageable(s, from)[0], mine = marriageable(s, me).find(c => !theirs || c.sex !== theirs.sex); if (!theirs || !mine) { addRel(s, from, me, 5); return "Vhodní snoubenci se nenašli, ale vztah se zlepšil."; } wed(s, mine, theirs); return `${mine.n} a ${theirs.n} jsou oddáni.`; }
     case "mir": case "mir_zlato": if (atWar(s, from, me)) makePeace(s, from, me); return "Uzavřen mír.";
     case "vazalstvi": makeVassal(s, me, from); return `Jsi vazalem rodu ${F.house}.`;
     case "poddat": makeVassal(s, from, me); return `${F.house} jsou tvými vazaly.`;
@@ -98,7 +130,7 @@ function rollEvents(s) {
 }
 function eventView(s, ev) {
   const E = evDef(ev.id), T = x => (typeof x === "function" ? x(s, ev) : x), chs = typeof E.ch === "function" ? E.ch(s, ev) : E.ch;
-  return { t: T(E.t), txt: T(E.txt), ch: chs.map((c, i) => ({ i, t: T(c.t), ok: !c.ok || c.ok(s, ev) })) };
+  return { t: T(E.t), txt: T(E.txt), ch: chs.map((c, i) => ({ i, t: T(c.t), d: c.d, ok: !c.ok || c.ok(s, ev) })) };
 }
 function resolveEvent(s, idx, ci) {
   const ev = s.events[idx]; if (!ev) return "Není událost.";
@@ -106,7 +138,7 @@ function resolveEvent(s, idx, ci) {
   if (c.ok && !c.ok(s, ev)) return "Tuto možnost nelze zvolit.";
   if (E.pre && SPECIAL[ev.id] && !ev._pre) { E.pre(s, ev); ev._pre = 1; }
   const title = typeof E.t === "function" ? E.t(s, ev) : E.t, ct = typeof c.t === "function" ? c.t(s, ev) : c.t;
-  const msg = c.e(s, ev); s.events.splice(idx, 1);
+  const msg = c.e(s, ev); if (ev.keep) ev.keep = false; else s.events.splice(idx, 1);
   if (!ev.id.startsWith("_") || ev.id === "_proposal" || ev.id === "_callToArms" || ev.id === "_ransom") log(s, `${title}: ${ct}. ${msg || ""}`, "udalosti", [s.player]);
   return null;
 }

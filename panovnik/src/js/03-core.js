@@ -29,7 +29,7 @@ function makeChar(s, o) {
 }
 function genOfficer(s, cl, cul, loc, o = {}) {
   const base = () => rint(s, 22, 66);
-  const c = makeChar(s, Object.assign({ n: genName(s, cul, "m"), by: START_YEAR - rint(s, 18, 55), cl, loc, ved: base(), uda: base(), roz: base(), spr: base(), loy: rint(s, 50, 85), rank: pick(s, [0, 0, 1, 1, 1, 2, 2, 3]) }, o));
+  const c = makeChar(s, Object.assign({ n: genName(s, cul, "m"), by: s.year - rint(s, 18, 55), cl, loc, ved: base(), uda: base(), roz: base(), spr: base(), loy: rint(s, 50, 85), rank: pick(s, [0, 0, 1, 1, 1, 2, 2, 3]) }, o));
   const k = pick(s, STAT_IDS); c[k] = clamp(c[k] + rint(s, 12, 32), 1, 98);
   const nt = rint(s, 0, 2); for (let i = 0; i < nt; i++) { const t = pick(s, TRAIT_IDS); if (!c.traits.includes(t)) c.traits.push(t); }
   c.merit = RANKS[c.rank].merit + rint(s, 0, 40);
@@ -70,7 +70,7 @@ function computeNeighbors(provs) {
 
 // ---------- nová hra ----------
 function newGame(opts = {}) {
-  const s = { v: 2, seed: (opts.seed != null ? opts.seed : (Date.now() & 0x7fffffff)) | 0, nextId: 1, turn: 0, year: START_YEAR, month: 0, player: opts.clan || "premysl",
+  const s = { v: 2, seed: (opts.seed != null ? opts.seed : (Date.now() & 0x7fffffff)) | 0, nextId: 1, turn: 0, year: (SCENARIOS[opts.scen] || SCENARIOS[1256]).year, month: 0, player: opts.clan || "premysl", opts: { scen: +(opts.scen || 1256), diff: opts.diff != null ? +opts.diff : 1, fog: opts.fog !== false },
     clans: {}, provs: {}, chars: {}, armies: [], wars: [], truces: {}, alliances: {}, marriages: {}, events: [], log: [], battles: [], history: [], flags: {}, over: null, report: [],
     hre: { king: "ext:Vilém Holandský", kingClan: null, kingDies: 0, election: null, ext: {}, emperor: null }, pope: { n: "Alexandr IV.", op: {} },
     market: { obili: 1, kone: 1, zbroj: 1 }, inflation: 1 };
@@ -126,13 +126,16 @@ function newGame(opts = {}) {
   for (const c of cl) s.pope.op[c.id] = c.type !== "dyn" ? 60 : rint(s, 0, 30);
   s.pope.op.premysl = 45; s.pope.op.krakov = 50; s.pope.op.halic = -10;
   for (const e of EXT_ELECTORS) { s.hre.ext[e.id] = {}; for (const c of cl) s.hre.ext[e.id][c.id] = rint(s, -10, 10); }
+  applyScenario(s, s.opts.scen); s.events = [];
+  for (const C of Object.values(s.clans)) if (C.alive) aiOffices(s, C.id);
+  if (!s.clans[s.player] || !s.clans[s.player].alive) s.player = "premysl";
   // hráč
   const pc = s.clans[s.player];
   pc.estates = {}; for (const e of ESTATE_IDS) pc.estates[e] = 55;
   pc.laws = { robota: 1, nastupnictvi: 0, mesta: 1, cirkev: 1, vojsko: 1, mince: 0 }; pc.lawCd = {}; pc.mods = []; pc.debts = [];
   pc.res.cur = "trojpole";
   log(s, `Rok ${s.year}. Ujímáš se vlády: ${leaderOf(s, s.player).n}, ${pc.t} – ${pc.n}.`, "rod", [s.player]);
-  log(s, "Svatá říše římská: vládne Vilém Holandský, ale říše je rozvrácená po pádu Štaufů. Papežem je Alexandr IV.", "svet");
+  log(s, (SCENARIOS[s.opts.scen] || SCENARIOS[1256]).d + " Papežem je " + s.pope.n + ".", "svet");
   snapshot(s);
   return s;
 }
@@ -153,6 +156,8 @@ function provGold(s, p) {
   const L = chr(s, p.lord), spr = L ? st(L, "spr") : 30;
   let g = (p.com * 0.55 + p.pop * 0.18) * TAX_MULT[C.tax] * (0.5 + p.loy / 200) * (0.85 + spr / 400);
   if (hasTech(s, p.owner, "ucetnictvi")) g *= 1.1;
+  g *= 1 + officeVal(s, p.owner, "komori") / 1500;
+  if (isPlayer(s, p.owner)) g *= diffIncome(s);
   if (isPlayer(s, p.owner)) g *= [0.85, 1, 1.25][C.laws.mesta] * (0.85 + C.estates.mestane / 333) * [1, 1.08, 1.18][C.laws.mince];
   if (p.b.vinice) g += p.b.vinice * 3;
   return g;
@@ -174,7 +179,7 @@ const garrisonGrain = p => men(p.troops) / 1000 * 8;
 function clanGrainUse(s, cid) { return sum(clanProvs(s, cid).map(garrisonGrain)) + sum(s.armies.filter(a => a.cl === cid).map(a => men(a.t) / 1000 * 12)); }
 function clanBudget(s, cid) {
   const C = s.clans[cid], ps = clanProvs(s, cid).filter(p => !p.siege);
-  const inc = { domeny: ps.length ? 12 : 0, kraje: sum(ps.map(p => provGold(s, p))), doly: sum(ps.map(p => provMines(s, p).gold)), dan_vazalu: 0, rise: 0, cirkev: 0 };
+  const inc = { domeny: ps.length ? 12 : 0, kraje: sum(ps.map(p => provGold(s, p))), obchod: sum(ps.map(p => routeIncomeProv(s, p))), doly: sum(ps.map(p => provMines(s, p).gold)), dan_vazalu: 0, rise: 0, cirkev: 0 };
   for (const v of vassalsOf(s, cid)) inc.dan_vazalu += sum(clanProvs(s, v.id).map(p => provGold(s, p))) * 0.15;
   if (C.vassalOf) inc.dan_vazalu -= sum(ps.map(p => provGold(s, p))) * 0.15;
   if (s.hre.kingClan === cid) inc.rise = 35;
@@ -203,8 +208,8 @@ function clanPower(s, cid) { return sum(clanProvs(s, cid).map(p => troopPower(s,
 function clanMen(s, cid) { return sum(clanProvs(s, cid).map(p => men(p.troops))) + sum(s.armies.filter(a => a.cl === cid).map(a => men(a.t))); }
 
 // co hráč o cizím kraji ví
-function knows(s, p) { return p.owner === s.player || (p.spy[s.player] || 0) > s.turn || p.nb.some(n => s.provs[n].owner === s.player) || s.clans[p.owner].vassalOf === s.player || allied(s, s.player, p.owner); }
-function estimate(s, p, v) { if (p.owner === s.player || (p.spy[s.player] || 0) > s.turn) return String(Math.round(v)); const lo = Math.round(v * 0.75 / 100) * 100, hi = Math.round(v * 1.3 / 100) * 100; return `${lo}–${hi}`; }
+function knows(s, p) { return (s.opts && s.opts.fog === false) || p.owner === s.player || (p.spy[s.player] || 0) > s.turn || p.nb.some(n => s.provs[n].owner === s.player) || s.clans[p.owner].vassalOf === s.player || allied(s, s.player, p.owner); }
+function estimate(s, p, v) { if ((s.opts && s.opts.fog === false) || p.owner === s.player || (p.spy[s.player] || 0) > s.turn) return String(Math.round(v)); const lo = Math.round(v * 0.75 / 100) * 100, hi = Math.round(v * 1.3 / 100) * 100; return `${lo}–${hi}`; }
 
 function snapshot(s) {
   const c = P(s);
