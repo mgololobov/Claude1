@@ -6,12 +6,12 @@ function cmdCheck(s, cid, c) {
   if (c.away) return "Úředník je na výpravě.";
   if (c.moving) return "Úředník je na cestě.";
   if (c.acted === s.turn) return "Úředník už v tomto měsíci jedná.";
-  const p = s.provs[c.loc]; if (!p || p.owner !== cid) return "Úředník není ve vlastní župě.";
-  if (p.siege) return "Župa je obléhána.";
+  const p = s.provs[c.loc]; if (!p || p.owner !== cid) return "Úředník není ve vlastním nomu.";
+  if (p.siege) return "Nom je obléhán.";
   return null;
 }
 function pay(s, cid, deben, grain = 0) { const C = s.clans[cid]; if (C.deben < deben || C.grain < grain) return false; C.deben -= deben; C.grain -= grain; return true; }
-function expAvail(s, cid, e) { const E = EXPED[e]; if (E.tech && !hasTech(s, cid, E.tech)) return `Chybí vědění ${TECHS[E.tech].n}.`; if (!E.from.some(id => s.provs[id].owner === cid)) return "Nevlastníš výchozí župu (" + E.from.map(id => s.provs[id].n).join(", ") + ")."; return null; }
+function expAvail(s, cid, e) { const E = EXPED[e]; if (E.tech && !hasTech(s, cid, E.tech)) return `Chybí vědění ${TECHS[E.tech].n}.`; if (!E.from.some(id => s.provs[id].owner === cid)) return "Nevlastníš výchozí nom (" + E.from.map(id => s.provs[id].n).join(", ") + ")."; return null; }
 
 function doCmd(s, cid, offId, cmd, arg, arg2) {
   const c = chr(s, offId), err = cmdCheck(s, cid, c); if (err) return err;
@@ -21,25 +21,25 @@ function doCmd(s, cid, offId, cmd, arg, arg2) {
   switch (cmd) {
     case "zavlaha": case "remesla": {
       const key = cmd === "zavlaha" ? "agri" : "com", capv = cmd === "zavlaha" ? agriCap(s, p) : comCap(s, p);
-      if (p[key] >= capv) return "Župa už je plně rozvinutá.";
+      if (p[key] >= capv) return "Nom už je plně rozvinutý.";
       if (!pay(s, cid, cost, gcost)) return `Nedostatek debenů nebo obilí (${cost} debenů, ${gcost} charů).`;
       let g = (st(c, "spr") / 12 + rnd(s) * 3) * (1 - p[key] / capv * 0.45);
       if (cmd === "zavlaha") { g *= [0.85, 1, 1.2][C.laws.robota]; if (s.month < 4) g *= 1.3; }
       g = Math.max(1, Math.round(g));
       p[key] = Math.min(capv, p[key] + g); c.merit += 4; if (cmd === "zavlaha" && C.laws.robota === 2) p.loy = Math.max(0, p.loy - 2);
-      c.acted = s.turn; return say(`${K.n} v župě ${p.n}: +${g} (nyní ${p[key]}/${capv})${cmd === "zavlaha" && s.month < 4 ? " – v době záplavy je robotníků dost" : ""}.`);
+      c.acted = s.turn; return say(`${K.n} v nomu ${p.n}: +${g} (nyní ${p[key]}/${capv})${cmd === "zavlaha" && s.month < 4 ? " – v době záplavy je robotníků dost" : ""}.`);
     }
     case "hradby": {
       if (p.dur >= durMax(s, p)) return "Hradby jsou v pořádku.";
       if (!pay(s, cid, cost, gcost)) return "Nedostatek debenů nebo obilí.";
       const g = Math.round(st(c, "spr") / 2 + 10 + rnd(s) * 10); p.dur = Math.min(durMax(s, p), p.dur + g); c.merit += 3;
-      c.acted = s.turn; return say(`Opravy hradeb v župě ${p.n}: +${g}.`);
+      c.acted = s.turn; return say(`Opravy hradeb v nomu ${p.n}: +${g}.`);
     }
     case "odvod": {
       const type = arg || "kopinici"; const e = canRecruitType(s, cid, p, type); if (e) return e;
       let n = Math.floor(+arg2 || maxRecruit(s, p, c)); n = Math.min(n, maxRecruit(s, p, c));
       if (type === "medzajove") n = Math.min(n, 400 + st(c, "roz") * 4);
-      if (n < 50) return "V župě už nejsou volní muži (strop posádky " + troopCap(p) + ").";
+      if (n < 50) return "V nomu už nejsou volní muži (strop posádky " + troopCap(p) + ").";
       const rc = recruitCost(s, cid, type, n);
       if (C.deben < rc.deben) return `Nedostatek debenů na výzbroj (${rc.deben}).`;
       if (rc.horses && C.kone < rc.horses) return `Chybí koně (${rc.horses}, máš ${C.kone}).`;
@@ -47,19 +47,19 @@ function doCmd(s, cid, offId, cmd, arg, arg2) {
       const newTr = type === "medzajove" ? 55 : [18, 28, 42][C.laws.vojsko], old = men(p.troops);
       p.train = Math.round((p.train * old + newTr * n) / (old + n)); p.troops[type] = (p.troops[type] || 0) + n;
       if (type !== "medzajove") { p.pop = Math.max(1, r1(p.pop - n / 2500)); p.loy = Math.max(0, p.loy - n / 200); }
-      c.merit += 4; c.acted = s.turn; return say(`Povoláno ${n} mužů (${TROOPS[type].n}) v župě ${p.n} za ${rc.deben} debenů.`);
+      c.merit += 4; c.acted = s.turn; return say(`Povoláno ${n} mužů (${TROOPS[type].n}) v nomu ${p.n} za ${rc.deben} debenů.`);
     }
     case "vycvik": {
       if (p.train >= 100) return "Vojsko je dokonale vycvičené."; if (!men(p.troops)) return "Není koho cvičit.";
       if (!pay(s, cid, cost)) return "Nedostatek debenů.";
       const g = Math.round(st(c, "ved") / 9 + st(c, "uda") / 18 + rnd(s) * 4); p.train = Math.min(100, p.train + g); c.merit += 3;
-      c.acted = s.turn; return say(`Výcvik v župě ${p.n}: +${g} (nyní ${Math.round(p.train)}).`);
+      c.acted = s.turn; return say(`Výcvik v nomu ${p.n}: +${g} (nyní ${Math.round(p.train)}).`);
     }
     case "rozdat": {
       const g = Math.round(+arg || p.pop * 1000 * 0.6); if (C.grain < g) return `Nedostatek obilí (${fmtN(g)} charů).`;
       C.grain -= g; p.stock += g; const v = Math.round(st(c, "spr") / 12 + 4 + rnd(s) * 4 + (p.hunger > 0 ? 6 : 0)); p.loy = Math.min(100, p.loy + v); c.merit += 3;
       if (me && C.estates) C.estates.lid = Math.min(100, C.estates.lid + 1);
-      c.acted = s.turn; return say(`Rozděleno ${fmtN(g)} charů obilí do obecních sýpek v župě ${p.n}, spokojenost +${v}.`);
+      c.acted = s.turn; return say(`Rozděleno ${fmtN(g)} charů obilí do obecních sýpek v nomu ${p.n}, spokojenost +${v}.`);
     }
     case "scitani": {
       if (C.census > s.turn + 12) return "Soupis je ještě čerstvý.";
@@ -71,7 +71,7 @@ function doCmd(s, cid, offId, cmd, arg, arg2) {
       if (!pay(s, cid, cost, gcost)) return "Nedostatek debenů nebo obilí.";
       const v = r1(0.5 + st(c, "roz") / 80 + (p.b.chram || 0) * 0.4); C.maat = Math.min(100, C.maat + v); p.loy = Math.min(100, p.loy + 3); c.merit += 3;
       if (me && C.estates) C.estates.knezi = Math.min(100, C.estates.knezi + 2);
-      c.acted = s.turn; return say(`Obětiny pro boha ${p.god} v župě ${p.n}: maat +${v}.`);
+      c.acted = s.turn; return say(`Obětiny pro boha ${p.god} v nomu ${p.n}: maat +${v}.`);
     }
     case "hledat": {
       if (!pay(s, cid, cost)) return "Nedostatek debenů.";
@@ -83,7 +83,7 @@ function doCmd(s, cid, offId, cmd, arg, arg2) {
         return say(`našel ${x.n}, ale ten službu odmítl.`);
       }
       if ((p.b.chram || p.flags.includes("c")) && chance(s, 0.25)) { const x = genOfficer(s, null, C.cul, p.id, { st: "wand", rank: 0, loy: 0, ved: rint(s, 10, 35), uda: rint(s, 10, 35), roz: rint(s, 50, 82), spr: rint(s, 50, 85) }); x.traits = ["hospodar"]; return say(`v chrámové škole se ozval nadaný písař ${x.n} – hledej dál a přijmi ho do služby.`); }
-      if (chance(s, 0.15 + st(c, "roz") / 500)) { const x = genOfficer(s, null, C.cul, p.id, { st: "wand", rank: 0, loy: 0 }); return say(`zaslechl o schopném muži (${x.n}), který se toulá župou.`); }
+      if (chance(s, 0.15 + st(c, "roz") / 500)) { const x = genOfficer(s, null, C.cul, p.id, { st: "wand", rank: 0, loy: 0 }); return say(`zaslechl o schopném muži (${x.n}), který se toulá nomem.`); }
       return say("nikoho schopného nenašel.");
     }
     case "uceni": {
@@ -98,7 +98,7 @@ function doCmd(s, cid, offId, cmd, arg, arg2) {
       C.deben -= g.deben; C.grain -= g.grain;
       const t = Math.max(2, BUILD[b].time - (st(c, "spr") > 70 ? 1 : 0) - (hasTech(s, cid, "matematika") ? 1 : 0));
       p.build = { b, left: t, total: t };
-      c.merit += 5; c.acted = s.turn; return say(`Zahájena stavba v župě ${p.n}: ${BUILD[b].n} za ${fmtN(g.deben)} debenů a ${fmtN(g.grain)} charů obilí${disc} (asi ${t} měsíců).`);
+      c.merit += 5; c.acted = s.turn; return say(`Zahájena stavba v nomu ${p.n}: ${BUILD[b].n} za ${fmtN(g.deben)} debenů a ${fmtN(g.grain)} charů obilí${disc} (asi ${t} měsíců).`);
     }
     case "vyprava": {
       const E = EXPED[arg]; if (!E) return "Vyber výpravu."; const e = expAvail(s, cid, arg); if (e) return e;
@@ -109,16 +109,16 @@ function doCmd(s, cid, offId, cmd, arg, arg2) {
       return say(`vyrazil na výpravu: ${E.n} (návrat asi za ${E.months} měsíce).`);
     }
     case "zvedy": {
-      const t = s.provs[arg]; if (!t || t.owner === cid) return "Vyber cizí župu.";
+      const t = s.provs[arg]; if (!t || t.owner === cid) return "Vyber cizí nom.";
       if (!pay(s, cid, cost)) return "Nedostatek debenů."; c.acted = s.turn;
-      if (chance(s, 0.6 + st(c, "roz") / 250)) { t.spy[cid] = s.turn + 6; return say(`Zvědové zjistili stav župy ${t.n} (platí 6 měsíců).`); }
-      return say(`zvědové se ze župy ${t.n} nevrátili.`);
+      if (chance(s, 0.6 + st(c, "roz") / 250)) { t.spy[cid] = s.turn + 6; return say(`Zvědové zjistili stav nomu ${t.n} (platí 6 měsíců).`); }
+      return say(`zvědové se z nomu ${t.n} nevrátili.`);
     }
     case "podnecovat": {
-      const t = s.provs[arg]; if (!t || t.owner === cid) return "Vyber cizí župu."; if (!pay(s, cid, cost)) return "Nedostatek debenů."; c.acted = s.turn;
+      const t = s.provs[arg]; if (!t || t.owner === cid) return "Vyber cizí nom."; if (!pay(s, cid, cost)) return "Nedostatek debenů."; c.acted = s.turn;
       const tl = chr(s, t.lord);
-      if (chance(s, 0.3 + st(c, "roz") / 250 - (tl ? st(tl, "roz") / 400 : 0))) { const d = rint(s, 8, 18); t.loy = Math.max(0, t.loy - d); t.troops.kopinici = Math.round((t.troops.kopinici || 0) * 0.93); return say(`V župě ${t.n} vypukly nepokoje (spokojenost −${d}).`); }
-      addRel(s, cid, t.owner, -10); if (chance(s, 0.2)) { capture(s, c, t.owner); return say(`byl dopaden při podněcování v župě ${t.n} a zajat!`); } return say(`podněcování v župě ${t.n} se nezdařilo a bylo odhaleno.`);
+      if (chance(s, 0.3 + st(c, "roz") / 250 - (tl ? st(tl, "roz") / 400 : 0))) { const d = rint(s, 8, 18); t.loy = Math.max(0, t.loy - d); t.troops.kopinici = Math.round((t.troops.kopinici || 0) * 0.93); return say(`V nomu ${t.n} vypukly nepokoje (spokojenost −${d}).`); }
+      addRel(s, cid, t.owner, -10); if (chance(s, 0.2)) { capture(s, c, t.owner); return say(`byl dopaden při podněcování v nomu ${t.n} a zajat!`); } return say(`podněcování v nomu ${t.n} se nezdařilo a bylo odhaleno.`);
     }
     case "naklonit": {
       const x = chr(s, arg); if (!x || x.st !== "off" || x.cl === cid) return "Vyber cizího úředníka."; if (x.id === s.clans[x.cl].leader || x.dyn) return "Vládce ani jeho příbuzné nelze naklonit.";
@@ -132,9 +132,9 @@ function doCmd(s, cid, offId, cmd, arg, arg2) {
       addRel(s, cid, x.cl, -8); return say(`${x.n} dary odmítl a pánovi vše oznámil.`);
     }
     case "presun": {
-      const t = s.provs[arg]; if (!t || t.owner !== cid || t.id === p.id) return "Vyber jinou vlastní župu.";
+      const t = s.provs[arg]; if (!t || t.owner !== cid || t.id === p.id) return "Vyber jiný vlastní nom.";
       c.moving = { to: t.id, at: s.turn + 1 }; c.acted = s.turn; if (p.lord === c.id) p.lord = null; assignLords(s, cid);
-      return say(`odjíždí do župy ${t.n}.`);
+      return say(`odjíždí do nomu ${t.n}.`);
     }
   }
   return "Neznámý rozkaz.";
@@ -144,13 +144,13 @@ function researchMult(s, cid) { const C = s.clans[cid]; let m = hasTech(s, cid, 
 
 function capture(s, c, by) { c.st = "cap"; c.capBy = by; c.army = null; for (const p of Object.values(s.provs)) if (p.lord === c.id) p.lord = null; for (const C of Object.values(s.clans)) for (const k in C.offices) if (C.offices[k] === c.id) C.offices[k] = null; }
 
-// Úředník přejde k jinému rodu – je-li správcem pohraniční župy, vezme ji s sebou.
+// Úředník přejde k jinému rodu – je-li správcem pohraničního nomu, vezme ho s sebou.
 function tryDefect(s, x, to) {
   const old = x.cl, T = s.clans[to]; if (!T || !T.alive || to === old) return false;
   const lordOf = Object.values(s.provs).find(q => q.lord === x.id && q.owner === old);
   if (lordOf && x.loy < 20 && lordOf.nb.some(n => s.provs[n].owner === to) && !lordOf.siege && lordOf.id !== s.clans[old].capital) {
     transferProv(s, lordOf.id, to, "zrada"); x.cl = to; x.loy = 60; x.tempt = null; addRel(s, to, old, -25);
-    log(s, `${x.n} zradil svého pána (${clanName(s, old)}) a přešel se župou ${lordOf.n} k rodu ${T.house}!`, "intriky", [to, old]);
+    log(s, `${x.n} zradil svého pána (${clanName(s, old)}) a přešel s nomem ${lordOf.n} k rodu ${T.house}!`, "intriky", [to, old]);
     return true;
   }
   if (x.army) return false;

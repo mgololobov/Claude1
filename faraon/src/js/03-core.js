@@ -238,7 +238,7 @@ function aiOffices(s, cid) {
   for (const [k, O] of Object.entries(OFFICES)) { const best = offs.filter(c => !used.has(c.id)).sort((a, b) => st(b, O.stat) - st(a, O.stat))[0]; if (best) { s.clans[cid].offices[k] = best.id; used.add(best.id); } }
 }
 
-// ---------- správa žup ----------
+// ---------- správa nomů ----------
 function durMax(s, p) { return p.castle * 100 + (hasTech(s, p.owner, "pevnosti") ? 50 : 0); }
 function assignLords(s, cid) {
   for (const p of clanProvs(s, cid)) {
@@ -253,10 +253,10 @@ function costMult(s, cid) { const C = s.clans[cid]; let m = [1.15, 1, 0.85][C.la
 function buildLevel(p, b) { return b === "pevnost" ? p.castle : (p.b[b] || 0); }
 function buildCost(s, cid, b, p) { const B = BUILD[b], lvl = buildLevel(p, b) - (b === "pevnost" ? 1 : 0), k = (1 + Math.max(0, lvl) * 0.5) * costMult(s, cid) * (p.res.includes("kamen") ? 0.9 : 1); return { deben: Math.round(B.cost * k), grain: Math.round(B.grain * k) }; }
 function canBuild(s, cid, p, b) {
-  const B = BUILD[b]; if (p.owner !== cid) return "Župa ti nepatří.";
-  if (p.build) return "V župě se už staví.";
+  const B = BUILD[b]; if (p.owner !== cid) return "Nom ti nepatří.";
+  if (p.build) return "V nomu se už staví.";
   if (buildLevel(p, b) >= B.max) return "Nejvyšší úroveň.";
-  if (B.need && !B.need(p)) return "V této župě nelze.";
+  if (B.need && !B.need(p)) return "V tomto nomu nelze.";
   const c = buildCost(s, cid, b, p), C = s.clans[cid];
   if (C.deben < c.deben) return `Nedostatek debenů (${c.deben}).`;
   if (C.grain < c.grain) return `Nedostatek obilí pro robotníky (${c.grain}).`;
@@ -268,7 +268,7 @@ function recruitCost(s, cid, type, n) {
 }
 function canRecruitType(s, cid, p, type) {
   if (type === "vozy" && !hasTech(s, cid, "vuz")) return "Chybí vědění Válečný vůz a kůň.";
-  if (type === "medzajove" && !s.clans[cid].medjay && !p.flags.includes("m")) return "Nemáš spojení s Médžaji (získáš je v župě s Médžaji nebo nabídkou jejich náčelníků).";
+  if (type === "medzajove" && !s.clans[cid].medjay && !p.flags.includes("m")) return "Nemáš spojení s Médžaji (získáš je v nomu s Médžaji nebo nabídkou jejich náčelníků).";
   return null;
 }
 function maxRecruit(s, p, c) { return Math.max(0, Math.min(troopCap(p) - men(p.troops), 150 + st(c, "ved") * 10)); }
@@ -296,7 +296,7 @@ function clanPower(s, cid) { return sum(clanProvs(s, cid).map(p => troopPower(s,
 function realmPower(s, cid) { return clanPower(s, cid) + sum(vassalsOf(s, cid).map(v => clanPower(s, v.id) * 0.6)); }
 function clanMen(s, cid) { return sum(clanProvs(s, cid).map(p => men(p.troops))) + sum(s.armies.filter(a => a.cl === cid).map(a => men(a.t))); }
 
-// co hráč o cizí župě ví
+// co hráč o cizí nomu ví
 function knows(s, p) { return s.opts.fog === false || p.owner === s.player || (p.spy[s.player] || 0) > s.turn || p.nb.some(n => s.provs[n].owner === s.player) || s.clans[p.owner].vassalOf === s.player || allied(s, s.player, p.owner); }
 function estimate(s, p, v) { if (s.opts.fog === false || p.owner === s.player || (p.spy[s.player] || 0) > s.turn) return String(Math.round(v)); const lo = Math.round(v * 0.75 / 100) * 100, hi = Math.round(v * 1.3 / 100) * 100; return `${lo}–${hi}`; }
 

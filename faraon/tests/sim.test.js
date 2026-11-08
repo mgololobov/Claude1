@@ -19,7 +19,7 @@ for (const scen of Object.keys(A.SCENARIOS)) for (const cl of A.SCENARIOS[scen].
       for (const C of A.aliveClans(s)) for (const k of ["deben", "grain", "maat", "prestige"]) if (!Number.isFinite(C[k])) throw new Error(`NaN ${k} u ${C.id}`);
     }
     const C = A.P(s), b = A.clanBudget(s, s.player);
-    console.log(`${scen}/${cl.id}/${seed}: ${s.turn} měs., ≈${s.bce} př. n. l., župy ${A.clanProvs(s, s.player).length}, jádro ${A.realmCore(s, s.player)}/${A.coreProvs(s).length}, deben ${Math.round(C.deben)}, obilí ${Math.round(C.grain)}, muži ${A.clanMen(s, s.player)}, maat ${Math.round(C.maat)}, rody ${A.aliveClans(s).length}, bitvy ${s.battles.length}, války ${s.wars.length}${s.over ? " | " + (s.over.win ? "VÍTĚZSTVÍ" : "KONEC") + ": " + s.over.txt.slice(0, 70) : ""}`);
+    console.log(`${scen}/${cl.id}/${seed}: ${s.turn} měs., ≈${s.bce} př. n. l., nomy ${A.clanProvs(s, s.player).length}, jádro ${A.realmCore(s, s.player)}/${A.coreProvs(s).length}, deben ${Math.round(C.deben)}, obilí ${Math.round(C.grain)}, muži ${A.clanMen(s, s.player)}, maat ${Math.round(C.maat)}, rody ${A.aliveClans(s).length}, bitvy ${s.battles.length}, války ${s.wars.length}${s.over ? " | " + (s.over.win ? "VÍTĚZSTVÍ" : "KONEC") + ": " + s.over.txt.slice(0, 70) : ""}`);
   } catch (e) { fails++; console.log(`CHYBA ${scen}/${cl.id}/${seed} v měsíci ${s.turn}: ${e.stack.split("\n").slice(0, 4).join(" | ")}`); }
 }
 if (fails) { console.log(fails + " chyb"); process.exit(1); } else console.log("OK");

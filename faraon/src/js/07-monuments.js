@@ -1,5 +1,5 @@
-// Velké stavby panovníků: dlouhodobé projekty s trvalým účinkem na župu a jednorázovou slávou pro stavebníka.
-// Každá je inspirována skutečnou stavbou; ve hře ji může postavit kdokoli, kdo župu drží (i dřív než historicky).
+// Velké stavby panovníků: dlouhodobé projekty s trvalým účinkem na nom a jednorázovou slávou pro stavebníka.
+// Každá je inspirována skutečnou stavbou; ve hře ji může postavit kdokoli, kdo nom drží (i dřív než historicky).
 const MONUMENTS = {
   delbahri: { n: "Zádušní chrám v Dér el-Bahrí", at: "u4", stages: 4, deben: 6000, grain: 40000, maat: 10, prestige: 120,
     d: "Terasovitý zádušní chrám Montuhotepa II. (11. dynastie) v zálivu skal na západním břehu Théb.", eff: "maat +10, sláva +120, Théby +10 spokojenosti" },
@@ -24,9 +24,9 @@ function monCheck(s, cid, id) {
   const M = MONUMENTS[id], st_ = monState(s, id);
   if (st_.stage >= M.stages) return "Stavba je dokončena.";
   if (st_.active) return "Na stavbě se pracuje.";
-  for (const pid of [M.at].concat(M.need || [])) if (s.provs[pid].owner !== cid) return `Musíš držet župu ${s.provs[pid].n}.`;
+  for (const pid of [M.at].concat(M.need || [])) if (s.provs[pid].owner !== cid) return `Musíš držet nom ${s.provs[pid].n}.`;
   if (M.need2 === "kamen" && s.provs.u1.owner !== cid) return "Žula se láme u Elefantiny – musíš ji držet.";
-  if (s.provs[M.at].siege) return "Župa je obléhána.";
+  if (s.provs[M.at].siege) return "Nom je obléhán.";
   const c = monCost(s, cid, id); if (s.clans[cid].deben < c.deben || s.clans[cid].grain < c.grain) return `Potřebuješ ${fmtN(c.deben)} debenů a ${fmtN(c.grain)} charů obilí.`;
   return null;
 }
@@ -40,7 +40,7 @@ function startMon(s, cid, id) {
 function monTick(s) {
   for (const id of MON_IDS) {
     const M = MONUMENTS[id], p = s.provs[M.at], st_ = p.mons && p.mons[id]; if (!st_ || !st_.active) continue;
-    if (p.owner !== st_.by || p.siege) { st_.active = false; continue; } // stavba se zastaví, když župa padne
+    if (p.owner !== st_.by || p.siege) { st_.active = false; continue; } // stavba se zastaví, když nom padne
     st_.left -= s.month < 4 ? 2 : 1;
     if (st_.left > 0) continue;
     st_.active = false; st_.stage++; const C = s.clans[st_.by];
@@ -53,7 +53,7 @@ function monTick(s) {
     log(s, `${C.house} dokončil velkou stavbu: ${M.n}.`, "stavby", [st_.by]);
   }
 }
-// trvalé účinky na župy
+// trvalé účinky na nomy
 function monAgri(s, p) { return p.id === "fa" && monDone(s, "fajjum") ? 25 : 0; }
 function monRaidWall(s, p) { return (monDone(s, "zdi") && (p.id === "l14" || p.id === "l20")) || (monDone(s, "katarakt") && (p.id === "n_buhen" || p.id === "n_semna")) ? 2 : 1; }
 function monResearch(s, cid) { return monDone(s, "karnak") && s.provs.u4.owner === cid ? 2 : 0; }

@@ -10,9 +10,9 @@ function findPath(s, cid, from, to) {
 function nileLink(a, b) { return NILE_IDS.includes(a) && NILE_IDS.includes(b); }
 
 function sendArmy(s, cid, fromPid, toPid, frac, cmdIds) {
-  const p = s.provs[fromPid]; if (!p || p.owner !== cid) return "Vojsko lze vyslat jen z vlastní župy.";
-  if (p.siege) return "Župa je obléhána.";
-  const t = s.provs[toPid]; if (!t) return "Vyber cíl."; if (toPid === fromPid) return "Cíl je stejný jako výchozí župa.";
+  const p = s.provs[fromPid]; if (!p || p.owner !== cid) return "Vojsko lze vyslat jen z vlastního nomu.";
+  if (p.siege) return "Nom je obléhán.";
+  const t = s.provs[toPid]; if (!t) return "Vyber cíl."; if (toPid === fromPid) return "Cíl je stejný jako výchozí nom.";
   if (t.owner !== cid && !atWar(s, cid, t.owner) && !friendly(s, cid, t.owner)) return `S rodem ${s.clans[t.owner].house} neválčíš.`;
   const path = findPath(s, cid, fromPid, toPid); if (!path) return "Cesta je zavřená (vede přes neutrální území).";
   frac = clamp(+frac || 0.7, 0.1, 1); const tt = {};
@@ -22,7 +22,7 @@ function sendArmy(s, cid, fromPid, toPid, frac, cmdIds) {
   const a = { id: "a" + s.nextArmy++, cl: cid, t: tt, train: p.train, loc: fromPid, path, goal: toPid, cmds: cmds.map(c => c.id), since: s.turn };
   for (const c of cmds) { c.army = a.id; c.acted = s.turn; if (p.lord === c.id) p.lord = null; }
   s.armies.push(a); assignLords(s, cid);
-  if (isPlayer(s, cid)) log(s, `Vojsko (${fmtN(men(tt))} mužů${cmds.length ? ", velí " + cmds.map(c => c.n).join(" a ") : ""}) vyráží ze župy ${p.n} do župy ${t.n}.`, "valka", [cid]);
+  if (isPlayer(s, cid)) log(s, `Vojsko (${fmtN(men(tt))} mužů${cmds.length ? ", velí " + cmds.map(c => c.n).join(" a ") : ""}) vyráží z nomu ${p.n} do nomu ${t.n}.`, "valka", [cid]);
   return null;
 }
 function armyCmdBonus(s, a) { const cs = a.cmds.map(id => chr(s, id)).filter(Boolean); if (!cs.length) return 0.9; const b = cs.sort((x, y) => st(y, "ved") - st(x, "ved"))[0]; return 1 + (st(b, "ved") - 50) / 150 + (st(b, "uda") - 50) / 400; }
@@ -55,10 +55,10 @@ function battle(s, A, D, pid, o = {}) {
   s.clans[loser.cl].prestige = Math.max(0, s.clans[loser.cl].prestige - 5);
   for (const id of winner.cmds || []) { const c = chr(s, id); if (c) c.merit += 20; }
   const fates = [];
-  for (const id of loser.cmds || []) { const c = chr(s, id); if (!c || c.st !== "off") continue; const r = rnd(s); if (r < 0.08) { const lead = s.clans[c.cl] && s.clans[c.cl].leader === c.id; fates.push(`${c.n} padl${lead ? " – panovník zemřel v boji jako kdysi Sekenenre Taa" : ""}`); die(s, c, `padl v bitvě u župy ${p.n}`); } else if (r < 0.2) { fates.push(`${c.n} zajat`); capture(s, c, winner.cl); c.loc = pid; } else if (r < 0.3) { c.wound = 3; fates.push(`${c.n} raněn`); } }
+  for (const id of loser.cmds || []) { const c = chr(s, id); if (!c || c.st !== "off") continue; const r = rnd(s); if (r < 0.08) { const lead = s.clans[c.cl] && s.clans[c.cl].leader === c.id; fates.push(`${c.n} padl${lead ? " – panovník zemřel v boji jako kdysi Sekenenre Taa" : ""}`); die(s, c, `padl v bitvě u nomu ${p.n}`); } else if (r < 0.2) { fates.push(`${c.n} zajat`); capture(s, c, winner.cl); c.loc = pid; } else if (r < 0.3) { c.wound = 3; fates.push(`${c.n} raněn`); } }
   b.fates = fates; s.battles.unshift(b); if (s.battles.length > 60) s.battles.length = 60;
   const lossA = aStart - men(A.t), lossD = dStart - men(D.t);
-  log(s, `${o.kind === "zteč" ? "Boj u hradeb" : "Bitva"} v župě ${p.n}: ${s.clans[A.cl].house} (${fmtN(aStart)} mužů) proti ${s.clans[D.cl].house} (${fmtN(dStart)}). ${win === "A" ? "Útočník zvítězil" : "Obránce se ubránil"}. Ztráty ${fmtN(lossA)} : ${fmtN(lossD)}.${fates.length ? " " + fates.join(", ") + "." : ""}`, "valka", [A.cl, D.cl]);
+  log(s, `${o.kind === "zteč" ? "Boj u hradeb" : "Bitva"} v nomu ${p.n}: ${s.clans[A.cl].house} (${fmtN(aStart)} mužů) proti ${s.clans[D.cl].house} (${fmtN(dStart)}). ${win === "A" ? "Útočník zvítězil" : "Obránce se ubránil"}. Ztráty ${fmtN(lossA)} : ${fmtN(lossD)}.${fates.length ? " " + fates.join(", ") + "." : ""}`, "valka", [A.cl, D.cl]);
   return b;
 }
 
@@ -70,7 +70,7 @@ function retreat(s, a, from) {
 
 function arrive(s, a, from) {
   const p = s.provs[a.loc];
-  // nepřátelská vojska v župě
+  // nepřátelská vojska v nomu
   for (const e of s.armies.filter(x => x !== a && x.loc === a.loc && atWar(s, x.cl, a.cl))) {
     const b = battle(s, { cl: a.cl, t: a.t, train: a.train, cmd: armyCmdBonus(s, a), cmds: a.cmds }, { cl: e.cl, t: e.t, train: e.train, cmd: armyCmdBonus(s, e), cmds: e.cmds }, p.id);
     if (b.win === "A") retreat(s, e, e.path && e.path.length ? e.loc : (clanProvs(s, e.cl).find(q => p.nb.includes(q.id)) || {}).id);
@@ -86,12 +86,12 @@ function arrive(s, a, from) {
     // zbytek posádky ustoupí do pevnosti nebo uteče
     const rest = men(p.troops); if (rest > 0) { const to = p.nb.map(n => s.provs[n]).find(q => q.owner === p.owner && !q.siege); if (to) for (const k of TROOP_IDS) { to.troops[k] = (to.troops[k] || 0) + Math.round((p.troops[k] || 0) * 0.5); } p.troops = {}; }
   }
-  if (p.dur > 0) { if (!p.siege || p.siege.cl !== a.cl) { p.siege = { cl: a.cl, army: a.id, m: 0 }; log(s, `${s.clans[a.cl].house} obléhá pevnost v župě ${p.n}.`, "valka", [a.cl, p.owner]); } a.path = []; return false; }
+  if (p.dur > 0) { if (!p.siege || p.siege.cl !== a.cl) { p.siege = { cl: a.cl, army: a.id, m: 0 }; log(s, `${s.clans[a.cl].house} obléhá pevnost v nomu ${p.n}.`, "valka", [a.cl, p.owner]); } a.path = []; return false; }
   conquer(s, p, a.cl); return true;
 }
 function conquer(s, p, cid) {
   const old = p.owner; transferProv(s, p.id, cid, "dobytí"); p.siege = null;
-  log(s, `${s.clans[cid].house} dobyl župu ${p.n}${s.clans[old] ? " (dříve " + s.clans[old].house + ")" : ""}.`, "valka", [cid, old]);
+  log(s, `${s.clans[cid].house} dobyl nom ${p.n}${s.clans[old] ? " (dříve " + s.clans[old].house + ")" : ""}.`, "valka", [cid, old]);
   if (p.flags.includes("h")) desecration(s, cid, p);
   if (p.id === "u15" && old === "teti") log(s, `Tak jako Kamose, který se na své stéle chlubí, že zpustošil Nefrusy Tetiho, syna Pepiho, protože z ní Teti „udělal hnízdo Asiatů“.`, "valka", [cid]);
   if (p.id === "lav" && s.scen === "sip" && old === "hyksos" && s.clans[cid].cul === "eg") { const C = s.clans[cid]; C.prestige += 100; C.maat = Math.min(100, C.maat + 5); log(s, `Avaris, sídlo Hyksósů, padl! Podle životopisu Ahmose, syna Ebany, se po pádu Avaridu Hyksósové stáhli do Šaruhenu v jižní Palestině, který Egypťané obléhali tři roky.`, "valka", [cid, old]); }
@@ -120,8 +120,8 @@ function clanDies(s, cid, by) {
   s.armies = s.armies.filter(x => x.cl !== cid);
   for (const c of Object.values(s.chars)) if (c.cl === cid && c.st !== "dead") { if (c.st === "off" && !c.dyn) { c.st = "wand"; c.cl = null; } else if (c.st !== "cap") { c.st = "dead"; c.died = "konec rodu"; } }
   for (const x of aliveClans(s)) { if (x.vassalOf === cid) x.vassalOf = null; if (x.tributeTo === cid) x.tributeTo = null; }
-  log(s, `Rod ${C.house} (${C.n}) ztratil poslední župu a zanikl${by && s.clans[by] ? " – zvítězil " + s.clans[by].house : ""}.`, "svet", [cid, by]);
-  if (cid === s.player) s.over = { win: false, txt: `Tvůj rod ztratil poslední župu. ${C.house} upadá v zapomnění.` };
+  log(s, `Rod ${C.house} (${C.n}) ztratil poslední nom a zanikl${by && s.clans[by] ? " – zvítězil " + s.clans[by].house : ""}.`, "svet", [cid, by]);
+  if (cid === s.player) s.over = { win: false, txt: `Tvůj rod ztratil poslední nom. ${C.house} upadá v zapomnění.` };
 }
 
 function moveArmies(s) {
@@ -137,7 +137,7 @@ function moveArmies(s) {
       if (!arrive(s, a, from)) break;
     }
   }
-  // samostatně stojící vojska ve vlastní župě se po měsíci vrátí do posádky (u umělé inteligence)
+  // samostatně stojící vojska ve vlastním nomu se po měsíci vrátí do posádky (u umělé inteligence)
   for (const a of s.armies.slice()) if ((!a.path || !a.path.length) && s.provs[a.loc].owner === a.cl && !isPlayer(s, a.cl) && s.turn - a.since > 0) disbandArmy(s, a);
 }
 function siegeTick(s) {
@@ -148,11 +148,11 @@ function siegeTick(s) {
     const pw = troopPower(s, a.cl, a.t, { train: a.train });
     p.dur = Math.max(0, Math.round(p.dur - (12 + pw / 25 * (hasTech(s, a.cl, "pevnosti") ? 1.2 : 1))));
     const starve = p.siege.m >= p.castle * 2 + 2;
-    if (p.dur <= 0 || starve) { log(s, `Pevnost v župě ${p.n} padla${starve && p.dur > 0 ? " – posádka vyhladověla" : ""}.`, "valka", [a.cl, p.owner]); conquer(s, p, a.cl); }
+    if (p.dur <= 0 || starve) { log(s, `Pevnost v nomu ${p.n} padla${starve && p.dur > 0 ? " – posádka vyhladověla" : ""}.`, "valka", [a.cl, p.owner]); conquer(s, p, a.cl); }
   }
 }
 
-// Nájezdy kmenů (Libyjci, Aamu, Médžajové, Núbijci) – loupí, ale župy nedobývají.
+// Nájezdy kmenů (Libyjci, Aamu, Médžajové, Núbijci) – loupí, ale nomy nedobývají.
 function raids(s) {
   for (const T of aliveClans(s).filter(c => c.type === "kmen")) {
     if (!chance(s, T.aggr * 0.07)) continue;
@@ -164,7 +164,7 @@ function raids(s) {
     for (const k of TROOP_IDS) if (t[k]) from.troops[k] = (from.troops[k] || 0) + t[k];
     const O = s.clans[q.owner];
     if (b.win === "A") { const loot = Math.round(Math.min(O.deben * 0.06, 2500)), gl = Math.round(Math.min(q.stock * 0.3, 15000)); O.deben -= loot; q.stock -= gl; q.loy = Math.max(0, q.loy - 6); q.pop = r1(q.pop * 0.985); T.deben += loot; T.grain += gl;
-      log(s, `Nájezd: ${T.n} (${T.house}) vyplenili župu ${q.n} – odnesli ${fmtN(loot)} debenů a ${fmtN(gl)} charů obilí.`, "valka", [T.id, q.owner]); }
+      log(s, `Nájezd: ${T.n} (${T.house}) vyplenili nom ${q.n} – odnesli ${fmtN(loot)} debenů a ${fmtN(gl)} charů obilí.`, "valka", [T.id, q.owner]); }
     addRel(s, T.id, q.owner, -6);
   }
 }
@@ -218,7 +218,7 @@ function diplo(s, a, b, act, arg) {
     }
     case "obchod": {
       if (atWar(s, a, b)) return "Válčíte."; if (s.trade[pairKey(a, b)]) return "Smlouvu už máte."; done();
-      if (r >= 10) { s.trade[pairKey(a, b)] = true; addRel(s, a, b, 5); log(s, `${A.house} a ${B.house} uzavřeli obchodní smlouvu (+4 % výnosu žup oběma).`, "diplomacie", [a, b]); return null; }
+      if (r >= 10) { s.trade[pairKey(a, b)] = true; addRel(s, a, b, 5); log(s, `${A.house} a ${B.house} uzavřeli obchodní smlouvu (+4 % výnosu nomů oběma).`, "diplomacie", [a, b]); return null; }
       if (me) log(s, `${B.house} obchodní smlouvu odmítl (vztah ${Math.round(r)}, potřeba aspoň 10).`, "diplomacie", [a, b]); return null;
     }
     case "podruci": {

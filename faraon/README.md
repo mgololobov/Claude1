@@ -13,9 +13,9 @@ Hra je jeden soubor `dist/index.html`: stačí ho otevřít v prohlížeči, fun
 
 ## Co hra obsahuje
 
-- 48 žup od Kermy po Deltu s egyptskými jmény, bohy a surovinami; mapa se skutečným tokem Nilu a ramen v Deltě.
+- 48 nomů od Kermy po Deltu s egyptskými jmény, bohy a surovinami; mapa se skutečným tokem Nilu a ramen v Deltě.
 - Nilometr a záplavy (Pliniovo pravidlo 12–16 loktů), sklizeň v Šemu, daň v obilí, obecní sýpky, hlad; debeny jako jednotka hodnoty, trh s obilím.
-- Úředníci s hodnostmi Střední říše (písař, jedinečný přítel, hatia, velký vládce župy, iripat), rozkazy, úřady (vezír, pokladník, správce sýpek, velitel vojska, velekněz), věrnost a zrady.
+- Úředníci s hodnostmi Střední říše (písař, jedinečný přítel, hatia, velký představený nomu, iripat), rozkazy, úřady (vezír, pokladník, správce sýpek, velitel vojska, velekněz), věrnost a zrady.
 - Výpravy do Vádí Hammámát, Hatnubu, na Sinaj, do zlatých dolů Vavatu, do Byblu a do Puntu.
 - Vojsko (kopiníci, lučištníci, Médžajové, válečné vozy), pochody a plavba po Nilu, bitvy, obléhání pevností, nájezdy kmenů.
 - Maat, stavy (kněží, nomarchové, písaři, lid), zákony, chrámy, hrobka panovníka, svátek sed, Usirovy mystéria v Abydu.
