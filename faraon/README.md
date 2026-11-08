@@ -26,6 +26,10 @@ Hra je jeden soubor `dist/index.html`: stačí ho otevřít v prohlížeči, fun
 
 Jména vládců a doložených hodnostářů odpovídají pramenům; roky narození, schopnosti a ostatní postavy jsou herní. Letopočty podle střední chronologie (I. Shaw, The Oxford History of Ancient Egypt, 2000).
 
+## Vzhled
+
+Vzhled vychází z egyptského umění: barvy egyptských pigmentů, blokový vlys z hrobek, postavy z profilu s konvencemi egyptské malby (muži červenohnědí, ženy žlutookrové, Asiaté podle malby z Beni Hasanu, král v šátku nemes), mapa s černou zemí Kemet a červenou zemí Dešret. Hieroglyfy (písmo Noto Sans Egyptian Hieroglyphs, licence OFL, zmenšené na použité znaky) mají skutečný význam: nb tꜣwj „Pán Obou zemí“, nswt-bjtj „král Horního a Dolního Egypta“, ꜥnḫ wḏꜣ snb „živ, zdráv, silen“, sepat „nom“, sema „sjednocení“.
+
 ## Vývoj
 
 - `src/js/0*.js` – pravidla (data, scénáře, hospodářství, rozkazy, válka, běh měsíce), bez prohlížeče

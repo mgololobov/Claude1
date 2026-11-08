@@ -5,120 +5,208 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Pán Obou zemí</title>
 <style>
+/* Barvy podle egyptských pigmentů: egyptská modř, červený a žlutý okr, malachit, saze, sádrová běloba.
+   Vlys z barevných obdélníků lemoval malby v hrobkách; papyrus je podklad písařů. */
+@font-face { font-family: "Hieroglyfy"; src: url(data:font/woff2;base64,d09GMgABAAAAACCUABAAAAAAPkQAACA6AAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGyAcNgZgAIFwCDQJnAwRCArRdMdeATYCJANMCygABCAFhRwHIAyBJxv0NxVsXMV2OwhRvL9bIfv/YwKVMVwHTwuoegGLk0pjpyKk3FGY8qJ2siSkXUdc5jq11U0kaqEBiTL3nsJAOs9+3rus11eszkap5SB/zdx3137LIw/dZvgUHQyApGH0+70Rksz6z+fFe859SjKBRt9g22kqaQVzsbFXgP7/tV7vfTCMCzMLhJNsiiF2BdoKB6R/fYyoKuscX+Xa4Wmbfw/6qBQUUFEiBQMbEIwEY7NmzilmLOwlS2NVbvu/p1u7zHZExFrZs7f7SAHAuw+yItwAsIpnJwiFibGp6Njot391pfeSFBWQAqP8sJ8doAPU0iHoB6Wlor6iVleNfBwA+68zpbHSu+2DoWXHLjCsgRLMfftlmQ+Aw3QMpppKuaSUSoCgXHjL5IOm9Kr/GHuyjAGBuW33DahvRBDN7cdo9Eyyua6hHvy/vzF+/W/AAJu1OizNdZKnnlsdBDejh3OZbJyOQe1f+eknmnGAtYk9KGwubccgiRQNrakf21oCNSCjKsyAnJ3O7ANCAOHg/1+z1977ZvJ3NltIinEFSv+0LAyg/adCVki8eZPkzJtJ9wQWJrOcFOYnHzLF7H4AlHXAqmePT+bT7H4uAQjVClvFxiG5ClcliYSrsKLL2CTS5Kd+sQYOl+GspuNEZILVU5IUurG7N7kzICDQTQXu2RefCnk0AP//dh237TXGAqvV5WpLbTnU72ZtUVmM3Muvr5yeN2LDunFA5kKDvC3SAUuf1s8LxmQOSLcRbbRIrRMI98JDSVHQixOuolL+NwyKChfkQJ/wZHWW2csZBXW5RAVPYQ12/BBUzmCz/50aQGwerAYEm2epIShsXqKGoLF5qxqCweYTaggWm2+oIThs/pyH4FHxHz38/wDwseWpgRq2rlFDCLH1lBpChK1f1BBibP2phpDg+Go1kMLxGzTsufFXIAwhP2qIrQoWD1kcB8m/ggv4n0remvhcdDfTIxJ9zRIGIDz3XQU2rsG42aBw98tzccjOS5ggPX8m8XgjyZy0QxkYawmvCRfpNIDC4CoimH1PKhKIFVuRAqMzunW/cG26RAguk622y80uSXh4Cmpmrk87jsiuTxvS6TA45tOnVuNujO3W5Ck2l7jGTZvwqoTwyI+1CVKnM2AuGvTpBeEhSBi32GAEvt0ly7+aTlpmd9ilULxFjnbd/+2F26RXykfXZ1GwLDcvYzYvigx9ccQOTyxRi02MiRe8rcAE6SZuoIhwMTK9obywFazSQd1whsSpcUh44gl3HYU96oazyrkrZ/HakqG15jWXRnUUlRhTAj3oA8iA4rQiB7og8zgCRe56iuYomTPWKvG7okA1CYhSFhsHAx9rygydP8QwtPaRj23lthMp+/+tFXnSd7K858OuifvqRa2CxZ0XhuEkMYzVVRRBmWUDRGKQhpbNCQh1F0maCbGdLIpja8sA0gEGh9dMGtQusPhWcy50ynUpaOQVYdd9sFED6rRRlNJayGMI1Evm4WCnehVUIzoLqRhUeg5ZkGWRejPVaX5h9KoZNl4gzFCBwUdTcaYvSbdU/K0Rqx9sRROZdAo/w/RVtGB1UNvkeuXYr2ROaS3hE7T6KtoYNUJq4ZpJm+qVNl/oyVKmKoivg41Dn9lPR19Rn8rpBdwz9/zGwUnGWCu50R4yOO0j3YkDiNXRDh1PibjL5ilaVcQdAalPRqYuTXa20w267LPGVnqSbyljAxLz2rmjNNk3xGLAdISaGfnWmwEY0iGScGowpTN/H0UGUg49HXPo0ogOdSPCwyBcRXstWS/uFs654MHbYmLN3lzwl/LwpVYMkMEvK4JwMgPAZQhwYUjgMRTwGRpcGQbcGBYEDAdChu92an0I954UvjcOvaAmfmwpZOYeGBoC+feIw4aW/DdoGQqaEeKZxHpxwmGa0DDHDGuoWEfFBio2UbGFim1U7KBiFxV7qMURMB+tMD5XYPSNdvdmW07KVOPpmp5g0MPq4/+gTAH0MZEFidOyU595q2ECh1n8uJCNmZJsq+J0nHna7vpPGmBqTs3M24sL4DvqriUKWEDpj+yCAwfXFSA4h+sBlkWZzou0HeagrIB59LFbhIsm46xRP5xPi7RxSxPB2NPqLTKRndeolU2obynOWrrp26cU4Qcm41abazYpbd/7wN07EAKGS4b5V3Pxz5pMqLIcp5EB82lDjmKfQ300DhTMedrgR/mkurjxZ0zvqImlfOdAXZYtK0Sqe1vSC3q+nKtGyHTxD6Q6jGEk5IyjQWdJmGKELDdd/3wUIIfI0ovTRqiwR+JJ62GFAcoQEAIaQYg89+in62CT5QEwFzQmsuhU/ei6NB94EABaeQZL5qfvG445Kja9R3mHfAKbT3ptJHGW6XKoZ77GvFiTPOkBuQx5Cn6YZ+3LlriAM0z0xEQZFu/N5yvOfPKcJvrOd3KWlLdUQFAzSN4/pN81++oxr3WepK2yceRbo+6b3QXfrjfT3tf6Au6is8o74D5SNvL0Wsm0cXNRYM0JGt7JQZCaqcz6mEjN3Lh5dOry/CzUMt22+11kpeeOzvZ4/lb0E5iHw3PYledl2thUabWKEd7rhl3JiHj/QGOrlQPqmM748YOUP+ezDWzd+l1IWY2PyYfOXWTAXYZr0XcP3Ca4vzYIuoIavVSvTGUfIJqpEttcD9EARCp8xOQKZVCwYkIdhhwbJrRBwY7p7nEGBImDJIxNgpOkMfsw2cJkK5NtTGPvDxM7+ALOoODFhDsMBT5MeIOCH9P8MWFkVSnRzsDRBCAslYBZBhywXAJQ0QQgrJTA+Crl71CIeGb1UuY3o5Fr0GTUEq6VaNbrblPArvxWHwBSQwBAYzsU2iI2yaHYLIemWl7RDOMRoFGegCZ5IpphUjsU1ha2ymHYJodhuxyGHQkjdAYAdAWA6KYN4ThZDscpcjhOlcNxWgJgegDAjAAoOpUbCF/UVgwK/IdRiP+mT3vmaf46w6z4DVf0gYpXNe+pPVSAODHBdB0sKANMvhb8RYDg5zfsujqer2dYQkR0DGueqF1RSeYBlBValcWb5URce1AUJ9Gv1GkmoRb4rSRp5T9NDdjfdHlMLUxT7Xq3NPXYT3vp5Z61mY5b7XbXcXiahq4ZRYsZTnaG32cRrYhXQYz0OZasEegWPXuBw+mC0ABWACk8cSJcQFVzVUsm2WQIIhM5qZCSfnQnSWxmNAs6TJCYNMVCW+1u2Ocyj6z0I7J1hQ5364p45JaLo6NL+h3ZCiZkWcU20vaStT7GHAjAvuGx4O1wBA8evGni6Q9jKMfJQkvjqVJziRUqjjXfLFAH7oflgOtqW0ElSWftLneZYVBNPneXbHUCroNp5H9xxjVW0/DUMY7saKrorCT1QtUXVd884tWhK22FRNdDIMn0OA6YE+B4QKgemi95vcE79HEm1K1KxT6i2CFOIIgEhqP/4YfgpSTStDdQ+aiAo86J9HDnpfedS/gmas72QrjE0QCkJNd5+L9c77A0wnAoQCpT4kLCr9Q1YSTfLaHigCkS7A1b4GC1OXONFofR5/hWXHN9CYg9wmvyPMVjHbixxWmhkxX+8D0DP/vPxcOSD0ehIDzfIDuFCHIiN9F9mD131bl9fPTp+fDufYq8u0IuySoeW5Zp6C79rvdxFpIxcj9rHoXzJO6XP9pGHK5wjPBdimjlpULtjQ4RQfONG8+p4J2Hoh3kzG24cyXaNF7deg5YIN3UO7EdmejJsO3RrY5dNlTo0Qn0FYomG6Pp7vu9wsEl5ghfTxTKledcqrkpS3bLzCEyxffuxZErdBGukAPqgDFZNN1oxw2QDzWJs8Dhejh6VX7dd8MA+NlZkCQQfk6NNuD6z3lPdDGiqkqP6CXBZdvE6n5OIyf5diI/bsnTSPrDB3y9t7OO0FWyHT1xJgzD35tgd3fnw8h+fw111T2+9n8UopkWwK3HP6K4AEWwvUO0SrcfEmcMErWoYCOIS7GphPf21dGfHzoZyMitYkbXXLTpS+ZQMCqeJB43eGQ1uTuclUiKJTdsZgFB7E0hXYH3SV0nljyEV6K30VRGWVgeEZLq+pCA+r8T7WRgEv52ONdtSIKt6Ia2VIip5W9tkHQ6DezR4Ez2Q4LqL+D2gKHfHOeiyCo+MsNemQfdhdS5Qs4WN+MTugpPxi8zFLsykfUtqRgJxdTWG8GAbMQYjnCiwUFgCsELYzRBHo10fX6eDppzvtZA8vyiKznQs5x4tCIXThRJ5CR6UrSVqUt0ENmFSPE6A0sLcr3Eaf+tcOo/oyxk8siCnhpi3uqtHplko2C4svBMz1bLSH9tiWczXSmBzvI8vYr/fK2C9FYXadKT5SLo4jqa5HdelXmyY4AZeVzU4WSNszXdfBMY9TyQejPyEFOk2yM2WeAtJVIRdYlasucsS9In6AKvqDfD5zU0Eu00Znog7/pdNAI210hUneakRC55lnggP08uZsSI9ujXWlrd6oZsFM1CZJoTjW7mGa/e2hMCFr2fOSioa1zGBiEl2xZx/8y58S2fXAiATNDsteQmEZ+35LLfNJPU5iSWLpoACT0aeAF7c+9XxrxlCMIiHQxnux8Z0eoASLk/+kjA8YDLb3P/bWsBTTDrfZQDjSDV3V4rEEHF96Dzy8KCFtcXtBC+/TW/F/j1PV8IZZPAzoUC380Eb75k/Yevz9wOH8P9eUBeHwXzdc98/Wkf9ryhjowgBz9yOuYJeFVAbgIkcsU8KQU6O3DiWY8NpYZbXT3RMgOAotuQEimku4MCCdn4qsAbGYDNety/LSN44AtG2LjSlFU1koOHJ9LobbHkLEamIGOpVrw8Ho7l4yqhOmrnjleNXtNmEVr8SXMhnwS+/7XcIusHIJjXq/qp+rDB0c5UewfLF007YtX6dFI9XumIcn7RHE760UYq7SM2CxLauaTdnH3lpc1YcYtilvikUhmHyzvdT6mKhO7D7MDNHSK7J4+UaH8N03z3x3DjmIWjFgd1RG9KYLmGe1H66hTN0Ra0JUne3NVNFYe7shI2xfRKGGFc32sncHWHbrvdLsvykEeBgWWQpl/I5K9h0gIHMtZIQEA4NlLdPVYQydEEcNY4BmQ05hoeY0FKRrq+aQ7i/GPGWN5zcXsTkfqyocruFx/+pjFJpieS1bwDSqtPbBVLt2rr5bw+IZpoPHeUSiyY4cB8p8dp5H4hcQYO08S3nOjfiSJ3vVudSszlbeHmGW5GK+baPkDvGjessVIvb6SRF1kZl/E4JkBcgOFHHkTfaAD7k4npUJ1d2clF45vmIO7cZZSiW1EauPkx+17//g3eORFB+FbjYPt/rgkM/KGtBYNUAm4JmuhCoBrQRlnhIiL24TuEGIaxYt8SEu5aL/ZahOsw0OpI8jpCJ3eiuEgXYpRw2j8thlwZGeGK/y5QN7tPYlXDUtLYRz1FLVaj5EaugVufzU0hbwAFHhTMg64TPHMYS6s3ysVWxWsAANRG5fwp33euZrAjav3EQVcMCU1w5yhrb8cb7foKZQzN+UiNMuI1JAOhDLuou/qg/Q+ZC1m0pU+UwuhdT3gNE14R4FsE+PYKHB6Pg/H41alM/bviBRQUFvlVxdk0XDjWjBWRIRN67DkTGVlOJg7MvUvAzmRoxUUXUjO8av6gkqb3euU9ZhZhl0+tvmj/Q8Yjiw53/0Id1woCpXAC+ZOvxWoKFlc9v6Rl5QlniFd6DVBjMlmLM4efFzJv3Z6fk8HyYecJp4tXiNdQo0U/HZtdNH8Fq2uO4iO9/Hyq6sbEuR+kTEsOKg3oQlXgDpQ5gqq1RM9o7IEVo/0d0imsDP5/IXuZ26fgynsEDt+7fTTGxRpplf/fx6jUvWU+qb5r91Oodvc6e6jeRlGSyIthzmUyA3XitT8tleavPUGj5vOM3u4aDAaNaP+2++F0N6Mb0wsWEMO1jVKT2gZ7cYJZ8bQYJk82fRQnhAIPj9tKTwn2Iw2ONzccWDSFgon3yfQYtPaVFkWRsX3B0RMami2BnDhMz+d6ZUKiT2wUS8SfCJsYW8suCnXF0pyIuCRFkojdneSGL9L7XXzU07Pz0PEbydq0BaIsXYTgwJ1R+h1NRyb9hXMZvy7ZH1+HYISxxiPFwJ82zg+Ylg51kHClaS1HsL1DWfkhMwVr09ToGM9FCmmoiwv2pn7Wt3S3yjwSxrPBv5z+fZbuBoZkW5HjAScjMGRNPC1Rjb2pX4ZnrIxeOxrk4VYr5xxwCRjZe8qwocv/c7drwhE/M9Q399ARRhQ05niXxBz5qnhdsdQ1klFCiYx6EpRRtS4o410Ky68uorm2cV7lMm3s9zCjke30FGF54mgaPMvjBobyKqyaT0MjIgqXyBiitoXQT0xObePkmVtwUf5U241xi0mUYKS3lUxZ/f2wp1em94GRo9fCi9wMeCRMxPOuu8/0tq9FI7EojEDoI4vW2f508ScLZLGRsZlh+d4ajwROArS01XkHMwpF8aNS7D3Yj0c7dNqDpFV4/CoCeQ6RdHISmkjCojgolMG7VpISs9UnCgOKk/VHZqnTMeMu33FFT8nurGvdiSEl7pkrpKExRQLa9jIGsicDaQ80otll/VxGynIGsitTm6dtg3ktNj8JBje9IGKGCNs2GBCH4pN56q5jBsl69qxBb0LhtOwgFEf5Cz3++z8UZBvjp8agMppFjwpLBr8F9Wxjlpu5ao2Zm83c1hn77Gx0zgxZfiiT3HhdSiBIrzeSmaoa2VCOZM8gO6zRmE7Gnz1B3wZLcobAOaM2n2XnRhd+MolURoPmJ7KNQdEOMgi0Lc//9pVuPCM0dw5oE74FTXZ+tSmlNfJF3UGB9UEJ2oGOPAJ6ib3dGyaWL1+JRg0uLyfC3u32a+0b1/Cz2IaaCoUN55wc9G3xgvarj46KPeQSFDGvY8HioPrAoO5F8nzZBEue/c8StAOdZuGZjVLf4euHL1Dre51SiXNNA+UMpWGNUyKdMFBPPU0/Q2Zo9e4iixFFOkNCGS0id72WASWyjgsM5NacM2LuuXPLKXh4BZZ80f9DrqdP/j7XeJ5K0Ilx/AICy58K3arzL2ijynguy9fiCQsopFoSrjlnpbio9e39VT7iJKT/RTJ2Nx7/9r/lvSIlL55wLl9bwJ77/3cs94nEe3JayQbBcTshmWmgdvWL5fy0f0v1g2gkCrfS/84NoZxUb/gg5G7ZmyjV7up5DvX0hfZG32eVpwqUkhQMGYGiINFjwBeex71WFvW9oTdUIXixJ/J/GIVAYxxLi3iyxL1buMIP0fUkuYqg2I4lWyQX93dRDcyCg3M5Ma3+eXn+rTExnjKV+cUs+0fTrU36zEx9s9Wqb8rMatIxpVlHLMb0ZsjdrLcghH8Lv2nBsK0xfIHzhs15zWGP0Af0d8q8PK+5QrZ0WYAhYJmULZzrFdHONAjgS3QRQmlQ0kX0SzzrZvZvth7xX5k3t95qjNDIqRRyGpliZYoFSdS0nrSmIoDrFrWrp/P6aNOZ7Xfb73rsNmgxWbQ7bvju8Mk7ZyOdurP97vaTF0dvv6itOTGFE+JQJiUpHSEhnLLiUHaVKG3LRKlUB09wzr4fyfSWeOc+5eDS5apP+Xu/zO39v7GUzehXvf3WWTO5pWZGYfyYkfcFVQkJVbNnppPjPzvTX/rZn2NPXNKtbHWN1afBl35cTsPrEzqFK6NKeyVmCYNMWN/Kj9XEYntP9MVgtLGt/DTtB7Un1nTRKAwMMnpcxZgEN5Ju8dsF3l6eHSz1BhmfnuXd7Knp+1N0XHaUn7l6jl43c32p0HjBTTVEraZdqSo0ESJx9+bmKuySdG6qZ3hAXIZIp0sXGeLCPV1SvdMV9tyV7yJxJkJK9dMqGlU1ZHvmek0SLU/xSuXEu2oeRrCEQjPro0bAS5Zlqkbrn61OlCWKU9gJQoOPyeamUiW56UwGsTBHXaBOY4/4KtK80jgxLlJnD5+/2il14cR4pSnTdq9KscA2nLe3DWeFI4zvrXAqXsKPx8bDB9ddTyeOpZ0jFld+z3Sb4aGPabOt5/HWG2Nb9R7O/dzH10NjJiTaiUR7orw3Vcc/b6hdxqSRqJu5xlOrtdpVt7XczVQyYC5rp1fOoBNwSeaPJqkhwCyjW56EI9BzSW/GzJaWmKLjFFYP7DBWp7BGxe19Z0uzGcXzdcVxYYnXWdNZ1yltfv06H+0xjsDVFp5QpI+O8ZSp+Ag4SMZbPi82MCZHa7EwYsT+f7UcgtgxisdA4EFmtJ9v+YDBL5Z1A/jOgeTalOuwHVqEVjoVoO9zcwVIf3cX8OmvDrTpZOB6PpuMR8NKKY7CwPdsE8MyLLSNoXcHZdtpkwWMRj2UsyNxRDcV/7nltERaDq1BKSeHoViagz3lDym0SOx8gBHZDyWMAxCgc0okIJqCnBcffEvRetLULNMfKj1EuWfIUJZOuzuoYPl2ZsXnBC25OmOafouM80DY48Ke7rT5BPFc3TucUkyhRQW1JdPi5OqNXftjq3saXaHuKtPLlasEu4Gkm1RKOFRiJR/ENM7TKxQz/bGpRGwZ2UpCS8oK0HsU8puQrz4m1zse2OiLzbDRvIow7OnCzbMxDN3uLuBCt1qw13njQqAO2Y5l/zy4NFt8O7LieyggbdliLp4ftneO0mvXz5QJYhIdo3yg/TgOAPBlJqc7XZmQlhSnKAXJT3aykpmMRCcvMcmNMVFH9a2JSDAncxxncjx5IkZyBIdzGPuxDzUVfvt43VX77bXHLltsNmS9v/1lmSUgXF28FuaZrdVJjnWMIxxqH3tst80mG0yy0tOWyyx1CJrLCl29nASubkVxGUAVULdJKBtJwZ0loHAlDFsaRxAKF3Db8UaDxsNuu17LHbPmaRXVO7qbFT2mpwnEvGdywPNmuBXa8W+twLI5AhzsMUqRQzxktNGYHM2+4YIIGftbQZS0xCCrzCBmIJqEXBoqvraU1hLm8uBpoXQTxYC6srPIt544CKUtzXPxxf+ee+ysA+bCaYjzUrT4Vw+UWKMQIb/P/VgZ/RhFg//nZW7laMw+twfMJ/r5CZH4E0jQHVaZYjIUwJO7Zw8qoaUeNorQlsz7T2X43xddimPqvsDJn/xIokf+yOHcpflpEK4XUQdOg6KNDV2R4z25yVGhsi0so6zmZKF5fbsNRqXXPGzBnhbZVyl2HYjtRhpfRvoVcb+73EDSkM68rErZp4dPk4hJNadbtlo88hDVV2uNsLsb9l1/g8ieaO5ZSMCBS2P9VhqnDIhNFV30jyEpXSGV66/LzwVmHpM6w5QP9mdf1uf/DGS1HYYBkKnSkkIyqYnPP/ALPsvTXM+1XM5FpLiKJ3/ojRnK/9ma9Yf+K39kdf7LwAPRn77MijOWRCSM0ziEg9mHvdhgSUXiE7ezff8TjhiOyTO03n3+tc6AlZbO5UWmmZrl3Yc4yH72US/FLYbo8nlEBnAX4E5ygsayYp8xiHju9d+/rbVH+4hKf/3njbM4hy8K1TJeu3WePa0bGJUrk59GBsKUkp724cdpo+pj0HBVF7BNloVQVlwsQmpV6KoXqDbzjOYVD7OElIzVdEwBaZ1+yVL4eBoi9fh5C4Bgfnz/+OGNa6dOHNi3acO/fy9b0jO3q6Plx/gfNVVljoK8rIy0lPjYSEtYSICfRuUtFglcOFQyjIOaQTMHZYbQGFrYIFIVVcVwbcZV3cAG1GJ11QkEkLoTiGB3B4BYvXbR7fgeYurGxXl5Hg878+68Wvbaflv1UaQIm2PtUDwEnUGUlDAFOp1YMUkktcDUqklGI6ybQOtg8yvJ59XuEamwudGBXn0+226zWgI3w0GeORZi7+Xs4jHFo9NsWfasuBhLkjUp/Li5BF7008F6uG43s37eT0Kr6lRliyRxq/sRarPCHzxVBXeWxsoGp3FmtkYLpIczM6oZ2wOa2nfTCANrpXvXOPRFS0g605Mo8CQLvxMb364n/Isz0Yd/CKZu2m7Wq+ViPpt+hbPWQb/X7bRbzUa9lv9nNv4NzzhwuYPX1VWh59Aiyhh+ekkdMRUTMUXqQU19jwqXIWlQqgooQNUVUAq7SwBl9dYDYtrO0FsuIevMfsBKZktC042W3Qk36qg09H7CREwH2XbaigPdjopuKL2RLtXODqC0Wgm9ZyWR5zo2WKyhZl227aFFKABcBXebIW1GKhZLy05de9jSZnxpn2s65vvN8nqW1ZWF7HNu6R8XKLhzxYPpEApRwWsXD0m0H+dXfZjnO1HrYq0SlETYhQOElQk3CnvMzl5gQrNycRvg6GfVlcVFmelRVv20/VD6EBqgNRZ3A9u0XYcW2RCpkqpqA7pGX7Rf9QIJCVMAfSToMIHjtTtvY4zqcDv7gHuPWjk7sy3Eon1mY/Bus85W2Wo+HfSa9Ti0qnZVdkiSJFEl1dLu0OoBM7oxYnZNUykQL6zkE+DhyiEjQih8EgEB4szPpw6Juf0hv+Io6gsQ8Oa71ssQBHy+a4CMuCPD7UOVEgBLAADh32zS7m9D+a15jWmvaxXFJjtSYXT5qVXyfGO5GV5QKirFtUqjz7bVNjimsbgTlmZyc8bh8Fum7Fbg+PsJAoryT/BzxkiG8X2zQOq//xSJAGfL4SSlD+BxEOxD0/yzj4j9tI+yLdA+2rJk72Osy5+3zVqQnxDhyqrqllpHcUm9SKf1QsdE6gWLRCJC1HNipu3TuigFzEK/vKkhE0JUQaLuaErrkxbVh3yQ5tNR7LC6GwrUhVxUAGdUtibGeSqiHnloTVFxS3XekQ/sripxaL0RaJYfiRLU3DIsZgrwXudnrXniomgzuQ/RcBH5cFmn1obqDo5KSorNwZBsebqHM3M4HxXMOYTzEx2Zo+wEmQ6u5hVhNkVsl8blN5xzxjif2kS4G3Ew2sjG42L/a0NLn9H0bRgcYE65Psn/lxY6q1/6A44eTR9CcEk9iL+b7PFoCLC7PoUAQ57HfNZwDA6aPEx/3K5f1IhqGvAyGE914zXvYwOcdyR9sJj2ahn2YR17mwQdcGOh5v8uOaoYltqBEtP2aepGfu230cAwHvIk+P2CqFkfEcu5P/OxbdC8PQAA) format("woff2"); font-display: block; }
 :root {
-  --bg: #efe6d1; --panel: #fbf6ea; --ink: #2a2117; --muted: #76664f; --line: #d8c9a8; --accent: #9c3b1e; --accent2: #1f6f78; --gold: #a87a1f;
-  --good: #2f6b2f; --bad: #a3271b; --warn: #a86b12; --head: #eadfc4; --btn: #efe3c6; --btnh: #e3d2ad; --sea: #c9dbe0; --desert: #eadbb8; --nile: #2f7f9a; color-scheme: light;
+  --bg: #e9dcb8; --panel: #f6eed6; --panel2: #efe3c2; --ink: #2b1d12; --muted: #6d5a42; --line: #cdb88c; --accent: #a8381e; --accent2: #1d4f9a; --gold: #b8862b;
+  --green: #2e7d5b; --good: #2e7d4f; --bad: #a3271b; --warn: #a86b12; --head: #e6d6ad; --btn: #efe1bd; --btnh: #e4d1a3;
+  --sea: #3b6fa8; --desert: #d9b77a; --kemet: #6f8f3e; --nile: #1d4f9a; --shadow: 0 2px 6px rgba(60, 35, 10, .18); color-scheme: light;
+  --frieze: repeating-linear-gradient(90deg, #1d4f9a 0 14px, #2b1d12 14px 16px, #a8381e 16px 30px, #2b1d12 30px 32px, #2e7d5b 32px 46px, #2b1d12 46px 48px, #c9952b 48px 62px, #2b1d12 62px 64px);
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
-  --bg: #1b1813; --panel: #25211a; --ink: #efe5d0; --muted: #a8977c; --line: #3e3528; --accent: #e0794f; --accent2: #5fb8b8; --gold: #d9a94a;
-  --good: #7fc37f; --bad: #ef7b6c; --warn: #e3ac55; --head: #322b21; --btn: #342c22; --btnh: #45392b; --sea: #1d3138; --desert: #2d271d; --nile: #4aa3c0; color-scheme: dark; } }
-:root[data-theme="dark"] { --bg: #1b1813; --panel: #25211a; --ink: #efe5d0; --muted: #a8977c; --line: #3e3528; --accent: #e0794f; --accent2: #5fb8b8; --gold: #d9a94a;
-  --good: #7fc37f; --bad: #ef7b6c; --warn: #e3ac55; --head: #322b21; --btn: #342c22; --btnh: #45392b; --sea: #1d3138; --desert: #2d271d; --nile: #4aa3c0; color-scheme: dark; }
+  --bg: #15120d; --panel: #221c14; --panel2: #2a2318; --ink: #f0e4c8; --muted: #a8977c; --line: #45392a; --accent: #e07a52; --accent2: #6b9be0; --gold: #d9a94a;
+  --green: #6fc29a; --good: #7fc37f; --bad: #ef7b6c; --warn: #e3ac55; --head: #2f271c; --btn: #30281d; --btnh: #40352a;
+  --sea: #24456b; --desert: #5a4528; --kemet: #3f5a26; --nile: #4f86d1; --shadow: 0 2px 8px rgba(0,0,0,.5); color-scheme: dark; } }
+:root[data-theme="dark"] { --bg: #15120d; --panel: #221c14; --panel2: #2a2318; --ink: #f0e4c8; --muted: #a8977c; --line: #45392a; --accent: #e07a52; --accent2: #6b9be0; --gold: #d9a94a;
+  --green: #6fc29a; --good: #7fc37f; --bad: #ef7b6c; --warn: #e3ac55; --head: #2f271c; --btn: #30281d; --btnh: #40352a;
+  --sea: #24456b; --desert: #5a4528; --kemet: #3f5a26; --nile: #4f86d1; --shadow: 0 2px 8px rgba(0,0,0,.5); color-scheme: dark; }
 * { box-sizing: border-box; }
-html, body { margin: 0; background: var(--bg); color: var(--ink); }
-body { font: 14px/1.42 Georgia, "Times New Roman", serif; }
-header { position: sticky; top: 0; z-index: 5; background: var(--panel); border-bottom: 3px double var(--gold); padding: 6px 16px; display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: center; }
-header .realm { font-size: 17px; font-weight: bold; color: var(--accent); display: inline-flex; align-items: center; gap: 8px; }
-header .st { white-space: nowrap; } header .st b { font-variant-numeric: tabular-nums; }
+html, body { margin: 0; color: var(--ink); }
+body { font: 14px/1.45 "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif; background-color: var(--bg);
+  background-image: repeating-linear-gradient(0deg, rgba(120, 85, 40, .05) 0 2px, transparent 2px 7px), repeating-linear-gradient(90deg, rgba(120, 85, 40, .04) 0 3px, transparent 3px 11px); }
+.hg { font-family: "Hieroglyfy", serif; font-weight: normal; letter-spacing: 0; line-height: 1; }
+h1, h2, h3, .title { font-variant: small-caps; letter-spacing: .05em; }
+
+/* ---------- horní lišta (HUD) ---------- */
+header { position: sticky; top: 0; z-index: 6; background: var(--panel); box-shadow: var(--shadow); padding: 6px 16px 10px; display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; }
+header::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 5px; background: var(--frieze); }
+header .realm { display: flex; align-items: center; gap: 10px; min-width: 0; }
+header .realm .rn { font-size: 18px; font-weight: bold; color: var(--accent); font-variant: small-caps; letter-spacing: .04em; line-height: 1.1; }
+header .realm .rk { font-size: 12px; color: var(--muted); }
+header .realm .rk .hg { font-size: 15px; color: var(--ink); }
+.hud { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.res { display: inline-flex; align-items: center; gap: 6px; background: var(--panel2); border: 1px solid var(--line); border-radius: 20px; padding: 2px 10px 2px 4px; white-space: nowrap; }
+.res svg { width: 24px; height: 24px; flex: none; }
+.res b { font-variant-numeric: tabular-nums; font-size: 15px; }
+.res small { font-size: 11px; }
+.season { display: inline-flex; align-items: center; gap: 8px; background: var(--panel2); border: 1px solid var(--line); border-radius: 20px; padding: 2px 12px 2px 4px; }
+.season .wheel { width: 30px; height: 30px; }
+.season .sn { font-weight: bold; line-height: 1.1; } .season .sd { font-size: 11px; color: var(--muted); line-height: 1.1; }
 header .sp { flex: 1; }
-nav { display: flex; flex-wrap: wrap; gap: 2px; padding: 6px 16px 0; border-bottom: 1px solid var(--line); background: var(--bg); }
-nav button { border: 1px solid var(--line); border-bottom: none; background: var(--btn); color: var(--ink); padding: 5px 10px; border-radius: 6px 6px 0 0; cursor: pointer; font: inherit; display: inline-flex; align-items: center; gap: 5px; }
-nav button.on { background: var(--panel); font-weight: bold; color: var(--accent); }
+button.main { background: linear-gradient(var(--accent), #8a2c15); color: #fff8e6; border: 2px solid #5c1d0d; border-radius: 22px; padding: 7px 18px 7px 14px; font: inherit; font-weight: bold; font-variant: small-caps; letter-spacing: .05em; cursor: pointer; box-shadow: 0 2px 0 #5c1d0d; display: inline-flex; align-items: center; gap: 8px; }
+button.main:hover { filter: brightness(1.08); } button.main:active { transform: translateY(1px); box-shadow: none; }
+
+/* ---------- navigace ---------- */
+nav { display: flex; flex-wrap: wrap; gap: 4px; padding: 10px 16px 0; max-width: 1400px; margin: 0 auto; }
+nav button { border: 1px solid var(--line); background: var(--btn); color: var(--ink); padding: 5px 11px 5px 7px; border-radius: 18px; cursor: pointer; font: inherit; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 1px 0 var(--line); }
+nav button:hover { background: var(--btnh); }
+nav button.on { background: var(--accent2); color: #fff; border-color: transparent; }
 nav .badge { background: var(--accent); color: #fff; border-radius: 8px; font-size: 11px; padding: 0 5px; }
-main { padding: 12px 16px; max-width: 1400px; margin: 0 auto; }
-.grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); align-items: start; }
-.card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; overflow-x: auto; min-width: 0; }
-.card h3 { margin: 0 0 8px; font-size: 15px; color: var(--accent); border-bottom: 1px solid var(--line); padding-bottom: 4px; }
-.card h4 { margin: 10px 0 4px; font-size: 14px; }
+nav .ico { width: 18px; height: 18px; }
+main { padding: 12px 16px 28px; max-width: 1400px; margin: 0 auto; }
+
+/* ---------- karty jako malované desky s vlysem ---------- */
+.grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); align-items: start; }
+.card { position: relative; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 14px 14px 12px; overflow-x: auto; min-width: 0; box-shadow: var(--shadow); }
+.card::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 4px; background: var(--frieze); border-radius: 6px 6px 0 0; opacity: .9; }
+.card h3 { margin: 2px 0 10px; font-size: 16px; color: var(--accent); display: flex; align-items: center; gap: 8px; }
+.card h3 .hg { font-size: 20px; color: var(--ink); }
+.card h4 { margin: 10px 0 4px; font-size: 14px; font-variant: small-caps; letter-spacing: .04em; }
+.wide { grid-column: 1 / -1; }
 table { border-collapse: collapse; width: 100%; font-size: 13px; }
-th, td { border-bottom: 1px solid var(--line); padding: 3px 6px; text-align: left; vertical-align: top; }
-th { background: var(--head); font-weight: bold; }
+th, td { padding: 4px 7px; text-align: left; vertical-align: top; }
+th { font-variant: small-caps; letter-spacing: .04em; color: var(--muted); border-bottom: 2px solid var(--line); font-weight: bold; }
+tbody tr:nth-child(even) td { background: color-mix(in srgb, var(--panel2) 70%, transparent); }
+td { border-bottom: 1px solid color-mix(in srgb, var(--line) 50%, transparent); }
 td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
-tr.muted td { opacity: .55; } tr.click { cursor: pointer; } tr.click:hover td { background: var(--head); } tr.sel td { background: var(--head); }
+tr.muted td { opacity: .55; } tr.sel td { background: var(--head) !important; }
 .good { color: var(--good); } .bad { color: var(--bad); } .warn { color: var(--warn); } .muted { color: var(--muted); } .small { font-size: 12px; }
-button.b, select, input { font: inherit; font-size: 13px; }
-button.b { background: var(--btn); color: var(--ink); border: 1px solid var(--line); border-radius: 5px; padding: 2px 8px; cursor: pointer; margin: 1px; }
+button.b, select, input, textarea { font: inherit; font-size: 13px; }
+button.b { background: var(--btn); color: var(--ink); border: 1px solid var(--line); border-radius: 14px; padding: 3px 11px; cursor: pointer; margin: 1px; }
 button.b:hover:not(:disabled) { background: var(--btnh); } button.b:disabled { opacity: .45; cursor: default; }
-button.b.go { background: var(--accent2); color: #fff; border-color: transparent; }
-button.b.danger { color: var(--bad); }
-button.main { background: var(--accent); color: #fff; border: none; border-radius: 6px; padding: 6px 14px; font-weight: bold; cursor: pointer; font: inherit; }
-select, input { background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 4px; padding: 2px 4px; max-width: 100%; }
-input[type=number] { width: 80px; }
+button.b.go { background: var(--green); color: #fff; border-color: transparent; }
+button.b.danger { color: var(--bad); border-color: color-mix(in srgb, var(--bad) 40%, var(--line)); }
+select, input { background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; padding: 3px 6px; max-width: 100%; }
+input[type=number] { width: 90px; }
 .row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 4px 0; }
 .kv { display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; }
 .kv > :nth-child(odd) { color: var(--muted); }
 details summary { cursor: pointer; color: var(--accent2); }
 .help p { margin: 4px 0 8px; } .help h4 { color: var(--accent); }
-.wide { grid-column: 1 / -1; }
-.tag { display: inline-block; font-size: 11px; padding: 0 5px; border-radius: 8px; background: var(--head); color: var(--muted); margin-right: 4px; }
-.pill { display: inline-block; font-size: 11px; padding: 0 6px; border-radius: 8px; background: var(--head); margin: 1px 2px 1px 0; white-space: nowrap; }
-.pill.good { color: var(--good); } .pill.bad { color: var(--bad); } .pill.warn { color: var(--warn); }
-.chip { display: inline-flex; align-items: center; gap: 4px; padding: 0 7px 0 3px; border-radius: 9px; font-size: 12px; background: var(--head); margin: 1px 2px; white-space: nowrap; }
+.tag { display: inline-block; font-size: 11px; padding: 0 6px; border-radius: 8px; background: var(--head); color: var(--muted); margin-right: 4px; }
+.pill { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 9px; background: var(--head); margin: 1px 2px 1px 0; white-space: nowrap; }
+.pill.good { background: color-mix(in srgb, var(--good) 18%, var(--panel)); color: var(--good); } .pill.bad { background: color-mix(in srgb, var(--bad) 15%, var(--panel)); color: var(--bad); } .pill.warn { color: var(--warn); }
+.chip { display: inline-flex; align-items: center; gap: 4px; padding: 0 8px 0 3px; border-radius: 10px; font-size: 12px; background: var(--head); margin: 1px 2px; white-space: nowrap; }
 .emb { vertical-align: middle; flex: none; }
-.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 12px; }
-.tile { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; min-width: 0; }
-.tile .tl { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
-.tile .tv { font-size: 22px; font-weight: bold; font-variant-numeric: tabular-nums; line-height: 1.25; }
-.tile .ts { font-size: 12px; color: var(--muted); }
-.tile .spark { width: 100%; height: 26px; display: block; margin-top: 4px; }
-.alert { padding: 4px 8px; border-left: 4px solid var(--line); margin: 3px 0; background: var(--head); border-radius: 0 4px 4px 0; font-size: 13px; }
+a.lnk { color: var(--accent2); cursor: pointer; text-decoration: underline dotted; }
+
+/* ---------- dlaždice, výstrahy, měřidla ---------- */
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-bottom: 14px; }
+.tile { position: relative; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px 8px; min-width: 0; box-shadow: var(--shadow); display: grid; grid-template-columns: auto 1fr; gap: 0 10px; align-items: center; }
+.tile > svg.ti { grid-row: span 2; width: 34px; height: 34px; }
+.tile .tl { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.tile .tv { font-size: 22px; font-weight: bold; font-variant-numeric: tabular-nums; line-height: 1.2; }
+.tile .ts { font-size: 12px; color: var(--muted); grid-column: 1 / -1; }
+.tile .spark { width: 100%; height: 24px; display: block; margin-top: 4px; grid-column: 1 / -1; }
+.alert { padding: 6px 10px; border-left: 4px solid var(--line); margin: 4px 0; background: var(--panel2); border-radius: 0 6px 6px 0; font-size: 13px; }
 .alert.bad { border-color: var(--bad); } .alert.warn { border-color: var(--warn); } .alert.info { border-color: var(--accent2); } .alert.good { border-color: var(--good); }
-.meter { display: grid; grid-template-columns: 120px 1fr auto; gap: 8px; align-items: center; font-size: 13px; margin: 3px 0; }
+.meter { display: grid; grid-template-columns: 130px 1fr auto; gap: 8px; align-items: center; font-size: 13px; margin: 4px 0; }
 .meter .ml { color: var(--muted); } .meter .mv { font-variant-numeric: tabular-nums; font-size: 12px; }
-.meter .mt { height: 9px; background: var(--line); border-radius: 5px; overflow: hidden; } .meter .mt i { display: block; height: 100%; background: var(--accent2); border-radius: 5px; }
-.tbar { display: flex; height: 10px; border-radius: 4px; overflow: hidden; min-width: 80px; background: var(--line); margin: 3px 0; } .tbar i { display: block; height: 100%; }
+.meter .mt { height: 10px; background: color-mix(in srgb, var(--line) 70%, transparent); border-radius: 5px; overflow: hidden; } .meter .mt i { display: block; height: 100%; background: var(--accent2); border-radius: 5px; }
+.tbar { display: flex; height: 10px; border-radius: 5px; overflow: hidden; min-width: 80px; background: var(--line); margin: 3px 0; } .tbar i { display: block; height: 100%; }
 .tleg { display: flex; flex-wrap: wrap; gap: 10px; font-size: 12px; color: var(--muted); margin: 2px 0 6px; } .tleg i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
-.sbv { display: inline-block; min-width: 34px; text-align: right; padding: 0 4px; border-radius: 3px; background: linear-gradient(90deg, color-mix(in srgb, var(--accent2) 35%, transparent) var(--v), transparent var(--v)); }
-.relbar { display: inline-block; width: 60px; height: 8px; background: var(--line); border-radius: 4px; position: relative; vertical-align: middle; margin-left: 4px; }
+.sbv { display: inline-block; min-width: 34px; text-align: right; padding: 0 4px; border-radius: 3px; background: linear-gradient(90deg, color-mix(in srgb, var(--accent2) 30%, transparent) var(--v), transparent var(--v)); }
+.relbar { display: inline-block; width: 70px; height: 8px; background: var(--line); border-radius: 4px; position: relative; vertical-align: middle; margin-left: 4px; }
 .relbar i { position: absolute; top: 0; bottom: 0; border-radius: 4px; } .relbar b { position: absolute; top: -2px; bottom: -2px; width: 1px; background: var(--ink); left: 50%; }
+
+/* ---------- postavy ---------- */
+.portrait { flex: none; border-radius: 50%; background: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--panel) 60%, #fff 0%), var(--panel2)); border: 2px solid var(--gold); box-shadow: inset 0 0 0 2px var(--panel); }
+.people { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 12px; }
+.person { position: relative; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 6px; }
+.person.done { opacity: .6; }
+.person .ph { display: flex; gap: 10px; align-items: center; }
+.person .pn { font-weight: bold; line-height: 1.15; }
+.person .pr { font-size: 12px; color: var(--muted); }
+.stats4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; font-size: 11px; color: var(--muted); }
+.stats4 span { display: block; } .stats4 i { display: block; height: 5px; border-radius: 3px; background: var(--line); margin-top: 1px; overflow: hidden; } .stats4 i b { display: block; height: 100%; background: var(--accent2); }
+.loyal { font-size: 11px; display: flex; align-items: center; gap: 6px; } .loyal i { flex: 1; height: 5px; border-radius: 3px; background: var(--line); overflow: hidden; } .loyal i b { display: block; height: 100%; }
+.person select { width: 100%; }
+.person .cmdd { font-size: 12px; color: var(--muted); min-height: 2.4em; }
+.person .acts { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+
+/* ---------- rody (diplomacie) ---------- */
+.realms { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; }
+.realmcard { position: relative; background: var(--panel); border: 1px solid var(--line); border-top: 6px solid var(--c); border-radius: 8px; padding: 10px 12px; box-shadow: var(--shadow); cursor: pointer; }
+.realmcard:hover { background: var(--panel2); } .realmcard.sel { outline: 3px solid var(--accent2); }
+.realmcard .top { display: flex; gap: 10px; align-items: center; }
+.realmcard .nm { font-weight: bold; } .realmcard .hs { font-size: 12px; color: var(--muted); }
+
+/* ---------- kronika ---------- */
 .log { max-height: 70vh; overflow-y: auto; }
-.lg { border-bottom: 1px dotted var(--line); padding: 2px 0; font-size: 13px; }
-.lg.c-valka { border-left: 3px solid var(--bad); padding-left: 5px; } .lg.c-rod { border-left: 3px solid #a85e7f; padding-left: 5px; } .lg.c-nil { border-left: 3px solid var(--nile); padding-left: 5px; } .lg.c-intriky { border-left: 3px solid var(--warn); padding-left: 5px; }
-#modal { position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 20; display: flex; align-items: center; justify-content: center; padding: 16px; }
+.lg { border-bottom: 1px dotted var(--line); padding: 3px 0; font-size: 13px; }
+.lg.c-valka { border-left: 3px solid var(--bad); padding-left: 6px; } .lg.c-rod { border-left: 3px solid #a85e7f; padding-left: 6px; } .lg.c-nil { border-left: 3px solid var(--nile); padding-left: 6px; } .lg.c-intriky { border-left: 3px solid var(--warn); padding-left: 6px; } .lg.c-stavby { border-left: 3px solid var(--gold); padding-left: 6px; }
+
+/* ---------- událost jako svitek papyru ---------- */
+#modal { position: fixed; inset: 0; background: rgba(20, 12, 4, .6); z-index: 20; display: flex; align-items: center; justify-content: center; padding: 16px; }
 #modal.hidden { display: none; }
-#modal .box { background: var(--panel); border: 2px solid var(--gold); border-radius: 10px; max-width: 580px; width: 100%; padding: 16px 18px; max-height: 90vh; overflow-y: auto; }
-#modal h2 { margin: 0 0 8px; color: var(--accent); }
-#modal .ch { display: block; width: 100%; text-align: left; margin: 6px 0; padding: 7px 10px; }
-#toast { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 8px 14px; border-radius: 6px; opacity: 0; transition: opacity .3s; pointer-events: none; z-index: 30; max-width: 90vw; }
+#modal .box { position: relative; background: var(--panel); background-image: repeating-linear-gradient(0deg, rgba(120, 85, 40, .06) 0 2px, transparent 2px 6px); max-width: 620px; width: 100%; padding: 26px 26px 18px; max-height: 90vh; overflow-y: auto; border-radius: 4px; box-shadow: 0 10px 40px rgba(0,0,0,.5); border-left: 14px solid var(--gold); border-right: 14px solid var(--gold); }
+#modal .box::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 6px; background: var(--frieze); }
+#modal .ehead { display: flex; gap: 14px; align-items: center; margin-bottom: 8px; }
+#modal h2 { margin: 0; color: var(--accent); font-size: 22px; }
+#modal .etx { font-size: 15px; line-height: 1.55; }
+#modal .ch { display: block; width: 100%; text-align: left; margin: 8px 0; padding: 9px 12px; border-radius: 8px; }
+#modal .ch:hover { border-color: var(--accent2); }
+#toast { position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 9px 16px; border-radius: 20px; opacity: 0; transition: opacity .3s; pointer-events: none; z-index: 30; max-width: 90vw; box-shadow: var(--shadow); }
 #toast.on { opacity: .95; }
-.grid.map2 { grid-template-columns: minmax(0, 3fr) minmax(300px, 2fr); }
-.card.sticky { position: sticky; top: 64px; align-self: start; max-height: calc(100vh - 80px); overflow-y: auto; }
-svg.map { width: 100%; height: auto; display: block; background: var(--desert); border-radius: 6px; max-height: 82vh; }
+
+/* ---------- mapa ---------- */
+.grid.map2 { grid-template-columns: minmax(0, 3fr) minmax(320px, 2fr); }
+.card.sticky { position: sticky; top: 92px; align-self: start; max-height: calc(100vh - 110px); overflow-y: auto; }
+.mapcard { padding: 10px; }
+svg.map { width: 100%; height: auto; display: block; border-radius: 4px; max-height: 80vh; }
 svg.map .sea { fill: var(--sea); stroke: none; }
-svg.map .coast { fill: none; stroke: var(--muted); stroke-width: .6; stroke-opacity: .6; }
+svg.map .coast { fill: none; stroke: #2b1d12; stroke-width: .7; stroke-opacity: .35; }
 svg.map .nile { fill: none; stroke: var(--nile); stroke-linecap: round; stroke-linejoin: round; }
-svg.map .edge { stroke: var(--muted); stroke-opacity: .35; stroke-dasharray: 2 2; }
+svg.map .kemet { fill: none; stroke: var(--kemet); stroke-linecap: round; stroke-linejoin: round; opacity: .85; }
+svg.map .edge { stroke: #2b1d12; stroke-opacity: .25; stroke-dasharray: 2 3; }
 svg.map .pv { cursor: pointer; }
-svg.map .pv circle.dot { stroke: rgba(0,0,0,.6); }
-svg.map .pv.mine circle.dot { stroke: var(--ink); }
-svg.map .pv.war circle.dot { stroke: var(--bad); }
-svg.map .selring { fill: none; stroke: var(--accent); }
+svg.map .pv:hover .dot, svg.map .pv:hover .std { filter: brightness(1.2); }
+svg.map .selring { fill: none; stroke: #fff6d8; }
 svg.map .siege { fill: none; stroke: var(--bad); stroke-dasharray: 3 2; pointer-events: none; }
-svg.map .lbl { fill: var(--ink); paint-order: stroke; stroke: var(--panel); stroke-linejoin: round; pointer-events: none; font-family: Georgia, serif; }
+svg.map .lbl { fill: #2b1d12; paint-order: stroke; stroke: #f3e6c4; stroke-linejoin: round; pointer-events: none; font-family: "Palatino Linotype", Georgia, serif; }
 svg.map .lbl.cap { font-weight: bold; }
-svg.map .region { fill: var(--muted); font-style: italic; letter-spacing: .15em; pointer-events: none; font-family: Georgia, serif; opacity: .8; }
-svg.map .army { stroke: var(--ink); }
-svg.map .march { fill: none; stroke-linejoin: round; } svg.map .march.own { stroke: #1f5fa8; } svg.map .march.foe { stroke: var(--bad); }
+svg.map .region { fill: #5a3d1a; font-style: italic; letter-spacing: .2em; pointer-events: none; font-family: "Palatino Linotype", Georgia, serif; opacity: .55; }
+svg.map .region.sea2 { fill: #e9f0f7; opacity: .7; }
+svg.map .army { stroke: #2b1d12; }
+svg.map .march { fill: none; stroke-linejoin: round; } svg.map .march.own { stroke: #1d4f9a; } svg.map .march.foe { stroke: var(--bad); }
+.zoom { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; align-items: center; }
+.provhead { display: flex; gap: 12px; align-items: center; margin-bottom: 8px; }
+.provhead .pn { font-size: 20px; font-weight: bold; font-variant: small-caps; color: var(--accent); line-height: 1.1; }
+.statgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 8px 0; }
+.statgrid div { background: var(--panel2); border: 1px solid var(--line); border-radius: 6px; padding: 4px 8px; text-align: center; }
+.statgrid b { display: block; font-size: 17px; font-variant-numeric: tabular-nums; } .statgrid span { font-size: 11px; color: var(--muted); }
+
+/* ---------- grafy, rodokmen, nilometr ---------- */
 svg.chart { width: 100%; height: auto; display: block; }
 svg.chart .grid { stroke: var(--line); stroke-width: 1; }
 svg.chart .ax { font-size: 10px; fill: var(--muted); font-family: Georgia, serif; }
 .tree { display: flex; flex-direction: column; align-items: center; }
-.tree .gen { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
-.tree .stem { width: 2px; height: 18px; background: var(--line); }
-.fam { border: 1px solid var(--line); border-top: 4px solid var(--accent2); border-radius: 6px; padding: 6px 10px; min-width: 150px; max-width: 230px; background: var(--panel); }
-.fam.f { border-top-color: #a85e7f; } .fam.empty { color: var(--muted); border-style: dashed; display: flex; align-items: center; justify-content: center; }
+.tree .gen { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+.tree .stem { width: 2px; height: 20px; background: var(--gold); }
+.fam { position: relative; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; min-width: 160px; max-width: 240px; background: var(--panel); box-shadow: var(--shadow); text-align: center; }
+.fam .portrait { margin: 0 auto 4px; display: block; }
+.fam.empty { color: var(--muted); border-style: dashed; display: flex; align-items: center; justify-content: center; }
 .fam .fn { font-weight: bold; }
-.minis { display: flex; gap: 3px; align-items: flex-end; height: 30px; margin: 4px 0; }
+.fam select { margin-top: 4px; width: 100%; }
+.minis { display: flex; gap: 3px; align-items: flex-end; height: 30px; margin: 4px auto; justify-content: center; }
 .minis span { width: 10px; height: 28px; background: var(--line); display: flex; align-items: flex-end; border-radius: 2px; }
 .minis span i { display: block; width: 100%; background: var(--accent2); border-radius: 2px; }
 .floodbars { display: flex; align-items: flex-end; gap: 2px; height: 90px; border-bottom: 1px solid var(--line); margin: 6px 0 2px; }
 .floodbars span { flex: 1; min-width: 4px; background: var(--nile); border-radius: 2px 2px 0 0; position: relative; }
 .floodbars span.low { background: var(--bad); } .floodbars span.high { background: var(--warn); }
-.bgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .ico { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; flex: none; }
-.zoom { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px; }
+.cartouche { display: inline-flex; align-items: center; padding: 1px 12px; border: 2px solid var(--gold); border-radius: 999px; position: relative; margin-right: 6px; font-weight: bold; }
+.cartouche::after { content: ""; position: absolute; right: -6px; top: 15%; bottom: 15%; width: 3px; background: var(--gold); border-radius: 2px; }
+.bgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.court { display: flex; gap: 14px; align-items: center; }
+.court .who { font-size: 18px; font-weight: bold; }
+
 @media (max-width: 900px) { .grid.map2 { grid-template-columns: 1fr; } .card.sticky { position: static; max-height: none; } }
-@media (max-width: 600px) { .grid { grid-template-columns: 1fr; } header { font-size: 13px; position: static; padding: 6px 12px; } nav { padding: 6px 12px 0; } nav button { padding: 4px 7px; } .bgrid { grid-template-columns: 1fr; } .meter { grid-template-columns: 90px 1fr auto; } main { padding: 10px 12px; } }
+@media (max-width: 600px) {
+  .grid { grid-template-columns: 1fr; } header { position: static; padding: 6px 12px 10px; } nav { padding: 8px 12px 0; } nav button { padding: 4px 9px 4px 6px; font-size: 13px; }
+  .bgrid { grid-template-columns: 1fr; } .meter { grid-template-columns: 95px 1fr auto; } main { padding: 10px 12px 24px; } .res b { font-size: 14px; } .people, .realms { grid-template-columns: 1fr; }
+}
 </style>
 </head>
 <body>
@@ -299,7 +387,8 @@ const NAMES = {
   aam: { m: ["Abiša", "Jamu", "Hadar", "Ibšemu", "Sapir", "Jakar", "Nahir", "Šubaj", "Kenaz"], f: ["Adah", "Tamar", "Šiprah"] },
 };
 // Jména Hyksósů podle skarabů a nápisů (Jakobhar, Anathar, Šešej, Chajan, Sikerhar); núbijská a libyjská jména jsou herní, inspirovaná egyptskými záznamy (proklínací texty).
-const SON_NAMES = { eg: ["Intef", "Montuhotep", "Cheti", "Ahmose", "Kamose", "Sobekemsaf", "Senachtenre", "Merikare", "Amenemhat", "Džehutinacht", "Neferkare", "Tefibi"], hyk: ["Apopi", "Chamudi", "Chajan", "Janasi", "Sakirhar"], nub: ["Nedžeh", "Awawa", "Kaa", "Teriahi"], lib: ["Kapur", "Mešer"], aam: ["Abiša", "Jamu"] };
+// Jména pro dětí a vládce tvořené hrou: běžná jména doby, ne jména konkrétních historických panovníků.
+const SON_NAMES = { eg: ["Intef", "Montuhotep", "Cheti", "Ahmose", "Amenemhat", "Sobekhotep", "Senbi", "Džehutinacht", "Iku", "Nacht", "Ameni", "Hetepi"], hyk: ["Jakobhar", "Anathar", "Janasi", "Abiša", "Semken"], nub: ["Awawa", "Kaa", "Teriahi", "Wenkat", "Tekeru"], lib: ["Kapur", "Mešer", "Weneš"], aam: ["Abiša", "Jamu", "Hadar"] };
 
 // Bohové nomů (pro chrámy)
 const GODS = { u1: "Chnum a Satet", u2: "Hor Behdetský", u3: "Nechbet a Hor Nechenský", u4: "Amon a Montu", u5: "Min a Eset", u6: "Hathor", u7: "Bat a Hathor", u8: "Usir a Chontamenti", u9: "Min", u10: "Nemtej", u11: "Chnum", u12: "Nemtej", u13: "Upuaut", u14: "Hathor", u15: "Thovt", u16: "Pachet a Hor", u17: "Anup", u18: "Nemtej", u19: "Sutech", u20: "Herišef", u21: "Chnum", u22: "Hathor", fa: "Sobek", l1: "Ptah", l2: "Hor Chentejirti", l13: "Re a Atum", l3: "Hathor a Sachmet", l5: "Neit", l6: "Vadžet", lx: "místní bůh Xoidy", l12: "Onuris", l16: "Banebdžedet (beran)", l18: "Bastet", lav: "Sutech", l20: "Atum", l14: "Hor Mesenský", o_bah: "místní bohové oázy", o_dak: "místní bohové oázy", o_kha: "místní bohové oázy", lib: "Aš", sin: "Hathor, paní tyrkysu", ham: "Min", sau: "Min", n_wawat: "Hor Miamský", n_buhen: "Hor Buhenský", n_semna: "Dedun", n_sai: "Dedun", n_kerma: "bohové Kermy" };
@@ -1861,7 +1950,7 @@ function aiMonuments(s, cid) {
 
 // Rozhraní: pomocné funkce, znaky rodů, pruhy, grafy a mapa Egypta.
 let S = null;
-const SEL = { tab: "prehled", prov: null, cmd: {}, logF: "moje", ngScen: "sip", ngClan: "thebes", ngDiff: 1, zoom: "cele", dipl: null, planDone: false };
+const SEL = { tab: "mapa", prov: null, cmd: {}, logF: "moje", ngScen: "sip", ngClan: "thebes", ngDiff: 1, zoom: "cele", dipl: null, planDone: false };
 const me = () => S.player;
 const esc = t => String(t == null ? "" : t).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const fmt = v => Math.round(v).toLocaleString("cs-CZ");
@@ -1950,6 +2039,7 @@ const NILE = [[19.6, 30.41], [20.2, 30.55], [20.7, 30.33], [21.1, 30.6], [21.5, 
 const NILE_W = [[30.15, 31.22], [30.5, 30.97], [30.97, 30.77], [31.2, 30.6], [31.42, 30.38]];
 const NILE_E = [[30.15, 31.22], [30.57, 31.51], [30.79, 31.82], [31.04, 32.45]];
 const NILE_M = [[30.15, 31.22], [30.6, 31.15], [30.96, 31.24], [31.2, 31.5], [31.45, 31.82]];
+const DELTA_FAN = [[30.15, 31.22], [30.5, 30.85], [30.9, 30.5], [31.35, 30.3], [31.45, 30.42], [31.6, 31.0], [31.48, 31.81], [31.26, 32.3], [31.04, 32.45], [30.79, 31.9], [30.5, 31.6]];
 const BAHR = [[27.78, 30.85], [28.5, 30.7], [29.08, 30.88], [29.31, 30.84]];
 const MED = [[31.9, 25.0], [31.55, 25.15], [31.35, 27.23], [30.83, 28.95], [31.2, 29.9], [31.32, 30.06], [31.45, 30.4], [31.6, 31.0], [31.48, 31.81], [31.26, 32.3], [31.04, 32.54], [31.13, 33.8], [31.29, 34.24], [31.5, 34.45], [31.9, 34.75]];
 const RED = [[29.97, 32.55], [29.3, 32.65], [28.35, 33.08], [27.25, 33.8], [26.75, 33.94], [26.1, 34.28], [25.07, 34.9], [23.9, 35.47], [22.2, 36.6], [19.2, 37.5], [19.2, 38.5], [27.9, 35.2], [28.6, 34.6], [29.5, 34.95], [28.5, 34.45], [27.73, 34.25], [28.2, 33.6], [29.0, 33.1], [29.9, 32.7]];
@@ -1974,24 +2064,32 @@ function territoryImage() {
     const nb = [x > 0 ? idx[k - 1] : -1, x < w - 1 ? idx[k + 1] : -1, y > 0 ? idx[k - w] : -1, y < h - 1 ? idx[k + w] : -1];
     const realm = nb.some(j => j !== i && (j < 0 || own[j] !== own[i])), prov = nb.some(j => j >= 0 && j !== i);
     const [r, g, b] = cols[i];
-    if (realm) { D[o] = r * 0.4; D[o + 1] = g * 0.4; D[o + 2] = b * 0.4; D[o + 3] = 220; }
-    else if (prov) { D[o] = r * 0.8; D[o + 1] = g * 0.8; D[o + 2] = b * 0.8; D[o + 3] = 150; }
-    else { D[o] = r; D[o + 1] = g; D[o + 2] = b; D[o + 3] = mine[i] ? 185 : 125; }
+    if (realm) { D[o] = r * 0.4; D[o + 1] = g * 0.4; D[o + 2] = b * 0.4; D[o + 3] = 200; }
+    else if (prov) { D[o] = r * 0.8; D[o + 1] = g * 0.8; D[o + 2] = b * 0.8; D[o + 3] = 90; }
+    else { D[o] = r; D[o + 1] = g; D[o + 2] = b; D[o + 3] = mine[i] ? 105 : 60; }
   }
   ctx.putImageData(img, 0, 0); TERR = { key, url: cv.toDataURL() }; return TERR.url;
 }
 function mapSvg() {
   const Z = ZOOMS[SEL.zoom] || ZOOMS.cele, [lo0, lo1, la0, la1] = Z.b, vx = MX(lo0), vy = MY(la1), vw = MX(lo1) - vx, vh = MY(la0) - vy, k = vw / MW;
   const f = Math.max(0.42, k), R = 5.2 * f;
-  let g = `<rect x="0" y="0" width="${MW}" height="${MH}" fill="var(--desert)"/>`;
+  // Dešret (červená země, poušť) a Kemet (černá země, úrodná niva)
+  let g = `<defs><radialGradient id="dsr" cx="50%" cy="45%" r="75%"><stop offset="0" stop-color="#e2c48a"/><stop offset="1" stop-color="#c99a5a"/></radialGradient>
+    <pattern id="dun" width="22" height="9" patternUnits="userSpaceOnUse"><path d="M0 7 Q5.5 2 11 7 T22 7" fill="none" stroke="#a87a3e" stroke-width=".6" opacity=".45"/></pattern></defs>
+    <rect x="0" y="0" width="${MW}" height="${MH}" fill="url(#dsr)"/><rect x="0" y="0" width="${MW}" height="${MH}" fill="url(#dun)"/>`;
+
   g += `<polygon class="sea" points="${pts(MED)} ${MX(34.75)},${MY(32.3)} ${MX(25)},${MY(32.3)}"/><polygon class="sea" points="${pts(RED)}"/>`;
   g += `<polyline class="coast" points="${pts(MED)}"/>`;
-  g += `<ellipse cx="${MX(30.62)}" cy="${MY(29.47)}" rx="${12}" ry="${4}" fill="var(--sea)"/>`;
+  g += `<ellipse cx="${MX(30.62)}" cy="${MY(29.47)}" rx="${10}" ry="${3.5}" fill="var(--sea)"/>`;
   const tu = territoryImage(); if (tu) g += `<image href="${tu}" x="0" y="0" width="${MW}" height="${MH}" preserveAspectRatio="none"/>`;
+  g += `<polygon fill="var(--kemet)" opacity=".7" points="${pts(DELTA_FAN)}"/>`;
+  for (const L of [NILE, BAHR]) g += `<polyline class="kemet" points="${pts(L)}" stroke-width="${(L === NILE ? 8 : 5) * f}" opacity=".75"/>`;
+  g += `<ellipse cx="${MX(30.8)}" cy="${MY(29.35)}" rx="${13}" ry="${8}" fill="var(--kemet)" opacity=".65"/>`;
+  for (const [la, lo, rx, ry] of [[28.35, 28.86, 9, 5], [25.55, 29.2, 12, 4], [25.44, 30.55, 5, 11]]) g += `<ellipse cx="${MX(lo)}" cy="${MY(la)}" rx="${rx}" ry="${ry}" fill="var(--kemet)" opacity=".6"/>`;
   for (const L of [NILE, NILE_W, NILE_E, NILE_M]) g += `<polyline class="nile" points="${pts(L)}" stroke-width="${L === NILE ? 2.6 * f : 1.6 * f}"/>`;
   g += `<polyline class="nile" points="${pts(BAHR)}" stroke-width="${0.9 * f}" opacity=".7"/>`;
-  const reg = [["Středozemní moře", 31.75, 28.0], ["Rudé moře", 25.6, 34.9], ["Libyjská poušť", 27.0, 27.4], ["Východní poušť", 24.6, 33.8], ["SINAJ", 29.6, 33.9], ["NÚBIE", 21.0, 32.6], ["DELTA", 31.25, 31.45], ["HORNÍ EGYPT", 26.6, 33.7]];
-  for (const [t, la, lo] of reg) g += `<text class="region" x="${MX(lo)}" y="${MY(la)}" font-size="${10 * f}" text-anchor="middle">${t}</text>`;
+  const reg = [["Středozemní moře", 31.75, 28.0], ["Rudé moře", 25.6, 34.9], ["Libyjská poušť", 27.0, 27.4], ["Východní poušť", 24.6, 33.8], ["SINAJ", 29.6, 33.9], ["NÚBIE", 21.0, 32.6], ["DELTA", 31.25, 31.45], ["HORNÍ EGYPT", 26.6, 33.7], ["DOLNÍ EGYPT", 30.0, 32.4]];
+  for (const [t, la, lo] of reg) g += `<text class="region${/moře/.test(t) ? " sea2" : ""}" x="${MX(lo)}" y="${MY(la)}" font-size="${10 * f}" text-anchor="middle">${t}</text>`;
   const done = new Set();
   for (const p of Object.values(S.provs)) for (const n of p.nb) { const key = p.id < n ? p.id + n : n + p.id; if (done.has(key)) continue; done.add(key); const q = S.provs[n]; if (p.ter === "poust" || q.ter === "poust" || p.ter === "oaza" || q.ter === "oaza") g += `<line class="edge" x1="${MX(p.lon)}" y1="${MY(p.lat)}" x2="${MX(q.lon)}" y2="${MY(q.lat)}" stroke-width="${0.8 * f}"/>`; }
   // pochody
@@ -2007,11 +2105,11 @@ function mapSvg() {
     g += `<text class="lbl${capf ? " cap" : ""}" x="${x + (left ? -1 : 1) * R * 1.7}" y="${y + R * 0.6}" font-size="${8.5 * f}" stroke-width="${2.4 * f}" text-anchor="${left ? "end" : "start"}">${esc(p.n)}</text></g>`;
   }
   for (const a of S.armies) { const p = S.provs[a.loc], own = a.cl === me(); if (!own && !knows(S, p)) continue; const x = MX(p.lon) + R * 1.2, y = MY(p.lat) - R * 1.6, s2 = R * (0.9 + Math.min(1.2, men(a.t) / 4000)); g += `<g class="army"><path d="M${x} ${y - s2} L${x + s2} ${y + s2 * 0.8} L${x - s2} ${y + s2 * 0.8}Z" fill="${S.clans[a.cl].col}" stroke-width="${0.8 * f}"><title>${esc(S.clans[a.cl].house)}: ${fmt(men(a.t))} mužů</title></path></g>`; }
-  return `<svg class="map" viewBox="${vx.toFixed(0)} ${vy.toFixed(0)} ${vw.toFixed(0)} ${vh.toFixed(0)}" role="img" aria-label="Mapa Egypta">${g}</svg>`;
+  return `<svg class="map" viewBox="${vx.toFixed(0)} ${vy.toFixed(0)} ${vw.toFixed(0)} ${vh.toFixed(0)}" role="img" aria-label="Mapa Egypta"><clipPath id="mapclip"><rect x="${vx.toFixed(0)}" y="${vy.toFixed(0)}" width="${vw.toFixed(0)}" height="${vh.toFixed(0)}"/></clipPath><g clip-path="url(#mapclip)">${g}</g></svg>`;
 }
 
 // Záložky hry.
-const TABS = [["prehled", "Přehled"], ["plan", "Plán měsíce"], ["mapa", "Mapa"], ["zupy", "Nomy"], ["urednici", "Úředníci"], ["vojsko", "Vojsko"], ["diplo", "Diplomacie"], ["hosp", "Hospodářství"], ["chramy", "Chrámy a stavy"], ["rod", "Rod"], ["vedeni", "Vědění"], ["kronika", "Kronika"], ["hra", "Hra"]];
+const TABS = [["mapa", "Mapa"], ["plan", "Plán měsíce"], ["prehled", "Palác"], ["zupy", "Nomy"], ["urednici", "Úředníci"], ["vojsko", "Vojsko"], ["diplo", "Diplomacie"], ["hosp", "Hospodářství"], ["chramy", "Chrámy a stavy"], ["rod", "Rod"], ["vedeni", "Vědění"], ["kronika", "Kronika"], ["hra", "Hra"]];
 const myProvs = () => clanProvs(S, me());
 const freeOffs = () => officers(S, me()).filter(c => !cmdCheck(S, me(), c));
 function provLink(p) { return `<a class="lnk" data-a="selProv" data-x='["${p.id}"]' style="cursor:pointer;text-decoration:underline dotted">${esc(p.n)}</a>`; }
@@ -2019,24 +2117,6 @@ function ruler() { return leaderOf(S, me()); }
 function rulerTitle() { const C = P(S), L = ruler(); return `${L ? esc(L.n) : "—"}, ${esc(C.t)}${C.title ? " (" + esc(C.title) + ")" : ""}`; }
 
 // ---------- záhlaví ----------
-function renderTop() {
-  const C = P(S), b = clanBudget(S, me()), h = S.flood.h;
-  return `<span class="realm">${emblem(me(), 26)}${esc(C.n)}</span>
-  <span class="st">${rulerTitle()} · <b>${regYear(S, me())}.</b> rok vlády</span>
-  <span class="st">${esc(monthName(S.month))} (${SEASON_D[Math.floor(S.month / 4)]}) · ≈ ${S.bce} př. n. l.</span>
-  <span class="st" title="debeny (měděná jednotka hodnoty, ≈ 91 g)">Debeny <b>${fmtK(C.deben)}</b> <span class="small ${b.net < 0 ? "bad" : "good"}">${sg(b.net)}</span></span>
-  <span class="st" title="obilí ve státních sýpkách (char ≈ 77 litrů)">Obilí <b>${fmtK(C.grain)}</b> charů</span>
-  <span class="st" title="maat – řád světa a oprávněnost vlády">Maat <b>${Math.round(C.maat)}</b></span>
-  <span class="st">Sláva <b>${fmt(C.prestige)}</b></span>
-  <span class="st" title="poslední záplava">Nil <b>${h ? dec(h) + " l." : "?"}</b></span>
-  <span class="sp"></span>
-  ${S.over && !S.over.cont ? '<b class="bad">Hra skončila</b>' : `<button class="main" data-a="end" data-x="[]">Konec měsíce ▸</button>`}`;
-}
-function renderTabs() {
-  const idle = freeOffs().length;
-  return TABS.map(([k, n]) => `<button class="${SEL.tab === k ? "on" : ""}" data-a="tab" data-x='["${k}"]'>${icon(k)}${n}${k === "plan" && idle ? ` <span class="badge">${idle}</span>` : ""}</button>`).join("");
-}
-
 // ---------- Přehled ----------
 function alerts() {
   const C = P(S), out = [], b = clanBudget(S, me());
@@ -2054,31 +2134,6 @@ function alerts() {
   if (S.month === 0 && hasTech(S, me(), "nilometr") && S.flood.next) out.push(["info", `Nilometr předpovídá záplavu asi ${dec(S.flood.next - 0.8)}–${dec(S.flood.next + 0.8)} loktů.`]);
   return out;
 }
-function tPrehled() {
-  const C = P(S), b = clanBudget(S, me()), H = S.history.slice(-36), L = ruler();
-  const al = alerts();
-  const tax = yearTaxEstimate(S, me(), S.flood.h || 15.5);
-  const world = (S.worldHist || []).slice(-40);
-  const series = aliveClans(S).filter(c => c.type !== "kmen").map(c => ({ name: c.n, col: c.col, bold: c.id === me(), vals: world.map(e => e.p[c.id] || 0) }));
-  return `<div class="tiles">
-    ${tile("Debeny", fmtK(C.deben), `<span class="${b.net < 0 ? "bad" : "good"}">${sg(b.net)} za měsíc</span>`, sparkline(H.map(x => x.deben)))}
-    ${tile("Obilí", fmtK(C.grain), `${sg(b.gnet)} měsíčně · daň ze sklizně ≈ ${fmtK(tax)}`, sparkline(H.map(x => x.grain)))}
-    ${tile("Maat", Math.round(C.maat), "řád a oprávněnost vlády", sparkline(H.map(x => x.maat)))}
-    ${tile("Sláva", fmt(C.prestige), "vítězství, stavby, výpravy", sparkline(H.map(x => x.prestige)))}
-    ${tile("Nomy", clanProvs(S, me()).length, `jádro Egypta ${realmCore(S, me())} / ${coreProvs(S).length}`, sparkline(H.map(x => x.provs)))}
-    ${tile("Vojsko", fmtK(clanMen(S, me())), `${S.armies.filter(a => a.cl === me()).length} vojsk v poli`, sparkline(H.map(x => x.men)))}
-    ${tile("Nil", S.flood.h ? dec(S.flood.h) + " loktů" : "?", S.flood.h ? floodWord(S.flood.h) + " záplava" : "záplava přijde ve 2. měsíci období achet")}
-  </div>
-  <div class="grid">
-    ${card("Co je potřeba", al.length ? al.map(([c, t]) => `<div class="alert ${c}">${esc(t)}</div>`).join("") : '<p class="muted">Vše v pořádku.</p>')}
-    ${card("Panovník", L ? `<div class="row">${emblem(me(), 40)}<div><b>${esc(L.n)}</b><div class="small muted">${esc(C.t)}, ${age(S, L)} let, ${regYear(S, me())}. rok vlády${L.note ? " · " + esc(L.note) : ""}</div></div></div>
-      <table>${tr(STAT_IDS.map(k => STATS[k]))}${tr(STAT_IDS.map(k => statTd(st(L, k))))}</table>
-      <p class="small">Dědic: ${heirsOf(S, me())[0] ? esc(heirsOf(S, me())[0].n) : '<b class="bad">žádný</b>'} · hrobka: ${C.tomb.stage}/${TOMB_STAGES.length} fází · ${esc(C.house)}</p>` : "")}
-    ${card("Síla rodů (počet nomů)", lineChart(series, world.map(e => e.d)), "wide")}
-    ${card("Poslední zprávy", `<div class="log" style="max-height:320px">${S.log.filter(x => !x.cl || x.cl.includes(me())).slice(0, 25).map(x => `<div class="lg c-${x.cat}"><span class="tag">${monthShort(x.m)} ${x.y}</span>${esc(x.txt)}</div>`).join("")}</div>`, "wide")}
-  </div>`;
-}
-
 // ---------- Plán měsíce ----------
 function suggestCmd(c, p) {
   if (p.loy < 32 || p.hunger > 0.2) return "rozdat";
@@ -2100,31 +2155,14 @@ function cmdParams(c, k, p) {
   if (k === "rozdat") return `<input id="p1_${id}" type="number" step="1000" placeholder="${fmt(p.pop * 600)}" title="charů obilí">`;
   return "";
 }
-function tPlan() {
-  const cmdOpts = Object.entries(CMDS).map(([k, K]) => [k, K.n + (K.cost || K.grain ? ` (${K.cost ? K.cost + " d." : ""}${K.cost && K.grain ? ", " : ""}${K.grain ? fmtK(K.grain) + " ch." : ""})` : "")]);
-  const ps = myProvs().filter(p => !p.siege).sort((a, b) => (b.id === P(S).capital) - (a.id === P(S).capital) || b.v - a.v);
-  let idle = 0; const rows = [];
-  for (const p of ps) for (const c of officersIn(S, p.id)) {
-    const done = c.acted === S.turn; if (done && !SEL.planDone) continue; if (!done) idle++;
-    const k = SEL.cmd[c.id] || suggestCmd(c, p); SEL.cmd[c.id] = k;
-    rows.push(tr([`<b>${esc(c.n)}</b>${c.id === P(S).leader ? " ♛" : ""}<div class="small muted">${RANKS[c.rank].n}, věrnost ${Math.round(c.loy)}</div>`, `${provLink(p)}${p.deleg ? '<div class="small muted">svěřeno rádci</div>' : ""}`, statsTd(c),
-      done ? '<td colspan="2" class="muted">tento měsíc už jedná</td>' : `<td>${sel("cs_" + c.id, cmdOpts, k, `data-a="cmdSel" data-x='["${c.id}"]'`)}<div class="small muted">${esc(CMDS[k].d)}</div></td><td>${cmdParams(c, k, p)} ${btn("Provést", "cmd", [c.id], null, "go")} ${btn("Rádce", "advise", [c.id])}</td>`], done ? "muted" : ""));
-  }
-  const away = officers(S, me()).filter(c => c.away || c.moving || c.army).map(c => tr([esc(c.n), c.away ? `výprava: ${EXPED[c.away.exp].n}, návrat za ${c.away.until - S.turn} měs.` : c.moving ? `na cestě do nomu ${S.provs[c.moving.to].n}` : "velí vojsku"]));
-  const C = P(S), b = clanBudget(S, me());
-  return `<div class="tiles">${tile("Volní úředníci", idle, "čekají na rozkaz")}${tile("Debeny", fmtK(C.deben), `<span class="${b.net < 0 ? "bad" : "good"}">${sg(b.net)} za měsíc</span>`)}${tile("Obilí", fmtK(C.grain), "sklizeň v 1. měsíci období šemu")}${tile("Období", SEASONS[Math.floor(S.month / 4)], S.month < 4 ? "záplava: pole jsou pod vodou, robota na stavbách je účinnější" : SEASON_D[Math.floor(S.month / 4)])}</div>
-  ${card("Plán měsíce – všichni úředníci na jednom místě", `<div class="row">${btn("Rádce rozhodne za všechny volné", "adviseAll", [], idle ? null : "Nikdo nečeká", "go")} ${btn(SEL.planDone ? "Skrýt ty, kdo už jednají" : "Ukázat i ty, kdo už jednají", "planDone")} <span class="small muted">Předvybraný rozkaz je doporučení podle stavu nomu. Úředníci ve svěřených nomech jednají na konci měsíce sami.</span></div>` +
-    tbl(["Úředník", "Nom", "#Vel.", "#Stat.", "#Moudr.", "#Správa", "Rozkaz", ""], rows), "wide")}
-  ${away.length ? card("Mimo službu v nomech", tbl(["Úředník", "Kde je"], away)) : ""}`;
-}
-
 // ---------- Mapa a panel nomu ----------
 function provPanel(p) {
   if (!p) return '<p class="muted">Klepni na nom na mapě.</p>';
   const C = S.clans[p.owner], own = p.owner === me(), kn = knows(S, p), L = chr(S, p.lord);
-  let h = `<div class="row">${emblem(p.owner, 34)}<div><b style="font-size:16px">${esc(p.n)}</b><div class="small muted">${esc(p.eg)} · ${esc(C.n)} (${esc(C.house)})</div></div></div>`;
+  let h = `<div class="provhead">${L && kn ? portrait(L, 60) : emblem(p.owner, 40)}<div><div class="pn">${hg("sepat", "sepat – nom")} ${esc(p.n)}</div><div class="small muted">${esc(p.eg)}</div><div class="small">${emblem(p.owner, 14)} ${esc(C.n)} · ${esc(C.house)}</div></div></div>`;
+  if (kn) h += `<div class="statgrid"><div><b>${fmtK(p.pop * 1000)}</b><span>obyvatel</span></div><div><b>${own ? fmt(men(p.troops)) : estimate(S, p, men(p.troops))}</b><span>vojáků</span></div><div><b>${Math.round(p.loy)}</b><span>spokojenost</span></div></div>`;
   h += `<div class="kv small"><span>Terén</span><span>${TERRAIN[p.ter].n}</span><span>Bůh</span><span>${esc(p.god)}</span><span>Suroviny</span><span>${p.res.map(r => RES[r].n).join(", ") || "—"}</span>`;
-  if (kn) h += `<span>Obyvatel</span><span>≈ ${fmt(p.pop * 1000)}</span><span>Správce</span><span>${L ? esc(L.n) : "—"}</span>`;
+  if (kn) h += `<span>Správce</span><span>${L ? esc(L.n) + " (" + RANKS[L.rank].n + ")" : "—"}</span>`;
   h += "</div>";
   if (kn) {
     h += meter("Pole", p.agri, agriCap(S, p), "var(--good)") + meter("Řemesla a obchod", p.com, comCap(S, p), "var(--gold)") + meter("Spokojenost", p.loy, 100, p.loy < 30 ? "var(--bad)" : "") + meter("Hradby", p.dur, durMax(S, p), "var(--muted)");
@@ -2153,9 +2191,9 @@ function provPanel(p) {
 }
 function tMapa() {
   if (!SEL.prov || !S.provs[SEL.prov]) SEL.prov = P(S).capital;
-  return `<div class="grid map2"><section class="card"><div class="zoom">${Object.entries(ZOOMS).map(([k, Z]) => btn(SEL.zoom === k ? `<b>${Z.n}</b>` : Z.n, "zoom", [k])).join("")}</div>${mapSvg()}
-    <div class="tleg">${aliveClans(S).map(c => `<span>${emblem(c.id, 14)} ${esc(c.n)}</span>`).join("")}</div><p class="small muted">Hvězda = sídlo rodu, tečkovaný kruh = obléhání, trojúhelník = vojsko v poli. Barvy území ukazují vládu nad nomy; Nil a jeho ramena v Deltě jsou zakreslena podle skutečného toku.</p></section>
-    <section class="card sticky">${provPanel(S.provs[SEL.prov])}</section></div>`;
+  return `<div class="grid map2"><section class="card mapcard"><div class="zoom">${Object.entries(ZOOMS).map(([k, Z]) => btn(SEL.zoom === k ? `<b>${Z.n}</b>` : Z.n, "zoom", [k])).join("")}</div>${mapSvg()}
+    <div class="tleg">${aliveClans(S).map(c => `<span>${emblem(c.id, 14)} ${esc(c.n)}</span>`).join("")}</div><p class="small muted">Hvězda = sídlo rodu, tečkovaný kruh = obléhání, trojúhelník = vojsko v poli. Zelená je Kemet, „černá země“ zúrodněná nilským bahnem; okrová je Dešret, „červená země“ pouště. Barvy území ukazují vládu nad nomy; Nil a jeho ramena v Deltě odpovídají skutečnému toku.</p></section>
+    <section class="card sticky">${provPanel(S.provs[SEL.prov])}<details style="margin-top:10px" ${alerts().some(a => a[0] === "bad") ? "open" : ""}><summary>${ricon("urednici", 16)} Rádci hlásí (${alerts().length})</summary>${alertsHtml(6)}</details></section></div>`;
 }
 function tZupy() {
   const rows = myProvs().sort((a, b) => b.v - a.v).map(p => { const L = chr(S, p.lord); return tr([`${provLink(p)}${p.id === P(S).capital ? " ★" : ""}<div class="small muted">${TERRAIN[p.ter].n}</div>`, L ? esc(L.n) : '<span class="muted">—</span>', tdn(fmt(p.pop * 1000)), tdn(`${p.agri}/${agriCap(S, p)}`), tdn(`${p.com}/${comCap(S, p)}`), tdn(Math.round(p.loy)), tdn(fmt(men(p.troops))), tdn(`${p.castle} (${Math.round(p.dur)})`), tdn(fmtK(provTax(S, p, S.flood.h || 15.5))), tdn(fmt(provDeben(S, p) + provRes(S, p))), p.build ? `${BUILD[p.build.b].n.split(" (")[0]} (${Math.ceil(p.build.left)})` : "", p.hunger > 0.05 ? '<span class="pill bad">hlad</span>' : ""]); });
@@ -2163,18 +2201,6 @@ function tZupy() {
 }
 
 // ---------- Úředníci ----------
-function tUrednici() {
-  const C = P(S), offs = officers(S, me()).sort((a, b) => b.rank - a.rank || b.merit - a.merit);
-  const rows = offs.map(c => { const p = S.provs[c.loc]; const next = RANKS[c.rank + 1];
-    return tr([`<b>${esc(c.n)}</b>${c.id === C.leader ? " ♛" : ""}${c.dyn && c.id !== C.leader ? ' <span class="tag">rod</span>' : ""}${c.hist ? ' <span class="tag" title="' + esc(c.note || "") + '">historický</span>' : ""}<div class="small muted">${c.traits.map(t => TRAITS[t].n).join(", ")}</div>`, `${RANKS[c.rank].n}<div class="small muted">zásluhy ${Math.round(c.merit)}${next ? "/" + next.merit : ""}</div>`, p ? esc(p.n) : "", tdn(age(S, c)), statsTd(c), statTd(c.loy),
-      c.id === C.leader ? "" : btn("Povýšit", "promote", [c.id], next && c.merit >= next.merit ? null : "Málo zásluh") + btn("Dar 300", "gift", [c.id, 300]) + (c.dyn ? "" : btn("Propustit", "dismiss", [c.id], null, "danger"))]); });
-  const caps = Object.values(S.chars).filter(c => c.st === "cap" && c.cl === me()).map(c => tr([esc(c.n), S.clans[c.capBy] ? esc(S.clans[c.capBy].house) : "?"]));
-  const wand = Object.values(S.chars).filter(c => c.st === "wand" && S.provs[c.loc] && S.provs[c.loc].owner === me()).map(c => tr([esc(c.n), esc(S.provs[c.loc].n), statsTd(c)]));
-  return `<div class="grid">${card("Úředníci a hodnostáři", tbl(["Jméno", "Hodnost", "Nom", "#Věk", "#Vel.", "#Stat.", "#Moudr.", "#Správa", "#Věrnost", ""], rows) + '<p class="small muted">Věrnost roste s hodností, úřadem, dary, maat a slávou rodu. Nevěrný správce pohraničního nomu může přeběhnout i s nomem k sousedovi.</p>', "wide")}
-  ${officesCard()}
-  ${card("Potulní schopní muži ve tvých nomech", tbl(["Jméno", "Nom", "#Vel.", "#Stat.", "#Moudr.", "#Správa"], wand) + '<p class="small muted">Získáš je rozkazem „Hledat schopné muže“ v jejich nomu.</p>')}
-  ${caps.length ? card("Zajatí", tbl(["Jméno", "Drží je"], caps) + '<p class="small muted">Zajatci se vrátí po uzavření míru.</p>') : ""}</div>`;
-}
 function officesCard() {
   const offs = officers(S, me()).filter(c => !c.army);
   return card("Dvůr a úřady", tbl(["Úřad", "Účinek", "Držitel"], Object.entries(OFFICES).map(([k, O]) => { const h = officeHolder(S, me(), k);
@@ -2210,32 +2236,6 @@ function relStatus(cid) {
   if (O.vassalOf && O.vassalOf !== me()) t.push(`<span class="pill">poddaný: ${esc(S.clans[O.vassalOf].n)}</span>`);
   return t.join(" ");
 }
-function tDiplo() {
-  const myP = realmPower(S, me());
-  const rows = aliveClans(S).filter(c => c.id !== me()).sort((a, b) => clanProvs(S, b.id).length - clanProvs(S, a.id).length).map(O => { const L = leaderOf(S, O.id), pw = realmPower(S, O.id);
-    return tr([`<td class="shc">${emblem(O.id, 26)}</td>`, `<b>${esc(O.n)}</b><div class="small muted">${esc(O.house)}${L ? " · " + esc(L.n) : ""}</div>`, tdn(clanProvs(S, O.id).length), tdn(r1(pw / Math.max(1, myP)).toString().replace(".", ",") + "×"), `<td>${relBar(rel(S, me(), O.id))}</td>`, relStatus(O.id), btn("Jednat", "dipl", [O.id])], SEL.dipl === O.id ? "sel" : "");
-  });
-  const D = SEL.dipl && S.clans[SEL.dipl] && S.clans[SEL.dipl].alive ? S.clans[SEL.dipl] : null;
-  let panel = '<p class="muted">Vyber rod v tabulce.</p>';
-  if (D) {
-    const id = D.id, war = atWar(S, me(), id), e = dipCheck(S, me(), id), pair = marriagePair(S, me(), id);
-    panel = `<div class="row">${emblem(id, 40)}<div><b>${esc(D.n)}</b><div class="small muted">${esc(D.house)} · ${esc(D.t)} · vztah ${Math.round(rel(S, me(), id))} · maat ${Math.round(D.maat)} · sláva ${fmt(D.prestige)}</div></div></div>
-      <p class="small">${relStatus(id) || "bez zvláštních vztahů"}</p>
-      <div class="row">${btn("Dar 1 000 debenů", "diplo", [id, "dar", 1000], e)} ${btn("Dar 3 000", "diplo", [id, "dar", 3000], e)}</div>
-      <div class="row">${war ? btn("Nabídnout mír", "diplo", [id, "mir"], e, "go") : btn("Vyhlásit válku", "diplo", [id, "valka"], e || (S.clans[me()].vassalOf === id ? null : null), "danger")}
-      ${btn("Spojenectví", "diplo", [id, "spojenectvi"], e || (war ? "Válčíte" : allied(S, me(), id) ? "Už jste spojenci" : null))}
-      ${btn("Obchodní smlouva", "diplo", [id, "obchod"], e || (war ? "Válčíte" : S.trade[pairKey(me(), id)] ? "Už ji máte" : null))}
-      ${btn("Žádat poddanství", "diplo", [id, "podruci"], e || (D.vassalOf ? "Už je něčím poddaným" : D.type === "kmen" ? null : null))}
-      ${btn("Sňatek", "diplo", [id, "snatek"], e || (pair ? null : "Nejsou volní ženiši a nevěsty"))}
-      ${D.vassalOf === me() ? btn("Propustit z poddanství", "diplo", [id, "propustit"], e) : ""}
-      ${btn("Proklínací obřad (500 d.)", "diplo", [id, "proklinani"], e || ((P(S).last["p_" + id] || -99) > S.turn - 12 ? "Lze opakovat až za rok" : null))}
-      ${P(S).tributeTo === id ? btn("Přestat platit tribut", "diplo", [id, "tribut_stop"], e, "danger") : ""}</div>
-      ${pair ? `<p class="small muted">Sňatek: ${esc(pair[0].n)} a ${esc(pair[1].n)}.</p>` : ""}
-      <p class="small muted">Poměr sil (tvá říše : jejich) ${dec(warScore(S, me(), id))} : 1. Mír přijmou spíš, když prohrávají nebo válka trvá dlouho. Poddanství přijmou při převaze víc než 3 : 1. Vyhlášení války během příměří nebo proti spojenci poškodí maat. Proklínací obřad (rozbíjení nádob se jmény nepřátel, doložený od Staré po Střední říši) sníží slávu nepřítele a spokojenost jeho pohraničních nomů.</p>`;
-  }
-  return `<div class="grid map2"><section class="card"><h3>Rody a kmeny</h3>${tbl(["", "Rod", "#Nomy", "#Síla", "Vztah", "Stav", ""], rows)}</section><section class="card sticky"><h3>Jednání</h3>${panel}</section></div>`;
-}
-
 // ---------- Hospodářství ----------
 function tHosp() {
   const C = P(S), b = clanBudget(S, me()), INC = { zupy: "Nomy (řemesla, trh, lidé)", suroviny: "Doly, lomy a suroviny", obchod: "Obchodní smlouvy", tribut: "Tribut poddaných", chramy: "Zdanění chrámů" }, EX = { dvur: "Dvůr", platy: "Platy úředníků", vojsko: "Výzbroj a údržba vojska", zoldneri: "Žold Médžajů", stavby: "Údržba chrámů a pevností", tribut: "Tribut" }, GX = { vojsko: "Příděly vojákům", urednici: "Příděly úředníkům", dvur: "Dvůr a palác", ztraty: "Ztráty v sýpkách (myši, vlhkost)" };
@@ -2273,14 +2273,6 @@ function tChramy() {
 }
 
 // ---------- Rod ----------
-function famCard(c, role) {
-  if (!c) return ""; const H = heirsOf(S, me())[0];
-  return `<div class="fam ${c.sex === "f" ? "f" : ""}"><div class="fn">${esc(c.n)}${c.id === P(S).leader ? " ♛" : ""}</div><div class="small muted">${role || (c.sex === "m" ? "syn" : "dcera")}, ${age(S, c)} let${H && H.id === c.id ? ", <b>dědic</b>" : ""}${c.st === "cap" ? ", v zajetí" : ""}</div>
-    <div class="minis">${STAT_IDS.map(k => `<span title="${STATS[k]} ${st(c, k)}"><i style="height:${st(c, k) * 0.28}px"></i></span>`).join("")}</div>
-    ${c.note ? `<div class="small muted">${esc(c.note)}</div>` : ""}
-    ${c.spouse && chr(S, c.spouse) && role !== "choť" ? `<div class="small">∞ ${esc(chr(S, c.spouse).n)}</div>` : ""}
-    ${c.st === "kid" ? sel("fo_" + c.id, [["", "výchova: volná"], ["ved", "vojenská"], ["uda", "lovy a zápas"], ["roz", "dům života (písař)"], ["spr", "správa statků"]], c.focus || "", `data-a="focus" data-x='["${c.id}"]'`) : ""}</div>`;
-}
 function tRod() {
   const C = P(S), L = ruler(), sp = L && chr(S, L.spouse), H = heirsOf(S, me());
   const kids = L ? L.kids.map(id => chr(S, id)).filter(c => c && c.st !== "dead") : [];
@@ -2365,6 +2357,256 @@ function tHra() {
   <p><b>Co je historické a co herní:</b> nomy, jejich egyptská jména, bohové, suroviny, výpravy, kalendář, nilometr, příděly obilí, debeny, hodnosti a titulatura vycházejí z egyptologie. Jména vládců a doložených hodnostářů odpovídají pramenům; roky narození, schopnosti, povahy a všichni ostatní úředníci jsou herní. Letopočty se drží střední chronologie (I. Shaw, The Oxford History of Ancient Egypt), nejistota je desítky let. Výšky záplav jsou náhodné, ale klima Prvního přechodného období je sušší (pokles záplav kolem roku 2200 př. n. l.).</p></section></div>`;
 }
 
+// Vzhled hry: portréty postav, ikony surovin, hieroglyfy.
+// Portréty se drží konvencí egyptské malby: postava z profilu, oko zepředu s linkou líčidla, muži červenohnědí,
+// ženy žlutookrové; Asiaté (Aamu) se „hřibovitými“ vlasy a vousy jako na malbě z Beni Hasanu, Libyjci s copánkem
+// a pery, Núbijci tmaví s krátkými vlasy; děti s kadeří mládí; král v šátku nemes s kobrou a umělým vousem.
+
+const HG = { pan: "𓎟𓇾𓇾", nswbjtj: "𓇓𓏏𓆤𓏏", anch: "𓋹𓍑𓋴", maat: "𓆄", sepat: "𓈈", necer: "𓊹", sema: "𓄥", kemet: "𓆎𓏏𓊖", achet: "𓆷", sara: "𓅭𓇳" };
+const hg = (k, title) => `<span class="hg" ${title ? `title="${esc(title)}"` : ""}>${HG[k]}</span>`;
+
+const SKIN = { m: "#9c4a24", f: "#d9a35a", nub: "#4a2c1a", aam: "#c99a63", lib: "#c58d5d" };
+function hashStr(t) { let h = 2166136261; for (let i = 0; i < t.length; i++) { h ^= t.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+let PORT_N = 0;
+function portraitKind(c) {
+  const C = c.cl && S.clans[c.cl], h = hashStr(c.id + c.n);
+  const leader = C && C.leader === c.id, king = leader && C.t === "král";
+  let cul = (C && C.cul) || "eg"; if (c.origin && S.clans[c.origin]) cul = S.clans[c.origin].cul;
+  if (cul === "hyk") cul = king ? "hyk-king" : NAMES.eg.m.some(n => c.n.startsWith(n + ",")) ? "eg" : "aam";
+  const kid = c.st === "kid";
+  const queen = c.sex === "f" && C && ((C.leader && chr(S, C.leader) && chr(S, C.leader).spouse === c.id && C.t === "král") || (leader && C.t === "král"));
+  return { cul, kid, king: king && cul !== "nub", chief: leader && !king, queen, sex: c.sex || "m", h, priest: !kid && c.sex !== "f" && cul === "eg" && !leader && (c.traits || []).includes("zbozny") || (h % 5 === 0 && cul === "eg" && !leader && c.sex !== "f"), dead: c.st === "dead" };
+}
+function portrait(c, size = 56) {
+  if (!c) return "";
+  const k = portraitKind(c), id = "pt" + (PORT_N++);
+  const nub = k.cul === "nub", aam = k.cul === "aam", lib = k.cul === "lib";
+  const skin = nub ? SKIN.nub : aam ? SKIN.aam : lib ? SKIN.lib : k.sex === "f" ? SKIN.f : SKIN.m;
+  const hair = "#1b130c", gold = "#c9952b", blue = "#1d4f9a", red = "#a8381e", green = "#2e7d5b";
+  let g = "";
+  // ramena a široký náhrdelník (wesech)
+  g += `<path d="M6 64 C8 50 19 45 30 45 L38 45 C49 45 57 51 59 64Z" fill="${skin}"/>`;
+  const bands = k.king || k.queen ? [gold, blue, gold, red] : k.chief ? [gold, red, blue] : [blue, red, green];
+  bands.forEach((col, i) => { g += `<path d="M${13 + i} ${55 + i * 2.2} C${21} ${48 + i * 2.2} ${45} ${48 + i * 2.2} ${53 - i} ${56 + i * 2.2}" fill="none" stroke="${col}" stroke-width="2.2"/>`; });
+  // krk a hlava z profilu (obličej doprava)
+  g += `<path d="M28 36 L37 36 L38 47 L27 47Z" fill="${skin}"/>`;
+  g += `<path d="M30 9 C38 9 43 14 43 20 L44 24 L47.5 28.5 L44.5 29.5 L44.5 31 L45.5 33 L43.5 34.2 L43.5 36 C42.5 39.5 38.5 41.5 34.5 41.5 L30 41.5 C24 38 20 32 20 24 C20 15 24 9 30 9Z" fill="${skin}"/>`;
+  // vlasy, paruky, pokrývky hlavy
+  if (k.king || k.cul === "hyk-king") {
+    g += `<defs><pattern id="${id}" width="3" height="3" patternUnits="userSpaceOnUse"><rect width="3" height="3" fill="${gold}"/><rect y="1.6" width="3" height="1.4" fill="${blue}"/></pattern></defs>`;
+    g += `<path d="M42 18 C42 9 35 5 28 5 C19 5 14 12 14 21 C14 30 16 40 17 48 L26 48 L30 30 C31 25 33 19 42 18Z" fill="url(#${id})" stroke="#2b1d12" stroke-width=".6"/>`;
+    g += `<path d="M33 27 L38 27 L39 50 L33 50Z" fill="url(#${id})" stroke="#2b1d12" stroke-width=".6"/>`;
+    g += `<path d="M41 13.5 C43 11 45 11.5 44.5 14.5 L42.5 15.5Z" fill="${gold}" stroke="#2b1d12" stroke-width=".5"/>`; // kobra (ureus)
+    g += `<path d="M41 39 L44 39 L44.5 47 L41.5 46.5Z" fill="#3a2a1a"/>`; // umělý vous
+  } else if (k.kid) {
+    g += `<path d="M22 14 C20 18 19 26 21 33 C22 37 24 39 26 40 L24 41 C20 37 18 31 18 24 C18 18 19 15 22 14Z" fill="${hair}"/>`; // kadeř mládí
+  } else if (aam) {
+    g += `<path d="M44.5 18 C45 7 35 3 26 4 C16 5 12 14 14 24 C15 30 19 34 24 35 L30 31 C30 26 33 20 44.5 18Z" fill="${hair}"/>`;
+    g += `<path d="M44 33 C44.5 40 41 45 35 45 L32 40 L38 39 C40 38 42 36 44 33Z" fill="${hair}"/>`;
+    g += `<path d="M15 21 C22 22 32 20 44 17" stroke="${red}" stroke-width="1.6" fill="none"/>`;
+  } else if (lib) {
+    g += `<path d="M43 16 C41 9 34 7 28 8 C21 9 18 14 18 22 L24 22 C26 17 34 14 43 16Z" fill="${hair}"/>`;
+    g += `<path d="M24 20 C20 26 21 36 26 42" stroke="${hair}" stroke-width="3" fill="none"/>`; // copánek
+    g += `<path d="M28 8 C26 0 29 -4 31 -6 C31 0 31 4 30 8Z" fill="${blue}" transform="translate(0 6)"/><path d="M32 8 C32 1 35 -2 37 -4 C36 2 35 5 34 8Z" fill="${red}" transform="translate(0 6)"/>`;
+    g += `<path d="M44 34 C44 39 41 42 37 42 L38 37Z" fill="${hair}"/>`;
+  } else if (nub) {
+    g += `<path d="M43.5 18 C43 10 37 6 30 6 C22 6 17 12 17 20 C17 25 19 28 21 30 L26 28 C26 22 31 18 43.5 18Z" fill="${hair}"/>`;
+    if (k.chief || k.king) g += `<path d="M24 8 C22 0 25 -5 27 -8 C27 -1 27 3 26 8Z" fill="${gold}" transform="translate(0 4)"/>`;
+    g += `<circle cx="29" cy="30" r="1.8" fill="none" stroke="${gold}" stroke-width="1"/>`;
+  } else if (k.priest) {
+    g += `<path d="M21 18 C23 12 27 9 31 9 C36 9 40 11 42 15" stroke="rgba(0,0,0,.18)" stroke-width="1.2" fill="none"/>`; // oholená hlava kněze či písaře
+  } else if (k.sex === "f") {
+    g += `<path d="M42.5 17.5 C42 9 35 6 29 6 C20 6 15 12 15 21 C15 33 16 44 18 52 L28 52 L30 30 C31 24 34 19 42.5 17.5Z" fill="${hair}"/>`;
+    g += `<path d="M34.5 26 L39.5 26 L40.5 52 L34 52Z" fill="${hair}"/>`; // přední pramen trojdílné paruky
+    if (k.queen) { g += `<path d="M16 17 C24 12 34 11 43 15" stroke="${gold}" stroke-width="2.2" fill="none"/><path d="M41.5 13 C43.5 10.5 45.5 11 45 14 L43 15Z" fill="${gold}"/>`; }
+    else g += `<path d="M16 18 C24 14 34 13 42.5 16" stroke="${(k.h % 2) ? blue : red}" stroke-width="1.4" fill="none"/>`;
+  } else {
+    const len = k.h % 3 === 0 ? 46 : 41;
+    g += `<path d="M43 17.5 C42 9 35 6 29 6 C20 6 15 13 15 22 C15 30 17 ${len - 4} 21 ${len} L32 ${len} L31 30 C31 25 34 20 43 17.5Z" fill="${hair}"/>`;
+    g += `<path d="M18 ${len - 6} L31 ${len - 6}" stroke="rgba(255,255,255,.12)" stroke-width=".8"/>`;
+  }
+  // oko zepředu s linkou líčidla, obočí, ucho není vidět pod parukou
+  g += `<path d="M35.2 22.6 C36.6 21 39.6 21 41.2 22.4 C39.6 23.6 36.6 23.8 35.2 22.6Z" fill="#f6efdc"/><circle cx="38.6" cy="22.4" r="1.05" fill="#1b130c"/>`;
+  g += `<path d="M34 22.8 L41.8 22.2 M41.2 22.4 L43 23.2" stroke="#1b130c" stroke-width=".7" fill="none"/>`;
+  g += `<path d="M35 19.4 Q38.6 17.6 42.2 19.4" stroke="#1b130c" stroke-width="1" fill="none"/>`;
+  g += `<path d="M43.2 32.2 L44.6 32.6" stroke="${k.sex === "f" ? "#a8381e" : "rgba(0,0,0,.35)"}" stroke-width="1"/>`;
+  const filt = k.dead ? ' style="filter:grayscale(1);opacity:.7"' : "";
+  return `<svg class="portrait" width="${size}" height="${size}" viewBox="0 0 64 64" aria-hidden="true"${filt}><clipPath id="c${id}"><circle cx="32" cy="32" r="31"/></clipPath><g clip-path="url(#c${id})">${g}</g></svg>`;
+}
+
+// ---------- ikony surovin a stavu ----------
+const RICON = {
+  deben: `<circle cx="12" cy="12" r="8" fill="none" stroke="#b5652a" stroke-width="4"/><circle cx="12" cy="12" r="8" fill="none" stroke="#e39a5c" stroke-width="1.2"/>`,
+  grain: `<path d="M3 21V12a4 4 0 0 1 8 0v9zM13 21V10a4.5 4.5 0 0 1 9 0v11z" fill="#d9b77a" stroke="#6d4a1f" stroke-width="1.2"/><path d="M5.5 21v-3h3v3M16 21v-3.5h3V21" fill="#6d4a1f"/><path d="M2 21h21" stroke="#6d4a1f" stroke-width="1.4"/>`,
+  maat: `<path d="M13 2c4 5 4 12 1 17l-1 3h-1.6l.6-3c-3-5-3-12 1-17z" fill="#c9952b" stroke="#6d4a1f" stroke-width=".9"/><path d="M13 4v16" stroke="#6d4a1f" stroke-width=".7"/>`,
+  slava: `<circle cx="12" cy="12" r="6.5" fill="#c4361c" stroke="#c9952b" stroke-width="2"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8" stroke="#c9952b" stroke-width="1.4"/>`,
+  vojsko: `<path d="M5 22L19 3" stroke="#6d4a1f" stroke-width="1.6"/><path d="M19 3l-1 4 3-2z" fill="#9aa3ad" stroke="#4a4a4a" stroke-width=".6"/><path d="M8 7h8v9c0 3-2 5-4 6-2-1-4-3-4-6z" fill="#efe6d1" stroke="#6d4a1f" stroke-width="1.1"/><path d="M10 10c1 1 3 1 4 0M10 14c1.2 1.4 2.8 1.4 4 0" stroke="#4a2c1a" stroke-width="1.2" fill="none"/>`,
+  nil: `<path d="M2 7l2.5-2 2.5 2 2.5-2 2.5 2 2.5-2 2.5 2 2.5-2 2.5 2M2 13l2.5-2 2.5 2 2.5-2 2.5 2 2.5-2 2.5 2 2.5-2 2.5 2M2 19l2.5-2 2.5 2 2.5-2 2.5 2 2.5-2 2.5 2 2.5-2 2.5 2" fill="none" stroke="#1d4f9a" stroke-width="1.6" stroke-linejoin="round"/>`,
+  nomy: `<rect x="3" y="3" width="18" height="18" rx="2" fill="#6f8f3e" stroke="#2b1d12" stroke-width="1.2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18" stroke="#1d4f9a" stroke-width="1.4"/>`,
+  urednici: `<rect x="4" y="3" width="6" height="18" rx="1" fill="#efe6d1" stroke="#6d4a1f"/><circle cx="7" cy="7" r="1.4" fill="#2b1d12"/><circle cx="7" cy="11" r="1.4" fill="#a8381e"/><path d="M14 4l6 16" stroke="#6d4a1f" stroke-width="1.6"/>`,
+};
+const ricon = (k, size = 24) => `<svg viewBox="0 0 24 24" width="${size}" height="${size}" aria-hidden="true">${RICON[k] || ""}</svg>`;
+function seasonWheel(m) {
+  const cols = ["#1d4f9a", "#2e7d5b", "#c9952b"], c = 15, r = 13; let g = "";
+  for (let i = 0; i < 3; i++) { const a0 = (i / 3) * 2 * Math.PI - Math.PI / 2, a1 = ((i + 1) / 3) * 2 * Math.PI - Math.PI / 2;
+    g += `<path d="M${c} ${c} L${(c + r * Math.cos(a0)).toFixed(2)} ${(c + r * Math.sin(a0)).toFixed(2)} A${r} ${r} 0 0 1 ${(c + r * Math.cos(a1)).toFixed(2)} ${(c + r * Math.sin(a1)).toFixed(2)}Z" fill="${cols[i]}" opacity="${Math.floor(m / 4) === i ? 1 : 0.35}"/>`; }
+  const a = ((m + 0.5) / 12) * 2 * Math.PI - Math.PI / 2;
+  g += `<circle cx="${c}" cy="${c}" r="4" fill="var(--panel)"/><path d="M${c} ${c} L${(c + (r - 1) * Math.cos(a)).toFixed(2)} ${(c + (r - 1) * Math.sin(a)).toFixed(2)}" stroke="#2b1d12" stroke-width="2.2" stroke-linecap="round"/>`;
+  return `<svg class="wheel" viewBox="0 0 30 30" aria-hidden="true"><title>Rok: achet (záplava), peret (setí), šemu (sklizeň)</title>${g}</svg>`;
+}
+function resPill(k, val, sub, title) { return `<span class="res" title="${esc(title || "")}">${ricon(k)}<b>${val}</b>${sub ? ` <small>${sub}</small>` : ""}</span>`; }
+const nPlural = (n, a, b, c) => `${n} ${n === 1 ? a : n > 1 && n < 5 ? b : c}`;
+
+// Herní obrazovky: horní lišta, palác, plán měsíce s kartami úředníků, dvůr, rody, rodokmen a svitek událostí.
+
+// ---------- horní lišta ----------
+function rulerLine(C, L) {
+  if (!L) return "—";
+  const king = C.t === "král" && C.cul !== "nub";
+  return king ? `${hg("nswbjtj", "nesut-biti – král Horního a Dolního Egypta")} <span class="cartouche">${esc(L.n)}</span>${hg("anch", "anch, udža, seneb – živ, zdráv, silen")}` : `${esc(cap(C.t))} ${esc(L.n)}`;
+}
+function renderTop() {
+  const C = P(S), b = clanBudget(S, me()), h = S.flood.h, L = ruler(), si = Math.floor(S.month / 4);
+  return `<div class="realm">${emblem(me(), 40)}<div><div class="rn">${esc(C.n)}</div><div class="rk">${rulerLine(C, L)} · ${regYear(S, me())}. rok vlády</div></div></div>
+  <div class="season" title="Egyptský občanský rok: achet – záplava, peret – setí a růst, šemu – sklizeň">${seasonWheel(S.month)}<div><div class="sn">${(S.month % 4) + 1}. měsíc období ${SEASONS[si]}</div><div class="sd">${SEASON_D[si]} · ≈ ${S.bce} př. n. l.</div></div></div>
+  <div class="hud">
+    ${resPill("deben", fmtK(C.deben), `<span class="${b.net < 0 ? "bad" : "good"}">${sg(b.net)}</span>`, "Debeny – měděná jednotka hodnoty; za měsíc " + sg(b.net))}
+    ${resPill("grain", fmtK(C.grain), "", "Obilí ve státních sýpkách (charů, char ≈ 77 litrů)")}
+    ${resPill("maat", Math.round(C.maat), "", "Maat – řád světa a oprávněnost vlády")}
+    ${resPill("slava", fmt(C.prestige), "", "Sláva rodu")}
+    ${resPill("vojsko", fmtK(clanMen(S, me())), "", "Muži ve zbrani")}
+    ${resPill("nil", h ? dec(h) : "?", "loktů", "Výška poslední záplavy na nilometru")}
+  </div>
+  <span class="sp"></span>
+  ${S.over && !S.over.cont ? '<b class="bad">Hra skončila</b>' : `<button class="main" data-a="end" data-x="[]">${ricon("nil", 18)} Konec měsíce</button>`}`;
+}
+function renderTabs() {
+  const idle = freeOffs().length;
+  return TABS.map(([k, n]) => `<button class="${SEL.tab === k ? "on" : ""}" data-a="tab" data-x='["${k}"]'>${icon(k)}${n}${k === "plan" && idle ? ` <span class="badge">${idle}</span>` : ""}</button>`).join("");
+}
+
+// ---------- Palác (přehled) ----------
+function alertsHtml(n) { const al = alerts(); return al.length ? al.slice(0, n || 99).map(([c, t]) => `<div class="alert ${c}">${esc(t)}</div>`).join("") + (n && al.length > n ? `<p class="small muted">a dalších ${al.length - n}…</p>` : "") : '<p class="muted">Rádci nemají, co by hlásili. V zemi panuje maat.</p>'; }
+function tPrehled() {
+  const C = P(S), b = clanBudget(S, me()), H = S.history.slice(-36), L = ruler(), sp = L && chr(S, L.spouse), heir = heirsOf(S, me())[0], vez = officeHolder(S, me(), "vezir");
+  const tax = yearTaxEstimate(S, me(), S.flood.h || 15.5), world = (S.worldHist || []).slice(-40);
+  const series = aliveClans(S).filter(c => c.type !== "kmen").map(c => ({ name: c.n, col: c.col, bold: c.id === me(), vals: world.map(e => e.p[c.id] || 0) }));
+  const t = (k, label, value, sub, vals) => `<div class="tile"><svg class="ti" viewBox="0 0 24 24">${RICON[k]}</svg><div class="tl">${label}</div><div class="tv">${value}</div><div class="ts">${sub || ""}</div>${vals ? sparkline(vals) : ""}</div>`;
+  return `<div class="grid">
+    <section class="card wide"><h3>${hg("pan")} Trůnní sál</h3><div class="court">${L ? portrait(L, 96) : ""}<div>
+      <div class="who">${rulerLine(C, L)}</div>
+      <div class="muted">${esc(C.house)} · ${age(S, L || {by: S.bce})} let · ${regYear(S, me())}. rok vlády</div>
+      ${L && L.note ? `<div class="small muted">${esc(L.note)}</div>` : ""}
+      <div class="row" style="margin-top:6px">${sp ? `<span class="chip">${portrait(sp, 22)} ${esc(sp.n)}</span>` : ""}${heir ? `<span class="chip">${portrait(heir, 22)} dědic: ${esc(heir.n)}</span>` : '<span class="pill bad">bez dědice</span>'}${vez ? `<span class="chip">${portrait(vez, 22)} vezír ${esc(vez.n)}</span>` : ""}</div>
+      <div class="small" style="margin-top:4px">Hrobka (${esc(C.tombN)}): ${C.tomb.stage} z ${TOMB_STAGES.length} fází${C.tomb.active ? " – pracuje se" : ""}</div></div></div></section>
+  </div>
+  <div class="tiles" style="margin-top:14px">
+    ${t("deben", "Debeny", fmtK(C.deben), `<span class="${b.net < 0 ? "bad" : "good"}">${sg(b.net)} za měsíc</span>`, H.map(x => x.deben))}
+    ${t("grain", "Obilí", fmtK(C.grain), `${sg(b.gnet)} měsíčně · daň ze sklizně ≈ ${fmtK(tax)}`, H.map(x => x.grain))}
+    ${t("maat", "Maat", Math.round(C.maat), "řád a oprávněnost vlády", H.map(x => x.maat))}
+    ${t("slava", "Sláva", fmt(C.prestige), "vítězství, stavby, výpravy", H.map(x => x.prestige))}
+    ${t("nomy", "Nomy", clanProvs(S, me()).length, `jádro Egypta ${realmCore(S, me())} z ${coreProvs(S).length}`, H.map(x => x.provs))}
+    ${t("vojsko", "Vojsko", fmtK(clanMen(S, me())), nPlural(S.armies.filter(a => a.cl === me()).length, "vojsko v poli", "vojska v poli", "vojsk v poli"), H.map(x => x.men))}
+  </div>
+  <div class="grid">
+    ${card(`${ricon("urednici", 20)} Rádci hlásí`, alertsHtml())}
+    ${card(`${hg("sema")} Síla rodů (počet nomů)`, lineChart(series, world.map(e => e.d)))}
+    ${card("Z letopisů", `<div class="log" style="max-height:320px">${S.log.filter(x => !x.cl || x.cl.includes(me())).slice(0, 25).map(x => `<div class="lg c-${x.cat}"><span class="tag">${monthShort(x.m)} ${x.y}</span>${esc(x.txt)}</div>`).join("")}</div>`, "wide")}
+  </div>`;
+}
+
+// ---------- karty postav ----------
+function statMini(c) { return `<div class="stats4">${STAT_IDS.map(k => `<span title="${STATS[k]} ${st(c, k)}">${STATS[k].slice(0, 3)} ${st(c, k)}<i><b style="width:${st(c, k)}%"></b></i></span>`).join("")}</div>`; }
+function loyMini(c) { const v = Math.round(c.loy), col = v < 30 ? "var(--bad)" : v < 55 ? "var(--warn)" : "var(--good)"; return `<div class="loyal" title="věrnost">věrnost <i><b style="width:${v}%;background:${col}"></b></i> ${v}</div>`; }
+
+// ---------- Plán měsíce ----------
+function tPlan() {
+  const cmdOpts = Object.entries(CMDS).map(([k, K]) => [k, K.n + (K.cost || K.grain ? ` (${K.cost ? K.cost + " d." : ""}${K.cost && K.grain ? ", " : ""}${K.grain ? fmtK(K.grain) + " ch." : ""})` : "")]);
+  const ps = myProvs().filter(p => !p.siege).sort((a, b) => (b.id === P(S).capital) - (a.id === P(S).capital) || b.v - a.v);
+  let idle = 0; const cards = [];
+  for (const p of ps) for (const c of officersIn(S, p.id)) {
+    const done = c.acted === S.turn; if (done && !SEL.planDone) continue; if (!done) idle++;
+    const k = SEL.cmd[c.id] || suggestCmd(c, p); SEL.cmd[c.id] = k;
+    cards.push(`<div class="person${done ? " done" : ""}"><div class="ph">${portrait(c, 54)}<div><div class="pn">${esc(c.n)}${c.id === P(S).leader ? " ♛" : ""}</div><div class="pr">${RANKS[c.rank].n} · ${provLink(p)}${p.deleg ? " · svěřeno rádci" : ""}</div></div></div>
+      ${statMini(c)}${loyMini(c)}
+      ${done ? '<div class="cmdd">Tento měsíc už jedná.</div>' : `${sel("cs_" + c.id, cmdOpts, k, `data-a="cmdSel" data-x='["${c.id}"]'`)}<div class="cmdd">${esc(CMDS[k].d)}</div><div class="acts">${cmdParams(c, k, p)} ${btn("Provést", "cmd", [c.id], null, "go")} ${btn("Ať rozhodne rádce", "advise", [c.id])}</div>`}</div>`);
+  }
+  const away = officers(S, me()).filter(c => c.away || c.moving || c.army).map(c => `<div class="person done"><div class="ph">${portrait(c, 40)}<div><div class="pn">${esc(c.n)}</div><div class="pr">${c.away ? `výprava: ${EXPED[c.away.exp].n}, návrat za ${c.away.until - S.turn} měs.` : c.moving ? `na cestě do nomu ${S.provs[c.moving.to].n}` : "velí vojsku v poli"}</div></div></div></div>`);
+  return `<section class="card"><h3>${ricon("urednici", 20)} Plán měsíce</h3><div class="row">${idle ? `<b>${nPlural(idle, "úředník čeká", "úředníci čekají", "úředníků čeká")} na rozkaz.</b>` : "<b>Všichni úředníci mají rozkaz.</b>"} ${btn("Rádce rozhodne za všechny volné", "adviseAll", [], idle ? null : "Nikdo nečeká", "go")} ${btn(SEL.planDone ? "Skrýt ty, kdo už jednají" : "Ukázat i ty, kdo už jednají", "planDone")}</div>
+    <p class="small muted">${S.month < 4 ? "Je období achet: pole jsou pod vodou a rolníci jdou na robotu – kanály a stavby postupují rychleji." : S.month < 8 ? "Je období peret: setí a růst obilí. Sklizeň přijde v 1. měsíci období šemu." : "Je období šemu: sklizeň a výběr daně v obilí."} Předvybraný rozkaz je doporučení podle stavu nomu.</p></section>
+  <div class="people" style="margin-top:14px">${cards.join("") || '<p class="muted">Nikdo nečeká na rozkaz.</p>'}</div>
+  ${away.length ? `<h3 class="title" style="margin:18px 0 8px;color:var(--accent)">Mimo svůj nom</h3><div class="people">${away.join("")}</div>` : ""}`;
+}
+
+// ---------- Úředníci ----------
+function tUrednici() {
+  const C = P(S), offs = officers(S, me()).sort((a, b) => b.rank - a.rank || b.merit - a.merit);
+  const cards = offs.map(c => { const p = S.provs[c.loc], next = RANKS[c.rank + 1], off = Object.entries(C.offices || {}).find(([, id]) => id === c.id);
+    return `<div class="person"><div class="ph">${portrait(c, 58)}<div><div class="pn">${esc(c.n)}${c.id === C.leader ? " ♛" : ""}</div><div class="pr">${RANKS[c.rank].n}${off ? " · <b>" + OFFICES[off[0]].n + "</b>" : ""}</div><div class="pr">${p ? esc(p.n) : ""} · ${age(S, c)} let${c.dyn && c.id !== C.leader ? " · z rodu" : ""}</div></div></div>
+      ${statMini(c)}${loyMini(c)}
+      <div class="small muted">${c.traits.map(t => TRAITS[t].n).join(", ") || "&nbsp;"}${c.hist ? ` · <span title="${esc(c.note || "")}">historická postava</span>` : ""} · zásluhy ${Math.round(c.merit)}${next ? "/" + next.merit : ""}</div>
+      ${c.note ? `<div class="small" style="font-style:italic">${esc(c.note)}</div>` : ""}
+      ${c.id === C.leader ? "" : `<div class="acts">${btn("Povýšit", "promote", [c.id], next && c.merit >= next.merit ? null : "Málo zásluh")}${btn("Odměna 300 d.", "gift", [c.id, 300])}${c.dyn ? "" : btn("Propustit", "dismiss", [c.id], null, "danger")}</div>`}</div>`; });
+  const caps = Object.values(S.chars).filter(c => c.st === "cap" && c.cl === me()).map(c => `<span class="chip">${portrait(c, 22)} ${esc(c.n)} – drží ${S.clans[c.capBy] ? esc(S.clans[c.capBy].n) : "?"}</span>`);
+  const wand = Object.values(S.chars).filter(c => c.st === "wand" && S.provs[c.loc] && S.provs[c.loc].owner === me()).map(c => `<div class="person"><div class="ph">${portrait(c, 40)}<div><div class="pn">${esc(c.n)}</div><div class="pr">${esc(S.provs[c.loc].n)}</div></div></div>${statMini(c)}</div>`);
+  return `<section class="card"><h3>${ricon("urednici", 20)} Dvůr – úředníci a hodnostáři</h3><p class="small muted">Věrnost roste s hodností, úřadem, odměnami, maat a slávou rodu. Nevěrný správce pohraničního nomu může přeběhnout i s nomem k sousedovi.</p></section>
+  <div class="people" style="margin-top:14px">${cards.join("")}</div>
+  <div class="grid" style="margin-top:14px">${officesCard()}
+  ${card("Potulní schopní muži ve tvých nomech", wand.length ? `<div class="people">${wand.join("")}</div>` : '<p class="muted small">Nikdo. Hledej je rozkazem „Hledat schopné muže“.</p>')}
+  ${caps.length ? card("Zajatí", caps.join(" ") + '<p class="small muted">Zajatci se vrátí po uzavření míru.</p>') : ""}</div>`;
+}
+
+// ---------- Diplomacie ----------
+function tDiplo() {
+  const myP = realmPower(S, me());
+  const cards = aliveClans(S).filter(c => c.id !== me()).sort((a, b) => clanProvs(S, b.id).length - clanProvs(S, a.id).length).map(O => { const L = leaderOf(S, O.id), pw = realmPower(S, O.id);
+    return `<div class="realmcard${SEL.dipl === O.id ? " sel" : ""}" style="--c:${O.col}" data-a="dipl" data-x='["${O.id}"]'><div class="top">${L ? portrait(L, 50) : ""}<div><div class="nm">${emblem(O.id, 16)} ${esc(O.n)}</div><div class="hs">${esc(O.house)}</div><div class="hs">${L ? esc(L.n) : ""}</div></div></div>
+      <div class="small" style="margin-top:6px">${nPlural(clanProvs(S, O.id).length, "nom", "nomy", "nomů")} · síla ${dec(pw / Math.max(1, myP))}× tvé · vztah ${relBar(rel(S, me(), O.id))}</div><div>${relStatus(O.id)}</div></div>`; });
+  const D = SEL.dipl && S.clans[SEL.dipl] && S.clans[SEL.dipl].alive ? S.clans[SEL.dipl] : null;
+  let panel = '<p class="muted">Klepni na rod a vyšli k němu posly.</p>';
+  if (D) {
+    const id = D.id, war = atWar(S, me(), id), e = dipCheck(S, me(), id), pair = marriagePair(S, me(), id), L = leaderOf(S, id);
+    panel = `<div class="court">${L ? portrait(L, 80) : emblem(id, 40)}<div><div class="who">${esc(D.n)}</div><div class="small muted">${esc(D.house)} · ${esc(D.t)}${L ? " " + esc(L.n) : ""}</div><div class="small">vztah ${Math.round(rel(S, me(), id))} · maat ${Math.round(D.maat)} · sláva ${fmt(D.prestige)}</div></div></div>
+      <p class="small">${relStatus(id) || "bez zvláštních vztahů"}</p>
+      <h4>Dary</h4><div class="row">${btn("Dary za 1 000 debenů", "diplo", [id, "dar", 1000], e)} ${btn("Dary za 3 000", "diplo", [id, "dar", 3000], e)}</div>
+      <h4>Jednání</h4><div class="row">${war ? btn("Nabídnout mír", "diplo", [id, "mir"], e, "go") : btn("Vyhlásit válku", "diplo", [id, "valka"], e, "danger")}
+      ${btn("Spojenectví", "diplo", [id, "spojenectvi"], e || (war ? "Válčíte" : allied(S, me(), id) ? "Už jste spojenci" : null))}
+      ${btn("Obchodní smlouva", "diplo", [id, "obchod"], e || (war ? "Válčíte" : S.trade[pairKey(me(), id)] ? "Už ji máte" : null))}
+      ${btn("Žádat poddanství", "diplo", [id, "podruci"], e || (D.vassalOf ? "Už je něčím poddaným" : null))}
+      ${btn("Sňatek", "diplo", [id, "snatek"], e || (pair ? null : "Nejsou volní ženiši a nevěsty"))}
+      ${D.vassalOf === me() ? btn("Propustit z poddanství", "diplo", [id, "propustit"], e) : ""}
+      ${P(S).tributeTo === id ? btn("Přestat platit tribut", "diplo", [id, "tribut_stop"], e, "danger") : ""}</div>
+      <h4>Obřady</h4><div class="row">${btn("Proklínací obřad (500 d.)", "diplo", [id, "proklinani"], e || ((P(S).last["p_" + id] || -99) > S.turn - 12 ? "Lze opakovat až za rok" : null))}</div>
+      ${pair ? `<p class="small">Sňatek: ${esc(pair[0].n)} a ${esc(pair[1].n)}.</p>` : ""}
+      <p class="small muted">Poměr sil (tvá říše : jejich) ${dec(warScore(S, me(), id))} : 1. Mír přijmou spíš, když prohrávají nebo válka trvá dlouho; poddanství při převaze víc než 3 : 1. Vyhlášení války během příměří nebo proti spojenci poškodí maat. Proklínací obřad (rozbíjení nádob se jmény nepřátel, doložený od Staré po Střední říši) sníží slávu nepřítele a spokojenost jeho pohraničních nomů.</p>`;
+  }
+  return `<div class="grid map2"><div class="realms">${cards.join("")}</div><section class="card sticky"><h3>Poselstvo</h3>${panel}</section></div>`;
+}
+
+// ---------- Rod ----------
+function famCard(c, role) {
+  if (!c) return ""; const H = heirsOf(S, me())[0];
+  return `<div class="fam">${portrait(c, 70)}<div class="fn">${esc(c.n)}${c.id === P(S).leader ? " ♛" : ""}</div><div class="small muted">${role || (c.sex === "m" ? "syn" : "dcera")}, ${age(S, c)} let${H && H.id === c.id ? ", <b>dědic</b>" : ""}${c.st === "cap" ? ", v zajetí" : ""}</div>
+    <div class="minis">${STAT_IDS.map(k => `<span title="${STATS[k]} ${st(c, k)}"><i style="height:${st(c, k) * 0.28}px"></i></span>`).join("")}</div>
+    ${c.note ? `<div class="small muted">${esc(c.note)}</div>` : ""}
+    ${c.spouse && chr(S, c.spouse) && role !== "choť" ? `<div class="small">∞ ${esc(chr(S, c.spouse).n)}</div>` : ""}
+    ${c.st === "kid" ? sel("fo_" + c.id, [["", "výchova: volná"], ["ved", "vojenská"], ["uda", "lovy a zápas"], ["roz", "dům života (písař)"], ["spr", "správa statků"]], c.focus || "", `data-a="focus" data-x='["${c.id}"]'`) : ""}</div>`;
+}
+
+// ---------- svitek události ----------
+function eventPerson(ev) {
+  const d = ev.data || {};
+  if (d.cid && chr(S, d.cid)) return chr(S, d.cid);
+  return ruler();
+}
+function renderModal() {
+  const m = document.getElementById("modal"); const ev = S.events[0];
+  if (!ev) { m.classList.add("hidden"); m.innerHTML = ""; return; }
+  const v = eventView(S, ev), who = eventPerson(ev);
+  m.innerHTML = `<div class="box" role="dialog" aria-modal="true"><div class="ehead">${who ? portrait(who, 72) : ""}<div><div class="muted small">${esc(dateStr(S))}</div><h2>${esc(v.t)}</h2></div></div><p class="etx">${esc(v.tx)}</p>${v.ch.map((c, i) => `<button class="b ch" data-a="event" data-x="[${i}]"><b>${esc(c.t)}</b>${c.d ? `<br><span class="small muted">${esc(c.d)}</span>` : ""}</button>`).join("")}${S.events.length > 1 ? `<p class="small muted">Další zprávy čekají: ${S.events.length - 1}</p>` : ""}</div>`;
+  m.classList.remove("hidden");
+}
+
 // Akce hráče, vykreslení, ukládání a spuštění.
 const ACT = {};
 const SAVE_KEY = "faraon_auto", SLOT = n => "faraon_slot_" + n, THEME_KEY = "faraon_theme";
@@ -2415,13 +2657,6 @@ ACT.theme = () => { const r = document.documentElement, dark = r.dataset.theme ?
 function slotInfo(n) { try { const t = localStorage.getItem(SLOT(n)); if (!t) return null; const x = JSON.parse(t); return `${x.clans[x.player].n} – ${monthShort(x.month)} ${x.bce} př. n. l.`; } catch (e) { return null; } }
 function importFile(file) { const r = new FileReader(); r.onload = () => { try { const x = JSON.parse(r.result); if (!x.provs || !x.clans) throw 0; S = x; TERR.key = null; render(); toast("Hra nahrána."); } catch (e) { toast("Soubor není uložená hra."); } }; r.readAsText(file); }
 
-function renderModal() {
-  const m = document.getElementById("modal"); const ev = S.events[0];
-  if (!ev) { m.classList.add("hidden"); m.innerHTML = ""; return; }
-  const v = eventView(S, ev);
-  m.innerHTML = `<div class="box" role="dialog" aria-modal="true"><div class="muted small">${esc(dateStr(S))}</div><h2>${esc(v.t)}</h2><p>${esc(v.tx)}</p>${v.ch.map((c, i) => `<button class="b ch" data-a="event" data-x="[${i}]"><b>${esc(c.t)}</b>${c.d ? `<br><span class="small muted">${esc(c.d)}</span>` : ""}</button>`).join("")}${S.events.length > 1 ? `<p class="small muted">Další události: ${S.events.length - 1}</p>` : ""}</div>`;
-  m.classList.remove("hidden");
-}
 const TAB_FN = { prehled: tPrehled, plan: tPlan, mapa: tMapa, zupy: tZupy, urednici: tUrednici, vojsko: tVojsko, diplo: tDiplo, hosp: tHosp, chramy: tChramy, rod: tRod, vedeni: tVedeni, kronika: tKronika, hra: tHra };
 function render() {
   EMB_N = 0;

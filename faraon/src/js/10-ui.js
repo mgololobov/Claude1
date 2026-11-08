@@ -1,6 +1,6 @@
 // Rozhraní: pomocné funkce, znaky rodů, pruhy, grafy a mapa Egypta.
 let S = null;
-const SEL = { tab: "prehled", prov: null, cmd: {}, logF: "moje", ngScen: "sip", ngClan: "thebes", ngDiff: 1, zoom: "cele", dipl: null, planDone: false };
+const SEL = { tab: "mapa", prov: null, cmd: {}, logF: "moje", ngScen: "sip", ngClan: "thebes", ngDiff: 1, zoom: "cele", dipl: null, planDone: false };
 const me = () => S.player;
 const esc = t => String(t == null ? "" : t).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const fmt = v => Math.round(v).toLocaleString("cs-CZ");
@@ -89,6 +89,7 @@ const NILE = [[19.6, 30.41], [20.2, 30.55], [20.7, 30.33], [21.1, 30.6], [21.5, 
 const NILE_W = [[30.15, 31.22], [30.5, 30.97], [30.97, 30.77], [31.2, 30.6], [31.42, 30.38]];
 const NILE_E = [[30.15, 31.22], [30.57, 31.51], [30.79, 31.82], [31.04, 32.45]];
 const NILE_M = [[30.15, 31.22], [30.6, 31.15], [30.96, 31.24], [31.2, 31.5], [31.45, 31.82]];
+const DELTA_FAN = [[30.15, 31.22], [30.5, 30.85], [30.9, 30.5], [31.35, 30.3], [31.45, 30.42], [31.6, 31.0], [31.48, 31.81], [31.26, 32.3], [31.04, 32.45], [30.79, 31.9], [30.5, 31.6]];
 const BAHR = [[27.78, 30.85], [28.5, 30.7], [29.08, 30.88], [29.31, 30.84]];
 const MED = [[31.9, 25.0], [31.55, 25.15], [31.35, 27.23], [30.83, 28.95], [31.2, 29.9], [31.32, 30.06], [31.45, 30.4], [31.6, 31.0], [31.48, 31.81], [31.26, 32.3], [31.04, 32.54], [31.13, 33.8], [31.29, 34.24], [31.5, 34.45], [31.9, 34.75]];
 const RED = [[29.97, 32.55], [29.3, 32.65], [28.35, 33.08], [27.25, 33.8], [26.75, 33.94], [26.1, 34.28], [25.07, 34.9], [23.9, 35.47], [22.2, 36.6], [19.2, 37.5], [19.2, 38.5], [27.9, 35.2], [28.6, 34.6], [29.5, 34.95], [28.5, 34.45], [27.73, 34.25], [28.2, 33.6], [29.0, 33.1], [29.9, 32.7]];
@@ -113,24 +114,32 @@ function territoryImage() {
     const nb = [x > 0 ? idx[k - 1] : -1, x < w - 1 ? idx[k + 1] : -1, y > 0 ? idx[k - w] : -1, y < h - 1 ? idx[k + w] : -1];
     const realm = nb.some(j => j !== i && (j < 0 || own[j] !== own[i])), prov = nb.some(j => j >= 0 && j !== i);
     const [r, g, b] = cols[i];
-    if (realm) { D[o] = r * 0.4; D[o + 1] = g * 0.4; D[o + 2] = b * 0.4; D[o + 3] = 220; }
-    else if (prov) { D[o] = r * 0.8; D[o + 1] = g * 0.8; D[o + 2] = b * 0.8; D[o + 3] = 150; }
-    else { D[o] = r; D[o + 1] = g; D[o + 2] = b; D[o + 3] = mine[i] ? 185 : 125; }
+    if (realm) { D[o] = r * 0.4; D[o + 1] = g * 0.4; D[o + 2] = b * 0.4; D[o + 3] = 200; }
+    else if (prov) { D[o] = r * 0.8; D[o + 1] = g * 0.8; D[o + 2] = b * 0.8; D[o + 3] = 90; }
+    else { D[o] = r; D[o + 1] = g; D[o + 2] = b; D[o + 3] = mine[i] ? 105 : 60; }
   }
   ctx.putImageData(img, 0, 0); TERR = { key, url: cv.toDataURL() }; return TERR.url;
 }
 function mapSvg() {
   const Z = ZOOMS[SEL.zoom] || ZOOMS.cele, [lo0, lo1, la0, la1] = Z.b, vx = MX(lo0), vy = MY(la1), vw = MX(lo1) - vx, vh = MY(la0) - vy, k = vw / MW;
   const f = Math.max(0.42, k), R = 5.2 * f;
-  let g = `<rect x="0" y="0" width="${MW}" height="${MH}" fill="var(--desert)"/>`;
+  // Dešret (červená země, poušť) a Kemet (černá země, úrodná niva)
+  let g = `<defs><radialGradient id="dsr" cx="50%" cy="45%" r="75%"><stop offset="0" stop-color="#e2c48a"/><stop offset="1" stop-color="#c99a5a"/></radialGradient>
+    <pattern id="dun" width="22" height="9" patternUnits="userSpaceOnUse"><path d="M0 7 Q5.5 2 11 7 T22 7" fill="none" stroke="#a87a3e" stroke-width=".6" opacity=".45"/></pattern></defs>
+    <rect x="0" y="0" width="${MW}" height="${MH}" fill="url(#dsr)"/><rect x="0" y="0" width="${MW}" height="${MH}" fill="url(#dun)"/>`;
+
   g += `<polygon class="sea" points="${pts(MED)} ${MX(34.75)},${MY(32.3)} ${MX(25)},${MY(32.3)}"/><polygon class="sea" points="${pts(RED)}"/>`;
   g += `<polyline class="coast" points="${pts(MED)}"/>`;
-  g += `<ellipse cx="${MX(30.62)}" cy="${MY(29.47)}" rx="${12}" ry="${4}" fill="var(--sea)"/>`;
+  g += `<ellipse cx="${MX(30.62)}" cy="${MY(29.47)}" rx="${10}" ry="${3.5}" fill="var(--sea)"/>`;
   const tu = territoryImage(); if (tu) g += `<image href="${tu}" x="0" y="0" width="${MW}" height="${MH}" preserveAspectRatio="none"/>`;
+  g += `<polygon fill="var(--kemet)" opacity=".7" points="${pts(DELTA_FAN)}"/>`;
+  for (const L of [NILE, BAHR]) g += `<polyline class="kemet" points="${pts(L)}" stroke-width="${(L === NILE ? 8 : 5) * f}" opacity=".75"/>`;
+  g += `<ellipse cx="${MX(30.8)}" cy="${MY(29.35)}" rx="${13}" ry="${8}" fill="var(--kemet)" opacity=".65"/>`;
+  for (const [la, lo, rx, ry] of [[28.35, 28.86, 9, 5], [25.55, 29.2, 12, 4], [25.44, 30.55, 5, 11]]) g += `<ellipse cx="${MX(lo)}" cy="${MY(la)}" rx="${rx}" ry="${ry}" fill="var(--kemet)" opacity=".6"/>`;
   for (const L of [NILE, NILE_W, NILE_E, NILE_M]) g += `<polyline class="nile" points="${pts(L)}" stroke-width="${L === NILE ? 2.6 * f : 1.6 * f}"/>`;
   g += `<polyline class="nile" points="${pts(BAHR)}" stroke-width="${0.9 * f}" opacity=".7"/>`;
-  const reg = [["Středozemní moře", 31.75, 28.0], ["Rudé moře", 25.6, 34.9], ["Libyjská poušť", 27.0, 27.4], ["Východní poušť", 24.6, 33.8], ["SINAJ", 29.6, 33.9], ["NÚBIE", 21.0, 32.6], ["DELTA", 31.25, 31.45], ["HORNÍ EGYPT", 26.6, 33.7]];
-  for (const [t, la, lo] of reg) g += `<text class="region" x="${MX(lo)}" y="${MY(la)}" font-size="${10 * f}" text-anchor="middle">${t}</text>`;
+  const reg = [["Středozemní moře", 31.75, 28.0], ["Rudé moře", 25.6, 34.9], ["Libyjská poušť", 27.0, 27.4], ["Východní poušť", 24.6, 33.8], ["SINAJ", 29.6, 33.9], ["NÚBIE", 21.0, 32.6], ["DELTA", 31.25, 31.45], ["HORNÍ EGYPT", 26.6, 33.7], ["DOLNÍ EGYPT", 30.0, 32.4]];
+  for (const [t, la, lo] of reg) g += `<text class="region${/moře/.test(t) ? " sea2" : ""}" x="${MX(lo)}" y="${MY(la)}" font-size="${10 * f}" text-anchor="middle">${t}</text>`;
   const done = new Set();
   for (const p of Object.values(S.provs)) for (const n of p.nb) { const key = p.id < n ? p.id + n : n + p.id; if (done.has(key)) continue; done.add(key); const q = S.provs[n]; if (p.ter === "poust" || q.ter === "poust" || p.ter === "oaza" || q.ter === "oaza") g += `<line class="edge" x1="${MX(p.lon)}" y1="${MY(p.lat)}" x2="${MX(q.lon)}" y2="${MY(q.lat)}" stroke-width="${0.8 * f}"/>`; }
   // pochody
@@ -146,5 +155,5 @@ function mapSvg() {
     g += `<text class="lbl${capf ? " cap" : ""}" x="${x + (left ? -1 : 1) * R * 1.7}" y="${y + R * 0.6}" font-size="${8.5 * f}" stroke-width="${2.4 * f}" text-anchor="${left ? "end" : "start"}">${esc(p.n)}</text></g>`;
   }
   for (const a of S.armies) { const p = S.provs[a.loc], own = a.cl === me(); if (!own && !knows(S, p)) continue; const x = MX(p.lon) + R * 1.2, y = MY(p.lat) - R * 1.6, s2 = R * (0.9 + Math.min(1.2, men(a.t) / 4000)); g += `<g class="army"><path d="M${x} ${y - s2} L${x + s2} ${y + s2 * 0.8} L${x - s2} ${y + s2 * 0.8}Z" fill="${S.clans[a.cl].col}" stroke-width="${0.8 * f}"><title>${esc(S.clans[a.cl].house)}: ${fmt(men(a.t))} mužů</title></path></g>`; }
-  return `<svg class="map" viewBox="${vx.toFixed(0)} ${vy.toFixed(0)} ${vw.toFixed(0)} ${vh.toFixed(0)}" role="img" aria-label="Mapa Egypta">${g}</svg>`;
+  return `<svg class="map" viewBox="${vx.toFixed(0)} ${vy.toFixed(0)} ${vw.toFixed(0)} ${vh.toFixed(0)}" role="img" aria-label="Mapa Egypta"><clipPath id="mapclip"><rect x="${vx.toFixed(0)}" y="${vy.toFixed(0)}" width="${vw.toFixed(0)}" height="${vh.toFixed(0)}"/></clipPath><g clip-path="url(#mapclip)">${g}</g></svg>`;
 }

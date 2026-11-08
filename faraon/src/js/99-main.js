@@ -48,13 +48,6 @@ ACT.theme = () => { const r = document.documentElement, dark = r.dataset.theme ?
 function slotInfo(n) { try { const t = localStorage.getItem(SLOT(n)); if (!t) return null; const x = JSON.parse(t); return `${x.clans[x.player].n} – ${monthShort(x.month)} ${x.bce} př. n. l.`; } catch (e) { return null; } }
 function importFile(file) { const r = new FileReader(); r.onload = () => { try { const x = JSON.parse(r.result); if (!x.provs || !x.clans) throw 0; S = x; TERR.key = null; render(); toast("Hra nahrána."); } catch (e) { toast("Soubor není uložená hra."); } }; r.readAsText(file); }
 
-function renderModal() {
-  const m = document.getElementById("modal"); const ev = S.events[0];
-  if (!ev) { m.classList.add("hidden"); m.innerHTML = ""; return; }
-  const v = eventView(S, ev);
-  m.innerHTML = `<div class="box" role="dialog" aria-modal="true"><div class="muted small">${esc(dateStr(S))}</div><h2>${esc(v.t)}</h2><p>${esc(v.tx)}</p>${v.ch.map((c, i) => `<button class="b ch" data-a="event" data-x="[${i}]"><b>${esc(c.t)}</b>${c.d ? `<br><span class="small muted">${esc(c.d)}</span>` : ""}</button>`).join("")}${S.events.length > 1 ? `<p class="small muted">Další události: ${S.events.length - 1}</p>` : ""}</div>`;
-  m.classList.remove("hidden");
-}
 const TAB_FN = { prehled: tPrehled, plan: tPlan, mapa: tMapa, zupy: tZupy, urednici: tUrednici, vojsko: tVojsko, diplo: tDiplo, hosp: tHosp, chramy: tChramy, rod: tRod, vedeni: tVedeni, kronika: tKronika, hra: tHra };
 function render() {
   EMB_N = 0;
