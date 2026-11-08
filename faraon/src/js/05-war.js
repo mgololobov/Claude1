@@ -56,6 +56,7 @@ function battle(s, A, D, pid, o = {}) {
   for (const id of winner.cmds || []) { const c = chr(s, id); if (c) c.merit += 20; }
   const fates = [];
   for (const id of loser.cmds || []) { const c = chr(s, id); if (!c || c.st !== "off") continue; const r = rnd(s); if (r < 0.08) { const lead = s.clans[c.cl] && s.clans[c.cl].leader === c.id; fates.push(`${c.n} padl${lead ? " – panovník zemřel v boji jako kdysi Sekenenre Taa" : ""}`); die(s, c, `padl v bitvě u nomu ${p.n}`); } else if (r < 0.2) { fates.push(`${c.n} zajat`); capture(s, c, winner.cl); c.loc = pid; } else if (r < 0.3) { c.wound = 3; fates.push(`${c.n} raněn`); } }
+  if (isPlayer(s, winner.cl) && (winner.cmds || []).length && chance(s, 0.3) && !s.events.some(e => e.k === "odmena")) { const c = chr(s, winner.cmds[0]); if (c && c.st === "off" && c.id !== s.clans[winner.cl].leader) queueEvent(s, "odmena", { cid: c.id }); }
   b.fates = fates; s.battles.unshift(b); if (s.battles.length > 60) s.battles.length = 60;
   const lossA = aStart - men(A.t), lossD = dStart - men(D.t);
   log(s, `${o.kind === "zteč" ? "Boj u hradeb" : "Bitva"} v nomu ${p.n}: ${s.clans[A.cl].house} (${fmtN(aStart)} mužů) proti ${s.clans[D.cl].house} (${fmtN(dStart)}). ${win === "A" ? "Útočník zvítězil" : "Obránce se ubránil"}. Ztráty ${fmtN(lossA)} : ${fmtN(lossD)}.${fates.length ? " " + fates.join(", ") + "." : ""}`, "valka", [A.cl, D.cl]);

@@ -197,7 +197,7 @@ function harvestTick(s) {
 // ---------- události ----------
 function queueEvent(s, k, data) { if (!EVENTS[k]) return; s.events.push({ k, data: data || {}, t: s.turn }); }
 const EVENT_Q = { nizka: "hapi_opozdi", vysoka: "hapi_zdrav", hlad: s => (s.scen === "sip" ? "hekanacht" : "anchtifi_hlad"), pohreb: "harfenik", pohrebiste: "merikare_thinis", pisar: "satira_pisar", nepokoje: "ipuver_sandaly", vymluvny: "rolnik", merikare: "merikare_slovo", edfu: "anchtifi_hrdina", lupici: "ptahhotep_maat", zpronevera: "rolnik", dedicnost: "amenemhat" };
-function eventView(s, ev) { const v = EVENTS[ev.k].view(s, ev.data), q = EVENT_Q[ev.k]; if (!v.q && q) v.q = Q(typeof q === "function" ? q(s) : q); return v; }
+function eventView(s, ev) { const v = EVENTS[ev.k].view(s, ev.data), q = EVENT_Q[ev.k]; if (!v.q && q) v.q = qOk(s, Q(typeof q === "function" ? q(s) : q)); else if (v.q) v.q = qOk(s, v.q); return v; }
 function resolveEvent(s, i) { const ev = s.events[0]; if (!ev) return; const v = eventView(s, ev); const ch = v.ch[i]; if (!ch) return; s.events.shift(); const r = ch.f ? ch.f() : null; if (r) log(s, r, "udalosti", [s.player]); }
 const someOwnProv = (s, f) => { const L = clanProvs(s, s.player).filter(f || (() => true)); return L.length ? pick(s, L) : null; };
 const EVENTS = {
@@ -295,8 +295,8 @@ function randomEvents(s) {
   if (s.month === OSIRIS_MONTH && s.provs.u8.owner === s.player) { queueEvent(s, "usir", {}); return; }
   if (s.month === 9 && s.scen === "sip" && s.provs.u4.owner === s.player) { queueEvent(s, "udoli", {}); return; }
   if (s.month === 0 && regYear(s, s.player) >= 31 && (!C.hebsed || s.turn - C.hebsed >= 36)) { queueEvent(s, "hebsed", {}); return; }
-  if (!chance(s, 0.22)) return;
-  const opts = [];
+  if (!chance(s, 0.3)) return;
+  const opts = moreEventOpts(s);
   const hp = someOwnProv(s, p => p.flags.includes("h") || p.id === C.capital); if (hp) opts.push(["lupici", { pid: hp.id }]);
   const tp = someOwnProv(s, p => p.b.chram > 0); if (tp && C.laws.chramy !== 0) opts.push(["exempce", { pid: tp.id }]);
   const hi = officers(s, s.player).filter(c => !c.dyn && c.rank >= 3); if (hi.length && C.laws.nomarchove !== 0) opts.push(["dedicnost", { cid: pick(s, hi).id }]);
@@ -308,7 +308,7 @@ function randomEvents(s) {
   if (C.cul === "eg" && !s.flags.vymluvny) opts.push(["vymluvny", {}]);
   const groom = Object.values(s.chars).filter(c => c.cl === s.player && c.dyn && c.sex === "m" && !c.spouse && c.st === "off" && age(s, c) >= 16 && age(s, c) < 45);
   if (groom.length) { opts.push(["nevesta", { cid: groom[0].id }]); if (!heirsOf(s, s.player).some(c => c.sex === "m")) { queueEvent(s, "nevesta", { cid: groom[0].id }); return; } }
-  const [k, d] = pick(s, opts); if (k === "vymluvny") s.flags.vymluvny = 1; queueEvent(s, k, d);
+  const [k, d] = pick(s, opts); if (k === "vymluvny") s.flags.vymluvny = 1; onEventPicked(s, k); queueEvent(s, k, d);
 }
 function scriptedEvents(s) {
   if (s.scen === "sip") {

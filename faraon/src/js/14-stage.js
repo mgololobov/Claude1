@@ -114,7 +114,7 @@ function rulerBox() {
   return `<div class="rb" data-a="tab" data-x='["prehled"]'>${L ? portrait(L, 64) : ""}<div><div class="rbn">${L ? esc(L.n) : "—"}</div><div class="small muted">${esc(C.t)} · ${regYear(S, me())}. rok vlády · ${L ? age(S, L) : "?"} let</div>
     <div class="rbm" title="maat">${hg("maat")}<i><b style="width:${Math.round(C.maat)}%"></b></i>${Math.round(C.maat)}</div><div class="small">${heir ? "dědic: " + esc(heir.n) : '<span class="bad">bez dědice</span>'}</div></div></div>`;
 }
-function quoteBar() { const all = Object.values(QUOTES).filter(q => !q.tags.includes("sip") || S.scen === "sip"), q = all[(S.turn * 5 + 3) % all.length]; return `<span class="qt">„${esc(q.t)}“</span> <span class="qs">— ${esc(q.src)}</span>`; }
+function quoteBar() { const all = Object.values(QUOTES).filter(q => q.od >= S.bce && (!q.tags.includes("sip") || S.scen === "sip")), q = all[(S.turn * 5 + 3) % all.length]; return `<span class="qt">„${esc(q.t)}“</span> <span class="qs">— ${esc(q.src)}</span>`; }
 function alertIcons() { const al = alerts(); if (!al.length) return ""; return `<details class="ov ov-alerts"><summary>${ricon("urednici", 18)} Rádci hlásí <b>${al.length}</b></summary>${alertsHtml(10)}</details>`; }
 function tMapa() {
   if (!SEL.vb) setZoom(SEL.zoom || "cele");

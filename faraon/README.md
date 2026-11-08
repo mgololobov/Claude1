@@ -21,6 +21,7 @@ Hra je jeden soubor `dist/index.html`: stačí ho otevřít v prohlížeči, fun
 - Maat, stavy (kněží, nomarchové, písaři, lid), zákony, chrámy, hrobka panovníka, svátek sed, Usirovy mystéria v Abydu.
 - Události podle pramenů: Výmluvný rolník, Ponaučení pro Merikarea, Nářky Ipuverovy, Krásný svátek údolí, proklínací obřady (Mirgissa), pád Nefrusy a Avaridu, příběh o ztroskotaném námořníkovi.
 - Velké stavby panovníků: zádušní chrám v Dér el-Bahrí, chrám Amona v Karnaku, Usirův chrám v Abydu, hráze Fajjúmu, pevnosti 2. kataraktu, Zdi vládcovy, obelisk v Heliopoli.
+- Události ze života Egypta: lov na hrocha, myši a kobylky, Asiaté žádající o pastviny (jako karavana Abiši z Beni Hasanu), požár sýpky, spiknutí v ženském domě (Veni, Amenemhat I.), narození býka Apis, nemoc panovníka, žádost spojence o pomoc, zběhové, karavana z jihu (Harchuf), životopisné stély v Abydu, vdova u soudu, mor dobytka, asijští řemeslníci, posel z Kuše, odměna za statečnost.
 - Odkaz rodu: bodové hodnocení vlády pro porovnání her.
 - Rod, sňatky, nástupnictví (i spoluvláda), vědění od nilometru po válečný vůz a námořní lodě.
 
@@ -34,7 +35,7 @@ Vzhled vychází z egyptského umění: barvy egyptských pigmentů, blokový vl
 
 Hlavní obrazovkou je mapa přes celé okno: kolečkem přibližuješ, tažením posouváš, najetím na nom vidíš jeho údaje. Režimy mapy: politická, terén, úroda, spokojenost, rozvoj, vojsko. Vpravo je přehled dění (války, vojska, obléhání, stavby, výpravy, vědění), vlevo dole panovník. Tlačítkem ▶ necháš čas plynout; zastaví se u každé události.
 
-Citáty z dochovaných textů (Ponaučení pro Merikarea, Ptahhotep, Výmluvný rolník, Nářky Ipuverovy, Proroctví Neferetiho, hrobka Anchtifiho, dopis Hekanachta, stély Kamoseho, životopis Ahmose, syna Ebany, Satira na povolání, Hymnus na Nil, Texty rakví, Píseň harfeníka, stéla ze Semny, proklínací texty, Smithův a Rhindův papyrus) jsou volné české převody podle běžných překladů, vždy s uvedeným pramenem.
+Citáty z dochovaných textů (Ponaučení pro Merikarea, Ptahhotep, Výmluvný rolník, Nářky Ipuverovy, Proroctví Neferetiho, hrobka Anchtifiho, dopis Hekanachta, stély Kamoseho, životopis Ahmose, syna Ebany, Satira na povolání, Hymnus na Nil, Texty rakví, Píseň harfeníka, stéla ze Semny, proklínací texty, Smithův a Rhindův papyrus) jsou volné české převody podle běžných překladů, vždy s uvedeným pramenem. Hra ukazuje jen texty, které v dané době už existovaly.
 
 ## Vývoj
 
