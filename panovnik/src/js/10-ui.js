@@ -26,7 +26,7 @@ const ACT = {
   peace: (r, t, pid) => makePeace(S, r, { t, pid }), title: () => raiseTitle(S), event: (i, c) => resolveEvent(S, i, c),
   end: () => endTurn(S), prov: id => { SEL.prov = id; }, tab: t => { TAB = t; }, army: id => { SEL.army = id; }, logcat: c => { SEL.logCat = c; },
   save: n => saveSlot(n), load: n => loadSlot(n), del: n => { try { localStorage.removeItem("panovnik_slot_" + n); } catch (e) {} }, exportSave: () => exportSave(), importSave: () => $("#impFile").click(),
-  newgame: () => { if (!confirm("Začít novou hru? Neuložený postup se ztratí.")) return; S = newGame({ realm: $("#ngRealm").value, ruler: $("#ngRuler").value, dynasty: $("#ngDyn").value, seed: $("#ngSeed").value ? +$("#ngSeed").value : undefined }); TAB = "prehled"; },
+  newgame: () => { if (!SEL.ngConfirm) { SEL.ngConfirm = true; return "Opravdu? Neuložený postup se ztratí – klikni znovu na „Začít novou hru“."; } SEL.ngConfirm = false; S = newGame({ realm: $("#ngRealm").value, ruler: $("#ngRuler").value, dynasty: $("#ngDyn").value, seed: $("#ngSeed").value ? +$("#ngSeed").value : undefined }); TAB = "prehled"; },
   theme: () => { const r = document.documentElement; const t = r.dataset.theme === "dark" ? "light" : r.dataset.theme === "light" ? "" : "dark"; if (t) r.dataset.theme = t; else delete r.dataset.theme; try { localStorage.setItem("panovnik_theme", t); } catch (e) {} },
 };
 document.addEventListener("click", ev => {
@@ -293,7 +293,7 @@ function tKronika() {
 function tHra() {
   const slots = [1, 2, 3, 4, 5].map(n => { const i = slotInfo(n); return tr([n, i ? esc(i) : '<span class="muted">prázdná</span>', btn("Uložit", "save", [n]) + btn("Načíst", "load", [n], i ? null : "Prázdná") + btn("Smazat", "del", [n], i ? null : "Prázdná")]); });
   return `<div class="grid">${card("Uložené hry", tbl(["#", "Obsah", ""], slots) + `<p class="small muted">Hra se po každém kroku sama ukládá v prohlížeči.</p><div class="row">${btn("Stáhnout uloženou hru (soubor)", "exportSave")} ${btn("Nahrát ze souboru", "importSave")}</div>`)}
-  ${card("Nová hra", `<div class="kv"><span>Panství</span><input id="ngRealm" value="Panství Vranovské"><span>Panovník</span><input id="ngRuler" value="Bořivoj"><span>Rod</span><input id="ngDyn" value="Vranovští"><span>Semínko náhody</span><input id="ngSeed" type="number" placeholder="náhodné"></div><div class="row">${btn("Začít novou hru", "newgame")}</div>`)}
+  ${card("Nová hra", `<div class="kv"><span>Panství</span><input id="ngRealm" value="Panství Vranovské"><span>Panovník</span><input id="ngRuler" value="Bořivoj"><span>Rod</span><input id="ngDyn" value="Vranovští"><span>Semínko náhody</span><input id="ngSeed" type="number" placeholder="náhodné"></div><div class="row">${btn(SEL.ngConfirm ? "Ano, začít novou hru" : "Začít novou hru", "newgame")}</div>`)}
   ${card("Vzhled", btn("Přepnout světlý / tmavý vzhled", "theme"))}
   <div class="card help" style="grid-column:1/-1"><h3>Jak hrát</h3>
   <p>Vládneš feudálnímu panství v letech ${START_YEAR}–${END_YEAR}. Každé kolo je jedno roční období. Rozhodni, co chceš, a stiskni <b>Konec období</b>. Cílem je stát se králem (hraběte, vévody a nakonec koruny dosáhneš v Přehledu) nebo přečkat sto let s co nejvyšším skóre.</p>

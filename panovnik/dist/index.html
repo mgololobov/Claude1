@@ -7,23 +7,23 @@
 <style>
 :root {
   --bg: #f3ecdc; --panel: #fbf7ee; --ink: #2b2118; --muted: #7a6a58; --line: #d9ccb4; --accent: #7a2e1d; --accent2: #2f5d50;
-  --good: #2f6b2f; --bad: #a3271b; --warn: #a86b12; --head: #e8dcc2; --btn: #efe4cc; --btnh: #e2d3b2;
+  --good: #2f6b2f; color-scheme: light; --bad: #a3271b; --warn: #a86b12; --head: #e8dcc2; --btn: #efe4cc; --btnh: #e2d3b2;
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
   --bg: #1d1915; --panel: #26211b; --ink: #ece2d0; --muted: #a8977f; --line: #3d342a; --accent: #d9774f; --accent2: #6fb39f;
-  --good: #7fc37f; --bad: #ef7b6c; --warn: #e3ac55; --head: #312a22; --btn: #342c23; --btnh: #43392d; } }
+  --good: #7fc37f; --bad: #ef7b6c; --warn: #e3ac55; --head: #312a22; --btn: #342c23; --btnh: #43392d; color-scheme: dark; } }
 :root[data-theme="dark"] { --bg: #1d1915; --panel: #26211b; --ink: #ece2d0; --muted: #a8977f; --line: #3d342a; --accent: #d9774f; --accent2: #6fb39f;
-  --good: #7fc37f; --bad: #ef7b6c; --warn: #e3ac55; --head: #312a22; --btn: #342c23; --btnh: #43392d; }
+  --good: #7fc37f; --bad: #ef7b6c; --warn: #e3ac55; --head: #312a22; --btn: #342c23; --btnh: #43392d; color-scheme: dark; }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.4 Georgia, "Times New Roman", serif; }
-header { position: sticky; top: 0; z-index: 5; background: var(--panel); border-bottom: 2px solid var(--accent); padding: 6px 12px; display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: center; }
+header { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--panel); border-bottom: 2px solid var(--accent); padding: 6px max(16px, env(safe-area-inset-right, 0px)) 6px max(16px, env(safe-area-inset-left, 0px)); display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: center; }
 header .realm { font-size: 17px; font-weight: bold; color: var(--accent); margin-right: 8px; }
 header .st { white-space: nowrap; } header .st b { font-variant-numeric: tabular-nums; }
 header .sp { flex: 1; }
-nav { display: flex; flex-wrap: wrap; gap: 2px; padding: 6px 12px 0; border-bottom: 1px solid var(--line); background: var(--bg); }
+nav { display: flex; flex-wrap: wrap; gap: 2px; padding: 6px max(16px, env(safe-area-inset-right, 0px)) 0 max(16px, env(safe-area-inset-left, 0px)); border-bottom: 1px solid var(--line); background: var(--bg); }
 nav button { border: 1px solid var(--line); border-bottom: none; background: var(--btn); color: var(--ink); padding: 5px 10px; border-radius: 6px 6px 0 0; cursor: pointer; font: inherit; }
 nav button.on { background: var(--panel); font-weight: bold; color: var(--accent); }
-main { padding: 12px; max-width: 1400px; margin: 0 auto; }
+main { padding: 12px max(16px, env(safe-area-inset-right, 0px)) 12px max(16px, env(safe-area-inset-left, 0px)); max-width: 1400px; margin: 0 auto; }
 .grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); align-items: start; }
 .card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; overflow-x: auto; }
 .card h3 { margin: 0 0 8px; font-size: 15px; color: var(--accent); border-bottom: 1px solid var(--line); padding-bottom: 4px; }
@@ -59,7 +59,7 @@ input[type=number] { width: 62px; }
 .kv > :nth-child(odd) { color: var(--muted); }
 details summary { cursor: pointer; color: var(--accent2); }
 .help p { margin: 4px 0 8px; } .help h4 { color: var(--accent); }
-@media (max-width: 600px) { main { padding: 8px 16px; } .grid { grid-template-columns: 1fr; } header { font-size: 13px; } }
+@media (max-width: 600px) { .grid { grid-template-columns: 1fr; } header { font-size: 13px; } }
 </style>
 </head>
 <body>
@@ -1503,7 +1503,7 @@ const ACT = {
   peace: (r, t, pid) => makePeace(S, r, { t, pid }), title: () => raiseTitle(S), event: (i, c) => resolveEvent(S, i, c),
   end: () => endTurn(S), prov: id => { SEL.prov = id; }, tab: t => { TAB = t; }, army: id => { SEL.army = id; }, logcat: c => { SEL.logCat = c; },
   save: n => saveSlot(n), load: n => loadSlot(n), del: n => { try { localStorage.removeItem("panovnik_slot_" + n); } catch (e) {} }, exportSave: () => exportSave(), importSave: () => $("#impFile").click(),
-  newgame: () => { if (!confirm("Začít novou hru? Neuložený postup se ztratí.")) return; S = newGame({ realm: $("#ngRealm").value, ruler: $("#ngRuler").value, dynasty: $("#ngDyn").value, seed: $("#ngSeed").value ? +$("#ngSeed").value : undefined }); TAB = "prehled"; },
+  newgame: () => { if (!SEL.ngConfirm) { SEL.ngConfirm = true; return "Opravdu? Neuložený postup se ztratí – klikni znovu na „Začít novou hru“."; } SEL.ngConfirm = false; S = newGame({ realm: $("#ngRealm").value, ruler: $("#ngRuler").value, dynasty: $("#ngDyn").value, seed: $("#ngSeed").value ? +$("#ngSeed").value : undefined }); TAB = "prehled"; },
   theme: () => { const r = document.documentElement; const t = r.dataset.theme === "dark" ? "light" : r.dataset.theme === "light" ? "" : "dark"; if (t) r.dataset.theme = t; else delete r.dataset.theme; try { localStorage.setItem("panovnik_theme", t); } catch (e) {} },
 };
 document.addEventListener("click", ev => {
@@ -1770,7 +1770,7 @@ function tKronika() {
 function tHra() {
   const slots = [1, 2, 3, 4, 5].map(n => { const i = slotInfo(n); return tr([n, i ? esc(i) : '<span class="muted">prázdná</span>', btn("Uložit", "save", [n]) + btn("Načíst", "load", [n], i ? null : "Prázdná") + btn("Smazat", "del", [n], i ? null : "Prázdná")]); });
   return `<div class="grid">${card("Uložené hry", tbl(["#", "Obsah", ""], slots) + `<p class="small muted">Hra se po každém kroku sama ukládá v prohlížeči.</p><div class="row">${btn("Stáhnout uloženou hru (soubor)", "exportSave")} ${btn("Nahrát ze souboru", "importSave")}</div>`)}
-  ${card("Nová hra", `<div class="kv"><span>Panství</span><input id="ngRealm" value="Panství Vranovské"><span>Panovník</span><input id="ngRuler" value="Bořivoj"><span>Rod</span><input id="ngDyn" value="Vranovští"><span>Semínko náhody</span><input id="ngSeed" type="number" placeholder="náhodné"></div><div class="row">${btn("Začít novou hru", "newgame")}</div>`)}
+  ${card("Nová hra", `<div class="kv"><span>Panství</span><input id="ngRealm" value="Panství Vranovské"><span>Panovník</span><input id="ngRuler" value="Bořivoj"><span>Rod</span><input id="ngDyn" value="Vranovští"><span>Semínko náhody</span><input id="ngSeed" type="number" placeholder="náhodné"></div><div class="row">${btn(SEL.ngConfirm ? "Ano, začít novou hru" : "Začít novou hru", "newgame")}</div>`)}
   ${card("Vzhled", btn("Přepnout světlý / tmavý vzhled", "theme"))}
   <div class="card help" style="grid-column:1/-1"><h3>Jak hrát</h3>
   <p>Vládneš feudálnímu panství v letech ${START_YEAR}–${END_YEAR}. Každé kolo je jedno roční období. Rozhodni, co chceš, a stiskni <b>Konec období</b>. Cílem je stát se králem (hraběte, vévody a nakonec koruny dosáhneš v Přehledu) nebo přečkat sto let s co nejvyšším skóre.</p>
