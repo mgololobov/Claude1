@@ -28,7 +28,7 @@ let GEO = null;
 function geoIdx() {
   if (GEO) return GEO;
   const sc = 2, w = Math.floor(MW / sc), h = Math.floor(MH / sc), ps = Object.values(S.provs), n = ps.length;
-  const px = ps.map(p => MX(p.lon) / sc), py = ps.map(p => MY(p.lat) / sc), rad = ps.map(p => (p.ter === "poust" || p.ter === "oaza" ? 44 : p.ter === "delta" ? 26 : 18) / sc), idx = new Int16Array(w * h);
+  const px = ps.map(p => MX(p.lon) / sc), py = ps.map(p => MY(p.lat) / sc), rad = ps.map(p => (p.ter === "poust" || p.ter === "oaza" || p.ter === "kenaan" ? 44 : p.ter === "delta" ? 26 : 18) / sc), idx = new Int16Array(w * h);
   for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
     let best = -1, bd = 1; const jx = x + Math.sin(y * 0.4) * 0.8, jy = y + Math.cos(x * 0.37) * 0.8;
     for (let i = 0; i < n; i++) { const dx = px[i] - jx, dy = py[i] - jy, d = Math.sqrt(dx * dx + dy * dy) / rad[i]; if (d < bd) { bd = d; best = i; } }

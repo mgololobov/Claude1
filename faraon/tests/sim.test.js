@@ -7,7 +7,7 @@ const ctx = {}; vm.createContext(ctx); vm.runInContext(code, ctx);
 const A = ctx.API;
 const months = +(process.argv[2] || 240);
 let fails = 0;
-for (const scen of Object.keys(A.SCENARIOS)) for (const cl of A.SCENARIOS[scen].clans.filter(c => c.type !== "kmen")) for (const seed of [1, 7]) {
+for (const scen of Object.keys(A.SCENARIOS)) for (const cl of A.SCENARIOS[scen].clans.filter(c => c.type !== "kmen" || ["medzaj", "lib"].includes(c.id))) for (const seed of [1, 7]) {
   const s = A.newGame({ scen, clan: cl.id, seed });
   try {
     for (let i = 0; i < months; i++) {

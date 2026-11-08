@@ -23,7 +23,7 @@ function renderTop() {
 }
 function renderTabs() {
   const idle = freeOffs().length;
-  return TABS.map(([k, n]) => `<button class="${SEL.tab === k ? "on" : ""}" data-a="tab" data-x='["${k}"]'>${icon(k)}${n}${k === "plan" && idle ? ` <span class="badge">${idle}</span>` : ""}</button>`).join("");
+  return TABS.map(([k, n]) => `<button class="${SEL.tab === k ? "on" : ""}"${SEL.tab === k ? ' aria-current="page"' : ""} data-a="tab" data-x='["${k}"]'>${icon(k)}${n}${k === "plan" && idle ? ` <span class="badge">${idle}</span>` : ""}</button>`).join("");
 }
 
 // ---------- Palác (přehled) ----------

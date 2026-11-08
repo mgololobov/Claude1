@@ -36,6 +36,7 @@ const MISSIONS = {
   tribut: { n: "Konec poplatků", d: "Přestat odvádět poplatky Hyksósům", ok: s => !P(s).tributeTo, r: "sláva +40, úředníci +5 věrnosti", rf: s => { P(s).prestige += 40; for (const c of officers(s, s.player)) c.loy = Math.min(100, c.loy + 5); } },
   nefrusy: { n: "Nefrusy", d: "Dobýt Hermopoli a Nefrusy Tetiho, syna Pepiho (Kamoseho první tažení)", ok: s => owns(s, "u15"), r: "sláva +40", rf: s => { P(s).prestige += 40; } },
   memfis: { n: "Bílé zdi", d: "Ovládnout Memfis", ok: s => owns(s, "l1"), r: "maat +5, sláva +60", rf: s => { P(s).maat = Math.min(100, P(s).maat + 5); P(s).prestige += 60; } },
+  saruhen: { n: "Obležení Šaruhenu", d: "Dobýt Šaruhen v jižním Kenaanu (podle Ahmose, syna Ebany, obléhán tři roky)", ok: s => owns(s, "sar"), r: "sláva +80, maat +3", rf: s => { P(s).prestige += 80; P(s).maat = Math.min(100, P(s).maat + 3); } },
   avaris: { n: "Pád Avaridu", d: "Dobýt Avaris, sídlo Hyksósů (jako Ahmose I.)", ok: s => owns(s, "lav"), r: "maat +8, sláva +100", rf: s => { P(s).maat = Math.min(100, P(s).maat + 8); P(s).prestige += 100; } },
   buhen: { n: "Brána jihu", d: "Získat zpět pevnost Buhen od Kuše", ok: s => owns(s, "n_buhen"), r: "sláva +40, 3 000 debenů", rf: s => { P(s).prestige += 40; P(s).deben += 3000; } },
   // 1560 Hyksósové
@@ -56,9 +57,12 @@ const MISSIONS = {
 function missionList(s) {
   const p = s.player, sc = s.scen, L = ["sypky", "chramy", "hrobka", "vyprava", "deset", "cesta"];
   if (sc === "sip" && p === "thebes") L.unshift("tribut", "nefrusy", "memfis", "avaris", "buhen");
+  if (sc === "ahm" && p === "thebes") L.unshift("memfis", "avaris", "saruhen", "buhen");
+  if (sc === "ahm" && p === "hyksos") L.unshift("theby", "kus");
+  if (sc === "hyk" && (P(s).cul === "eg" || P(s).cul === "hyk")) L.unshift("memfis");
   if (sc === "sip" && p === "hyksos") L.unshift("theby", "kus");
-  if (sc !== "sip" && p === "thebes") L.unshift("asjut", "herakl", "memfis");
-  if (sc !== "sip" && p === "herak") L.unshift("thinis", "delta", "theby2");
+  if (["fip", "mt2", "anch"].includes(sc) && p === "thebes") L.unshift("asjut", "herakl", "memfis");
+  if (["fip", "mt2", "anch"].includes(sc) && p === "herak") L.unshift("thinis", "delta", "theby2");
   if (sc === "anch" && p === "anch") L.unshift("elef", "theby2");
   if (p === "kush" || p === "kerma") L.unshift("elefk", "buhenk", "deffufak");
   if (sc === "mt2" && p === "thebes") L.unshift("thinis");

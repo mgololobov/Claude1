@@ -19,6 +19,7 @@ const TERRAIN = {
   katarakt: { n: "Katarakt (skaliska)", agri: 0.35, def: 1.5, vuz: 0.5, nile: 1 },
   oaza: { n: "Oáza", agri: 0.5, def: 1.35, vuz: 0.8, nile: 0 },
   poust: { n: "Poušť a vádí", agri: 0.08, def: 1.25, vuz: 0.9, nile: 0 },
+  kenaan: { n: "Kenaanská nížina a pahorky", agri: 0.5, def: 1.2, vuz: 1.05, nile: 0 },
 };
 
 // Vojsko. Počty v mužích; síla útoku/obrany na 100 mužů. Cena v debenech na 100 mužů.
@@ -213,7 +214,7 @@ const NAMES = {
 const SON_NAMES = { eg: ["Intef", "Montuhotep", "Cheti", "Ahmose", "Amenemhat", "Sobekhotep", "Senbi", "Džehutinacht", "Iku", "Nacht", "Ameni", "Hetepi"], hyk: ["Jakobhar", "Anathar", "Janasi", "Abiša", "Semken"], nub: ["Awawa", "Kaa", "Teriahi", "Wenkat", "Tekeru"], lib: ["Kapur", "Mešer", "Weneš"], aam: ["Abiša", "Jamu", "Hadar"] };
 
 // Bohové nomů (pro chrámy)
-const GODS = { u1: "Chnum a Satet", u2: "Hor Behdetský", u3: "Nechbet a Hor Nechenský", u4: "Amon a Montu", u5: "Min a Eset", u6: "Hathor", u7: "Bat a Hathor", u8: "Usir a Chontamenti", u9: "Min", u10: "Nemtej", u11: "Chnum", u12: "Nemtej", u13: "Upuaut", u14: "Hathor", u15: "Thovt", u16: "Pachet a Hor", u17: "Anup", u18: "Nemtej", u19: "Sutech", u20: "Herišef", u21: "Chnum", u22: "Hathor", fa: "Sobek", l1: "Ptah", l2: "Hor Chentejirti", l13: "Re a Atum", l3: "Hathor a Sachmet", l5: "Neit", l6: "Vadžet", lx: "místní bůh Xoidy", l12: "Onuris", l16: "Banebdžedet (beran)", l18: "Bastet", lav: "Sutech", l20: "Atum", l14: "Hor Mesenský", o_bah: "místní bohové oázy", o_dak: "místní bohové oázy", o_kha: "místní bohové oázy", lib: "Aš", sin: "Hathor, paní tyrkysu", ham: "Min", sau: "Min", n_wawat: "Hor Miamský", n_buhen: "Hor Buhenský", n_semna: "Dedun", n_sai: "Dedun", n_kerma: "bohové Kermy" };
+const GODS = { sar: "Baal a Anat (kenaanští bohové)", u1: "Chnum a Satet", u2: "Hor Behdetský", u3: "Nechbet a Hor Nechenský", u4: "Amon a Montu", u5: "Min a Eset", u6: "Hathor", u7: "Bat a Hathor", u8: "Usir a Chontamenti", u9: "Min", u10: "Nemtej", u11: "Chnum", u12: "Nemtej", u13: "Upuaut", u14: "Hathor", u15: "Thovt", u16: "Pachet a Hor", u17: "Anup", u18: "Nemtej", u19: "Sutech", u20: "Herišef", u21: "Chnum", u22: "Hathor", fa: "Sobek", l1: "Ptah", l2: "Hor Chentejirti", l13: "Re a Atum", l3: "Hathor a Sachmet", l5: "Neit", l6: "Vadžet", lx: "místní bůh Xoidy", l12: "Onuris", l16: "Banebdžedet (beran)", l18: "Bastet", lav: "Sutech", l20: "Atum", l14: "Hor Mesenský", o_bah: "místní bohové oázy", o_dak: "místní bohové oázy", o_kha: "místní bohové oázy", lib: "Aš", sin: "Hathor, paní tyrkysu", ham: "Min", sau: "Min", n_wawat: "Hor Miamský", n_buhen: "Hor Buhenský", n_semna: "Dedun", n_sai: "Dedun", n_kerma: "bohové Kermy" };
 
 // Nomy (egyptsky sepat, řecky nomos): [id, název, staroegyptský název, z. šířka, z. délka, terén, velikost 1–5, příznaky, suroviny]
 // příznaky: e = egyptské jádro (pro sjednocení), c = město, k = pobřeží, h = posvátné pohřebiště, f = pohraniční pevnost, m = Médžajové (nábor)
@@ -259,6 +260,7 @@ const PROVINCES = [
   ["o_kha", "Oáza Charga", "Kenem", 25.44, 30.55, "oaza", 1, "", ["vino"]],
   ["lib", "Tjehenu", "Libyjská poušť", 30.55, 29.25, "poust", 1, "", ["dobytek"]],
   ["sin", "Sinaj", "Biau a Mafkat", 29.03, 33.46, "poust", 1, "", ["med", "tyrkys"]],
+  ["sar", "Šaruhen", "opevněné město v jižním Kenaanu (snad Tell el-Fára Jih)", 31.23, 34.48, "kenaan", 2, "fc", []],
   ["ham", "Vádí Hammámát", "Východní poušť", 25.95, 33.45, "poust", 1, "m", ["zlato", "kamen"]],
   ["sau", "Sauu", "přístav u Rudého moře (Marsá Gavásis)", 26.55, 34.05, "poust", 1, "km", []],
   ["n_wawat", "Vavat", "Dolní Núbie (Aniba, Miam)", 22.67, 32.03, "nubie", 2, "m", ["zlato"]],
@@ -275,7 +277,7 @@ const EDGES = [
   ["u11", "u12"], ["u11", "u13"], ["u12", "u13"], ["u12", "u14"], ["u13", "u14"], ["u14", "u15"], ["u15", "u16"], ["u16", "u17"], ["u17", "u19"],
   ["u19", "u18"], ["u18", "u20"], ["u19", "u20"], ["u20", "fa"], ["u20", "u21"], ["u20", "u22"], ["u21", "fa"], ["u21", "u22"], ["u21", "l1"], ["u22", "l1"],
   ["l1", "l2"], ["l1", "l13"], ["l2", "l13"], ["l2", "l3"], ["l2", "l5"], ["l13", "l18"], ["l18", "l20"], ["l18", "l16"], ["l18", "l12"],
-  ["l16", "lav"], ["l16", "l12"], ["lav", "l14"], ["lav", "l20"], ["l14", "l20"], ["l14", "sin"], ["l20", "sin"], ["l12", "lx"], ["lx", "l5"], ["lx", "l6"],
+  ["l16", "lav"], ["l16", "l12"], ["lav", "l14"], ["lav", "l20"], ["l14", "l20"], ["l14", "sin"], ["sar", "sin"], ["sar", "l14"], ["l20", "sin"], ["l12", "lx"], ["lx", "l5"], ["lx", "l6"],
   ["l5", "l6"], ["l5", "l3"], ["l3", "lib"], ["l3", "l6"], ["lib", "o_bah"], ["o_bah", "fa"], ["o_bah", "u19"], ["o_bah", "o_dak"], ["o_dak", "o_kha"],
   ["o_kha", "u4"], ["o_kha", "u8"], ["u5", "ham"], ["ham", "sau"], ["ham", "u4"],
 ];

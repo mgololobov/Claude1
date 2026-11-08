@@ -247,9 +247,10 @@ function trade(s, cid, q) {
   const C = s.clans[cid]; q = Math.round(+q); if (!q) return "Zadej množství.";
   const used = C.last.traded === s.turn ? C.last.tradedQ || 0 : 0, capQ = marketCap(s, cid);
   if (Math.abs(q) + used > capQ) return `Kupci letos tolik nesmění – zbývá ${fmtN(capQ - used)} charů tento měsíc.`;
+  const q0 = q;
   if (q > 0) { const d = Math.round(q * s.market.p * 1.25); if (C.deben < d) return `Nákup stojí ${fmtN(d)} debenů.`; C.deben -= d; C.grain += q; if (isPlayer(s, cid)) log(s, `Nakoupeno ${fmtN(q)} charů obilí za ${fmtN(d)} debenů.`, "hospodarstvi", [cid]); }
   else { q = -q; if (C.grain < q) return "Tolik obilí v sýpkách nemáš."; const d = Math.round(q * s.market.p * (lw(s, cid, "sypky") === 0 ? 1.0 : 0.8)); C.grain -= q; C.deben += d; if (isPlayer(s, cid)) log(s, `Prodáno ${fmtN(q)} charů obilí za ${fmtN(d)} debenů.`, "hospodarstvi", [cid]); }
-  C.last.traded = s.turn; C.last.tradedQ = used + Math.abs(q); return null;
+  marketPress(s, cid, q0); C.last.traded = s.turn; C.last.tradedQ = used + Math.abs(q); return null;
 }
 
 // ---------- úředníci: povýšení, dary ----------

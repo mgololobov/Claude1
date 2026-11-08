@@ -40,7 +40,7 @@ ACT.god = g => setGod(S, me(), g);
 ACT.horus = h => setHorus(S, me(), h);
 ACT.capital = pid => { const r = moveCapital(S, me(), pid); TERR.key = null; return r; };
 ACT.copySave = () => { const t = JSON.stringify(S); SEL.saveTxt = t; try { navigator.clipboard.writeText(t).then(() => toast("Hra zkopírována do schránky."), () => toast("Text je v poli – zkopíruj ho ručně.")); } catch (e) { toast("Text je v poli – zkopíruj ho ručně."); } return null; };
-ACT.pasteSave = () => { const el = document.getElementById("saveTxt"); try { const x = JSON.parse(el.value); if (!x.provs || !x.clans || x.v !== 1) throw 0; S = x; TERR.key = null; SEL.saveTxt = ""; toast("Hra načtena."); } catch (e) { return "Text není uložená hra."; } };
+ACT.pasteSave = () => { const el = document.getElementById("saveTxt"); try { const x = migrate(JSON.parse(el.value)); if (!x) throw 0; S = x; TERR.key = null; SEL.saveTxt = ""; toast("Hra načtena."); } catch (e) { return "Text není uložená hra."; } };
 ACT.focus = (id, v) => { const c = chr(S, id); if (c) c.focus = v || null; };
 ACT.research = t => { if (!techAvail(S, me(), t)) return "Chybí předpoklady."; P(S).res.cur = t; };
 ACT.king = () => { const C = P(S); if (C.t === "král" || clanProvs(S, me()).length < 6) return "Zatím nelze."; C.t = "král"; C.type = "dyn"; C.prestige += 60; C.maat = Math.max(0, C.maat - 3); const ov = C.vassalOf; if (ov) { C.vassalOf = null; addRel(S, me(), ov, -40); if (!atWar(S, me(), ov)) declareWar(S, ov, me(), "proti vzbouřenému nomarchovi, který se prohlásil králem"); } log(S, `${ruler().n} přijal královskou titulaturu a prohlásil se králem Horního a Dolního Egypta.`, "rod", [me()]); };
@@ -52,15 +52,15 @@ ACT.ngDiff = v => { SEL.ngDiff = +v; };
 ACT.ngFog = (v, el) => { SEL.ngFog = !!(el && el.checked); };
 ACT.newgame = () => { if (!SEL.ngConfirm) { SEL.ngConfirm = true; return; } SEL.ngConfirm = false; S = newGame({ scen: SEL.ngScen, clan: SEL.ngClan, diff: SEL.ngDiff, fog: SEL.ngFog !== false, seed: val("ngSeed") }); TERR.key = null; SEL.tab = "prehled"; SEL.prov = P(S).capital; SEL.cmd = {}; toast("Nová hra začala."); };
 ACT.save = n => { try { localStorage.setItem(SLOT(n), JSON.stringify(S)); toast("Uloženo do pozice " + n + "."); } catch (e) { return "Uložení se nezdařilo."; } };
-ACT.load = n => { try { const t = localStorage.getItem(SLOT(n)); if (!t) return "Prázdná pozice."; S = JSON.parse(t); TERR.key = null; toast("Načteno."); } catch (e) { return "Načtení se nezdařilo."; } };
+ACT.load = n => { try { const t = localStorage.getItem(SLOT(n)); if (!t) return "Prázdná pozice."; const x = migrate(JSON.parse(t)); if (!x) return "Uložená hra je z novější verze."; S = x; TERR.key = null; toast("Načteno."); } catch (e) { return "Načtení se nezdařilo."; } };
 ACT.del = n => { try { localStorage.removeItem(SLOT(n)); } catch (e) {} };
 ACT.exportSave = () => { const blob = new Blob([JSON.stringify(S)], { type: "application/json" }), a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `pan-obou-zemi-${S.bce}.json`; document.body.appendChild(a); a.click(); a.remove(); };
 ACT.importSave = () => { const f = document.getElementById("impFile"); if (f) f.click(); };
 ACT.theme = () => { const r = document.documentElement, dark = r.dataset.theme ? r.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches; r.dataset.theme = dark ? "light" : "dark"; try { localStorage.setItem(THEME_KEY, r.dataset.theme); } catch (e) {} };
 function slotInfo(n) { try { const t = localStorage.getItem(SLOT(n)); if (!t) return null; const x = JSON.parse(t); return `${x.clans[x.player].n} – ${monthShort(x.month)} ${x.bce} př. n. l.`; } catch (e) { return null; } }
-function importFile(file) { const r = new FileReader(); r.onload = () => { try { const x = JSON.parse(r.result); if (!x.provs || !x.clans) throw 0; S = x; TERR.key = null; render(); toast("Hra nahrána."); } catch (e) { toast("Soubor není uložená hra."); } }; r.readAsText(file); }
+function importFile(file) { const r = new FileReader(); r.onload = () => { try { const x = migrate(JSON.parse(r.result)); if (!x) throw 0; S = x; TERR.key = null; render(); toast("Hra nahrána."); } catch (e) { toast("Soubor není uložená hra."); } }; r.readAsText(file); }
 
-const TAB_FN = { prehled: tPrehled, plan: tPlan, mapa: tMapa, zupy: tZupy, urednici: tUrednici, vojsko: tVojsko, diplo: tDiplo, hosp: tHosp, chramy: tChramy, zakony: tZakony, rod: tRod, vedeni: tVedeni, kronika: tKronika, hra: tHra };
+const TAB_FN = { prehled: tPrehled, plan: tPlan, mapa: tMapa, zupy: tZupy, urednici: () => tUrednici() + rodsHtml(), vojsko: () => liveHtml() + tVojsko(), diplo: () => `<div class="grid">${goalsHtml()}${spyHtml()}${serveHtml()}</div>` + tDiplo(), hosp: () => tHosp() + marketHtml(), chramy: () => tChramy() + festHtml(), zakony: tZakony, rod: tRod, vedeni: tVedeni, kronika: tKronika, hra: tHra };
 function render() {
   EMB_N = 0;
   if (!TAB_FN[SEL.tab]) SEL.tab = "prehled";
@@ -69,9 +69,10 @@ function render() {
   let html; try { html = TAB_FN[SEL.tab](); } catch (e) { console.error(e); html = `<p class="bad">Chyba při vykreslení záložky: ${esc(e.message)}</p>`; }
   const mainEl = document.getElementById("main"); mainEl.innerHTML = html; mainEl.className = SEL.tab === "mapa" ? "full" : "";
   const hh = (document.getElementById("top").offsetHeight || 0) + (document.getElementById("tabs").offsetHeight || 0); document.documentElement.style.setProperty("--hdr", hh + "px");
-  if (SEL.tab === "mapa") initMap(); else hideTip();
+  if (SEL.tab === "mapa") { initMap(); initPinch(); } else hideTip();
   renderModal();
-  try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) {}
+  a11yPass();
+  saveSoon();
 }
 function handle(el, ev) {
   const a = el.dataset.a; if (!a || !ACT[a]) return;
@@ -84,12 +85,13 @@ function handle(el, ev) {
 function boot() {
   try { const t = localStorage.getItem(THEME_KEY); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
   try { const t = localStorage.getItem(SAVE_KEY); if (t) S = JSON.parse(t); } catch (e) { S = null; }
-  if (!S || !S.provs || S.v !== 1) S = newGame({ scen: "sip", clan: "thebes" });
-  for (const C of Object.values(S.clans)) if (C.laws) for (const k of Object.keys(LAWS)) if (C.laws[k] == null) C.laws[k] = 1; // starší uložené hry
+  S = migrate(S); // převod starších uložených her na současnou verzi
+  if (!S) S = newGame({ scen: "sip", clan: "thebes" });
   SEL.prov = P(S).capital; SEL.ngScen = S.scen; SEL.ngClan = S.player;
   const tip = document.createElement("div"); tip.id = "tip"; document.body.appendChild(tip);
   const f = document.createElement("input"); f.type = "file"; f.id = "impFile"; f.accept = ".json,application/json"; f.style.display = "none"; f.onchange = () => f.files[0] && importFile(f.files[0]); document.body.appendChild(f);
   document.addEventListener("click", ev => { const el = ev.target.closest("[data-a]"); if (!el || el.tagName === "SELECT" || (el.tagName === "INPUT")) return; ev.preventDefault(); handle(el, ev); });
+  document.addEventListener("keydown", keyNav);
   document.addEventListener("change", ev => { const el = ev.target.closest("[data-a]"); if (!el || (el.tagName !== "SELECT" && el.tagName !== "INPUT")) return; handle(el, ev); });
   render();
 }

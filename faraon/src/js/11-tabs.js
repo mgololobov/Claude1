@@ -213,7 +213,7 @@ const SCEN_CACHE = {};
 function tHra() {
   const slots = [1, 2, 3, 4, 5].map(n => { const i = slotInfo(n); return tr([n, i ? esc(i) : '<span class="muted">prázdná</span>', btn("Uložit", "save", [n]) + btn("Načíst", "load", [n], i ? null : "Prázdná") + btn("Smazat", "del", [n], i ? null : "Prázdná")]); });
   const sc = SEL.ngScen, Sc = SCENARIOS[sc];
-  const clans = Sc.clans.filter(c => c.type !== "kmen");
+  const clans = Sc.clans.filter(c => c.type !== "kmen" || c.id === "medzaj" || c.id === "lib");
   if (!clans.some(c => c.id === SEL.ngClan)) SEL.ngClan = clans[0].id;
   const histNote = id => (Sc.hist.find(h => h.cl === id && h.r === "leader") || {}).n || "";
   return `<div class="grid">${card("Nová hra", `<div class="kv"><span>Scénář</span>${sel("ngScen", Object.entries(SCENARIOS).map(([k, x]) => [k, x.n]), sc, `data-a="ngScen" data-x='[]'`)}<span></span><span class="small muted">${esc(Sc.d)}</span>
@@ -232,6 +232,8 @@ function tHra() {
   <h4>Měsíc</h4><p>V záložce <b>Plán měsíce</b> dáš každému úředníkovi jeden rozkaz: kanály a hráze, dílny a trhy, hradby, odvod, výcvik, rozdělení obilí, sčítání, obětiny, hledání schopných mužů, dům života, stavby, výpravy, zvědy, intriky nebo přesun. Nomy svěřené rádci spravuje umělá inteligence sama. Pak stiskni <b>Konec měsíce</b>.</p>
   <h4>Nil a obilí</h4><p>Ve 2. měsíci období achet ukážou značky na březích výšku záplavy v loktech (královský loket ≈ 52 cm). Ta rozhodne o sklizni v 1. měsíci období šemu, kdy písaři vyberou daň v obilí. Obilím platíš příděly vojákům a úředníkům i robotníky na stavbách. Obecní sýpky v nomech chrání lid před hladem; při nízké záplavě je doplň rozkazem „Rozdat obilí“. Debeny (měděná jednotka hodnoty) plynou z řemesel, obchodu, dolů a výprav.</p>
   <h4>Válka</h4><p>Válku vyhlásíš v Diplomacii, vojsko vyšleš z panelu nomu na Mapě. Vojsko táhne jeden nom za měsíc, s říční flotilou dvě. Bitva má až šest kol; rozhoduje počet, druh vojska, výcvik, vědění, terén, hradby a velitel. Pevnosti se obléhají – hradby z nepálených cihel padnou, nebo posádka vyhladoví. Kmeny Libyjců, Aamu, Médžajů a Núbijců podnikají nájezdy.</p>
+  <h4>Bitva vedená osobně</h4><p>Při větším střetu se otevře bojiště a v každém kole zvolíš rozkaz. Salvy lučištníků rozbijí nehybný šik, šik kopiníků zastaví útok i vozy, útok a vozy smetou lučištníky, obchvat Médžajů rozvrátí šik. Ústupem bitvu prohraješ, ale zachráníš muže – nejlépe k lodím. Osobní velení vypneš v záložce Vojsko.</p>
+  <h4>Klávesnice</h4><p><b>N</b> konec měsíce, <b>1–9</b> a <b>0</b> záložky, <b>+</b> a <b>−</b> přiblížení mapy, <b>Esc</b> zavře panel nomu, <b>?</b> nápověda. Tab a Enter ovládají všechna tlačítka, karty i nomy na mapě.</p>
   <h4>Úředníci a maat</h4><p>Věrnost úředníků závisí na hodnosti, úřadech, darech, maat a slávě. Nevěrný nomarcha pohraničního nomu může přeběhnout i s nomem. Maat udržuješ obětinami, chrámy, péčí o hladové a hrobkou panovníka; po třiceti letech vlády můžeš slavit svátek sed.</p></section>
   <section class="card wide help"><h3>Slovníček</h3><div class="kv small">
   <span>achet, peret, šemu</span><span>tři období egyptského roku: záplava, vzcházení a setí, sklizeň</span>

@@ -12,10 +12,13 @@ Hra je jeden soubor `dist/index.html`: stačí ho otevřít v prohlížeči, fun
 - **≈ 2120 př. n. l. – Anchtifi z Moally**: nomarcha Hefatu, který podle nápisů ve své hrobce ovládl Edfu a bojoval s Thébami a Koptem za velkého hladu; Intef I. v Thébách, Hérakleopolis na severu.
 
 - **≈ 2040 př. n. l. – Montuhotep II.**: poslední fáze sjednocení; vezír Dagi, pokladník Cheti, správci Henenu a Meketre, královny Tem a Neferu, vzpoura Thinidy ve 14. roce vlády.
+- **≈ 1650 př. n. l. – Rozpad 13. dynastie a příchod Hyksósů**: Itjtaui 13. dynastie (bez historického jména vládce – jména a pořadí posledních králů jsou nejistá), Hyksósové z Avaridu (Sakir-Har), abydoská dynastie (Senebkaj, jehož hrob se stopami ran z boje byl objeven roku 2014), thébská 16. dynastie (Džehuti podle Ryholtovy rekonstrukce), Kuš a západní Delta.
+- **≈ 1550 př. n. l. – Ahmose I. a pád Avaridu**: mladý Ahmose s královnou Ahhotep, vojáci z Elkabu Ahmose, syn Ebany, a Ahmose Pen-Nechbet, poslední hyksóský král Chamudi a opevněný Šaruhen v jižním Kenaanu.
+- V každém scénáři lze hrát i za **Médžaje** nebo **Tjehenu** (Libyjce): kmeny žijí ze stád, podnikají nájezdy do sousedních krajů a mohou vstoupit do služby egyptského rodu.
 
 ## Co hra obsahuje
 
-- 48 nomů od Kermy po Deltu s egyptskými jmény, bohy a surovinami; mapa se skutečným tokem Nilu a ramen v Deltě.
+- 48 nomů od Kermy po Deltu a Šaruhen v jižním Kenaanu s egyptskými jmény, bohy a surovinami; mapa se skutečným tokem Nilu a ramen v Deltě.
 - Nilometr a záplavy (Pliniovo pravidlo 12–16 loktů), sklizeň v Šemu, daň v obilí, obecní sýpky, hlad; debeny jako jednotka hodnoty, trh s obilím.
 - Úředníci s hodnostmi Střední říše (písař, jedinečný přítel, hatia, velký představený nomu, iripat), rozkazy, úřady (vezír, pokladník, správce sýpek, velitel vojska, velekněz), věrnost a zrady.
 - Výpravy do Vádí Hammámát, Hatnubu, na Sinaj, do zlatých dolů Vavatu, do Byblu a do Puntu.
@@ -43,6 +46,14 @@ Hra je jeden soubor `dist/index.html`: stačí ho otevřít v prohlížeči, fun
 - Na mapě plují lodě po Nilu, v období achet je vidět zaplavená niva, chrámy a dokončené stavby.
 - Odkaz rodu: bodové hodnocení vlády pro porovnání her.
 - Rod, sňatky, nástupnictví (i spoluvláda), vědění od nilometru po válečný vůz a námořní lodě.
+- Osobně vedené bitvy: při větším střetu dáváš v každém kole rozkaz (útok, šik kopiníků, salvy lučištníků, vozy na křídla, obchvat Médžajů, ústup k lodím); rozkazy se navzájem přebíjejí. Lze vypnout v záložce Vojsko.
+- Soupeři mají vlastní cíle podle toho, oč historicky usilovali (Théby Avaris, Hyksósové Deltu a Memfis, Kuš Elefantinu a Dolní Núbii) a táhnou přednostně proti tomu, kdo jim stojí v cestě. Když soupeř sjednotí čtyři pětiny Egypta, hra končí porážkou.
+- Rody úředníků: úřady a správa nomů se dědí z otce na syna podle zákona o nomarších, rody se přou a příliš mocný rod se chová jako malý král (spor rodů, potvrzení dědičných práv, „děti kapu“).
+- Trh v čase: cena obilí se mění každý měsíc podle záplavy, roční doby, hladových let i tvých nákupů a prodejů; graf v Hospodářství.
+- Výzvědná síť: stálí zvědové (kupci a lodníci, médžajští stopaři) v zemi soupeře, hlášení o pohybu jeho vojsk, odhalování cizích zvědů (popravit, obrátit, vyhostit).
+- Místní svátky nomů: Wag v Abydu, Thovtův svátek v Hermopoli, Upuautův v Asjútu (Hepdžefovy smlouvy), Hathořin v Dendeře, Sokarův v Memfidu, Sobkův v Šedetu, oběti záplavě na Elefantině – u každého je uvedeno, jak dobře je doložen.
+- Hlad je méně častý a víc o rozhodování: drobné nedostatky rozdělí správci sýpek sami, při větším hladu lze převézt obilí lodí z nomů s přebytkem nebo snížit příděly vojákům.
+- Uložené hry mají číslo verze a starší se při načtení převedou; mapa se překresluje jen při změně.
 
 Jména vládců a doložených hodnostářů odpovídají pramenům; roky narození, schopnosti a ostatní postavy jsou herní. Letopočty podle střední chronologie (I. Shaw, The Oxford History of Ancient Egypt, 2000).
 
@@ -52,15 +63,17 @@ Vzhled vychází z egyptského umění: barvy egyptských pigmentů, blokový vl
 
 ## Ovládání
 
-Hlavní obrazovkou je mapa přes celé okno: kolečkem přibližuješ, tažením posouváš, najetím na nom vidíš jeho údaje. Režimy mapy: politická, terén, úroda, spokojenost, rozvoj, vojsko. Vpravo je přehled dění (války, vojska, obléhání, stavby, výpravy, vědění), vlevo dole panovník. Tlačítkem ▶ necháš čas plynout; zastaví se u každé události.
+Hlavní obrazovkou je mapa přes celé okno: kolečkem přibližuješ, tažením posouváš, najetím na nom vidíš jeho údaje. Režimy mapy: politická, terén, úroda, spokojenost, rozvoj, vojsko. Vpravo je přehled dění (války, vojska, obléhání, stavby, výpravy, vědění), vlevo dole panovník. Tlačítkem ▶ necháš čas plynout; zastaví se u každé události. Na telefonu přibližuješ mapu dvěma prsty.
+
+Hru lze ovládat i klávesnicí: **N** ukončí měsíc, **1–9** a **0** přepínají záložky, **+** a **−** přibližují mapu, **Esc** zavře panel nomu, **?** ukáže nápovědu; Tab a Enter fungují na všech tlačítkách, kartách i nomech na mapě. Čtečky obrazovky dostávají popisky nomů a hlášení o novém měsíci.
 
 Citáty z dochovaných textů (Ponaučení pro Merikarea, Ptahhotep, Výmluvný rolník, Nářky Ipuverovy, Proroctví Neferetiho, hrobka Anchtifiho, dopis Hekanachta, stély Kamoseho, životopis Ahmose, syna Ebany, Satira na povolání, Hymnus na Nil, Texty rakví, Píseň harfeníka, stéla ze Semny, proklínací texty, Smithův a Rhindův papyrus) jsou volné české převody podle běžných překladů, vždy s uvedeným pramenem. Hra ukazuje jen texty, které v dané době už existovaly.
 
 ## Vývoj
 
 - `src/js/0*.js` – pravidla (data, scénáře, hospodářství, rozkazy, válka, běh měsíce), bez prohlížeče
-- `src/js/1*.js`, `99-main.js` – rozhraní
+- `src/js/1*.js`, `99-main.js`, `99-ui2.js` – rozhraní
 - `python3 build.py` – sestaví `dist/index.html`
 - `node tests/rules.test.js` – testy jednotlivých pravidel
-- `node tests/sim.test.js 240` – odehraje 20 let za každý hratelný rod v obou scénářích a hlídá chyby
+- `node tests/sim.test.js 240` – odehraje 20 let za každý hratelný rod ve všech scénářích a hlídá chyby
 - `node tests/e2e.js` – proklikání v prohlížeči (Playwright)

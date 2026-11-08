@@ -2,13 +2,14 @@
 
 // ---------- život, smrt, nástupnictví ----------
 function die(s, c, why) {
-  if (c.st === "dead") return; const wasLeader = c.cl && s.clans[c.cl] && s.clans[c.cl].leader === c.id;
+  if (c.st === "dead") return; const wasLeader = c.cl && s.clans[c.cl] && s.clans[c.cl].leader === c.id, inh = wasLeader ? null : inheritPrep(s, c);
   c.st = "dead"; c.died = `${why || "zemřel"} (≈ ${s.bce} př. n. l.)`;
   for (const p of Object.values(s.provs)) if (p.lord === c.id) p.lord = null;
   if (c.spouse && s.chars[c.spouse]) s.chars[c.spouse].spouse = null;
   if (c.cl && s.clans[c.cl]) { const C = s.clans[c.cl]; for (const k in C.offices) if (C.offices[k] === c.id) C.offices[k] = null; }
   for (const a of s.armies) a.cmds = a.cmds.filter(id => id !== c.id); c.army = null;
   if (c.cl && (c.dyn || c.hist) && (isPlayer(s, c.cl) || wasLeader)) log(s, `${c.n} ${why || "zemřel"}${age(s, c) ? " ve věku " + age(s, c) + " let" : ""}.`, "rod", [c.cl]);
+  if (inh) inheritApply(s, c, inh);
   if (wasLeader) succession(s, c.cl, c);
   else if (c.cl && s.clans[c.cl]) assignLords(s, c.cl);
 }
@@ -172,7 +173,7 @@ function economyTick(s) {
 function floodTick(s) {
   const h = s.flood.next; s.flood.h = h; s.flood.hist.push({ y: s.bce, h }); if (s.flood.hist.length > 80) s.flood.hist.shift();
   log(s, `Nilometr: záplava dosáhla ${String(h).replace(".", ",")} loktů – ${floodWord(h)}.`, "nil");
-  s.market.p = r1(clamp(2 / Math.pow(floodFactor(h), 1.4) * rrange(s, 0.9, 1.1), 1, 9));
+  s.market.base = r1(clamp(2 / Math.pow(floodFactor(h), 1.4) * rrange(s, 0.9, 1.1), 1, 9));
   if (h >= 18) for (const p of Object.values(s.provs)) if (TERRAIN[p.ter].nile) { p.agri = Math.max(10, p.agri - rint(s, 2, 5)); p.dur = Math.max(0, p.dur - 20); p.pop = r1(p.pop * 0.99); }
   if (P(s) && P(s).alive) { if (h < 13.5) queueEvent(s, "nizka", { h }); else if (h >= 18) queueEvent(s, "vysoka", { h }); }
 }
@@ -192,12 +193,13 @@ function harvestTick(s) {
   }
   s.flags.nohunger = hungry[s.player] ? 0 : (s.flags.nohunger || 0) + 1;
   for (const [cid, list] of Object.entries(hungry)) {
-    if (isPlayer(s, cid)) queueEvent(s, "hlad", { list });
+    if (isPlayer(s, cid)) hungerPlayer(s, list);
     else { const C = s.clans[cid]; for (const [pid, d] of list) { if (C.grain > d * 2) { C.grain -= d; s.provs[pid].stock += d; s.provs[pid].loy += 8; } } }
     log(s, `${clanName(s, cid)}: hlad v nomech ${list.map(([id]) => s.provs[id].n).join(", ")}.`, "nil", [cid]);
   }
   // sklady se kazí, úroda se přičte
   for (const C of aliveClans(s)) { C.last.harvest = s.turn; }
+  marketHarvest(s);
 }
 
 // ---------- události ----------
@@ -393,7 +395,7 @@ function aiClan(s, cid) {
   // soupeření dvou egyptských králů o vládu nad Oběma zeměmi
   if (C.t === "král" && C.cul !== "nub" && !enemies.length) for (const o of borderClans(s, cid)) {
     const O = s.clans[o]; if (!O.alive || O.t !== "král" || friendly(s, cid, o) || truceUntil(s, cid, o) > s.turn || C.tributeTo === o) continue;
-    if (realmPower(s, cid) > realmPower(s, o) * 1.15 && chance(s, C.aggr * 0.03)) { declareWar(s, cid, o, "o vládu nad Oběma zeměmi"); break; }
+    if (realmPower(s, cid) > realmPower(s, o) * 1.15 && chance(s, C.aggr * 0.03 * goalWeight(s, cid, o))) { declareWar(s, cid, o, "o vládu nad Oběma zeměmi"); break; }
   }
   // vyhlášení války
   if (!enemies.length || (C.aggr > 0.55 && enemies.length < 2)) for (const o of borderClans(s, cid)) {
@@ -401,7 +403,8 @@ function aiClan(s, cid) {
     if (C.tributeTo === o && realmPower(s, cid) < realmPower(s, o) * 1.1) continue;
     const ratio = realmPower(s, cid) / Math.max(1, realmPower(s, o)), r = rel(s, cid, o);
     const ppl = isPlayer(s, o) ? [1.2, 1, 0.85][s.opts.diff] : 1;
-    if (ratio > 1.3 && r < 5 && chance(s, C.aggr * 0.05 * ppl * (O.type === "kmen" ? 0.6 : 1))) { declareWar(s, cid, o, ratio > 2.5 ? "ze síly" : "o hranice"); break; }
+    const gw = goalWeight(s, cid, o);
+    if (ratio > (gw > 1 ? 1.12 : 1.3) && r < (gw > 1 ? 20 : 5) && chance(s, C.aggr * 0.05 * ppl * gw * (O.type === "kmen" ? 0.6 : 1))) { declareWar(s, cid, o, ratio > 2.5 ? "ze síly" : "o hranice"); break; }
   }
   // mír
   for (const e of enemies) {
@@ -427,14 +430,15 @@ function delegated(s) { for (const p of clanProvs(s, s.player)) if (p.deleg) for
 function checkEnd(s) {
   if (s.over && !s.over.cont) return;
   const C = P(s); if (!C || !C.alive) return;
+  checkEndAI(s); if (s.over && !s.over.cont) return; checkEndKmen(s);
   const core = coreProvs(s).length, mine = realmCore(s, s.player);
-  if (!s.flags.won && C.cul === "eg" && mine >= Math.ceil(core * 0.9) && clanProvs(s, s.player).some(p => p.id === "l1" || p.id === "u4" || p.id === "u20" || p.id === "lav")) {
+  if (!s.flags.won && (C.cul === "eg" || C.cul === "hyk") && mine >= Math.ceil(core * 0.9) && clanProvs(s, s.player).some(p => p.id === "l1" || p.id === "u4" || p.id === "u20" || p.id === "lav")) {
     s.flags.won = 1; C.maat = Math.min(100, C.maat + 20); C.prestige += 300;
     const L = leaderOf(s, s.player);
     s.over = { win: true, cont: true, txt: `${L.n} sjednotil Horní a Dolní Egypt (sema-taui) a nasadil si dvojitou korunu. Ovládáš ${mine} z ${core} nomů egyptského jádra. Tak jako Montuhotep II. (vládl ≈ 2055–2004 př. n. l.) nebo Ahmose I. po dobytí Avaridu jsi zakladatelem nové éry. Můžeš vládnout dál.` };
     queueEvent(s, "vitezstvi", { win: true, txt: s.over.txt });
   }
-  if (!s.flags.won && C.cul !== "eg" && mine >= Math.ceil(core * 0.5) && ["n_kerma", "n_buhen", "u1"].every(id => s.provs[id].owner === s.player || (s.clans[s.provs[id].owner].vassalOf === s.player))) {
+  if (!s.flags.won && C.cul === "nub" && C.type !== "kmen" && mine >= Math.ceil(core * 0.5) && ["n_kerma", "n_buhen", "u1"].every(id => s.provs[id].owner === s.player || (s.clans[s.provs[id].owner].vassalOf === s.player))) {
     s.flags.won = 1; s.over = { win: true, cont: true, txt: `Kuš ovládá Núbii i polovinu Egypta. Tak mocná Kerma nebyla nikdy – až asi o osm set let později vládli Egyptu kušitští králové 25. dynastie.` };
     queueEvent(s, "vitezstvi", { win: true, txt: s.over.txt });
   }
@@ -443,10 +447,11 @@ function checkEnd(s) {
 // ---------- konec měsíce ----------
 function endTurn(s) {
   if (s.over && !s.over.cont) return;
+  if (s.pb) liveAuto(s);
   delegated(s);
   for (const C of aliveClans(s)) if (!isPlayer(s, C.id)) aiClan(s, C.id);
   moveArmies(s); siegeTick(s); raids(s);
-  economyTick(s); monTick(s); mechTick(s); nadaceTick(s); missionTick(s); achTick(s);
+  economyTick(s); monTick(s); mechTick(s); nadaceTick(s); missionTick(s); achTick(s); worldTick(s);
   if (s.month === 0) { s.flood.next = rollFlood(s); }
   if (s.month === FLOOD_MONTH) floodTick(s);
   if (s.month === HARVEST_MONTH) harvestTick(s);

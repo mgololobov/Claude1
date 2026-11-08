@@ -7,9 +7,9 @@ const tabSel = t => `[data-a="tab"][data-x='["${t}"]']`;
   pg.on("pageerror", e => errors.push("pageerror: " + e.message)); pg.on("console", m => { if (m.type() === "error") errors.push("console: " + m.text()); });
   await pg.goto("file://" + path.join(__dirname, "..", "dist", "index.html"));
   const tabs = ["prehled", "plan", "mapa", "zupy", "urednici", "vojsko", "diplo", "hosp", "chramy", "zakony", "rod", "vedeni", "kronika", "hra"];
-  const clearModal = async () => { for (let i = 0; i < 8; i++) { const ch = await pg.$("#modal:not(.hidden) .ch"); if (!ch) break; await ch.click(); } };
+  const clearModal = async () => { for (let i = 0; i < 30; i++) { const ch = await pg.$("#modal:not(.hidden) .ch"); if (!ch) break; await ch.click(); } };
   const checkTab = async (label) => { const bad = await pg.$$eval("main .bad", els => els.map(e => e.textContent).filter(t => t.includes("Chyba"))); if (bad.length) errors.push(`${label}: ${bad[0]}`); };
-  for (const scen of ["sip", "fip", "anch", "mt2"]) {
+  for (const scen of ["sip", "fip", "anch", "mt2", "hyk", "ahm"]) {
     await pg.click(tabSel("hra"));
     await pg.selectOption("#ngScen", scen); await pg.click('[data-a="newgame"]'); await pg.click('[data-a="newgame"]');
     for (const t of tabs) { await pg.click(tabSel(t)); await checkTab(scen + "/" + t); }
@@ -47,6 +47,16 @@ const tabSel = t => `[data-a="tab"][data-x='["${t}"]']`;
     await pg.screenshot({ path: path.join(out, `mapa-${scen}.png`) });
     await pg.click(tabSel("prehled")); await pg.screenshot({ path: path.join(out, `prehled-${scen}.png`) });
   }
+  // nové panely, klávesnice a hratelný kmen
+  await pg.click(tabSel("diplo")); for (const t of ["Cíle soupeřů", "Výzvědná síť"]) if (!(await pg.textContent("main")).includes(t)) errors.push("chybí panel " + t);
+  await pg.click(tabSel("hosp")); if (!(await pg.textContent("main")).includes("Cena obilí v čase")) errors.push("chybí graf ceny obilí");
+  await pg.click(tabSel("chramy")); if (!(await pg.textContent("main")).includes("Kalendář místních svátků")) errors.push("chybí kalendář svátků");
+  await pg.click(tabSel("urednici")); if (!(await pg.textContent("main")).includes("Rody úředníků")) errors.push("chybí rody úředníků");
+  await pg.focus("body"); await pg.keyboard.press("2"); if (!(await pg.$('[data-a="tab"][aria-current="page"][data-x=\'["plan"]\']'))) errors.push("klávesa 2 nepřepnula záložku");
+  await pg.click(tabSel("hra")); await pg.selectOption("#ngScen", "ahm"); await pg.selectOption("#ngClan", "medzaj"); await pg.click('[data-a="newgame"]'); await pg.click('[data-a="newgame"]');
+  await pg.click(tabSel("mapa")); await pg.click('[data-a="selProv"][data-x=\'["sau"]\']', { force: true }).catch(() => {});
+  for (const t of tabs) { await pg.click(tabSel(t)); await checkTab("medzaj/" + t); }
+  await pg.click(tabSel("plan")); for (let m = 0; m < 3; m++) { await clearModal(); await pg.click('[data-a="end"]'); } await clearModal();
   await pg.setViewportSize({ width: 390, height: 844 });
   for (const t of tabs) { await pg.click(tabSel(t)); const sw = await pg.evaluate(() => document.documentElement.scrollWidth); if (sw > 392) errors.push(`vodorovné posouvání na mobilu (${t}): ${sw}`); }
   await pg.click(tabSel("mapa")); await pg.screenshot({ path: path.join(out, "mobil.png") });

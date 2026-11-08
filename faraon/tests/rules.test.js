@@ -2,7 +2,7 @@
 const fs = require("fs"), path = require("path"), vm = require("vm"), assert = require("assert");
 const dir = path.join(__dirname, "..", "src", "js");
 const code = '"use strict";\n' + fs.readdirSync(dir).filter(f => /^0\d-.*\.js$/.test(f)).sort().map(f => fs.readFileSync(path.join(dir, f), "utf8")).join("\n") +
-  "\n;this.X={newGame,endTurn,floodFactor,tacMult,STANCES,routeIncome,ROUTES,declareWar,makePeace,setLaw,heirsOf,clanBudget,battle,men,SCENARIOS,PROVINCES,lw,provTax,yearTaxEstimate};";
+  "\n;this.X={newGame,endTurn,floodFactor,tacMult,STANCES,routeIncome,ROUTES,declareWar,makePeace,setLaw,heirsOf,clanBudget,battle,men,SCENARIOS,PROVINCES,lw,provTax,yearTaxEstimate,marketCap,liveBattleStart,liveStep,ordMod,die,genOfficer,migrate,marketTick,trade,checkEnd,coreProvs,realmCore,officers,rodsOf,goalProgress,clanProvs,sendArmy};";
 const ctx = {}; vm.createContext(ctx); vm.runInContext(code, ctx); const X = ctx.X;
 let n = 0; const t = (name, f) => { f(); n++; console.log("✔ " + name); };
 
@@ -41,5 +41,37 @@ t("povinné zásoby v nomech snižují daň ze sklizně", () => {
 t("rok hry: kalendář, letopis a úroda proběhnou bez chyb", () => {
   const s = X.newGame({ scen: "mt2", clan: "thebes", seed: 7 }); for (let i = 0; i < 14; i++) { s.events = []; X.endTurn(s); }
   assert(s.annals && s.annals.length === 1 && s.annals[0].y === 2040); assert(s.flood.h > 8);
+});
+t("rozkazy v bitvě: salvy lučištníků přebijí šik, šik zastaví útok", () => {
+  const s = X.newGame({ scen: "sip", clan: "thebes", seed: 8 }), T = { kopinici: 600, lucistnici: 600 }, a = { t: T }, b = { t: T };
+  assert(X.ordMod(s, a, b, "strelba", "sik", "udoli").atk > X.ordMod(s, a, b, "strelba", "utok", "udoli").atk);
+  assert(X.ordMod(s, a, b, "sik", "utok", "udoli").atk > X.ordMod(s, a, b, "sik", "strelba", "udoli").atk);
+});
+t("osobně vedená bitva: kola po kole až do konce, pak se vojsko pohne dál", () => {
+  const s = X.newGame({ scen: "ahm", clan: "thebes", seed: 9 }); s.events = [];
+  const a = { id: 99, cl: "thebes", loc: "u17", t: { kopinici: 3000, lucistnici: 2000 }, train: 50, cmds: [], path: [], stance: "vyvazeny", tactic: "sik", since: 0 }; s.armies.push(a);
+  assert(X.liveBattleStart(s, { army: 99 }, { garr: "u17" }, "u17", "u16", "posadka")); assert(s.pb && s.events[0].k === "vbitva" && a.hold);
+  let g = 0; while (s.pb && g++ < 10) X.liveStep(s, "strelba");
+  assert(!s.pb && !a.hold && s.battles[0].live && s.battles[0].ordA.includes("strelba"));
+});
+t("rody: syn zdědí po otci správu nomu, když jsou úřady dědičné", () => {
+  const s = X.newGame({ scen: "sip", clan: "thebes", seed: 10 }); s.clans.thebes.laws.nomarchove = 0;
+  const p = s.provs.u6, c = X.genOfficer(s, "thebes", "eg", "u6", { by: s.bce + 60, rank: 3 }); c.rod = "Senbi"; p.lord = c.id; c.rodPriv = 1; s.clans.thebes.rodPriv = { Senbi: 1 };
+  X.die(s, c, "zemřel"); const L = s.chars[p.lord]; assert(L && L.father === c.id && L.rod === "Senbi", "nom zdědil syn");
+});
+t("uložená hra verze 1 se převede na současnou verzi", () => {
+  const s = X.newGame({ scen: "sip", clan: "thebes", seed: 11 }); const o = JSON.parse(JSON.stringify(s));
+  o.v = 1; delete o.spynet; delete o.fspies; delete o.market.hist; delete o.provs.sar; for (const p of Object.values(o.provs)) p.nb = p.nb.filter(n => n !== "sar");
+  const m = X.migrate(o); assert(m && m.v === 2 && m.provs.sar && m.provs.sin.nb.includes("sar") && Array.isArray(m.market.hist) && m.spynet);
+  assert.strictEqual(X.migrate({ v: 99, provs: {}, clans: {} }), null);
+});
+t("trh: velký nákup obilí zvedne cenu v příštím měsíci", () => {
+  const s = X.newGame({ scen: "sip", clan: "thebes", seed: 12 }); X.marketTick(s); const p0 = s.market.p; s.clans.thebes.deben = 1e6; s.market.p = p0;
+  X.trade(s, "thebes", X.marketCap(s, "thebes")); X.marketTick(s); assert(s.market.p > p0, `${s.market.p} > ${p0}`);
+});
+t("soupeř, který sjednotí Egypt, ukončí hru porážkou", () => {
+  const s = X.newGame({ scen: "sip", clan: "thebes", seed: 13 }); X.checkEnd(s); assert(!s.over);
+  const core = X.coreProvs(s); let k = 0; for (const p of core) if (p.owner !== "thebes" || k++ > 3) p.owner = p.id === "u4" ? "thebes" : "hyksos";
+  X.checkEnd(s); assert(s.over && s.over.win === false, "porážka");
 });
 console.log(`OK – ${n} testů`);
