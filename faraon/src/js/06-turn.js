@@ -37,7 +37,8 @@ function succession(s, cid, old) {
   const coreg = C.laws.nastupnictvi === 1 && age(s, h) >= 15;
   C.leader = h.id; if (h.st !== "kid") h.st = "off"; h.rank = 4; h.loy = 100; h.dyn = 1; h.loc = C.capital || h.loc; h.merit = Math.max(h.merit, 800);
   const queen = h.sex === "f", child = age(s, h) < 15;
-  const tombOk = C.tomb.stage >= 3, tombBad = C.tomb.stage <= 1;
+  const tombOk = C.tomb.stage >= 3 || (C.nadace || 0) >= 2, tombBad = C.tomb.stage <= 1 && !C.nadace;
+  if (hasTech(s, cid, "balzam")) C.maat = Math.min(100, C.maat + 2); if (C.nadace) C.maat = Math.min(100, C.maat + C.nadace * 2);
   C.maat = clamp(C.maat + (tombOk ? 5 : tombBad ? -6 : 0) - (coreg ? 0 : 4) - (queen ? 8 : 0) - (child ? 3 : 0), 0, 100);
   for (const c of officers(s, cid)) if (!c.dyn) c.loy = Math.max(0, c.loy - (coreg ? 2 : 8) - (C.laws.nastupnictvi === 2 ? -3 : 0));
   C.reign = s.turn; C.tomb = { stage: 0, left: 0, active: false }; C.hebsed = 0; C.horus = null;
@@ -135,8 +136,9 @@ function economyTick(s) {
     C.deben += b.net; C.grain += b.gnet; C.last.net = b.net; C.last.gnet = b.gnet;
     if (hasTech(s, C.id, "vuz")) C.kone += sum(clanProvs(s, C.id).filter(p => p.ter === "delta").map(p => p.v * (hasTech(s, C.id, "dobytek") ? 4 : 2)));
     if (C.grain < 0) { // hlad ve vojsku: dezerce
-      for (const p of clanProvs(s, C.id)) lossApply(p.troops, men(p.troops) * 0.08);
-      for (const a of s.armies.filter(x => x.cl === C.id)) lossApply(a.t, men(a.t) * 0.1);
+      const dz = hasTech(s, C.id, "sklady") ? 0.5 : 1;
+      for (const p of clanProvs(s, C.id)) lossApply(p.troops, men(p.troops) * 0.08 * dz);
+      for (const a of s.armies.filter(x => x.cl === C.id)) lossApply(a.t, men(a.t) * 0.1 * dz);
       if (isPlayer(s, C.id)) log(s, `Sýpky jsou prázdné! Vojáci bez přídělů dezertují.`, "hospodarstvi", [C.id]);
       C.grain = 0;
     }
@@ -297,6 +299,7 @@ function randomEvents(s) {
   const C = P(s); if (!C || !C.alive || s.events.length) return;
   if (s.month === OSIRIS_MONTH && s.provs.u8.owner === s.player) { queueEvent(s, "usir", {}); return; }
   if (s.month === 9 && s.scen === "sip" && s.provs.u4.owner === s.player) { queueEvent(s, "udoli", {}); return; }
+  if (s.month === HARVEST_MONTH && (s.provs.u5.owner === s.player || s.provs.u9.owner === s.player) && chance(s, 0.6)) { queueEvent(s, "min", {}); return; }
   if (s.month === 0 && regYear(s, s.player) >= 31 && (!C.hebsed || s.turn - C.hebsed >= 36)) { queueEvent(s, "hebsed", {}); return; }
   if (!chance(s, 0.3)) return;
   const opts = moreEventOpts(s);
@@ -441,7 +444,7 @@ function endTurn(s) {
   delegated(s);
   for (const C of aliveClans(s)) if (!isPlayer(s, C.id)) aiClan(s, C.id);
   moveArmies(s); siegeTick(s); raids(s);
-  economyTick(s); monTick(s); mechTick(s); missionTick(s);
+  economyTick(s); monTick(s); mechTick(s); nadaceTick(s); missionTick(s);
   if (s.month === 0) { s.flood.next = rollFlood(s); }
   if (s.month === FLOOD_MONTH) floodTick(s);
   if (s.month === HARVEST_MONTH) harvestTick(s);
@@ -461,7 +464,7 @@ function endTurn(s) {
   scriptedEvents(s);
   // posun kalendáře
   s.turn++; s.month++;
-  if (s.month >= 12) { s.month = 0; s.bce--; log(s, `Pět dní navíc (epagomenální): slaví se narození Usira, Hora, Sutecha, Eset a Nebthet. Začíná nový rok.`, "nil"); yearLife(s); if (C) { if (hasTech(s, s.player, "hvezdy")) C.maat = Math.min(100, C.maat + 2); } }
+  if (s.month >= 12) { s.month = 0; s.bce--; log(s, `Pět dní navíc (epagomenální): slaví se narození Usira, Hora, Sutecha, Eset a Nebthet. Začíná nový rok.`, "nil"); yearLife(s); if (C) { if (hasTech(s, s.player, "hvezdy")) C.maat = Math.min(100, C.maat + 2); if (hasTech(s, s.player, "sothis")) C.maat = Math.min(100, C.maat + 1); } }
   randomEvents(s);
   checkEnd(s);
   snapshot(s);

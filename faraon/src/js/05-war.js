@@ -9,7 +9,7 @@ function findPath(s, cid, from, to) {
 }
 function nileLink(a, b) { return NILE_IDS.includes(a) && NILE_IDS.includes(b); }
 
-function sendArmy(s, cid, fromPid, toPid, frac, cmdIds) {
+function sendArmy(s, cid, fromPid, toPid, frac, cmdIds, stance) {
   const p = s.provs[fromPid]; if (!p || p.owner !== cid) return "Vojsko lze vyslat jen z vlastního nomu.";
   if (p.siege) return "Nom je obléhán.";
   const t = s.provs[toPid]; if (!t) return "Vyber cíl."; if (toPid === fromPid) return "Cíl je stejný jako výchozí nom.";
@@ -19,7 +19,7 @@ function sendArmy(s, cid, fromPid, toPid, frac, cmdIds) {
   for (const k of TROOP_IDS) { const n = Math.floor((p.troops[k] || 0) * frac); if (n > 0) { tt[k] = n; p.troops[k] -= n; } }
   if (men(tt) < 100) { for (const k in tt) p.troops[k] += tt[k]; return "Na výpravu je potřeba aspoň 100 mužů."; }
   const cmds = (cmdIds || []).map(id => chr(s, id)).filter(c => c && c.cl === cid && c.st === "off" && c.loc === fromPid && !c.army && !c.away && !c.moving).slice(0, 2);
-  const a = { id: "a" + s.nextArmy++, cl: cid, t: tt, train: p.train, loc: fromPid, path, goal: toPid, cmds: cmds.map(c => c.id), since: s.turn };
+  const a = { id: "a" + s.nextArmy++, cl: cid, t: tt, train: p.train, loc: fromPid, path, goal: toPid, cmds: cmds.map(c => c.id), since: s.turn, stance: STANCES[stance] ? stance : "vyvazeny" };
   for (const c of cmds) { c.army = a.id; c.acted = s.turn; if (p.lord === c.id) p.lord = null; }
   s.armies.push(a); assignLords(s, cid);
   if (isPlayer(s, cid)) log(s, `Vojsko (${fmtN(men(tt))} mužů${cmds.length ? ", velí " + cmds.map(c => c.n).join(" a ") : ""}) vyráží z nomu ${p.n} do nomu ${t.n}.`, "valka", [cid]);
@@ -40,13 +40,15 @@ function battle(s, A, D, pid, o = {}) {
   const aStart = men(A.t), dStart = men(D.t); let mA = 100, mD = 100; const rounds = [];
   const flot = hasTech(s, A.cl, "flotila") && ter.nile ? 1.1 : 1;
   for (let r = 0; r < 6; r++) {
-    const pa = troopPower(s, A.cl, A.t, { ter: p.ter, train: A.train }) * (A.cmd || 1) * (stateGod(s, A.cl) === "montu" ? 1.08 : 1) * flot * rrange(s, 0.85, 1.15) * (0.6 + mA / 250);
-    const pd = troopPower(s, D.cl, D.t, { def: true, ter: p.ter, train: D.train }) * (D.cmd || 1) * (stateGod(s, D.cl) === "sutech" ? 1.08 : 1) * ter.def * (D.fort || 1) * rrange(s, 0.85, 1.15) * (0.6 + mD / 250);
+    const sA = stanceOf(A), sD = stanceOf(D);
+    const pa = troopPower(s, A.cl, A.t, { ter: p.ter, train: A.train }) * sA.atk * (A.cmd || 1) * (stateGod(s, A.cl) === "montu" ? 1.08 : 1) * flot * rrange(s, 0.85, 1.15) * (0.6 + mA / 250);
+    const pd = troopPower(s, D.cl, D.t, { def: true, ter: p.ter, train: D.train }) * sD.atk * (D.cmd || 1) * (stateGod(s, D.cl) === "sutech" ? 1.08 : 1) * ter.def * (D.fort || 1) * rrange(s, 0.85, 1.15) * (0.6 + mD / 250);
     const nA = men(A.t), nD = men(D.t); if (!nA || !nD) break;
     const lA = Math.round(Math.min(nA * 0.3, nA * 0.06 * Math.pow(pd / Math.max(1, pa), 0.75))), lD = Math.round(Math.min(nD * 0.3, nD * 0.06 * Math.pow(pa / Math.max(1, pd), 0.75)));
-    lossApply(A.t, lA); lossApply(D.t, lD); rounds.push([lA, lD]);
+    const lA2 = Math.round(lA * sA.loss), lD2 = Math.round(lD * sD.loss);
+    lossApply(A.t, lA2); lossApply(D.t, lD2); rounds.push([lA2, lD2]);
     mA -= lA / Math.max(1, aStart) * 140 + (pd > pa ? 4 : 0); mD -= lD / Math.max(1, dStart) * 140 + (pa > pd ? 4 : 0) - (D.fort > 1 ? 2 : 0);
-    if (mA < 30 || men(A.t) < aStart * 0.3 || mD < 30 || men(D.t) < dStart * 0.3) break;
+    if (mA < sA.brk || men(A.t) < aStart * 0.3 || mD < sD.brk || men(D.t) < dStart * 0.3) break;
   }
   const win = mA - mD > 0 && men(A.t) > 0 ? (men(D.t) === 0 || mD < 30 || mA > mD + 5 ? "A" : "D") : "D";
   const b = { t: s.turn, d: dateShort(s.month, s.bce), place: pid, a: A.cl, b: D.cl, aStart, bStart: dStart, rounds, win, aCmd: A.cmds || [], bCmd: D.cmds || [], kind: o.kind || "bitva" };
@@ -59,6 +61,7 @@ function battle(s, A, D, pid, o = {}) {
   if (isPlayer(s, winner.cl) && (winner.cmds || []).length && chance(s, 0.3) && !s.events.some(e => e.k === "odmena")) { const c = chr(s, winner.cmds[0]); if (c && c.st === "off" && c.id !== s.clans[winner.cl].leader) queueEvent(s, "odmena", { cid: c.id }); }
   b.fates = fates; s.battles.unshift(b); if (s.battles.length > 60) s.battles.length = 60;
   const lossA = aStart - men(A.t), lossD = dStart - men(D.t);
+  if (isPlayer(s, winner.cl) && o.kind !== "nájezd") gainCaptives(s, winner.cl, (win === "A" ? lossD : lossA) * 0.15);
   log(s, `${o.kind === "zteč" ? "Boj u hradeb" : "Bitva"} v nomu ${p.n}: ${s.clans[A.cl].house} (${fmtN(aStart)} mužů) proti ${s.clans[D.cl].house} (${fmtN(dStart)}). ${win === "A" ? "Útočník zvítězil" : "Obránce se ubránil"}. Ztráty ${fmtN(lossA)} : ${fmtN(lossD)}.${fates.length ? " " + fates.join(", ") + "." : ""}`, "valka", [A.cl, D.cl]);
   return b;
 }
@@ -73,7 +76,7 @@ function arrive(s, a, from) {
   const p = s.provs[a.loc];
   // nepřátelská vojska v nomu
   for (const e of s.armies.filter(x => x !== a && x.loc === a.loc && atWar(s, x.cl, a.cl))) {
-    const b = battle(s, { cl: a.cl, t: a.t, train: a.train, cmd: armyCmdBonus(s, a), cmds: a.cmds }, { cl: e.cl, t: e.t, train: e.train, cmd: armyCmdBonus(s, e), cmds: e.cmds }, p.id);
+    const b = battle(s, { cl: a.cl, t: a.t, train: a.train, cmd: armyCmdBonus(s, a), cmds: a.cmds, stance: a.stance }, { cl: e.cl, t: e.t, train: e.train, cmd: armyCmdBonus(s, e), cmds: e.cmds, stance: e.stance }, p.id);
     if (b.win === "A") retreat(s, e, e.path && e.path.length ? e.loc : (clanProvs(s, e.cl).find(q => p.nb.includes(q.id)) || {}).id);
     else { retreat(s, a, from); return false; }
   }
@@ -82,7 +85,7 @@ function arrive(s, a, from) {
   if (!atWar(s, a.cl, p.owner)) { a.path = []; return false; }
   if (men(p.troops) > 0) {
     const L = chr(s, p.lord);
-    const b = battle(s, { cl: a.cl, t: a.t, train: a.train, cmd: armyCmdBonus(s, a), cmds: a.cmds }, { cl: p.owner, t: p.troops, train: p.train, cmd: L ? 1 + (st(L, "ved") - 50) / 200 : 0.95, fort: fortMult(s, p), cmds: L ? [L.id] : [] }, p.id, { kind: p.castle > 1 ? "zteč" : "bitva" });
+    const b = battle(s, { cl: a.cl, t: a.t, train: a.train, cmd: armyCmdBonus(s, a), cmds: a.cmds, stance: a.stance }, { cl: p.owner, t: p.troops, train: p.train, cmd: L ? 1 + (st(L, "ved") - 50) / 200 : 0.95, fort: fortMult(s, p), cmds: L ? [L.id] : [] }, p.id, { kind: p.castle > 1 ? "zteč" : "bitva" });
     if (b.win !== "A") { retreat(s, a, from); return false; }
     // zbytek posádky ustoupí do pevnosti nebo uteče
     const rest = men(p.troops); if (rest > 0) { const to = p.nb.map(n => s.provs[n]).find(q => q.owner === p.owner && !q.siege); if (to) for (const k of TROOP_IDS) { to.troops[k] = (to.troops[k] || 0) + Math.round((p.troops[k] || 0) * 0.5); } p.troops = {}; }

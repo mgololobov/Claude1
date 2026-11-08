@@ -154,9 +154,18 @@ Object.assign(TECHS, {
   tlumocnici: { n: "Představení tlumočníků", cat: "Správa", cost: 90, d: "úřad tlumočníků a znalců cizích zemí (titul doložený u hodnostářů z Elefantiny): vztahy s cizími rody se zlepšují snáz" },
   sehel: { n: "Kanál u 1. kataraktu", cat: "Stavitelství", cost: 120, req: ["flotila"], d: "průplav skalami u ostrova Sehel, který dal vyčistit Senusret III. pro lodě do Núbie: nilská cesta do Núbie vynáší o 30 % víc, Elefantina +5 stropu obchodu" },
 });
+Object.assign(TECHS, {
+  ptaci: { n: "Ptačí sítě a chov hus", cat: "Zemědělství", cost: 50, d: "lov vodního ptactva velkými sítěmi v bažinách a výkrm hus, známé z maleb hrobek od Staré říše: víc potravy pro lid v údolí a v Deltě" },
+  sothis: { n: "Pozorování Sothidy", cat: "Náboženství a učenost", cost: 100, req: ["hvezdy"], d: "zápis o heliakickém východu Síria (Sothidy) v chrámovém archivu v Lahúnu (12. dynastie): přesná předpověď záplavy i bez nilometru, +1 maat ročně" },
+  balzam: { n: "Balzamovací dílny", cat: "Náboženství a učenost", cost: 80, d: "„krásné domy“ balzamovačů s vyjímáním vnitřností a natronem: důstojný pohřeb, nástupce získá maat +2" },
+  sklady: { n: "Zásobovací sklady vojska", cat: "Válečnictví", cost: 90, req: ["pisari"], d: "sklady obilí v pevnostech a na pochodových cestách, jaké měly núbijské pevnosti: při prázdných sýpkách dezertuje jen polovina vojáků" },
+  zapas: { n: "Zápasnický výcvik", cat: "Válečnictví", cost: 70, d: "stovky zápasnických chvatů namalovaných v hrobkách nomarchů v Beni Hasanu: výcvik vojska je účinnější" },
+  protosin: { n: "Protosinajské písmo", cat: "Správa", cost: 90, d: "písmo semitských dělníků v dolech na tyrkys v Serábit el-Chádim, odvozené z hieroglyfů – předek abeced: výpravy na Sinaj bezpečnější a výnosnější, lepší vztahy s Asiaty" },
+  clun: { n: "Nákladní čluny na obilí", cat: "Správa", cost: 80, req: ["flotila"], d: "flotila nákladních člunů svážejících daň do státních sýpek (lodě v modelech z hrobky Meketrea): převoz obilí za poloviční cenu, +2 % daně" },
+});
 const TECH_IDS = Object.keys(TECHS);
 // Dovednosti známé od Staré říše mají egyptské rody od počátku; nově je musí objevit jen ostatní.
-const OLD_TECHS = ["vcelarstvi", "vinarstvi", "fajans", "tkalci", "klenba"];
+const OLD_TECHS = ["vcelarstvi", "vinarstvi", "fajans", "tkalci", "klenba", "ptaci", "balzam"];
 
 const LAWS = {
   robota: { n: "Robota", opts: ["Mírná", "Obvyklá", "Těžká"], d: "Těžší robota zlevní a urychlí stavby a kanály, ale lid reptá." },

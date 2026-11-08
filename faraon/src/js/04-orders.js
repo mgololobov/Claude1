@@ -52,7 +52,7 @@ function doCmd(s, cid, offId, cmd, arg, arg2) {
     case "vycvik": {
       if (p.train >= 100) return "Vojsko je dokonale vycvičené."; if (!men(p.troops)) return "Není koho cvičit.";
       if (!pay(s, cid, cost)) return "Nedostatek debenů.";
-      const g = Math.round(st(c, "ved") / 9 + st(c, "uda") / 18 + rnd(s) * 4); p.train = Math.min(100, p.train + g); c.merit += 3;
+      const g = Math.round(st(c, "ved") / 9 + st(c, "uda") / 18 + rnd(s) * 4 + (hasTech(s, cid, "zapas") ? 3 : 0)); p.train = Math.min(100, p.train + g); c.merit += 3;
       c.acted = s.turn; return say(`Výcvik v nomu ${p.n}: +${g} (nyní ${Math.round(p.train)}).`);
     }
     case "rozdat": {
@@ -166,12 +166,12 @@ function expeditionReturn(s, c) {
   const E = EXPED[c.away.exp], C = s.clans[c.cl], me = isPlayer(s, c.cl); c.away = null;
   if (!C || !C.alive) { c.st = "wand"; return; }
   const home = s.provs[c.loc] && s.provs[c.loc].owner === c.cl ? c.loc : C.capital; c.loc = home;
-  const risk = E.risk * (1.3 - st(c, "spr") / 200 - st(c, "ved") / 300) * (hasTech(s, c.cl, "osli") ? 0.67 : 1);
+  const risk = E.risk * (1.3 - st(c, "spr") / 200 - st(c, "ved") / 300) * (hasTech(s, c.cl, "osli") ? 0.67 : 1) * (E === EXPED.sinaj && hasTech(s, c.cl, "protosin") ? 0.6 : 1);
   if (chance(s, risk)) {
     if (chance(s, 0.4)) { die(s, c, `zahynul na výpravě (${E.foe})`); if (me) log(s, `Výprava „${E.n}“ se nevrátila: ${c.n} zahynul (${E.foe}).`, "vypravy", [c.cl]); return; }
     if (me) log(s, E.tech === "namorni" ? `${c.n} se po bouři vrátil z výpravy „${E.n}“ jen s hrstkou mužů a bez nákladu – jako hrdina příběhu o ztroskotaném námořníkovi ze Střední říše.` : `${c.n} se vrátil z výpravy „${E.n}“ s prázdnou – přepadli je ${E.foe}.`, "vypravy", [c.cl]); return;
   }
-  const g = Math.round(rrange(s, E.deben[0], E.deben[1]) * (0.8 + st(c, "spr") / 250));
+  const g = Math.round(rrange(s, E.deben[0], E.deben[1]) * (0.8 + st(c, "spr") / 250) * (E === EXPED.sinaj && hasTech(s, c.cl, "protosin") ? 1.2 : 1));
   s.flags["exp_" + c.cl] = 1; C.deben += g; C.prestige += E.prestige; if (E.maat) C.maat = Math.min(100, C.maat + E.maat); if (E.cedar) C.cedar += 2; c.merit += 15;
   if (me) log(s, `${c.n} se vrátil z výpravy „${E.n}“: ${fmtN(g)} debenů${E.cedar ? ", cedrové dřevo pro dvě stavby" : ""}, sláva +${E.prestige}${E.maat ? ", maat +" + E.maat : ""}.`, "vypravy", [c.cl]);
   else if (E.prestige >= 30) log(s, `${clanName(s, c.cl)}: výprava do země Punt se vrátila s kadidlem a myrhou.`, "svet", [c.cl]);

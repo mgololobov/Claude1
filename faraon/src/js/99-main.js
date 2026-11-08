@@ -17,7 +17,11 @@ ACT.advise = id => { const c = chr(S, id); if (!c || c.acted === S.turn) return 
 ACT.adviseAll = () => { let n = 0; for (const c of freeOffs()) { aiDomestic(S, me(), c, true); if (c.acted === S.turn) n++; } toast(`Rádce zadal ${n} rozkazů.`); };
 ACT.planDone = () => { SEL.planDone = !SEL.planDone; };
 ACT.deleg = (pid, v, el) => { const p = S.provs[pid]; if (p && p.owner === me()) p.deleg = !!(el && el.checked); };
-ACT.send = pid => { const t = val("at_" + pid), f = val("ap_" + pid), c = val("ac_" + pid); SEL["at_" + pid] = t; SEL["ap_" + pid] = f; return sendArmy(S, me(), pid, t, f, c ? [c] : []); };
+ACT.send = pid => { const t = val("at_" + pid), f = val("ap_" + pid), c = val("ac_" + pid), st_ = val("as_" + pid); SEL["at_" + pid] = t; SEL["ap_" + pid] = f; SEL["as_" + pid] = st_; return sendArmy(S, me(), pid, t, f, c ? [c] : [], st_); };
+ACT.nadace = () => foundNadace(S, me());
+ACT.ship = pid => { const t = val("gt_" + pid), q = val("gq_" + pid); SEL["gt_" + pid] = t; return shipGrain(S, me(), pid, t, q); };
+ACT.capBuild = () => captivesBuild(S, me());
+ACT.capSettle = () => captivesSettle(S, me());
 ACT.disband = id => { const a = S.armies.find(x => x.id === id); if (!a) return; if (S.provs[a.loc].owner !== me()) return "Vojsko není ve vlastním nomu."; disbandArmy(S, a); };
 ACT.armyHome = id => { const a = S.armies.find(x => x.id === id); if (!a) return; const home = myProvs().sort((x, y) => (findPath(S, me(), a.loc, x.id) || [1, 1, 1, 1, 1, 1, 1, 1, 1]).length - (findPath(S, me(), a.loc, y.id) || [1, 1, 1, 1, 1, 1, 1, 1, 1]).length)[0]; if (!home) return "Není kam."; if (home.id === a.loc) { disbandArmy(S, a); return; } a.path = findPath(S, me(), a.loc, home.id) || []; a.goal = home.id; const p = S.provs[a.loc]; if (p.siege && p.siege.army === a.id) p.siege = null; };
 ACT.promote = id => promote(S, me(), id);

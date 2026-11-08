@@ -420,9 +420,18 @@ Object.assign(TECHS, {
   tlumocnici: { n: "Představení tlumočníků", cat: "Správa", cost: 90, d: "úřad tlumočníků a znalců cizích zemí (titul doložený u hodnostářů z Elefantiny): vztahy s cizími rody se zlepšují snáz" },
   sehel: { n: "Kanál u 1. kataraktu", cat: "Stavitelství", cost: 120, req: ["flotila"], d: "průplav skalami u ostrova Sehel, který dal vyčistit Senusret III. pro lodě do Núbie: nilská cesta do Núbie vynáší o 30 % víc, Elefantina +5 stropu obchodu" },
 });
+Object.assign(TECHS, {
+  ptaci: { n: "Ptačí sítě a chov hus", cat: "Zemědělství", cost: 50, d: "lov vodního ptactva velkými sítěmi v bažinách a výkrm hus, známé z maleb hrobek od Staré říše: víc potravy pro lid v údolí a v Deltě" },
+  sothis: { n: "Pozorování Sothidy", cat: "Náboženství a učenost", cost: 100, req: ["hvezdy"], d: "zápis o heliakickém východu Síria (Sothidy) v chrámovém archivu v Lahúnu (12. dynastie): přesná předpověď záplavy i bez nilometru, +1 maat ročně" },
+  balzam: { n: "Balzamovací dílny", cat: "Náboženství a učenost", cost: 80, d: "„krásné domy“ balzamovačů s vyjímáním vnitřností a natronem: důstojný pohřeb, nástupce získá maat +2" },
+  sklady: { n: "Zásobovací sklady vojska", cat: "Válečnictví", cost: 90, req: ["pisari"], d: "sklady obilí v pevnostech a na pochodových cestách, jaké měly núbijské pevnosti: při prázdných sýpkách dezertuje jen polovina vojáků" },
+  zapas: { n: "Zápasnický výcvik", cat: "Válečnictví", cost: 70, d: "stovky zápasnických chvatů namalovaných v hrobkách nomarchů v Beni Hasanu: výcvik vojska je účinnější" },
+  protosin: { n: "Protosinajské písmo", cat: "Správa", cost: 90, d: "písmo semitských dělníků v dolech na tyrkys v Serábit el-Chádim, odvozené z hieroglyfů – předek abeced: výpravy na Sinaj bezpečnější a výnosnější, lepší vztahy s Asiaty" },
+  clun: { n: "Nákladní čluny na obilí", cat: "Správa", cost: 80, req: ["flotila"], d: "flotila nákladních člunů svážejících daň do státních sýpek (lodě v modelech z hrobky Meketrea): převoz obilí za poloviční cenu, +2 % daně" },
+});
 const TECH_IDS = Object.keys(TECHS);
 // Dovednosti známé od Staré říše mají egyptské rody od počátku; nově je musí objevit jen ostatní.
-const OLD_TECHS = ["vcelarstvi", "vinarstvi", "fajans", "tkalci", "klenba"];
+const OLD_TECHS = ["vcelarstvi", "vinarstvi", "fajans", "tkalci", "klenba", "ptaci", "balzam"];
 
 const LAWS = {
   robota: { n: "Robota", opts: ["Mírná", "Obvyklá", "Těžká"], d: "Těžší robota zlevní a urychlí stavby a kanály, ale lid reptá." },
@@ -747,6 +756,7 @@ function newGame(opts = {}) {
     tombN: c.tomb || "hrobka", tax: 2, rel: {}, res: { cur: null, pts: 0 }, vassalOf: c.vassalOf || null, tributeTo: null, reign: 0, tomb: { stage: 0, left: 0, active: false }, laws: { robota: 1, nomarchove: 1, chramy: 1, vojsko: 1, nastupnictvi: 0 }, lawCd: {},
     offices: {}, last: {}, medjay: !!c.medjay, census: 0, hebsed: 0, mods: [] });
   for (const C of Object.values(s.clans)) if (C.cul === "eg" || C.cul === "hyk") for (const t of OLD_TECHS) C.techs[t] = 1;
+  if (scen === "sip") { for (const id of ["thebes", "hyksos"]) for (const t of ["zapas", "sklady", "clun"]) s.clans[id].techs[t] = 1; s.clans.hyksos.techs.protosin = 1; }
   if (scen === "sip") for (const id of ["thebes", "hyksos"]) for (const t of ["pyrmesta", "ochrana", "zlatnictvi", "papyrdilny", "osli", "tlumocnici", "sehel"]) if (id === "thebes" || t !== "sehel") s.clans[id].techs[t] = 1;
   if (scen === "sip") { for (const id of ["thebes", "hyksos"]) for (const t of ["pekarny", "pecete", "obleh", "obelisky"]) s.clans[id].techs[t] = 1; for (const t of ["zpravy", "hlidky", "usirkult"]) s.clans.thebes.techs[t] = 1; }
   const owner = {}; for (const c of Sc.clans) for (const p of c.provs) owner[p] = c.id;
@@ -846,7 +856,7 @@ function provHarvest(s, p, h) {
   const T = TERRAIN[p.ter], f = T.nile ? floodFactor(h != null ? h : s.flood.h) : (p.ter === "oaza" ? 0.95 : 0.7);
   return p.pop * 1000 * 5 * (p.agri / 50) * T.agri * f * (0.75 + p.loy / 400) * (p.siege ? 0.3 : 1);
 }
-const provFood = (s, p, h) => provHarvest(s, p, h) + p.pop * 1000 * PASTORAL[p.ter];
+const provFood = (s, p, h) => provHarvest(s, p, h) + p.pop * 1000 * (PASTORAL[p.ter] + (TERRAIN[p.ter].nile && hasTech(s, p.owner, "ptaci") ? 0.15 : 0));
 const provNeed = p => p.pop * 1000 * NEED_PER_PERSON;
 function taxMult(s, cid) {
   const C = s.clans[cid]; let m = 1;
@@ -855,6 +865,7 @@ function taxMult(s, cid) {
   m *= 1 + officeVal(s, cid, "sypky") / 1200 + officeVal(s, cid, "vezir") / 2500;
   m *= [0.95, 1, 1.08][C.laws.nomarchove];
   if (stateGod(s, cid) === "herisef") m *= 1.04;
+  if (hasTech(s, cid, "clun")) m *= 1.02;
   if (isPlayer(s, cid)) m *= diffIncome(s);
   return m;
 }
@@ -1036,7 +1047,7 @@ function doCmd(s, cid, offId, cmd, arg, arg2) {
     case "vycvik": {
       if (p.train >= 100) return "Vojsko je dokonale vycvičené."; if (!men(p.troops)) return "Není koho cvičit.";
       if (!pay(s, cid, cost)) return "Nedostatek debenů.";
-      const g = Math.round(st(c, "ved") / 9 + st(c, "uda") / 18 + rnd(s) * 4); p.train = Math.min(100, p.train + g); c.merit += 3;
+      const g = Math.round(st(c, "ved") / 9 + st(c, "uda") / 18 + rnd(s) * 4 + (hasTech(s, cid, "zapas") ? 3 : 0)); p.train = Math.min(100, p.train + g); c.merit += 3;
       c.acted = s.turn; return say(`Výcvik v nomu ${p.n}: +${g} (nyní ${Math.round(p.train)}).`);
     }
     case "rozdat": {
@@ -1150,12 +1161,12 @@ function expeditionReturn(s, c) {
   const E = EXPED[c.away.exp], C = s.clans[c.cl], me = isPlayer(s, c.cl); c.away = null;
   if (!C || !C.alive) { c.st = "wand"; return; }
   const home = s.provs[c.loc] && s.provs[c.loc].owner === c.cl ? c.loc : C.capital; c.loc = home;
-  const risk = E.risk * (1.3 - st(c, "spr") / 200 - st(c, "ved") / 300) * (hasTech(s, c.cl, "osli") ? 0.67 : 1);
+  const risk = E.risk * (1.3 - st(c, "spr") / 200 - st(c, "ved") / 300) * (hasTech(s, c.cl, "osli") ? 0.67 : 1) * (E === EXPED.sinaj && hasTech(s, c.cl, "protosin") ? 0.6 : 1);
   if (chance(s, risk)) {
     if (chance(s, 0.4)) { die(s, c, `zahynul na výpravě (${E.foe})`); if (me) log(s, `Výprava „${E.n}“ se nevrátila: ${c.n} zahynul (${E.foe}).`, "vypravy", [c.cl]); return; }
     if (me) log(s, E.tech === "namorni" ? `${c.n} se po bouři vrátil z výpravy „${E.n}“ jen s hrstkou mužů a bez nákladu – jako hrdina příběhu o ztroskotaném námořníkovi ze Střední říše.` : `${c.n} se vrátil z výpravy „${E.n}“ s prázdnou – přepadli je ${E.foe}.`, "vypravy", [c.cl]); return;
   }
-  const g = Math.round(rrange(s, E.deben[0], E.deben[1]) * (0.8 + st(c, "spr") / 250));
+  const g = Math.round(rrange(s, E.deben[0], E.deben[1]) * (0.8 + st(c, "spr") / 250) * (E === EXPED.sinaj && hasTech(s, c.cl, "protosin") ? 1.2 : 1));
   s.flags["exp_" + c.cl] = 1; C.deben += g; C.prestige += E.prestige; if (E.maat) C.maat = Math.min(100, C.maat + E.maat); if (E.cedar) C.cedar += 2; c.merit += 15;
   if (me) log(s, `${c.n} se vrátil z výpravy „${E.n}“: ${fmtN(g)} debenů${E.cedar ? ", cedrové dřevo pro dvě stavby" : ""}, sláva +${E.prestige}${E.maat ? ", maat +" + E.maat : ""}.`, "vypravy", [c.cl]);
   else if (E.prestige >= 30) log(s, `${clanName(s, c.cl)}: výprava do země Punt se vrátila s kadidlem a myrhou.`, "svet", [c.cl]);
@@ -1244,7 +1255,7 @@ function findPath(s, cid, from, to) {
 }
 function nileLink(a, b) { return NILE_IDS.includes(a) && NILE_IDS.includes(b); }
 
-function sendArmy(s, cid, fromPid, toPid, frac, cmdIds) {
+function sendArmy(s, cid, fromPid, toPid, frac, cmdIds, stance) {
   const p = s.provs[fromPid]; if (!p || p.owner !== cid) return "Vojsko lze vyslat jen z vlastního nomu.";
   if (p.siege) return "Nom je obléhán.";
   const t = s.provs[toPid]; if (!t) return "Vyber cíl."; if (toPid === fromPid) return "Cíl je stejný jako výchozí nom.";
@@ -1254,7 +1265,7 @@ function sendArmy(s, cid, fromPid, toPid, frac, cmdIds) {
   for (const k of TROOP_IDS) { const n = Math.floor((p.troops[k] || 0) * frac); if (n > 0) { tt[k] = n; p.troops[k] -= n; } }
   if (men(tt) < 100) { for (const k in tt) p.troops[k] += tt[k]; return "Na výpravu je potřeba aspoň 100 mužů."; }
   const cmds = (cmdIds || []).map(id => chr(s, id)).filter(c => c && c.cl === cid && c.st === "off" && c.loc === fromPid && !c.army && !c.away && !c.moving).slice(0, 2);
-  const a = { id: "a" + s.nextArmy++, cl: cid, t: tt, train: p.train, loc: fromPid, path, goal: toPid, cmds: cmds.map(c => c.id), since: s.turn };
+  const a = { id: "a" + s.nextArmy++, cl: cid, t: tt, train: p.train, loc: fromPid, path, goal: toPid, cmds: cmds.map(c => c.id), since: s.turn, stance: STANCES[stance] ? stance : "vyvazeny" };
   for (const c of cmds) { c.army = a.id; c.acted = s.turn; if (p.lord === c.id) p.lord = null; }
   s.armies.push(a); assignLords(s, cid);
   if (isPlayer(s, cid)) log(s, `Vojsko (${fmtN(men(tt))} mužů${cmds.length ? ", velí " + cmds.map(c => c.n).join(" a ") : ""}) vyráží z nomu ${p.n} do nomu ${t.n}.`, "valka", [cid]);
@@ -1275,13 +1286,15 @@ function battle(s, A, D, pid, o = {}) {
   const aStart = men(A.t), dStart = men(D.t); let mA = 100, mD = 100; const rounds = [];
   const flot = hasTech(s, A.cl, "flotila") && ter.nile ? 1.1 : 1;
   for (let r = 0; r < 6; r++) {
-    const pa = troopPower(s, A.cl, A.t, { ter: p.ter, train: A.train }) * (A.cmd || 1) * (stateGod(s, A.cl) === "montu" ? 1.08 : 1) * flot * rrange(s, 0.85, 1.15) * (0.6 + mA / 250);
-    const pd = troopPower(s, D.cl, D.t, { def: true, ter: p.ter, train: D.train }) * (D.cmd || 1) * (stateGod(s, D.cl) === "sutech" ? 1.08 : 1) * ter.def * (D.fort || 1) * rrange(s, 0.85, 1.15) * (0.6 + mD / 250);
+    const sA = stanceOf(A), sD = stanceOf(D);
+    const pa = troopPower(s, A.cl, A.t, { ter: p.ter, train: A.train }) * sA.atk * (A.cmd || 1) * (stateGod(s, A.cl) === "montu" ? 1.08 : 1) * flot * rrange(s, 0.85, 1.15) * (0.6 + mA / 250);
+    const pd = troopPower(s, D.cl, D.t, { def: true, ter: p.ter, train: D.train }) * sD.atk * (D.cmd || 1) * (stateGod(s, D.cl) === "sutech" ? 1.08 : 1) * ter.def * (D.fort || 1) * rrange(s, 0.85, 1.15) * (0.6 + mD / 250);
     const nA = men(A.t), nD = men(D.t); if (!nA || !nD) break;
     const lA = Math.round(Math.min(nA * 0.3, nA * 0.06 * Math.pow(pd / Math.max(1, pa), 0.75))), lD = Math.round(Math.min(nD * 0.3, nD * 0.06 * Math.pow(pa / Math.max(1, pd), 0.75)));
-    lossApply(A.t, lA); lossApply(D.t, lD); rounds.push([lA, lD]);
+    const lA2 = Math.round(lA * sA.loss), lD2 = Math.round(lD * sD.loss);
+    lossApply(A.t, lA2); lossApply(D.t, lD2); rounds.push([lA2, lD2]);
     mA -= lA / Math.max(1, aStart) * 140 + (pd > pa ? 4 : 0); mD -= lD / Math.max(1, dStart) * 140 + (pa > pd ? 4 : 0) - (D.fort > 1 ? 2 : 0);
-    if (mA < 30 || men(A.t) < aStart * 0.3 || mD < 30 || men(D.t) < dStart * 0.3) break;
+    if (mA < sA.brk || men(A.t) < aStart * 0.3 || mD < sD.brk || men(D.t) < dStart * 0.3) break;
   }
   const win = mA - mD > 0 && men(A.t) > 0 ? (men(D.t) === 0 || mD < 30 || mA > mD + 5 ? "A" : "D") : "D";
   const b = { t: s.turn, d: dateShort(s.month, s.bce), place: pid, a: A.cl, b: D.cl, aStart, bStart: dStart, rounds, win, aCmd: A.cmds || [], bCmd: D.cmds || [], kind: o.kind || "bitva" };
@@ -1294,6 +1307,7 @@ function battle(s, A, D, pid, o = {}) {
   if (isPlayer(s, winner.cl) && (winner.cmds || []).length && chance(s, 0.3) && !s.events.some(e => e.k === "odmena")) { const c = chr(s, winner.cmds[0]); if (c && c.st === "off" && c.id !== s.clans[winner.cl].leader) queueEvent(s, "odmena", { cid: c.id }); }
   b.fates = fates; s.battles.unshift(b); if (s.battles.length > 60) s.battles.length = 60;
   const lossA = aStart - men(A.t), lossD = dStart - men(D.t);
+  if (isPlayer(s, winner.cl) && o.kind !== "nájezd") gainCaptives(s, winner.cl, (win === "A" ? lossD : lossA) * 0.15);
   log(s, `${o.kind === "zteč" ? "Boj u hradeb" : "Bitva"} v nomu ${p.n}: ${s.clans[A.cl].house} (${fmtN(aStart)} mužů) proti ${s.clans[D.cl].house} (${fmtN(dStart)}). ${win === "A" ? "Útočník zvítězil" : "Obránce se ubránil"}. Ztráty ${fmtN(lossA)} : ${fmtN(lossD)}.${fates.length ? " " + fates.join(", ") + "." : ""}`, "valka", [A.cl, D.cl]);
   return b;
 }
@@ -1308,7 +1322,7 @@ function arrive(s, a, from) {
   const p = s.provs[a.loc];
   // nepřátelská vojska v nomu
   for (const e of s.armies.filter(x => x !== a && x.loc === a.loc && atWar(s, x.cl, a.cl))) {
-    const b = battle(s, { cl: a.cl, t: a.t, train: a.train, cmd: armyCmdBonus(s, a), cmds: a.cmds }, { cl: e.cl, t: e.t, train: e.train, cmd: armyCmdBonus(s, e), cmds: e.cmds }, p.id);
+    const b = battle(s, { cl: a.cl, t: a.t, train: a.train, cmd: armyCmdBonus(s, a), cmds: a.cmds, stance: a.stance }, { cl: e.cl, t: e.t, train: e.train, cmd: armyCmdBonus(s, e), cmds: e.cmds, stance: e.stance }, p.id);
     if (b.win === "A") retreat(s, e, e.path && e.path.length ? e.loc : (clanProvs(s, e.cl).find(q => p.nb.includes(q.id)) || {}).id);
     else { retreat(s, a, from); return false; }
   }
@@ -1317,7 +1331,7 @@ function arrive(s, a, from) {
   if (!atWar(s, a.cl, p.owner)) { a.path = []; return false; }
   if (men(p.troops) > 0) {
     const L = chr(s, p.lord);
-    const b = battle(s, { cl: a.cl, t: a.t, train: a.train, cmd: armyCmdBonus(s, a), cmds: a.cmds }, { cl: p.owner, t: p.troops, train: p.train, cmd: L ? 1 + (st(L, "ved") - 50) / 200 : 0.95, fort: fortMult(s, p), cmds: L ? [L.id] : [] }, p.id, { kind: p.castle > 1 ? "zteč" : "bitva" });
+    const b = battle(s, { cl: a.cl, t: a.t, train: a.train, cmd: armyCmdBonus(s, a), cmds: a.cmds, stance: a.stance }, { cl: p.owner, t: p.troops, train: p.train, cmd: L ? 1 + (st(L, "ved") - 50) / 200 : 0.95, fort: fortMult(s, p), cmds: L ? [L.id] : [] }, p.id, { kind: p.castle > 1 ? "zteč" : "bitva" });
     if (b.win !== "A") { retreat(s, a, from); return false; }
     // zbytek posádky ustoupí do pevnosti nebo uteče
     const rest = men(p.troops); if (rest > 0) { const to = p.nb.map(n => s.provs[n]).find(q => q.owner === p.owner && !q.siege); if (to) for (const k of TROOP_IDS) { to.troops[k] = (to.troops[k] || 0) + Math.round((p.troops[k] || 0) * 0.5); } p.troops = {}; }
@@ -1538,7 +1552,8 @@ function succession(s, cid, old) {
   const coreg = C.laws.nastupnictvi === 1 && age(s, h) >= 15;
   C.leader = h.id; if (h.st !== "kid") h.st = "off"; h.rank = 4; h.loy = 100; h.dyn = 1; h.loc = C.capital || h.loc; h.merit = Math.max(h.merit, 800);
   const queen = h.sex === "f", child = age(s, h) < 15;
-  const tombOk = C.tomb.stage >= 3, tombBad = C.tomb.stage <= 1;
+  const tombOk = C.tomb.stage >= 3 || (C.nadace || 0) >= 2, tombBad = C.tomb.stage <= 1 && !C.nadace;
+  if (hasTech(s, cid, "balzam")) C.maat = Math.min(100, C.maat + 2); if (C.nadace) C.maat = Math.min(100, C.maat + C.nadace * 2);
   C.maat = clamp(C.maat + (tombOk ? 5 : tombBad ? -6 : 0) - (coreg ? 0 : 4) - (queen ? 8 : 0) - (child ? 3 : 0), 0, 100);
   for (const c of officers(s, cid)) if (!c.dyn) c.loy = Math.max(0, c.loy - (coreg ? 2 : 8) - (C.laws.nastupnictvi === 2 ? -3 : 0));
   C.reign = s.turn; C.tomb = { stage: 0, left: 0, active: false }; C.hebsed = 0; C.horus = null;
@@ -1636,8 +1651,9 @@ function economyTick(s) {
     C.deben += b.net; C.grain += b.gnet; C.last.net = b.net; C.last.gnet = b.gnet;
     if (hasTech(s, C.id, "vuz")) C.kone += sum(clanProvs(s, C.id).filter(p => p.ter === "delta").map(p => p.v * (hasTech(s, C.id, "dobytek") ? 4 : 2)));
     if (C.grain < 0) { // hlad ve vojsku: dezerce
-      for (const p of clanProvs(s, C.id)) lossApply(p.troops, men(p.troops) * 0.08);
-      for (const a of s.armies.filter(x => x.cl === C.id)) lossApply(a.t, men(a.t) * 0.1);
+      const dz = hasTech(s, C.id, "sklady") ? 0.5 : 1;
+      for (const p of clanProvs(s, C.id)) lossApply(p.troops, men(p.troops) * 0.08 * dz);
+      for (const a of s.armies.filter(x => x.cl === C.id)) lossApply(a.t, men(a.t) * 0.1 * dz);
       if (isPlayer(s, C.id)) log(s, `Sýpky jsou prázdné! Vojáci bez přídělů dezertují.`, "hospodarstvi", [C.id]);
       C.grain = 0;
     }
@@ -1798,6 +1814,7 @@ function randomEvents(s) {
   const C = P(s); if (!C || !C.alive || s.events.length) return;
   if (s.month === OSIRIS_MONTH && s.provs.u8.owner === s.player) { queueEvent(s, "usir", {}); return; }
   if (s.month === 9 && s.scen === "sip" && s.provs.u4.owner === s.player) { queueEvent(s, "udoli", {}); return; }
+  if (s.month === HARVEST_MONTH && (s.provs.u5.owner === s.player || s.provs.u9.owner === s.player) && chance(s, 0.6)) { queueEvent(s, "min", {}); return; }
   if (s.month === 0 && regYear(s, s.player) >= 31 && (!C.hebsed || s.turn - C.hebsed >= 36)) { queueEvent(s, "hebsed", {}); return; }
   if (!chance(s, 0.3)) return;
   const opts = moreEventOpts(s);
@@ -1942,7 +1959,7 @@ function endTurn(s) {
   delegated(s);
   for (const C of aliveClans(s)) if (!isPlayer(s, C.id)) aiClan(s, C.id);
   moveArmies(s); siegeTick(s); raids(s);
-  economyTick(s); monTick(s); mechTick(s); missionTick(s);
+  economyTick(s); monTick(s); mechTick(s); nadaceTick(s); missionTick(s);
   if (s.month === 0) { s.flood.next = rollFlood(s); }
   if (s.month === FLOOD_MONTH) floodTick(s);
   if (s.month === HARVEST_MONTH) harvestTick(s);
@@ -1962,7 +1979,7 @@ function endTurn(s) {
   scriptedEvents(s);
   // posun kalendáře
   s.turn++; s.month++;
-  if (s.month >= 12) { s.month = 0; s.bce--; log(s, `Pět dní navíc (epagomenální): slaví se narození Usira, Hora, Sutecha, Eset a Nebthet. Začíná nový rok.`, "nil"); yearLife(s); if (C) { if (hasTech(s, s.player, "hvezdy")) C.maat = Math.min(100, C.maat + 2); } }
+  if (s.month >= 12) { s.month = 0; s.bce--; log(s, `Pět dní navíc (epagomenální): slaví se narození Usira, Hora, Sutecha, Eset a Nebthet. Začíná nový rok.`, "nil"); yearLife(s); if (C) { if (hasTech(s, s.player, "hvezdy")) C.maat = Math.min(100, C.maat + 2); if (hasTech(s, s.player, "sothis")) C.maat = Math.min(100, C.maat + 1); } }
   randomEvents(s);
   checkEnd(s);
   snapshot(s);
@@ -2229,6 +2246,7 @@ function mechTick(s) {
     if (C.horus === "wahanch" && C.maat > 50) C.maat = Math.min(100, C.maat + (C.maat - 50) * 0.01);
     if (C.horus === "necer") { C.maat = Math.min(100, C.maat + 0.1); if (C.estates) C.estates.knezi = Math.min(100, C.estates.knezi + 0.1); }
     if (C.horus === "nacht") for (const p of clanProvs(s, C.id)) if (p.train < 60) p.train = Math.min(60, p.train + 0.8);
+    if (hasTech(s, C.id, "protosin")) for (const x of aliveClans(s)) if (x.cul === "aam" && x.id !== C.id && chance(s, 0.1)) addRel(s, C.id, x.id, 1);
     if (g === "sutech") for (const x of aliveClans(s)) if (x.cul === "aam" || x.cul === "hyk") if (x.id !== C.id && chance(s, 0.1)) addRel(s, C.id, x.id, 1);
   }
 }
@@ -2342,6 +2360,57 @@ function moreEventOpts2(s) {
   const kid = Object.values(s.chars).find(c => c.cl === s.player && c.dyn && c.st === "kid" && c.sex === "m" && age(s, c) >= 8 && !c.edu); if (kid) { opts.push(["princ", { cid: kid.id }]); }
   return opts;
 }
+
+// Zádušní nadace, převoz obilí lodí, zajatci jako pracovní síla, postoj vojska, svátek Mina.
+
+// ---------- zádušní nadace ----------
+// Nomarcha Hapdžefai z Asjútu (12. dynastie) uzavřel s kněžími deset smluv, aby mu po smrti přinášeli obětiny.
+const NADACE_MAX = 3;
+function foundNadace(s, cid) {
+  const C = s.clans[cid]; C.nadace = C.nadace || 0; if (C.nadace >= NADACE_MAX) return "Více nadací kněží neudrží.";
+  if (!pay(s, cid, 3000, 10000)) return "Nadace stojí 3 000 debenů a 10 000 charů obilí.";
+  C.nadace++; if (C.estates) C.estates.knezi = Math.min(100, C.estates.knezi + 3);
+  log(s, `Panovník uzavřel s kněžími smlouvu o zádušní nadaci: pole a příděly výměnou za obětiny u jeho sochy navěky (jako nomarcha Hapdžefai z Asjútu). Nadací: ${C.nadace}.`, "chramy", [cid]); return null;
+}
+// ---------- převoz obilí lodí ----------
+function shipGrain(s, cid, fromId, toId, q) {
+  const a = s.provs[fromId], b = s.provs[toId]; q = Math.round(+q || 0);
+  if (!a || !b || a.owner !== cid || b.owner !== cid || a === b) return "Vyber dva vlastní nomy.";
+  if (!TERRAIN[a.ter].nile || !TERRAIN[b.ter].nile) return "Obilí se vozí po Nilu – oba nomy musí ležet u řeky.";
+  if (q < 1000) return "Zadej aspoň 1 000 charů."; if (a.stock < q) return `V obecních sýpkách nomu ${a.n} je jen ${fmtN(a.stock)} charů.`;
+  const cost = Math.round(q / (hasTech(s, cid, "clun") ? 100 : 50)); if (!pay(s, cid, cost)) return `Převoz stojí ${fmtN(cost)} debenů.`;
+  a.stock -= q; b.stock += Math.round(q * 0.95); b.loy = Math.min(100, b.loy + (b.hunger > 0.05 ? 6 : 1));
+  if (isPlayer(s, cid)) log(s, `Lodě převezly ${fmtN(q)} charů obilí z nomu ${a.n} do nomu ${b.n} (5 % se cestou ztratilo, převoz za ${fmtN(cost)} debenů).`, "hospodarstvi", [cid]);
+  return null;
+}
+// ---------- zajatci ----------
+// Vítězové odváděli zajatce jako pracovní sílu; papyrus Brooklyn (13. dynastie) uvádí v jedné domácnosti desítky asijských služebníků.
+function gainCaptives(s, cid, n) { const C = s.clans[cid]; if (!C) return; C.zajatci = Math.round((C.zajatci || 0) + n); }
+function captivesBuild(s, cid) {
+  const C = s.clans[cid]; if ((C.zajatci || 0) < 300) return "Potřebuješ aspoň 300 zajatců.";
+  let n = 0; for (const p of clanProvs(s, cid)) if (p.build && C.zajatci >= 300) { p.build.left = Math.max(0.5, p.build.left - 1.5); C.zajatci -= 300; n++; }
+  if (C.tomb.active && C.zajatci >= 300) { C.tomb.left -= 1.5; C.zajatci -= 300; n++; }
+  if (!n) return "Nic se nestaví.";
+  log(s, `Zajatci pracují na ${nWord(n)} stavbách – ty pokročily o měsíc a půl.`, "stavby", [cid]); return null;
+}
+const nWord = n => (n === 1 ? "jedné" : n === 2 ? "dvou" : n === 3 ? "třech" : n === 4 ? "čtyřech" : String(n));
+function captivesSettle(s, cid, pid) {
+  const C = s.clans[cid], p = s.provs[pid || C.capital]; if (!p || p.owner !== cid) return "Vyber vlastní nom."; if ((C.zajatci || 0) < 200) return "Potřebuješ aspoň 200 zajatců.";
+  const n = C.zajatci; p.pop = r1(p.pop + n / 1000); p.agri = Math.min(agriCap(s, p), p.agri + Math.round(n / 500)); C.zajatci = 0; p.loy = Math.max(0, p.loy - 2);
+  log(s, `${fmtN(n)} zajatců bylo usazeno v nomu ${p.n} jako rolníci a služebníci chrámových a palácových statků.`, "hospodarstvi", [cid]); return null;
+}
+// ---------- postoj vojska v bitvě ----------
+const STANCES = { utok: { n: "útočný", atk: 1.12, loss: 1.15, brk: 25 }, vyvazeny: { n: "vyvážený", atk: 1, loss: 1, brk: 30 }, opatrny: { n: "opatrný", atk: 0.9, loss: 0.8, brk: 45 } };
+const stanceOf = x => STANCES[(x && x.stance) || "vyvazeny"] || STANCES.vyvazeny;
+// ---------- svátek Mina při sklizni ----------
+const EV4 = {
+  min: { view: (s, d) => { const C = P(s); return { t: "Svátek Mina", tx: "Začíná sklizeň. Slaví se svátek Mina, boha plodnosti, doložený už od Staré říše: socha boha vychází v průvodu z chrámu a panovník podle pozdějších zobrazení žne první snop obilí.",
+    ch: [{ t: "Vystrojit svátek (600 debenů, 4 000 charů)", d: "lid +4, maat +2", f: () => { if (!pay(s, s.player, 600, 4000)) return "Nedostatek prostředků."; C.estates.lid = Math.min(100, C.estates.lid + 4); C.maat = Math.min(100, C.maat + 2); return null; } },
+      { t: "Nechat slavit kněze Mina", d: "maat +1", f: () => { C.maat = Math.min(100, C.maat + 1); return null; } }] }; } },
+};
+Object.assign(EVENTS, EV4); EVENT_Q.min = "hapi_zdrav";
+// měsíční účinky nadací
+function nadaceTick(s) { for (const C of aliveClans(s)) if (C.nadace) { C.grain -= C.nadace * 400; C.maat = Math.min(100, C.maat + C.nadace * 0.05); } }
 
 // Rozhraní: pomocné funkce, znaky rodů, pruhy, grafy a mapa Egypta.
 let S = null;
@@ -2511,6 +2580,8 @@ function provPanel(p) {
     h += `<h4>Úředníci v nomu</h4>` + (officersIn(S, p.id).map(c => `<div class="small">${esc(c.n)} – ${RANKS[c.rank].n}${c.acted === S.turn ? ' <span class="muted">(jedná)</span>' : ""}</div>`).join("") || '<p class="small muted">Nikdo. Pošli sem úředníka rozkazem „Odjet do jiného nomu“.</p>');
     { const d = capDist(S, me())[p.id], C0 = P(S); h += `<div class="small">${p.id === C0.capital ? "<b>Sídlo rodu</b>" : `Vzdálenost od sídla: ${d == null ? "?" : nPlural(d, "přechod", "přechody", "přechodů")} (spokojenost ${distLoy(S, p) >= 0 ? "+" : ""}${distLoy(S, p)})`}</div>`;
       if (p.id !== C0.capital) h += `<div class="row">${btn("Přenést sem sídlo (5 000 d., 20 tis. ch.)", "capital", [p.id], (C0.lawCd.cap || 0) > S.turn ? `Znovu za ${C0.lawCd.cap - S.turn} měs.` : null)}</div>`; }
+    if (TERRAIN[p.ter].nile) { const tg = myProvs().filter(q => q.id !== p.id && TERRAIN[q.ter].nile).sort((a, b) => (b.hunger - a.hunger) || a.stock - b.stock);
+      if (tg.length) h += `<h4>Převézt obilí lodí</h4><div class="row">${sel("gt_" + p.id, tg.map(q => [q.id, `${q.n}${q.hunger > 0.05 ? " (hlad)" : ""} – zásoby ${fmtK(q.stock)}`]), SEL["gt_" + p.id])} <input id="gq_${p.id}" type="number" step="1000" min="1000" placeholder="charů"> ${btn("Převézt", "ship", [p.id])}</div><div class="small muted">Z obecních sýpek tohoto nomu (${fmtK(p.stock)} charů); převoz stojí deben za ${hasTech(S, me(), "clun") ? 100 : 50} charů, 5 % se cestou ztratí.</div>`; }
     h += `<div class="row"><label class="small"><input type="checkbox" data-a="deleg" data-x='["${p.id}"]' ${p.deleg ? "checked" : ""}> svěřit nom rádci (úředníci jednají sami)</label></div>`;
     // vyslat vojsko
     if (men(p.troops) >= 100 && !p.siege) {
@@ -2519,7 +2590,8 @@ function provPanel(p) {
       h += `<h4>Vyslat vojsko</h4>` + (targets.length ? `<div class="row">${sel("at_" + p.id, targets.map(([q, path]) => [q.id, `${q.n} – ${q.owner === me() ? "vlastní" : S.clans[q.owner].n} (${path.length} ${path.length === 1 ? "pochod" : "pochody"})`]), SEL["at_" + p.id])}
         ${sel("ap_" + p.id, [["0.25", "čtvrtina"], ["0.5", "polovina"], ["0.75", "tři čtvrtiny"], ["1", "všichni"]], SEL["ap_" + p.id] || "0.75")}
         ${sel("ac_" + p.id, [["", "bez velitele"]].concat(cmds.map(c => [c.id, `${c.n} (velení ${st(c, "ved")})`])), SEL["ac_" + p.id] || (cmds.sort((a, b) => st(b, "ved") - st(a, "ved"))[0] || {}).id || "")}
-        ${btn("Vyslat", "send", [p.id], null, "go")}</div><p class="small muted">Cíle: vlastní a spojenecké nomy (přesun) a nomy nepřátel, se kterými válčíš. Válku vyhlásíš v Diplomacii.</p>` : '<p class="small muted">Žádný dosažitelný cíl – nejsi ve válce.</p>');
+        ${sel("as_" + p.id, Object.entries(STANCES).map(([k, x]) => [k, "postoj: " + x.n]), SEL["as_" + p.id] || "vyvazeny")}
+        ${btn("Vyslat", "send", [p.id], null, "go")}</div><div class="small muted">Útočný postoj: silnější úder, ale větší ztráty a vytrvá déle. Opatrný: menší ztráty, ale ustoupí dřív.</div><p class="small muted">Cíle: vlastní a spojenecké nomy (přesun) a nomy nepřátel, se kterými válčíš. Válku vyhlásíš v Diplomacii.</p>` : '<p class="small muted">Žádný dosažitelný cíl – nejsi ve válce.</p>');
     }
   } else if (atWar(S, me(), p.owner)) h += `<p class="small">Jste ve válce. Vojsko pošli ze sousedního vlastního nomu.</p>`;
   else h += `<div class="row">${btn("Diplomacie s tímto rodem", "dipl", [p.owner])}</div>`;
@@ -2602,6 +2674,7 @@ function tChramy() {
         st_.stage >= M.stages ? '<span class="good">✔</span>' : btn(`Další fáze (${fmtK(c.deben)} d., ${fmtK(c.grain)} ch.)`, "mon", [id], e, "go")]); })) + '<p class="small muted">Každá fáze trvá šest měsíců, za záplavy polovinu. Stavba patří nomu: kdo ho dobude, převezme i rozestavěné dílo. Hotové stavby se počítají do odkazu rodu.</p>', "wide")}
   ${card(`${hg("necer")} Státní bůh`, `<div class="people">${Object.entries(STATE_GODS).map(([k, G]) => { const cur = stateGod(S, me()) === k, own = S.provs[G.at].owner === me();
       return `<div class="person${cur ? "" : own ? "" : " done"}" style="${cur ? "outline:3px solid var(--gold)" : ""}"><div class="pn">${esc(G.n)}${cur ? " – <span class=\"good\">uctíván dvorem</span>" : ""}</div><div class="pr">kultovní centrum: ${esc(S.provs[G.at].n)}</div><div class="small">${esc(G.d)}</div><div class="small"><b>${esc(G.eff)}</b></div>${cur ? "" : `<div class="acts">${btn("Povýšit jeho kult", "god", [k], own ? null : "Musíš držet kultovní centrum")}</div>`}</div>`; }).join("")}</div><p class="small muted">Změna kultu stojí maat −6 a přízeň kněží −12 a lze ji opakovat nejdřív po třech letech.${(P(S).lawCd.god || 0) > S.turn ? ` Znovu za ${P(S).lawCd.god - S.turn} měs.` : ""}</p>`, "wide")}
+  ${card("Zádušní nadace", `<p>Nadací: <b>${C.nadace || 0}</b> z ${NADACE_MAX}. Každá stojí 400 charů obilí měsíčně, přidává maat a po smrti panovníka zajistí nástupci maat +2 a důstojný pohřeb i bez hotové hrobky.</p><div class="row">${btn("Založit nadaci (3 000 d., 10 tis. ch.)", "nadace", [], (C.nadace || 0) >= NADACE_MAX ? "Víc nadací kněží neudrží" : null, "go")}</div><p class="small muted">Nomarcha Hapdžefai z Asjútu (12. dynastie) dal do své hrobky vytesat deset smluv s kněžími, kteří mu za pole a příděly měli navěky přinášet obětiny.</p>`)}
   ${card("Zákony", tbl(["Zákon", "Nastavení"], laws), "wide")}
   ${card("Chrámy", tbl(["Nom", "Bůh", "#Úroveň"], temples) + '<p class="small muted">Chrám staví úředník rozkazem „Řídit stavbu“. Každá úroveň dává maat, spokojenost a body vědění.</p>')}</div>`;
 }
@@ -2846,6 +2919,7 @@ function tPrehled() {
   </div>
   <div class="grid">
     ${card(`${ricon("urednici", 20)} Úkoly rádců`, missionsHtml())}
+    ${card(`${ricon("vojsko", 20)} Zajatci`, `<p>Zajatců: <b>${fmt(C.zajatci || 0)}</b>. Získáš je ve vítězných bitvách.</p><div class="row">${btn("Poslat na stavby (300 na stavbu)", "capBuild", [], (C.zajatci || 0) >= 300 ? null : "Málo zajatců")} ${btn("Usadit u sídla jako rolníky", "capSettle", [], (C.zajatci || 0) >= 200 ? null : "Málo zajatců")}</div><p class="small muted">Vítězové odváděli zajatce jako pracovní sílu: Ahmose, syn Ebany, si zapsal každého, koho odvedl, a papyrus Brooklyn (13. dynastie) uvádí v jedné domácnosti desítky asijských služebníků.</p>`)}
     ${card(`${ricon("urednici", 20)} Rádci hlásí`, alertsHtml())}
     ${card(`${hg("sema")} Síla rodů (počet nomů)`, lineChart(series, world.map(e => e.d)))}
     ${card("Z letopisů", `<div class="log" style="max-height:320px">${S.log.filter(x => !x.cl || x.cl.includes(me())).slice(0, 25).map(x => `<div class="lg c-${x.cat}"><span class="tag">${monthShort(x.m)} ${x.y}</span>${esc(x.txt)}</div>`).join("")}</div>`, "wide")}
@@ -3148,7 +3222,11 @@ ACT.advise = id => { const c = chr(S, id); if (!c || c.acted === S.turn) return 
 ACT.adviseAll = () => { let n = 0; for (const c of freeOffs()) { aiDomestic(S, me(), c, true); if (c.acted === S.turn) n++; } toast(`Rádce zadal ${n} rozkazů.`); };
 ACT.planDone = () => { SEL.planDone = !SEL.planDone; };
 ACT.deleg = (pid, v, el) => { const p = S.provs[pid]; if (p && p.owner === me()) p.deleg = !!(el && el.checked); };
-ACT.send = pid => { const t = val("at_" + pid), f = val("ap_" + pid), c = val("ac_" + pid); SEL["at_" + pid] = t; SEL["ap_" + pid] = f; return sendArmy(S, me(), pid, t, f, c ? [c] : []); };
+ACT.send = pid => { const t = val("at_" + pid), f = val("ap_" + pid), c = val("ac_" + pid), st_ = val("as_" + pid); SEL["at_" + pid] = t; SEL["ap_" + pid] = f; SEL["as_" + pid] = st_; return sendArmy(S, me(), pid, t, f, c ? [c] : [], st_); };
+ACT.nadace = () => foundNadace(S, me());
+ACT.ship = pid => { const t = val("gt_" + pid), q = val("gq_" + pid); SEL["gt_" + pid] = t; return shipGrain(S, me(), pid, t, q); };
+ACT.capBuild = () => captivesBuild(S, me());
+ACT.capSettle = () => captivesSettle(S, me());
 ACT.disband = id => { const a = S.armies.find(x => x.id === id); if (!a) return; if (S.provs[a.loc].owner !== me()) return "Vojsko není ve vlastním nomu."; disbandArmy(S, a); };
 ACT.armyHome = id => { const a = S.armies.find(x => x.id === id); if (!a) return; const home = myProvs().sort((x, y) => (findPath(S, me(), a.loc, x.id) || [1, 1, 1, 1, 1, 1, 1, 1, 1]).length - (findPath(S, me(), a.loc, y.id) || [1, 1, 1, 1, 1, 1, 1, 1, 1]).length)[0]; if (!home) return "Není kam."; if (home.id === a.loc) { disbandArmy(S, a); return; } a.path = findPath(S, me(), a.loc, home.id) || []; a.goal = home.id; const p = S.provs[a.loc]; if (p.siege && p.siege.army === a.id) p.siege = null; };
 ACT.promote = id => promote(S, me(), id);

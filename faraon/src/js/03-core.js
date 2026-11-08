@@ -78,6 +78,7 @@ function newGame(opts = {}) {
     tombN: c.tomb || "hrobka", tax: 2, rel: {}, res: { cur: null, pts: 0 }, vassalOf: c.vassalOf || null, tributeTo: null, reign: 0, tomb: { stage: 0, left: 0, active: false }, laws: { robota: 1, nomarchove: 1, chramy: 1, vojsko: 1, nastupnictvi: 0 }, lawCd: {},
     offices: {}, last: {}, medjay: !!c.medjay, census: 0, hebsed: 0, mods: [] });
   for (const C of Object.values(s.clans)) if (C.cul === "eg" || C.cul === "hyk") for (const t of OLD_TECHS) C.techs[t] = 1;
+  if (scen === "sip") { for (const id of ["thebes", "hyksos"]) for (const t of ["zapas", "sklady", "clun"]) s.clans[id].techs[t] = 1; s.clans.hyksos.techs.protosin = 1; }
   if (scen === "sip") for (const id of ["thebes", "hyksos"]) for (const t of ["pyrmesta", "ochrana", "zlatnictvi", "papyrdilny", "osli", "tlumocnici", "sehel"]) if (id === "thebes" || t !== "sehel") s.clans[id].techs[t] = 1;
   if (scen === "sip") { for (const id of ["thebes", "hyksos"]) for (const t of ["pekarny", "pecete", "obleh", "obelisky"]) s.clans[id].techs[t] = 1; for (const t of ["zpravy", "hlidky", "usirkult"]) s.clans.thebes.techs[t] = 1; }
   const owner = {}; for (const c of Sc.clans) for (const p of c.provs) owner[p] = c.id;
@@ -177,7 +178,7 @@ function provHarvest(s, p, h) {
   const T = TERRAIN[p.ter], f = T.nile ? floodFactor(h != null ? h : s.flood.h) : (p.ter === "oaza" ? 0.95 : 0.7);
   return p.pop * 1000 * 5 * (p.agri / 50) * T.agri * f * (0.75 + p.loy / 400) * (p.siege ? 0.3 : 1);
 }
-const provFood = (s, p, h) => provHarvest(s, p, h) + p.pop * 1000 * PASTORAL[p.ter];
+const provFood = (s, p, h) => provHarvest(s, p, h) + p.pop * 1000 * (PASTORAL[p.ter] + (TERRAIN[p.ter].nile && hasTech(s, p.owner, "ptaci") ? 0.15 : 0));
 const provNeed = p => p.pop * 1000 * NEED_PER_PERSON;
 function taxMult(s, cid) {
   const C = s.clans[cid]; let m = 1;
@@ -186,6 +187,7 @@ function taxMult(s, cid) {
   m *= 1 + officeVal(s, cid, "sypky") / 1200 + officeVal(s, cid, "vezir") / 2500;
   m *= [0.95, 1, 1.08][C.laws.nomarchove];
   if (stateGod(s, cid) === "herisef") m *= 1.04;
+  if (hasTech(s, cid, "clun")) m *= 1.02;
   if (isPlayer(s, cid)) m *= diffIncome(s);
   return m;
 }

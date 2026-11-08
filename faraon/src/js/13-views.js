@@ -51,6 +51,7 @@ function tPrehled() {
   </div>
   <div class="grid">
     ${card(`${ricon("urednici", 20)} Úkoly rádců`, missionsHtml())}
+    ${card(`${ricon("vojsko", 20)} Zajatci`, `<p>Zajatců: <b>${fmt(C.zajatci || 0)}</b>. Získáš je ve vítězných bitvách.</p><div class="row">${btn("Poslat na stavby (300 na stavbu)", "capBuild", [], (C.zajatci || 0) >= 300 ? null : "Málo zajatců")} ${btn("Usadit u sídla jako rolníky", "capSettle", [], (C.zajatci || 0) >= 200 ? null : "Málo zajatců")}</div><p class="small muted">Vítězové odváděli zajatce jako pracovní sílu: Ahmose, syn Ebany, si zapsal každého, koho odvedl, a papyrus Brooklyn (13. dynastie) uvádí v jedné domácnosti desítky asijských služebníků.</p>`)}
     ${card(`${ricon("urednici", 20)} Rádci hlásí`, alertsHtml())}
     ${card(`${hg("sema")} Síla rodů (počet nomů)`, lineChart(series, world.map(e => e.d)))}
     ${card("Z letopisů", `<div class="log" style="max-height:320px">${S.log.filter(x => !x.cl || x.cl.includes(me())).slice(0, 25).map(x => `<div class="lg c-${x.cat}"><span class="tag">${monthShort(x.m)} ${x.y}</span>${esc(x.txt)}</div>`).join("")}</div>`, "wide")}

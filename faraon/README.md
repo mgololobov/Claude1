@@ -26,12 +26,13 @@ Hra je jeden soubor `dist/index.html`: stačí ho otevřít v prohlížeči, fun
 - Horovo jméno krále jako program vlády podle skutečných jmen Intefů a Montuhotepa II. (Sehertaui, Wahanch, Nachtnebtepnefer, Seanchibtaui, Necerihedžet, Semataui).
 - Přenesení sídla (jako Amenemhat I. do Itj-taui); spokojenost nomů klesá se vzdáleností od sídla.
 - Kořist po dobytí nomu: vydrancovat, odvést zajatce na práci, nebo ušetřit.
-- 40 objevů včetně měst stavitelů (Lahún), ochrany hrobů, zlatnictví (poklady z Dahšúru), papyrových dílen, karavan oslů (Harchuf), představených tlumočníků, kanálu u 1. kataraktu (Senusret III.), včelařství, vinných lisů, velkopekáren (modely Meketrea), modré fajánse, skarabových pečetí, vojenských zpráv ze Semny, pouštních hlídek, obléhacích žebříků (Beni Hasan), klenutých sýpek a lodí na kámen.
+- 47 objevů včetně ptačích sítí a chovu hus, pozorování Sothidy (Lahún), balzamovacích dílen, zásobovacích skladů, zápasnického výcviku (Beni Hasan), protosinajského písma, nákladních člunů na obilí, měst stavitelů (Lahún), ochrany hrobů, zlatnictví (poklady z Dahšúru), papyrových dílen, karavan oslů (Harchuf), představených tlumočníků, kanálu u 1. kataraktu (Senusret III.), včelařství, vinných lisů, velkopekáren (modely Meketrea), modré fajánse, skarabových pečetí, vojenských zpráv ze Semny, pouštních hlídek, obléhacích žebříků (Beni Hasan), klenutých sýpek a lodí na kámen.
 - Úkoly rádců s odměnami, u velkých rodů podle skutečných tažení (Nefrusy, Memfis, Avaris, Buhen; Asjút a Hérakleopolis; Thinis a opevnění Delty).
 - Obchodní cesty (Nil mezi Memfidou a Thébami, cesta do Núbie, Vádí Hammámát, oázová cesta, Cesty Horovy, mořská cesta do Byblu); válka je přeruší. Režim mapy Obchod.
 - Synové poddaných vychovávaní na dvoře („děti kapu“): poddaný se nevzbouří.
 - V období záplavy pěší vojsko bez lodí často nepostoupí.
 - Další události: zpustlá svatyně předků, dopis mrtvému, spor o hranici nomů (Chnumhotep II.), poutníci v Abydu, posel z Byblu, výchova prince.
+- Zádušní nadace podle smluv nomarchy Hapdžefaje z Asjútu; převoz obilí lodí mezi obecními sýpkami nomů; zajatci z bitev jako pracovní síla nebo osadníci (papyrus Brooklyn); postoj vojska (útočný, vyvážený, opatrný); svátek Mina při sklizni.
 - Odkaz rodu: bodové hodnocení vlády pro porovnání her.
 - Rod, sňatky, nástupnictví (i spoluvláda), vědění od nilometru po válečný vůz a námořní lodě.
 
