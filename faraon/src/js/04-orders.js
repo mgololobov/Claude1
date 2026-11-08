@@ -104,7 +104,7 @@ function doCmd(s, cid, offId, cmd, arg, arg2) {
       const E = EXPED[arg]; if (!E) return "Vyber výpravu."; const e = expAvail(s, cid, arg); if (e) return e;
       const cost2 = 800 + E.months * 300, g2 = 3000 + E.months * 1500;
       if (!pay(s, cid, cost2, g2)) return `Výprava potřebuje ${cost2} debenů a ${fmtN(g2)} charů zásob.`;
-      c.away = { exp: arg, until: s.turn + E.months }; c.acted = s.turn;
+      c.away = { exp: arg, until: s.turn + Math.max(2, E.months - (hasTech(s, cid, "osli") ? 1 : 0)) }; c.acted = s.turn;
       if (p.lord === c.id) p.lord = null; assignLords(s, cid);
       return say(`vyrazil na výpravu: ${E.n} (návrat asi za ${E.months} měsíce).`);
     }
@@ -140,7 +140,7 @@ function doCmd(s, cid, offId, cmd, arg, arg2) {
   return "Neznámý rozkaz.";
 }
 const fmtN = v => Math.round(v).toLocaleString("cs-CZ");
-function researchMult(s, cid) { const C = s.clans[cid]; let m = hasTech(s, cid, "matematika") ? 1.25 : 1; if (isPlayer(s, cid) && C.estates) m *= 0.8 + C.estates.pisari / 250; return m; }
+function researchMult(s, cid) { const C = s.clans[cid]; let m = (hasTech(s, cid, "matematika") ? 1.25 : 1) * (hasTech(s, cid, "papyrdilny") ? 1.1 : 1); if (isPlayer(s, cid) && C.estates) m *= 0.8 + C.estates.pisari / 250; return m; }
 
 function capture(s, c, by) { c.st = "cap"; c.capBy = by; c.army = null; for (const p of Object.values(s.provs)) if (p.lord === c.id) p.lord = null; for (const C of Object.values(s.clans)) for (const k in C.offices) if (C.offices[k] === c.id) C.offices[k] = null; }
 
@@ -166,13 +166,13 @@ function expeditionReturn(s, c) {
   const E = EXPED[c.away.exp], C = s.clans[c.cl], me = isPlayer(s, c.cl); c.away = null;
   if (!C || !C.alive) { c.st = "wand"; return; }
   const home = s.provs[c.loc] && s.provs[c.loc].owner === c.cl ? c.loc : C.capital; c.loc = home;
-  const risk = E.risk * (1.3 - st(c, "spr") / 200 - st(c, "ved") / 300);
+  const risk = E.risk * (1.3 - st(c, "spr") / 200 - st(c, "ved") / 300) * (hasTech(s, c.cl, "osli") ? 0.67 : 1);
   if (chance(s, risk)) {
     if (chance(s, 0.4)) { die(s, c, `zahynul na výpravě (${E.foe})`); if (me) log(s, `Výprava „${E.n}“ se nevrátila: ${c.n} zahynul (${E.foe}).`, "vypravy", [c.cl]); return; }
     if (me) log(s, E.tech === "namorni" ? `${c.n} se po bouři vrátil z výpravy „${E.n}“ jen s hrstkou mužů a bez nákladu – jako hrdina příběhu o ztroskotaném námořníkovi ze Střední říše.` : `${c.n} se vrátil z výpravy „${E.n}“ s prázdnou – přepadli je ${E.foe}.`, "vypravy", [c.cl]); return;
   }
   const g = Math.round(rrange(s, E.deben[0], E.deben[1]) * (0.8 + st(c, "spr") / 250));
-  C.deben += g; C.prestige += E.prestige; if (E.maat) C.maat = Math.min(100, C.maat + E.maat); if (E.cedar) C.cedar += 2; c.merit += 15;
+  s.flags["exp_" + c.cl] = 1; C.deben += g; C.prestige += E.prestige; if (E.maat) C.maat = Math.min(100, C.maat + E.maat); if (E.cedar) C.cedar += 2; c.merit += 15;
   if (me) log(s, `${c.n} se vrátil z výpravy „${E.n}“: ${fmtN(g)} debenů${E.cedar ? ", cedrové dřevo pro dvě stavby" : ""}, sláva +${E.prestige}${E.maat ? ", maat +" + E.maat : ""}.`, "vypravy", [c.cl]);
   else if (E.prestige >= 30) log(s, `${clanName(s, c.cl)}: výprava do země Punt se vrátila s kadidlem a myrhou.`, "svet", [c.cl]);
 }
@@ -227,7 +227,7 @@ function startTomb(s, cid) {
 }
 function tombTick(s, cid) {
   const C = s.clans[cid]; if (!C.tomb.active) return;
-  C.tomb.left -= s.month < 4 ? 2 : 1; // za záplavy je robotníků nejvíc
+  C.tomb.left -= (s.month < 4 ? 2 : 1) * (hasTech(s, cid, "pyrmesta") ? 1.5 : 1); // za záplavy je robotníků nejvíc
   if (C.tomb.left <= 0) { C.tomb.active = false; C.tomb.stage++; C.maat = Math.min(100, C.maat + 3); C.prestige += 15;
     if (C.tomb.stage >= TOMB_STAGES.length) { C.maat = Math.min(100, C.maat + 10); C.prestige += 80; log(s, `${clanName(s, cid)}: hrobka panovníka ${leaderOf(s, cid).n} je dokončena a zádušní kult zajištěn.`, "stavby", [cid]); }
     else if (isPlayer(s, cid)) log(s, `Hrobka: dokončena fáze „${TOMB_STAGES[C.tomb.stage - 1]}“.`, "stavby", [cid]); }

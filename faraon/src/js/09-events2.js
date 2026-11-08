@@ -72,6 +72,6 @@ function moreEventOpts(s) {
   const cattle = someOwnProv(s, p => p.res.includes("dobytek") || p.ter === "delta"); if (cattle) opts.push(["mor_skotu", { pid: cattle.id }]);
   if ((s.scen === "sip" || s.bce < 1700) && someOwnProv(s, p => p.ter === "delta") && !s.flags.remeslnici) opts.push(["remeslnici", {}]);
   const kus = ["kush", "kerma"].find(id => s.clans[id] && s.clans[id].alive && id !== s.player && !atWar(s, s.player, id)); if (kus && clanProvs(s, s.player).some(p => p.nb.some(n => s.provs[n].owner === kus)) && !s.flags.posli_kus) opts.push(["posli_kus", { cl: kus }]);
-  return opts;
+  return opts.concat(moreEventOpts2(s));
 }
 function onEventPicked(s, k) { if (k === "spiknuti") s.flags.spiknuti_t = s.turn; if (k === "apis" || k === "remeslnici" || k === "posli_kus") s.flags[k] = 1; }

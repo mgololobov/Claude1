@@ -41,7 +41,7 @@ function monTick(s) {
   for (const id of MON_IDS) {
     const M = MONUMENTS[id], p = s.provs[M.at], st_ = p.mons && p.mons[id]; if (!st_ || !st_.active) continue;
     if (p.owner !== st_.by || p.siege) { st_.active = false; continue; } // stavba se zastaví, když nom padne
-    st_.left -= s.month < 4 ? 2 : 1;
+    st_.left -= (s.month < 4 ? 2 : 1) * (hasTech(s, st_.by, "pyrmesta") ? 1.5 : 1);
     if (st_.left > 0) continue;
     st_.active = false; st_.stage++; const C = s.clans[st_.by];
     if (st_.stage < M.stages) { C.prestige += 10; if (isPlayer(s, st_.by)) log(s, `${M.n}: dokončena ${st_.stage}. fáze z ${M.stages}.`, "stavby", [st_.by]); continue; }

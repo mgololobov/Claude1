@@ -300,7 +300,7 @@ function randomEvents(s) {
   if (s.month === 0 && regYear(s, s.player) >= 31 && (!C.hebsed || s.turn - C.hebsed >= 36)) { queueEvent(s, "hebsed", {}); return; }
   if (!chance(s, 0.3)) return;
   const opts = moreEventOpts(s);
-  const hp = someOwnProv(s, p => p.flags.includes("h") || p.id === C.capital); if (hp) opts.push(["lupici", { pid: hp.id }]);
+  const hp = someOwnProv(s, p => p.flags.includes("h") || p.id === C.capital); if (hp && !hasTech(s, s.player, "ochrana")) opts.push(["lupici", { pid: hp.id }]);
   const tp = someOwnProv(s, p => p.b.chram > 0); if (tp && C.laws.chramy !== 0) opts.push(["exempce", { pid: tp.id }]);
   const hi = officers(s, s.player).filter(c => !c.dyn && c.rank >= 3); if (hi.length && C.laws.nomarchove !== 0) opts.push(["dedicnost", { cid: pick(s, hi).id }]);
   opts.push(["pisar", { n: genName(s, C.cul, "m") }]);
@@ -408,7 +408,7 @@ function aiClan(s, cid) {
   // poddanství slabých sousedů
   if (chance(s, 0.03)) for (const o of borderClans(s, cid)) { const O = s.clans[o]; if (isPlayer(s, o) || O.vassalOf || O.type === "kmen" || C.vassalOf) continue; if (realmPower(s, cid) > realmPower(s, o) * 3.5 && rel(s, cid, o) > -10) { C.last["d_" + o] = -1; diplo(s, cid, o, "podruci"); break; } }
   // vazal se vzbouří
-  if (C.vassalOf && s.clans[C.vassalOf] && chance(s, 0.02) && realmPower(s, cid) > realmPower(s, C.vassalOf) * 0.8 && rel(s, cid, C.vassalOf) < 20) declareWar(s, cid, C.vassalOf, "za nezávislost");
+  if (C.vassalOf && s.clans[C.vassalOf] && (C.kapUntil || 0) <= s.turn && chance(s, 0.02) && realmPower(s, cid) > realmPower(s, C.vassalOf) * 0.8 && rel(s, cid, C.vassalOf) < 20) declareWar(s, cid, C.vassalOf, "za nezávislost");
   // tribut
   if (C.tributeTo && (atWar(s, cid, C.tributeTo) || realmPower(s, cid) > realmPower(s, C.tributeTo) * 1.2) && chance(s, 0.05)) { C.last["d_" + C.tributeTo] = -1; diplo(s, cid, C.tributeTo, "tribut_stop"); }
   // rozpuštění vojsk bez cíle
@@ -441,7 +441,7 @@ function endTurn(s) {
   delegated(s);
   for (const C of aliveClans(s)) if (!isPlayer(s, C.id)) aiClan(s, C.id);
   moveArmies(s); siegeTick(s); raids(s);
-  economyTick(s); monTick(s); mechTick(s);
+  economyTick(s); monTick(s); mechTick(s); missionTick(s);
   if (s.month === 0) { s.flood.next = rollFlood(s); }
   if (s.month === FLOOD_MONTH) floodTick(s);
   if (s.month === HARVEST_MONTH) harvestTick(s);

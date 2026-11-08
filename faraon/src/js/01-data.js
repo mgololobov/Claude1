@@ -145,6 +145,15 @@ const TECHS = {
   obelisky: { n: "Lodě na kámen", cat: "Stavitelství", cost: 120, req: ["flotila"], d: "nákladní lodě a vlečné čluny pro obelisky a sochy z asuánské žuly (obelisky Senusreta I.): velké stavby a hrobky o 20 % levnější" },
   usirkult: { n: "Mystéria pro všechny", cat: "Náboženství a učenost", cost: 90, req: ["texty"], d: "každý může postavit stélu u „Terasy velkého boha“ a mít podíl na Usirově vzkříšení: Usirovy mystéria dávají maat +3 navíc, lid +3" },
 };
+Object.assign(TECHS, {
+  pyrmesta: { n: "Města stavitelů", cat: "Stavitelství", cost: 110, req: ["pisari"], d: "plánovaná města pro robotníky u královských staveb, jako Lahún (Kahún) u pyramidy Senusreta II.: hrobka a velké stavby rostou o polovinu rychleji" },
+  ochrana: { n: "Ochrana hrobů", cat: "Stavitelství", cost: 90, d: "padací kamenné bloky, slepé chodby a skryté vstupy, jaké měly pyramidy 12. dynastie: vykradači hrobů ti nehrozí" },
+  zlatnictvi: { n: "Zlatnictví a granulace", cat: "Řemesla", cost: 100, d: "pektorály, náramky a koruny z poklady princezen z Dahšúru a Lahúnu: dary cizím rodům působí o polovinu víc" },
+  papyrdilny: { n: "Papyrové dílny", cat: "Řemesla", cost: 70, d: "výroba papyrových svitků ve velkém z bažin Delty: +10 % bodů vědění, dvojnásobný výnos papyru" },
+  osli: { n: "Karavany oslů", cat: "Správa", cost: 80, d: "velké karavany oslů pro výpravy do pouště, jaké vedl Harchuf do země Jam: výpravy o měsíc kratší a o třetinu bezpečnější" },
+  tlumocnici: { n: "Představení tlumočníků", cat: "Správa", cost: 90, d: "úřad tlumočníků a znalců cizích zemí (titul doložený u hodnostářů z Elefantiny): vztahy s cizími rody se zlepšují snáz" },
+  sehel: { n: "Kanál u 1. kataraktu", cat: "Stavitelství", cost: 120, req: ["flotila"], d: "průplav skalami u ostrova Sehel, který dal vyčistit Senusret III. pro lodě do Núbie: nilská cesta do Núbie vynáší o 30 % víc, Elefantina +5 stropu obchodu" },
+});
 const TECH_IDS = Object.keys(TECHS);
 // Dovednosti známé od Staré říše mají egyptské rody od počátku; nově je musí objevit jen ostatní.
 const OLD_TECHS = ["vcelarstvi", "vinarstvi", "fajans", "tkalci", "klenba"];

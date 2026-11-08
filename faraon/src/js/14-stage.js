@@ -8,6 +8,7 @@ const MAP_MODES = {
   loy: { n: "Spokojenost", d: "spokojenost lidu: červená vzpoura, zelená klid" },
   rozvoj: { n: "Rozvoj", d: "pole a řemesla vůči stropu" },
   vojsko: { n: "Vojsko", d: "síla posádek: čím tmavší, tím víc mužů" },
+  obchod: { n: "Obchod", d: "obchodní cesty: plná čára průchodná, přerušovaná přerušená válkou" },
 };
 const lerp = (a, b, t) => a + (b - a) * t;
 function scale3(t, c0, c1, c2) { t = clamp(t, 0, 1); const [a, b, u] = t < 0.5 ? [c0, c1, t * 2] : [c1, c2, (t - 0.5) * 2]; return [0, 1, 2].map(i => Math.round(lerp(a[i], b[i], u))); }
@@ -15,7 +16,7 @@ const C_RED = [190, 50, 30], C_YEL = [225, 190, 70], C_GRN = [50, 140, 70];
 function modeColor(p, mode) {
   const C = S.clans[p.owner], kn = knows(S, p);
   if (mode === "polit") return [...hexRgb(C.col), p.owner === me() ? 120 : 75];
-  if (mode === "teren") return null;
+  if (mode === "teren" || mode === "obchod") return mode === "obchod" ? [...hexRgb(C.col), 40] : null;
   if (!kn) return [140, 130, 115, 70];
   if (mode === "uroda") { const h = S.flood.h || 15.5, r = (provFood(S, p, h) - (C.type === "kmen" ? 0 : provTax(S, p, h))) / Math.max(1, provNeed(p)); return [...scale3((r - 0.75) / 0.6 - p.hunger, C_RED, C_YEL, C_GRN), 150]; }
   if (mode === "loy") return [...scale3(p.loy / 100, C_RED, C_YEL, C_GRN), 150];
@@ -73,6 +74,7 @@ function mapSvg() {
   const done = new Set();
   for (const p of Object.values(S.provs)) for (const n of p.nb) { const key = p.id < n ? p.id + n : n + p.id; if (done.has(key)) continue; done.add(key); const q = S.provs[n]; if (p.ter === "poust" || q.ter === "poust" || p.ter === "oaza" || q.ter === "oaza") g += `<line class="edge" x1="${MX(p.lon)}" y1="${MY(p.lat)}" x2="${MX(q.lon)}" y2="${MY(q.lat)}" stroke-width="${0.8 * f}"/>`; }
   for (const a of S.armies) { if (!a.path || !a.path.length) continue; const own = a.cl === me(); if (!own && !knows(S, S.provs[a.loc])) continue; const L = [a.loc].concat(a.path).map(id => S.provs[id]); g += `<polyline class="march ${own ? "own" : "foe"}" stroke-width="${1.8 * f}" stroke-dasharray="${own ? "" : 4 * f + " " + 2 * f}" points="${L.map(p => MX(p.lon) + "," + MY(p.lat)).join(" ")}"/>`; }
+  if (mode === "obchod") for (const R of ROUTES) { const op = routeState(S, R).open; g += `<polyline points="${R.provs.map(id => MX(S.provs[id].lon) + "," + MY(S.provs[id].lat)).join(" ")}" fill="none" stroke="${R.col}" stroke-width="${4.5 * f}" stroke-linecap="round" stroke-linejoin="round" opacity=".85" ${op ? "" : `stroke-dasharray="${5 * f} ${4 * f}"`}><title>${esc(R.n)}${op ? "" : " – přerušená"}</title></polyline>`; }
   const LEFT = new Set(["u2", "u4", "u6", "u8", "u10", "u12", "u14", "u16", "u18", "u20", "u22", "l2", "l3", "l5", "l6", "lx", "fa", "o_bah", "n_sai", "n_semna", "n_wawat"]);
   for (const p of Object.values(S.provs)) {
     const x = MX(p.lon), y = MY(p.lat), C = S.clans[p.owner], mine = p.owner === me(), war = atWar(S, me(), p.owner), capf = C && C.capital === p.id;

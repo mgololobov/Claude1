@@ -50,12 +50,18 @@ function tPrehled() {
     ${t("vojsko", "Vojsko", fmtK(clanMen(S, me())), nPlural(S.armies.filter(a => a.cl === me()).length, "vojsko v poli", "vojska v poli", "vojsk v poli"), H.map(x => x.men))}
   </div>
   <div class="grid">
+    ${card(`${ricon("urednici", 20)} Úkoly rádců`, missionsHtml())}
     ${card(`${ricon("urednici", 20)} Rádci hlásí`, alertsHtml())}
     ${card(`${hg("sema")} Síla rodů (počet nomů)`, lineChart(series, world.map(e => e.d)))}
     ${card("Z letopisů", `<div class="log" style="max-height:320px">${S.log.filter(x => !x.cl || x.cl.includes(me())).slice(0, 25).map(x => `<div class="lg c-${x.cat}"><span class="tag">${monthShort(x.m)} ${x.y}</span>${esc(x.txt)}</div>`).join("")}</div>`, "wide")}
   </div>`;
 }
 
+function missionsHtml() {
+  const C = P(S), done = C.missions || {};
+  return missionList(S).map(id => { const M = MISSIONS[id], ok = done[id] != null;
+    return `<div class="alert ${ok ? "good" : "info"}"><b>${ok ? "✔ " : ""}${esc(M.n)}</b> – ${esc(M.d)}<div class="small muted">odměna: ${esc(M.r)}${ok ? " · splněno" : ""}</div></div>`; }).join("");
+}
 // ---------- karty postav ----------
 function statMini(c) { return `<div class="stats4">${STAT_IDS.map(k => `<span title="${STATS[k]} ${st(c, k)}">${STATS[k].slice(0, 3)} ${st(c, k)}<i><b style="width:${st(c, k)}%"></b></i></span>`).join("")}</div>`; }
 function loyMini(c) { const v = Math.round(c.loy), col = v < 30 ? "var(--bad)" : v < 55 ? "var(--warn)" : "var(--good)"; return `<div class="loyal" title="věrnost">věrnost <i><b style="width:${v}%;background:${col}"></b></i> ${v}</div>`; }
@@ -116,9 +122,11 @@ function tDiplo() {
       ${btn("Žádat poddanství", "diplo", [id, "podruci"], e || (D.vassalOf ? "Už je něčím poddaným" : null))}
       ${btn("Sňatek", "diplo", [id, "snatek"], e || (pair ? null : "Nejsou volní ženiši a nevěsty"))}
       ${D.vassalOf === me() ? btn("Propustit z poddanství", "diplo", [id, "propustit"], e) : ""}
+      ${D.vassalOf === me() ? btn("Vychovávat jeho syna na dvoře", "diplo", [id, "kap"], e || ((D.kapUntil || 0) > S.turn ? "Jeho syn už na dvoře žije" : null)) : ""}
       ${P(S).tributeTo === id ? btn("Přestat platit tribut", "diplo", [id, "tribut_stop"], e, "danger") : ""}</div>
       <h4>Obřady</h4><div class="row">${btn("Proklínací obřad (500 d.)", "diplo", [id, "proklinani"], e || ((P(S).last["p_" + id] || -99) > S.turn - 12 ? "Lze opakovat až za rok" : null))}</div>
       ${pair ? `<p class="small">Sňatek: ${esc(pair[0].n)} a ${esc(pair[1].n)}.</p>` : ""}
+      ${(D.kapUntil || 0) > S.turn ? '<p class="small">Syn jejich vládce žije na tvém dvoře mezi „dětmi kapu“ – poddaný se nevzbouří.</p>' : ""}
       <p class="small muted">Poměr sil (tvá říše : jejich) ${dec(warScore(S, me(), id))} : 1. Mír přijmou spíš, když prohrávají nebo válka trvá dlouho; poddanství při převaze víc než 3 : 1. Vyhlášení války během příměří nebo proti spojenci poškodí maat. Proklínací obřad (rozbíjení nádob se jmény nepřátel, doložený od Staré po Střední říši) sníží slávu nepřítele a spokojenost jeho pohraničních nomů.</p>`;
   }
   return `<div class="grid map2"><div class="realms">${cards.join("")}</div><section class="card sticky"><h3>Poselstvo</h3>${panel}</section></div>`;

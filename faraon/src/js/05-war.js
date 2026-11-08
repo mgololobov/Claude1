@@ -132,6 +132,7 @@ function moveArmies(s) {
     if (!a.path || !a.path.length) continue;
     let steps = 1; const nxt = a.path[0];
     if ((hasTech(s, a.cl, "flotila") || (s.provs[a.loc].b.pristav || 0) > 0) && nileLink(a.loc, nxt) && a.path.length > 1 && nileLink(nxt, a.path[1])) steps = 2;
+    if (s.month < 4 && steps === 1 && !hasTech(s, a.cl, "flotila") && chance(s, 0.3)) { if (isPlayer(s, a.cl)) log(s, `Vojsko u nomu ${s.provs[a.loc].n} brodí zaplavená pole a tento měsíc nepostoupilo. Bez lodí je v období achet pochod pomalý.`, "valka", [a.cl]); continue; }
     for (let i = 0; i < steps && a.path.length; i++) {
       const from = a.loc, to = a.path[0];
       if (!passable(s, a.cl, to)) { a.path = []; break; }
@@ -202,10 +203,10 @@ function makePeace(s, a, b) {
 function warScore(s, a, b) { const pa = realmPower(s, a) + 1, pb = realmPower(s, b) + 1; return pa / pb; }
 function dipCheck(s, a, b) { const A = s.clans[a]; if ((A.last["d_" + b] || -1) === s.turn) return "S tímto rodem jsi už tento měsíc jednal."; if (!s.clans[b] || !s.clans[b].alive) return "Rod zanikl."; return null; }
 function diplo(s, a, b, act, arg) {
-  const e = dipCheck(s, a, b); if (e) return e; const A = s.clans[a], B = s.clans[b], r = rel(s, a, b), me = isPlayer(s, a);
+  const e = dipCheck(s, a, b); if (e) return e; const A = s.clans[a], B = s.clans[b], r = rel(s, a, b) + (hasTech(s, a, "tlumocnici") ? 10 : 0), me = isPlayer(s, a);
   const done = () => { A.last["d_" + b] = s.turn; };
   switch (act) {
-    case "dar": { const amt = +arg || 1000; if (!pay(s, a, amt)) return "Nedostatek debenů."; const v = Math.round(Math.sqrt(amt) / 2.2); addRel(s, a, b, v); done(); log(s, `${A.house} poslal dary rodu ${B.house} (${fmtN(amt)} debenů): vztah +${v}.`, "diplomacie", [a, b]); return null; }
+    case "dar": { const amt = +arg || 1000; if (!pay(s, a, amt)) return "Nedostatek debenů."; const v = Math.round(Math.sqrt(amt) / 2.2 * (hasTech(s, a, "zlatnictvi") ? 1.5 : 1) * (hasTech(s, a, "tlumocnici") ? 1.3 : 1)); addRel(s, a, b, v); done(); log(s, `${A.house} poslal dary rodu ${B.house} (${fmtN(amt)} debenů): vztah +${v}.`, "diplomacie", [a, b]); return null; }
     case "valka": done(); return declareWar(s, a, b);
     case "mir": {
       if (!atWar(s, a, b)) return "Neválčíte."; done();
@@ -237,6 +238,7 @@ function diplo(s, a, b, act, arg) {
       for (const p of clanProvs(s, b)) if (p.nb.some(n => s.provs[n].owner === a)) p.loy = Math.max(0, p.loy - 3);
       log(s, `Kněží rodu ${A.house} napsali jména vládců rodu ${B.house} na hliněné nádoby a sošky spoutaných zajatců, rituálně je rozbili a pohřbili (proklínací obřad, jaký dokládá nález z Mirgissy). ${qText(Q("kletba"))}`, "diplomacie", [a, b]); return null;
     }
+    case "kap": { const r2 = takeKap(s, a, b); if (!r2) done(); return r2; }
     case "propustit": { if (B.vassalOf !== a) return "Není tvým poddaným."; B.vassalOf = null; addRel(s, a, b, 20); done(); log(s, `${A.house} propustil rod ${B.house} z poddanství.`, "diplomacie", [a, b]); return null; }
     case "tribut_stop": { if (A.tributeTo !== b) return "Neplatíš mu tribut."; A.tributeTo = null; addRel(s, a, b, -35); A.prestige += 20; done(); log(s, `${A.house} přestal odvádět tribut rodu ${B.house}!`, "diplomacie", [a, b]); return null; }
     case "snatek": {
