@@ -19,7 +19,7 @@ Hra je jeden soubor `dist/index.html`: stačí ho otevřít v prohlížeči, fun
 ## Jak se hraje
 
 - **Úvodní obrazovka**: vybereš dobu (šest scénářů s ilustracemi) a rod; u každého vidíš vládce, cíl a obtížnost.
-- **Mapa** je list papyru: jemně vykreslená území rodů, ikony sídel (sídlo rodu, město, pevnost, vesnice), pyramidy v Gíze a Sakkáře, hory Východní pouště, lodě na Nilu, praporce vojsk, značky čerstvých bitev. Tlačítko „Má říše“ přiblíží tvé nomy.
+- **Mapa** je reliéfní: stínovaný terén pouští a hor, zelená niva Nilu a Delty, moře s mělčinami. Území rodů jsou jen barevný tón s hranicí a sledují obdělávanou půdu; sídla mají kartografické značky (sídlo rodu, město, pevnost, vesnice), vojska štítky s počtem mužů. Terén je schematický (hřeben hor podél Rudého moře, jižní Sinaj, Kattarská proláklina, Gilf Kebír), ne měřená výška. Tlačítko „Má říše“ přiblíží tvé nomy.
 - **Rada**: zvolíš královský výnos (rovnováha, kanály a pole, řemesla a trh, vojsko, stavby, dům života, bohové a lid) a rádce podle něj na konci měsíce rozdá rozkazy všem úředníkům, kteří žádný nedostali. Jednotlivcům lze dál velet ručně.
 - **Záložky** jsou v sedmi skupinách (Mapa, Rada, Říše, Stát, Válka a poslové, Kronika, Hra); v horní liště je vidět postup k cíli hry.
 - Při změně ročního období se ukáže obrázek (záplava, setí, žně) a pod mapou běží zprávy měsíce.
@@ -61,7 +61,7 @@ Hra je jeden soubor `dist/index.html`: stačí ho otevřít v prohlížeči, fun
 - Výzvědná síť: stálí zvědové (kupci a lodníci, médžajští stopaři) v zemi soupeře, hlášení o pohybu jeho vojsk, odhalování cizích zvědů (popravit, obrátit, vyhostit).
 - Místní svátky nomů: Wag v Abydu, Thovtův svátek v Hermopoli, Upuautův v Asjútu (Hepdžefovy smlouvy), Hathořin v Dendeře, Sokarův v Memfidu, Sobkův v Šedetu, oběti záplavě na Elefantině – u každého je uvedeno, jak dobře je doložen.
 - Hlad je méně častý a víc o rozhodování: drobné nedostatky rozdělí správci sýpek sami, při větším hladu lze převézt obilí lodí z nomů s přebytkem nebo snížit příděly vojákům.
-- Ilustrace v egyptském stylu u každé události (Nil, bitva, chrám, dvůr, hrobka, karavana, lov v bažinách, sýpky, svátek, kouzla), bojiště se šiky vojáků při osobně vedené bitvě, kolo kalendáře svátků, karty nomů a rodů a barevné pruhy příjmů a výdajů místo tabulek.
+- Výjevy u každé události ve stylu nástěnných maleb z hrobek Střední říše (Nil, bitva, svatyně, dvůr, pohřeb, karavana, lov v bažinách, sýpky, svátek, orba, žně, zlaté doly), bojiště se šiky postav při osobně vedené bitvě, kolo kalendáře svátků, karty nomů a rodů a barevné pruhy příjmů a výdajů místo tabulek.
 - Senet jako malá hra o debeny nebo o čest: vrhací hůlky, třicet polí a „dům vody“ (pravidla podle moderní rekonstrukce, původní se nedochovala).
 - Další události: královský lov (gazely, hroch, ptáci), navrátilec z Retjenu (jako v Příběhu Sinuhetově), trpaslík z jihu (dopis Pepiho II. Harchufovi), kupci z Keftiu, kouzelník z papyru Westcar, bodnutí štírem a zaklínači Selkety, sen panovníka, vykradený hrob, krokodýl v kanálu, hostina s harfeníkem.
 - Sedmnáct zákonů, nově sčítání dobytka, správa kanálů, půda pro vojáky, obětní kalendář, dohled nad trhem a majetek žen (podle listiny z Lahúnu).
@@ -74,7 +74,7 @@ Jména vládců a doložených hodnostářů odpovídají pramenům; roky naroze
 
 ## Vzhled
 
-Vzhled vychází z egyptského umění: barvy egyptských pigmentů, blokový vlys z hrobek, postavy z profilu s konvencemi egyptské malby (muži červenohnědí, ženy žlutookrové, Asiaté podle malby z Beni Hasanu, král v šátku nemes), mapa s černou zemí Kemet a červenou zemí Dešret. Hieroglyfy (písmo Noto Sans Egyptian Hieroglyphs, licence OFL, zmenšené na použité znaky) mají skutečný význam: nb tꜣwj „Pán Obou zemí“, nswt-bjtj „král Horního a Dolního Egypta“, ꜥnḫ wḏꜣ snb „živ, zdráv, silen“, sepat „nom“, sema „sjednocení“.
+Vzhled vychází z egyptského umění: barvy egyptských pigmentů, blokový vlys z hrobek, postavy z profilu s konvencemi egyptské malby (muži červenohnědí, ženy žlutookrové, Asiaté podle malby z Beni Hasanu, král v šátku nemes), postavy podle kánonu (hlava a nohy z profilu, ramena zepředu) na základní lince, poušť jako růžový tečkovaný pás, voda jako modrý pás s klikatkami, pruhovaný sokl. Hieroglyfy (písmo Noto Sans Egyptian Hieroglyphs, licence OFL, zmenšené na použité znaky) mají skutečný význam: nb tꜣwj „Pán Obou zemí“, nswt-bjtj „král Horního a Dolního Egypta“, ꜥnḫ wḏꜣ snb „živ, zdráv, silen“, sepat „nom“, sema „sjednocení“.
 
 ## Ovládání
 

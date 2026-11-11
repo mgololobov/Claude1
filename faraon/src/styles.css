@@ -460,3 +460,52 @@ header .res svg { background: #f6ecd0; border-radius: 50%; padding: 2px; }
   nav .subtabs { flex-wrap: nowrap; overflow-x: auto; padding: 5px 8px; } nav .subtabs .st { flex: none; }
   .ov-news { max-height: 120px; }
 }
+
+/* ===== Střízlivější vzhled: reliéfní mapa, tmavé panely nad mapou, hranatější prvky bez barevných vlysů ===== */
+:root { --bg: #d6ccb6; --panel: #f3eddd; --panel2: #e8dfc9; --line: #b7a888; --accent: #8a2f1a; --accent2: #23466e; --gold: #9c7626; --btn: #ece3cd; --btnh: #dfd3b6; --shadow: 0 1px 3px rgba(40, 25, 8, .22); }
+.card::before, .ov::before, #modal .box::before { display: none; }
+.card { border-radius: 3px; border-top: 2px solid var(--gold); }
+.res, .season, #toast, .poltile .pti, .tnode .tni { border-radius: 3px; }
+button.b { border-radius: 3px; padding: 4px 11px; border-color: color-mix(in srgb, var(--line) 70%, var(--ink)); background: linear-gradient(var(--btn), color-mix(in srgb, var(--btn) 90%, #000)); }
+button.b.go { background: linear-gradient(#3f7a5c, #2f6248); border-color: #1f4733; }
+button.main { border-radius: 4px; border-width: 1px; border-color: #f0d68e; box-shadow: 0 1px 0 #5a3d14, 0 2px 8px rgba(0, 0, 0, .35); background: linear-gradient(#d9ad45, #a87a24); }
+header { background: linear-gradient(#1a212d, #0f141d); padding-bottom: 9px; }
+header::after { height: 2px; background: linear-gradient(90deg, transparent, #b8913f 12%, #e0c070 50%, #b8913f 88%, transparent); }
+header .res, header .season { background: rgba(255, 255, 255, .05); border-color: rgba(224, 192, 112, .28); }
+header .res svg { border-radius: 3px; }
+#modal .box { border-radius: 4px; } #modal .box > svg.vign { border-radius: 3px 3px 0 0; height: 150px; }
+#banner { border-radius: 4px; border: 1px solid #c9a24a; }
+.scard { border-radius: 4px; border-width: 1px; } .scard:hover { transform: translateY(-2px); }
+.stage { background: #0f0c08; }
+.stage .ov { --panel: #1b1712; --panel2: #262019; --ink: #efe6cf; --muted: #a99c82; --line: #4b4030; --accent: #e3b060; --accent2: #7fa6d6; --gold: #d2a84c; --btn: #2c251c; --btnh: #3d3326; --good: #8fcf8f; --bad: #f08a78; --warn: #e3ac55; --head: #2a231a; --green: #6fc29a;
+  color: var(--ink); background: rgba(22, 18, 13, .9); border: 1px solid #5d4c2c; border-radius: 3px; box-shadow: 0 6px 22px rgba(0, 0, 0, .55); backdrop-filter: blur(4px); color-scheme: dark; }
+.stage .ov button.b { background: linear-gradient(#332b20, #262018); border-color: #5d4c2c; color: var(--ink); }
+.stage .ov button.b:hover:not(:disabled) { background: #40362a; }
+.stage .ov button.b.go { background: linear-gradient(#3f7a5c, #2f6248); border-color: #1f4733; color: #fff; }
+.stage .ov-modes .mm button.on { background: #c9a24a; color: #1a120a; border-color: #f0d68e; }
+.stage .ov-news .nw-h, .stage .ol-title { color: #e3b060; }
+svg.map.real { border-radius: 0; }
+svg.map.real .lbl { fill: #fbf4e2; stroke: #17100a; stroke-opacity: .88; font-weight: 600; }
+svg.map.real .lbl.cap { font-variant: small-caps; letter-spacing: .05em; }
+svg.map.real .region { fill: #3a2814; opacity: .5; font-style: normal; letter-spacing: .36em; font-weight: 600; }
+svg.map.real .region.sea2 { fill: #dcebf4; opacity: .72; font-style: italic; letter-spacing: .2em; font-weight: 400; }
+svg.map.real .edge { stroke: #2a1c0e; stroke-opacity: .55; stroke-dasharray: 1.4 2.6; }
+svg.map.real .selring { stroke: #f6d98a; }
+svg.map.real .pv:hover .mk { filter: brightness(1.3); }
+svg.map.real .floodw { opacity: .28; }
+svg.map.real .march.own { stroke: #f6d98a; } svg.map.real .army { stroke: none; }
+svg.map.real .army.own { filter: none; }
+.start .hero.real { height: 300px; background: #1a140c center 5% / cover no-repeat; position: relative; }
+.start .hero.real::after { content: ""; position: absolute; inset: 0; background: linear-gradient(rgba(10, 8, 5, .45), rgba(10, 8, 5, .2) 45%, #100c08 100%); }
+@media (max-width: 860px) { .start .hero.real { height: 220px; } }
+nav { background: #171b23; border-bottom: 1px solid #3a3323; }
+nav .maintabs { padding-top: 4px; }
+nav .maintabs button { border-radius: 0; color: #cfc4a8; padding: 8px 16px 8px 11px; border: none; border-bottom: 2px solid transparent; }
+nav .maintabs button svg path, nav .maintabs button svg circle, nav .maintabs button svg rect { stroke: currentColor; }
+nav .maintabs button:hover { background: rgba(255, 255, 255, .06); color: #f3e6c4; }
+nav .maintabs button.on { background: transparent; color: #f0d68e; box-shadow: none; border-bottom-color: #e0c070; }
+nav .subtabs { background: #10131a; border-top: 1px solid #2a2a2a; }
+nav .subtabs .st { border-radius: 3px; border-color: rgba(224, 192, 112, .3); color: #cfc4a8; }
+nav .subtabs .st.on { background: #e0c070; color: #1a120a; border-color: #f0d68e; }
+svg.map.real .floodw { opacity: .2; }
+#modal .box { border-width: 1px; border-color: #8a6a2a; box-shadow: 0 0 0 1px #2a1c0e, 0 24px 70px rgba(0, 0, 0, .7); }

@@ -467,6 +467,55 @@ header .res svg { background: #f6ecd0; border-radius: 50%; padding: 2px; }
   nav .subtabs { flex-wrap: nowrap; overflow-x: auto; padding: 5px 8px; } nav .subtabs .st { flex: none; }
   .ov-news { max-height: 120px; }
 }
+
+/* ===== Střízlivější vzhled: reliéfní mapa, tmavé panely nad mapou, hranatější prvky bez barevných vlysů ===== */
+:root { --bg: #d6ccb6; --panel: #f3eddd; --panel2: #e8dfc9; --line: #b7a888; --accent: #8a2f1a; --accent2: #23466e; --gold: #9c7626; --btn: #ece3cd; --btnh: #dfd3b6; --shadow: 0 1px 3px rgba(40, 25, 8, .22); }
+.card::before, .ov::before, #modal .box::before { display: none; }
+.card { border-radius: 3px; border-top: 2px solid var(--gold); }
+.res, .season, #toast, .poltile .pti, .tnode .tni { border-radius: 3px; }
+button.b { border-radius: 3px; padding: 4px 11px; border-color: color-mix(in srgb, var(--line) 70%, var(--ink)); background: linear-gradient(var(--btn), color-mix(in srgb, var(--btn) 90%, #000)); }
+button.b.go { background: linear-gradient(#3f7a5c, #2f6248); border-color: #1f4733; }
+button.main { border-radius: 4px; border-width: 1px; border-color: #f0d68e; box-shadow: 0 1px 0 #5a3d14, 0 2px 8px rgba(0, 0, 0, .35); background: linear-gradient(#d9ad45, #a87a24); }
+header { background: linear-gradient(#1a212d, #0f141d); padding-bottom: 9px; }
+header::after { height: 2px; background: linear-gradient(90deg, transparent, #b8913f 12%, #e0c070 50%, #b8913f 88%, transparent); }
+header .res, header .season { background: rgba(255, 255, 255, .05); border-color: rgba(224, 192, 112, .28); }
+header .res svg { border-radius: 3px; }
+#modal .box { border-radius: 4px; } #modal .box > svg.vign { border-radius: 3px 3px 0 0; height: 150px; }
+#banner { border-radius: 4px; border: 1px solid #c9a24a; }
+.scard { border-radius: 4px; border-width: 1px; } .scard:hover { transform: translateY(-2px); }
+.stage { background: #0f0c08; }
+.stage .ov { --panel: #1b1712; --panel2: #262019; --ink: #efe6cf; --muted: #a99c82; --line: #4b4030; --accent: #e3b060; --accent2: #7fa6d6; --gold: #d2a84c; --btn: #2c251c; --btnh: #3d3326; --good: #8fcf8f; --bad: #f08a78; --warn: #e3ac55; --head: #2a231a; --green: #6fc29a;
+  color: var(--ink); background: rgba(22, 18, 13, .9); border: 1px solid #5d4c2c; border-radius: 3px; box-shadow: 0 6px 22px rgba(0, 0, 0, .55); backdrop-filter: blur(4px); color-scheme: dark; }
+.stage .ov button.b { background: linear-gradient(#332b20, #262018); border-color: #5d4c2c; color: var(--ink); }
+.stage .ov button.b:hover:not(:disabled) { background: #40362a; }
+.stage .ov button.b.go { background: linear-gradient(#3f7a5c, #2f6248); border-color: #1f4733; color: #fff; }
+.stage .ov-modes .mm button.on { background: #c9a24a; color: #1a120a; border-color: #f0d68e; }
+.stage .ov-news .nw-h, .stage .ol-title { color: #e3b060; }
+svg.map.real { border-radius: 0; }
+svg.map.real .lbl { fill: #fbf4e2; stroke: #17100a; stroke-opacity: .88; font-weight: 600; }
+svg.map.real .lbl.cap { font-variant: small-caps; letter-spacing: .05em; }
+svg.map.real .region { fill: #3a2814; opacity: .5; font-style: normal; letter-spacing: .36em; font-weight: 600; }
+svg.map.real .region.sea2 { fill: #dcebf4; opacity: .72; font-style: italic; letter-spacing: .2em; font-weight: 400; }
+svg.map.real .edge { stroke: #2a1c0e; stroke-opacity: .55; stroke-dasharray: 1.4 2.6; }
+svg.map.real .selring { stroke: #f6d98a; }
+svg.map.real .pv:hover .mk { filter: brightness(1.3); }
+svg.map.real .floodw { opacity: .28; }
+svg.map.real .march.own { stroke: #f6d98a; } svg.map.real .army { stroke: none; }
+svg.map.real .army.own { filter: none; }
+.start .hero.real { height: 300px; background: #1a140c center 5% / cover no-repeat; position: relative; }
+.start .hero.real::after { content: ""; position: absolute; inset: 0; background: linear-gradient(rgba(10, 8, 5, .45), rgba(10, 8, 5, .2) 45%, #100c08 100%); }
+@media (max-width: 860px) { .start .hero.real { height: 220px; } }
+nav { background: #171b23; border-bottom: 1px solid #3a3323; }
+nav .maintabs { padding-top: 4px; }
+nav .maintabs button { border-radius: 0; color: #cfc4a8; padding: 8px 16px 8px 11px; border: none; border-bottom: 2px solid transparent; }
+nav .maintabs button svg path, nav .maintabs button svg circle, nav .maintabs button svg rect { stroke: currentColor; }
+nav .maintabs button:hover { background: rgba(255, 255, 255, .06); color: #f3e6c4; }
+nav .maintabs button.on { background: transparent; color: #f0d68e; box-shadow: none; border-bottom-color: #e0c070; }
+nav .subtabs { background: #10131a; border-top: 1px solid #2a2a2a; }
+nav .subtabs .st { border-radius: 3px; border-color: rgba(224, 192, 112, .3); color: #cfc4a8; }
+nav .subtabs .st.on { background: #e0c070; color: #1a120a; border-color: #f0d68e; }
+svg.map.real .floodw { opacity: .2; }
+#modal .box { border-width: 1px; border-color: #8a6a2a; box-shadow: 0 0 0 1px #2a1c0e, 0 24px 70px rgba(0, 0, 0, .7); }
 </style>
 </head>
 <body>
@@ -4000,58 +4049,10 @@ function tHra() {
 // pruhy příjmů a výdajů. Barvy podle egyptských pigmentů (modř, červený a žlutý okr, malachit, saze, běloba).
 const PG = { b: "#2f6d8f", r: "#b5452c", y: "#c9a227", g: "#4f8a5b", k: "#2a2420", w: "#efe6cf", s: "#d9bf8a", s2: "#c8a86a", n: "#3d7fb0" };
 
-// ---------- drobné tvary ----------
 const A_ = {
-  papyrus: (x, y, h) => `<path d="M${x} ${y}V${y - h}" stroke="${PG.g}" stroke-width="2.4"/><path d="M${x - 10} ${y - h - 11}Q${x} ${y - h + 5} ${x + 10} ${y - h - 11}Q${x} ${y - h - 5} ${x - 10} ${y - h - 11}Z" fill="${PG.g}"/>`,
-  water: (y, w = 600) => { let d = ""; for (let r = 0; r < 3; r++) { d += `M0 ${y + r * 9}`; for (let x = 0; x < w; x += 12) d += `l6 -5l6 5`; } return `<rect x="0" y="${y - 6}" width="${w}" height="40" fill="${PG.n}" opacity=".35"/><path d="${d}" stroke="${PG.b}" stroke-width="2" fill="none"/>`; },
-  boat: (x, y, sail = 1) => `<path d="M${x} ${y}Q${x + 55} ${y + 20} ${x + 110} ${y}l-10 9Q${x + 55} ${y + 22} ${x + 10} ${y + 9}Z" fill="${PG.y}" stroke="${PG.k}" stroke-width="1.2"/>${sail ? `<path d="M${x + 55} ${y + 6}V${y - 44}" stroke="${PG.k}" stroke-width="2"/><rect x="${x + 36}" y="${y - 42}" width="38" height="30" fill="${PG.w}" stroke="${PG.k}"/>` : ""}<path d="M${x + 96} ${y + 2}l18 -16" stroke="${PG.k}" stroke-width="2"/>`,
-  man: (x, y, col = PG.r, dir = 1, tool = "") => {
-    let g = `<circle cx="${x}" cy="${y - 38}" r="5.5" fill="${PG.k}"/><rect x="${x - 4}" y="${y - 32}" width="8" height="15" rx="2" fill="${col}"/><path d="M${x - 6} ${y - 18}h12l-2 9h-8z" fill="${PG.w}"/><path d="M${x - 2} ${y - 9}l-3 9M${x + 2} ${y - 9}l${dir * 4} 9" stroke="${col}" stroke-width="2.4"/>`;
-    if (tool === "spear") g += `<path d="M${x + dir * 7} ${y - 4}l${dir * 6} -48" stroke="${PG.k}" stroke-width="1.6"/><path d="M${x + dir * 13} ${y - 52}l${dir * 2} -7l${dir * 2} 7z" fill="${PG.k}"/><path d="M${x + dir * 3} ${y - 33}h${dir * 9}v18a5 5 0 0 1 ${-dir * 9} 0z" fill="${PG.y}" stroke="${PG.k}"/>`;
-    if (tool === "bow") g += `<path d="M${x + dir * 9} ${y - 44}Q${x + dir * 20} ${y - 30} ${x + dir * 9} ${y - 16}" stroke="${PG.k}" stroke-width="2" fill="none"/><path d="M${x + dir * 9} ${y - 44}V${y - 16}" stroke="${PG.k}" stroke-width=".6"/>`;
-    if (tool === "carry") g += `<path d="M${x - 2} ${y - 31}l-4 -8" stroke="${col}" stroke-width="2.4"/>`;
-    return g;
-  },
-  sun: (x, y, r = 16) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${PG.r}"/><circle cx="${x}" cy="${y}" r="${r + 5}" fill="none" stroke="${PG.y}" stroke-width="2" opacity=".6"/>`,
-  pylon: (x, y) => `<path d="M${x} ${y}l8 -70h40l8 70z M${x + 70} ${y}l8 -70h40l8 70z" fill="${PG.w}" stroke="${PG.k}" stroke-width="1.3"/><rect x="${x + 56}" y="${y - 52}" width="14" height="52" fill="${PG.k}" opacity=".7"/><path d="M${x + 12} ${y - 70}V${y - 92}M${x + 114} ${y - 70}V${y - 92}" stroke="${PG.k}" stroke-width="1.6"/><path d="M${x + 12} ${y - 92}l10 4l-10 4M${x + 114} ${y - 92}l10 4l-10 4" fill="${PG.r}"/><path d="M${x + 14} ${y - 40}h28M${x + 84} ${y - 40}h28" stroke="${PG.b}" stroke-width="3"/>`,
-  obelisk: (x, y, h) => `<path d="M${x - 7} ${y}l3 -${h}l4 -9l4 9l3 ${h}z" fill="${PG.s2}" stroke="${PG.k}"/><path d="M${x - 4} ${y - h}l4 -9l4 9z" fill="${PG.y}"/>`,
-  pyramid: (x, y, w) => `<path d="M${x} ${y}l${w / 2} -${w * 0.62}l${w / 2} ${w * 0.62}z" fill="${PG.s2}" stroke="${PG.k}"/><path d="M${x + w / 2} ${y - w * 0.62}l${w / 2} ${w * 0.62}h-${w * 0.2}z" fill="${PG.k}" opacity=".18"/>`,
-  palm: (x, y) => `<path d="M${x} ${y}q4 -30 0 -60" stroke="#6d4a1f" stroke-width="4" fill="none"/>${[-60, -25, 15, 50].map(a => `<path d="M${x} ${y - 60}q${a / 2} -14 ${a} 4" stroke="${PG.g}" stroke-width="4" fill="none"/>`).join("")}`,
-  donkey: (x, y) => `<ellipse cx="${x}" cy="${y - 18}" rx="16" ry="8" fill="#8a7a6a"/><path d="M${x + 13} ${y - 22}l9 -9h5v6l-8 4z" fill="#8a7a6a"/><path d="M${x + 22} ${y - 31}l1 -7M${x + 25} ${y - 31}l2 -6" stroke="#8a7a6a" stroke-width="2"/><path d="M${x - 10} ${y - 12}v12M${x - 4} ${y - 12}v12M${x + 6} ${y - 12}v12M${x + 11} ${y - 12}v12" stroke="#6a5a4a" stroke-width="2.4"/><rect x="${x - 10}" y="${y - 34}" width="18" height="10" fill="${PG.y}" stroke="${PG.k}"/>`,
-  bird: (x, y, s = 1) => `<path d="M${x - 9 * s} ${y}q${5 * s} -6 ${9 * s} 0q${4 * s} -6 ${9 * s} 0" stroke="${PG.k}" stroke-width="1.6" fill="none"/>`,
-  dunes: (y, col = PG.s) => `<path d="M0 ${y}Q80 ${y - 22} 160 ${y}T320 ${y}T480 ${y}T640 ${y}V160H0Z" fill="${col}"/>`,
-  sheaf: (x, y) => `${[-6, -3, 0, 3, 6].map(d => `<path d="M${x} ${y}l${d} -34" stroke="${PG.y}" stroke-width="1.6"/><ellipse cx="${x + d * 1.1}" cy="${y - 37}" rx="2" ry="5" fill="${PG.y}"/>`).join("")}<path d="M${x - 5} ${y - 12}h10" stroke="#6d4a1f" stroke-width="2"/>`,
-  throne: (x, y) => `<rect x="${x - 4}" y="${y - 40}" width="34" height="40" fill="${PG.y}" stroke="${PG.k}"/><rect x="${x - 4}" y="${y - 60}" width="8" height="22" fill="${PG.y}" stroke="${PG.k}"/><path d="M${x} ${y - 30}h22" stroke="${PG.b}" stroke-width="3"/>`,
-  king: (x, y) => `<circle cx="${x + 12}" cy="${y - 66}" r="6" fill="${PG.k}"/><path d="M${x + 6} ${y - 72}l12 0l2 -10l-8 -4l-8 4z" fill="${PG.w}" stroke="${PG.k}"/><rect x="${x + 7}" y="${y - 60}" width="10" height="20" rx="2" fill="${PG.r}"/><path d="M${x + 6} ${y - 42}h20v10h-20z" fill="${PG.w}"/><path d="M${x + 22} ${y - 32}v32" stroke="${PG.r}" stroke-width="3"/><path d="M${x + 18} ${y - 54}l14 -8" stroke="${PG.y}" stroke-width="2.5"/>`,
-  column: (x, y, h) => `<rect x="${x - 6}" y="${y - h}" width="12" height="${h}" fill="${PG.w}" stroke="${PG.k}"/><path d="M${x - 12} ${y - h}q12 -18 24 0z" fill="${PG.g}" stroke="${PG.k}"/>`,
   ankh: (x, y, s = 1, col = PG.y) => `<g transform="translate(${x} ${y}) scale(${s})"><ellipse cx="0" cy="-22" rx="6" ry="8" fill="none" stroke="${col}" stroke-width="3"/><path d="M-10 -12h20M0 -14v24" stroke="${col}" stroke-width="3.5"/></g>`,
-  star: (x, y) => `<path d="M${x} ${y - 6}l1.6 4.4l4.4 1.6l-4.4 1.6l-1.6 4.4l-1.6 -4.4l-4.4 -1.6l4.4 -1.6z" fill="${PG.y}"/>`,
-  bark: (x, y) => `<path d="M${x} ${y}q60 14 120 0l-6 8q-54 12 -108 0z" fill="${PG.y}" stroke="${PG.k}"/><rect x="${x + 44}" y="${y - 26}" width="32" height="24" fill="${PG.w}" stroke="${PG.k}"/><path d="M${x + 44} ${y - 26}h32" stroke="${PG.b}" stroke-width="4"/><path d="M${x - 6} ${y + 8}h132" stroke="#6d4a1f" stroke-width="3"/>`,
-  croc: (x, y) => `<path d="M${x} ${y}q30 -12 70 -6l26 2l-26 6q-40 8 -70 -2z" fill="${PG.g}" stroke="${PG.k}"/><circle cx="${x + 62}" cy="${y - 6}" r="1.6" fill="${PG.k}"/>`,
-  scorpion: (x, y) => `<ellipse cx="${x}" cy="${y}" rx="14" ry="6" fill="${PG.k}"/><path d="M${x - 12} ${y}q-18 -2 -16 -18q2 -8 8 -6" stroke="${PG.k}" stroke-width="3" fill="none"/>${[-6, 0, 6].map(d => `<path d="M${x + d} ${y + 4}l-4 8M${x + d} ${y - 4}l-4 -8" stroke="${PG.k}" stroke-width="1.5"/>`).join("")}<path d="M${x + 12} ${y}l10 -6m-10 6l10 6" stroke="${PG.k}" stroke-width="2"/>`,
-  hippo: (x, y) => `<ellipse cx="${x}" cy="${y}" rx="30" ry="14" fill="#7a6a8a"/><ellipse cx="${x + 30}" cy="${y - 4}" rx="13" ry="10" fill="#7a6a8a"/><circle cx="${x + 30}" cy="${y - 12}" r="2" fill="${PG.k}"/>`,
 };
-const frieze = (y) => { let g = ""; const cols = [PG.b, PG.r, PG.y, PG.g]; for (let x = 0, i = 0; x < 600; x += 15, i++) g += `<rect x="${x}" y="${y}" width="12" height="6" fill="${cols[i % 4]}"/>`; return g; };
-
-// ---------- výjevy ----------
-const SCENES = {
-  nil: () => A_.sun(520, 34) + A_.dunes(78, PG.s2) + A_.water(96) + A_.boat(170, 98) + A_.boat(360, 108, 0) + [40, 60, 80, 470, 492, 560].map(x => A_.papyrus(x, 108, 34 + (x % 5) * 3)).join("") + A_.bird(260, 30) + A_.bird(290, 40, 0.8),
-  bitva: () => A_.dunes(118) + [80, 112, 144, 176, 208].map(x => A_.man(x, 140, PG.r, 1, x % 64 === 16 ? "bow" : "spear")).join("") + [392, 424, 456, 488, 520].map(x => A_.man(x, 140, PG.b, -1, x % 64 === 8 ? "bow" : "spear")).join("") + [0, 1, 2, 3].map(i => `<path d="M${250 + i * 22} ${60 + i * 6}l26 -4" stroke="${PG.k}" stroke-width="1.4"/><path d="M${276 + i * 22} ${56 + i * 6}l-5 -2l1 4z" fill="${PG.k}"/>`).join("") + A_.sun(300, 26, 12),
-  chram: () => A_.sun(300, 30) + A_.dunes(130, PG.s2) + A_.pylon(237, 140) + A_.obelisk(200, 140, 74) + A_.obelisk(400, 140, 74) + A_.palm(90, 140) + A_.palm(520, 140) + [0, 1, 2].map(i => A_.man(140 + i * 18, 150, PG.w, 1, "carry")).join(""),
-  dvur: () => `<rect x="0" y="0" width="600" height="160" fill="${PG.w}" opacity=".35"/>` + [70, 140, 460, 530].map(x => A_.column(x, 150, 120)).join("") + `<rect x="230" y="138" width="150" height="12" fill="${PG.s2}" stroke="${PG.k}"/>` + A_.throne(285, 138) + A_.king(282, 138) + A_.man(220, 150, PG.r, 1) + A_.man(395, 150, PG.b, -1) + `<path d="M330 44l20 -20" stroke="${PG.k}" stroke-width="2"/><ellipse cx="354" cy="20" rx="10" ry="6" fill="${PG.g}"/>`,
-  hrob: () => A_.sun(470, 40, 14) + A_.dunes(110, PG.s2) + A_.pyramid(80, 130, 140) + A_.pyramid(250, 130, 90) + `<path d="M400 130V80l40 -20l80 0v70z" fill="#b89a6a" stroke="${PG.k}"/><rect x="460" y="98" width="18" height="32" fill="${PG.k}"/>` + A_.ankh(380, 70, 0.8),
-  obchod: () => A_.sun(80, 32, 13) + A_.dunes(116) + A_.palm(520, 140) + A_.palm(555, 145) + [150, 220, 290].map(x => A_.donkey(x, 140)).join("") + A_.man(110, 142, PG.r, 1, "carry") + A_.man(345, 142, PG.b, 1),
-  lov: () => A_.water(110) + [30, 52, 74, 96, 500, 524, 548, 572].map(x => A_.papyrus(x, 120, 60 + (x % 7) * 4)).join("") + `<path d="M210 112q70 12 140 0l-6 7q-64 10 -128 0z" fill="${PG.y}" stroke="${PG.k}"/>` + A_.man(260, 112, PG.r, 1, "spear") + A_.hippo(420, 120) + [0, 1, 2, 3, 4].map(i => A_.bird(140 + i * 50, 30 + (i % 2) * 14)).join(""),
-  hlad: () => A_.sun(470, 34, 20) + `<rect x="0" y="96" width="600" height="64" fill="#b89a6a"/>` + [40, 120, 210, 330, 440, 540].map(x => `<path d="M${x} 110l18 10l-8 14l20 8" stroke="#6d4a1f" stroke-width="1.2" fill="none"/>`).join("") + A_.sheaf(140, 150) + A_.man(260, 150, PG.r, 1) + A_.man(290, 152, PG.w, 1),
-  svatek: () => A_.sun(300, 28) + A_.dunes(126, PG.s2) + A_.bark(240, 98) + [232, 262, 298, 334, 366].map(x => A_.man(x, 150, PG.w, 1, "carry")).join("") + A_.pylon(470, 150) + [0, 1, 2].map(i => A_.man(90 + i * 26, 150, PG.r, 1)).join(""),
-  nemoc: () => `<rect x="0" y="0" width="600" height="160" fill="${PG.w}" opacity=".35"/>` + A_.column(80, 150, 110) + A_.column(520, 150, 110) + `<rect x="240" y="120" width="120" height="14" fill="${PG.y}" stroke="${PG.k}"/>` + A_.man(380, 150, PG.b, -1) + A_.scorpion(170, 140) + A_.ankh(300, 70, 1.1, PG.b),
-  kouzlo: () => `<rect x="0" y="0" width="600" height="160" fill="#1d2b44" opacity=".85"/>` + [40, 110, 190, 260, 340, 420, 480, 560].map((x, i) => A_.star(x, 20 + (i % 3) * 18)).join("") + `<path d="M300 38a22 22 0 1 0 0.1 0" fill="none"/>` + A_.ankh(300, 100, 1.4) + A_.man(220, 150, PG.w, 1) + `<ellipse cx="390" cy="140" rx="16" ry="9" fill="${PG.w}"/><path d="M402 134q8 -14 2 -24" stroke="${PG.w}" stroke-width="5" fill="none"/>`,
-  krokodyl: () => A_.water(100) + [30, 60, 520, 556].map(x => A_.papyrus(x, 110, 50)).join("") + A_.croc(240, 104) + A_.man(140, 96, PG.r, 1, "spear"),
-  porod: () => `<rect x="0" y="0" width="600" height="160" fill="${PG.w}" opacity=".35"/>` + A_.column(70, 150, 120) + A_.column(530, 150, 120) + `<rect x="250" y="128" width="40" height="22" fill="#b5452c" stroke="${PG.k}"/><rect x="310" y="128" width="40" height="22" fill="#b5452c" stroke="${PG.k}"/>` + A_.man(300, 128, PG.w, 1) + `<ellipse cx="190" cy="118" rx="14" ry="22" fill="#4f8a5b"/><circle cx="190" cy="90" r="9" fill="#4f8a5b"/><path d="M180 84l-4 -8M200 84l4 -8" stroke="#4f8a5b" stroke-width="3"/>` + `<circle cx="410" cy="100" r="12" fill="#c9a227"/><rect x="400" y="110" width="20" height="30" rx="6" fill="#c9a227"/><path d="M398 92l-4 -10l8 4l4 -8l4 8l8 -4l-4 10" fill="#b5452c"/>` + [120, 470, 520].map((x, i) => A_.star(x, 30 + i * 8)).join(""),
-  boure: () => `<rect width="600" height="160" fill="#d9a85a"/>` + A_.dunes(110, "#c8904a") + [0, 1, 2, 3, 4, 5].map(i => `<path d="M${-40 + i * 110} ${40 + (i % 3) * 22}q60 -30 120 0t120 0" stroke="#f3e3b8" stroke-width="${3 + i % 3}" fill="none" opacity=".7"/>`).join("") + A_.palm(470, 150) + A_.man(220, 150, PG.r, -1) + A_.donkey(300, 150) + A_.sun(80, 30, 10),
-  zlato: () => `<path d="M0 130l80 -70l60 40l80 -60l90 70l70 -40l110 60l110 -20V160H0Z" fill="#b89a6a" stroke="${PG.k}"/>` + `<path d="M260 150l20 -40h40l20 40z" fill="${PG.k}" opacity=".75"/>` + [[150, 120], [190, 132], [420, 126], [460, 138], [300, 140]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="5" fill="${PG.y}" stroke="#8a6a1a"/>`).join("") + A_.man(220, 150, PG.r, 1, "carry") + A_.man(380, 150, PG.b, -1) + A_.sun(530, 30, 13),
-  senet: () => `<rect x="0" y="0" width="600" height="160" fill="${PG.w}" opacity=".35"/>` + A_.column(60, 150, 120) + A_.column(540, 150, 120) + `<rect x="200" y="96" width="200" height="40" fill="#8a5a2a" stroke="${PG.k}"/>` + [...Array(10)].map((_, i) => `<rect x="${204 + i * 19.4}" y="100" width="17" height="10" fill="${PG.w}"/><rect x="${204 + i * 19.4}" y="112" width="17" height="10" fill="${PG.w}"/><rect x="${204 + i * 19.4}" y="124" width="17" height="10" fill="${PG.w}"/>`).join("") + A_.man(170, 150, PG.r, 1) + A_.man(430, 150, PG.b, -1),
-};
+const SCENES = {};
 const VIGN = { nizka: "nil", vysoka: "nil", hlad: "hlad", pohreb: "hrob", pohrebiste: "hrob", dopis_mrtvym: "hrob", vykradeny: "hrob", bitva: "bitva", vbitva: "bitva", korist: "bitva", hrozba: "bitva", medzaj: "bitva", tasetilukostrelci: "bitva", zbehove: "bitva",
   usir: "svatek", hebsed: "svatek", svatek: "svatek", min: "svatek", udoli: "svatek", apis: "chram", sochy: "chram", poutnici: "svatek", obnova: "chram", sen: "chram", exempce: "chram", stela: "chram",
   karavana: "obchod", byblos_posel: "obchod", obchod_nabidka: "obchod", posli_kus: "obchod", keftiu: "obchod", trpaslik: "obchod", navratilec: "obchod", dary_posel: "obchod",
@@ -4066,10 +4067,6 @@ function vignKind(ev, v) {
   if (/hlad|sklizeň|obilí|sýpk|záplav|nil/.test(t)) return /záplav|nil/.test(t) ? "nil" : "hlad";
   return "dvur";
 }
-function vign(kind) {
-  const sc = SCENES[kind] || SCENES.dvur;
-  return `<svg class="vign" viewBox="0 0 600 160" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs><linearGradient id="vsky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f3e3b8"/><stop offset="1" stop-color="#e8cf96"/></linearGradient></defs><rect width="600" height="160" fill="url(#vsky)"/>${sc()}${frieze(0)}${frieze(154)}</svg>`;
-}
 
 // ---------- bojiště ----------
 function armyBlocks(t, x0, dir, col, op, hide) {
@@ -4080,12 +4077,11 @@ function armyBlocks(t, x0, dir, col, op, hide) {
   blocks = blocks.slice(0, 48);
   let g = "";
   blocks.forEach((sh, i) => {
-    const col_ = Math.floor(i / 6), row = i % 6, x = x0 + dir * (col_ * 17), y = 34 + row * 17;
-    if (sh === "sq") g += `<rect x="${x - 6}" y="${y - 6}" width="12" height="12" fill="${col}" opacity="${op}" stroke="${PG.k}" stroke-width=".6"/><path d="M${x + dir * 6} ${y + 6}l${dir * 4} -14" stroke="${PG.k}" stroke-width="1"/>`;
-    else if (sh === "ci") g += `<circle cx="${x}" cy="${y}" r="6" fill="${col}" opacity="${op}" stroke="${PG.k}" stroke-width=".6"/><path d="M${x + dir * 3} ${y - 5}q${dir * 6} 5 0 10" stroke="${PG.k}" fill="none"/>`;
-    else if (sh === "tr") g += `<path d="M${x} ${y - 7}l7 13h-14z" fill="${col}" opacity="${op}" stroke="${PG.k}" stroke-width=".6"/>`;
-    else if (sh === "wh") g += `<circle cx="${x}" cy="${y}" r="6.5" fill="none" stroke="${col}" stroke-width="2.4" opacity="${op}"/><path d="M${x - 6} ${y}h12M${x} ${y - 6}v12" stroke="${col}" stroke-width="1.2" opacity="${op}"/>`;
-    else g += `<rect x="${x - 6}" y="${y - 6}" width="12" height="12" fill="${col}" opacity=".25" stroke="${PG.k}" stroke-dasharray="2 2"/>`;
+    const col_ = Math.floor(i / 6), row = i % 6, x = x0 + dir * (col_ * 17), y = 41 + row * 17, o = { s: 0.165, dir: -dir, mono: sh === "q" ? "#8a7f6c" : col };
+    const one = sh === "sq" ? fig(x, y, { ...o, pose: "spear" }) : sh === "ci" ? fig(x, y, { ...o, pose: "bow" }) : sh === "tr" ? fig(x, y, { ...o, pose: "smite" })
+      : sh === "wh" ? `<circle cx="${x}" cy="${y - 4}" r="4" fill="none" stroke="${col}" stroke-width="1.3"/><path d="M${x - 4} ${y - 4}h8M${x} ${y - 8}v8M${x} ${y - 4}h${-dir * 9}" stroke="${col}" stroke-width=".9"/>` + fig(x + dir * 1.5, y - 5, { ...o, s: 0.12, pose: "bow" })
+      : fig(x, y, { ...o, pose: "down" });
+    g += `<g opacity="${sh === "q" ? 0.45 : op}">${one}</g>`;
   });
   return g;
 }
@@ -4099,12 +4095,12 @@ function fieldSvg(f) {
   if (f.me.o === "utok" || f.me.o === "vozy" || f.foe.o === "utok" || f.foe.o === "vozy") mid += `<path d="M262 82h76" stroke="${PG.r}" stroke-width="3"/><path d="M${f.me.o === "utok" || f.me.o === "vozy" ? "338 82l-10 -6v12z" : "262 82l10 -6v12z"}" fill="${PG.r}"/>`;
   if (f.me.o === "boky" || f.foe.o === "boky") mid += `<path d="M${f.me.o === "boky" ? "220 30Q300 0 360 28" : "380 30Q300 0 240 28"}" stroke="${PG.g}" stroke-width="2.5" fill="none" stroke-dasharray="6 4"/>`;
   const ter = TERRAIN[f.ter] || {}, ground = ter.nile ? `<path d="M0 6h600" stroke="${PG.b}" stroke-width="5" opacity=".5"/>` : "";
-  return `<svg class="field" viewBox="0 0 600 160" role="img" aria-label="Bojiště: tvé vojsko vlevo, nepřítel vpravo"><rect width="600" height="160" fill="#ecd9a8"/>${ground}
+  return `<svg class="field" viewBox="0 0 600 160" role="img" aria-label="Bojiště: tvé vojsko vlevo, nepřítel vpravo"><rect width="600" height="160" fill="#e8dbbd"/>${ground}
     ${armyBlocks(f.me.t, 205, -1, cm, opM, false)}${armyBlocks(f.foe.t, 395, 1, cf, opF, f.foe.hide)}${mid}
     ${ord(f.me.o, 20, "start")}${ord(f.foe.o, 580, "end")}
     <text x="20" y="140" class="fo">${esc(S.clans[f.me.cl].n)} · ${fmtN(men(f.me.t))} · morálka ${Math.round(f.me.m)}</text><text x="580" y="140" class="fo" text-anchor="end">${esc(S.clans[f.foe.cl].n)} · ${f.foe.hide ? "?" : fmtN(men(f.foe.t))} · morálka ${Math.round(f.foe.m)}</text>
     ${bar(20, f.me.m, cm, "l")}${bar(430, f.foe.m, cf, "r")}</svg>
-    <div class="flegend small muted">▪ kopiníci · ● lučištníci · ▲ Médžajové · ◎ vozy (jedna značka ≈ 200 mužů; sytost barvy = morálka)</div>`;
+    <div class="flegend small muted">Kopiníci se štítem, lučištníci s lukem, Médžajové s kyjem, vozy s kolem. Jedna postava ≈ 200 mužů; sytost barvy = morálka.</div>`;
 }
 
 // ---------- senet ----------
@@ -4161,6 +4157,151 @@ function nomeCard(p) {
 function tZupyArt() {
   const ps = myProvs().sort((a, b) => (b.id === P(S).capital) - (a.id === P(S).capital) || b.v - a.v);
   return `<div class="grid">${card(`Tvé nomy (${ps.length})`, `<div class="nomes">${ps.map(nomeCard).join("")}</div><p class="small muted">Klepni na nom a otevře se na mapě. Pruhy: pole a obchod vůči stropu, spokojenost lidu.</p>`, "wide")}</div>`;
+}
+
+// Výjevy ve stylu nástěnných maleb v hrobkách Střední říše (Beni Hasan, Mér, Théby): postavy podle kánonu
+// (hlava a nohy z profilu, ramena zepředu), muži červenohnědí, ženy světle okrové, plochy bez stínování,
+// základní linka, barevný vlys nahoře a pruhovaný sokl dole. Vše se kreslí v SVG.
+const W_ = { ol: "#3b1e10", m: "#a4522f", f: "#d9ab66", nub: "#4a2e20", as: "#d2a86c", wh: "#f4eddb", bl: "#35607f", gr: "#5e8a5c", rd: "#a3472a", ye: "#cf9f3a", bk: "#231a13", wall: "#e8dbbd", wat: "#7fa9bd" };
+const V_B = 140; // základní linka výjevu
+const G_ = (x, y, inner, dir = 1, s = 1) => `<g transform="translate(${x} ${y}) scale(${dir * s} ${s})">${inner}</g>`;
+function limb_(pts, col, mono, w = 4.2) {
+  const d = "M" + pts.map(p => p.join(" ")).join("L");
+  return (mono ? "" : `<path d="${d}" fill="none" stroke="${W_.ol}" stroke-width="${w + 1.2}" stroke-linecap="round" stroke-linejoin="round"/>`) + `<path d="${d}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
+}
+const ARMS_ = {
+  down: [[[-13, -82], [-14.5, -66], [-13, -50]], [[13, -82], [14.5, -66], [13, -50]]],
+  staff: [[[-13, -82], [-14.5, -66], [-13, -50]], [[13, -82], [17, -70], [25, -75]]],
+  spear: [[[-13, -82], [-17, -69], [-12, -60]], [[13, -82], [17, -70], [24, -68]]],
+  bow: [[[-13, -82], [-22, -75], [-3, -80]], [[13, -82], [24, -80.5], [35, -80]]],
+  offer: [[[-13, -82], [2, -66], [24, -70]], [[13, -82], [18, -69], [28, -73]]],
+  adore: [[[-13, -82], [6, -73], [19, -90]], [[13, -82], [21, -77], [27, -93]]],
+  carry: [[[-13, -82], [-14.5, -66], [-13, -50]], [[13, -82], [20, -83], [15, -93]]],
+  smite: [[[-13, -82], [-23, -94], [-15, -107]], [[13, -82], [23, -72], [32, -62]]],
+  work: [[[-13, -82], [0, -64], [20, -56]], [[13, -82], [19, -67], [27, -57]]],
+  sow: [[[-13, -82], [-8, -66], [4, -62]], [[13, -82], [22, -74], [31, -66]]],
+  drive: [[[-13, -82], [-14.5, -66], [-13, -50]], [[13, -82], [22, -86], [31, -96]]],
+  mourn: [[[-13, -82], [-17, -95], [-9, -106]], [[13, -82], [17, -95], [9, -106]]],
+  hold: [[[-13, -82], [-4, -64], [12, -62]], [[13, -82], [17, -68], [14, -58]]],
+};
+// postava: baseline v [x,y], výška 100 × s; dir 1 = hledí vpravo
+function fig(x, y, o = {}) {
+  const s = o.s || 0.9, dir = o.dir || 1, mono = o.mono || null, C = c => mono || c, st = mono ? "" : ` stroke="${W_.ol}" stroke-width=".7" stroke-linejoin="round"`;
+  const skin = C(W_[o.skin || "m"] || o.skin), cloth = C(o.cloth || W_.wh), arms = ARMS_[o.pose || "down"] || ARMS_.down, kilt = o.kilt || "short", head = o.head || "wig";
+  let g = "", up = "", it = "";
+  // nohy
+  if (o.sit) g += `<path d="M10 -31L17 -31L17 -4L11 -4Z" fill="${skin}"${st}/><path d="M10.5 -4.2L17 -4.2L25 0L10 0Z" fill="${skin}"${st}/><path d="M-10 -45L18 -45L18 -30L-10 -30Z" fill="${cloth}"${st}/>${kilt === "dress" || kilt === "long" ? `<path d="M9 -31L18 -31L18 -8L10 -8Z" fill="${cloth}"${st}/>` : ""}`;
+  else if (kilt === "dress") g += `<path d="M-6 -6L5 -6L12 0L-7 0Z" fill="${skin}"${st}/>`;
+  else g += `<path d="M-5 -40Q-10 -22 -9.5 -4L-3.5 -4Q-2 -22 2.5 -40Z" fill="${skin}"${st}/><path d="M-10.5 -4.2L-2.5 -4.2L4.5 0L-11 0Z" fill="${skin}"${st}/><path d="M-1 -40Q8 -24 9.5 -4L15.5 -4Q14 -24 7 -40Z" fill="${skin}"${st}/><path d="M8.5 -4.2L16 -4.2L24 0L8 0Z" fill="${skin}"${st}/>`;
+  // zadní paže, trup, oděv
+  up += limb_(arms[0], skin, mono);
+  up += `<path d="M-8 -57L-15.5 -81Q-16 -85.5 -11 -85.5L11 -85.5Q16 -85.5 15.5 -81L8 -57Z" fill="${kilt === "tunic" ? cloth : skin}"${st}/>`;
+  if (kilt === "short" && !o.sit) up += `<path d="M-8.5 -58L8.5 -58L13.5 -37L-9.5 -39Z" fill="${cloth}"${st}/>${mono ? "" : `<path d="M3 -57L9 -38" stroke="${W_.ol}" stroke-width=".5" fill="none"/>`}`;
+  if (kilt === "long" && !o.sit) up += `<path d="M-8.5 -58L8.5 -58L14 -17L-10.5 -19Z" fill="${cloth}"${st}/>${mono ? "" : `<path d="M3 -57L10 -18" stroke="${W_.ol}" stroke-width=".5" fill="none"/>`}`;
+  if (kilt === "tunic" && !o.sit) up += `<path d="M-8.5 -58L8.5 -58L12 -28L-10 -30Z" fill="${cloth}"${st}/>${mono ? "" : [-50, -43, -36].map(yy => `<path d="M-9 ${yy}L11 ${yy + 1}" stroke="${o.band || W_.rd}" stroke-width="1.6"/>`).join("") + [-78, -70, -63].map(yy => `<path d="M-12 ${yy}L12 ${yy}" stroke="${o.band || W_.rd}" stroke-width="1.6"/>`).join("")}`;
+  if (kilt === "dress") up += `<path d="M-8 -72L8 -72L7.5 -57L${o.sit ? "9 -44L-9 -44" : "6 -6L-6 -6"}L-8.5 -57Z" fill="${cloth}"${st}/>${mono ? "" : `<path d="M-6 -72L-9 -85M6 -72L9 -85" stroke="${cloth}" stroke-width="2.4"/>`}`;
+  if (kilt !== "dress" && !mono) up += `<path d="M-8.5 -57.5H8.5" stroke="${o.belt || W_.bl}" stroke-width="2.2"/>`;
+  if (o.sash && !mono) up += `<path d="M-13 -84L7 -58" stroke="${W_.wh}" stroke-width="3"/><path d="M-13 -84L7 -58" stroke="${W_.ol}" stroke-width=".4" fill="none"/>`;
+  // krk a hlava
+  up += `<path d="M-2.5 -91h5.5v6h-5.5z" fill="${skin}"/>`;
+  if (o.collar !== false && !mono && kilt !== "tunic") up += `<path d="M-7.5 -85.5Q0 -78.5 7.5 -85.5" fill="none" stroke="${o.collarC || W_.bl}" stroke-width="2.6"/><path d="M-6 -85.5Q0 -81 6 -85.5" fill="none" stroke="${W_.ye}" stroke-width="1"/>`;
+  up += `<path d="M-4 -100Q-5.5 -94 -3 -90.5L2.5 -90Q5.5 -90.3 6 -92.5L6.3 -93.7L8 -94.6L6.4 -96.2Q6.6 -100.5 2 -101Q-2.5 -101.3 -4 -100Z" fill="${skin}"${st}/>`;
+  const hair = C(W_.bk);
+  if (head === "wig") up += `<path d="M-5.5 -100Q-5 -104.2 1 -103.8Q6.4 -103.5 6.7 -98.6L3 -98.8L2.2 -94.5L.5 -89L-6 -88.3Q-7.2 -94 -5.5 -100Z" fill="${hair}"/>`;
+  else if (head === "long") up += `<path d="M-5.5 -100Q-5 -104.2 1 -103.8Q6.4 -103.5 6.7 -98.6L3 -98.8L2.4 -94L3.5 -80L-1 -79L-2 -88L-6 -79L-10.5 -80Q-8 -94 -5.5 -100Z" fill="${hair}"/>${mono ? "" : `<path d="M-5 -98.5Q1 -101 6.6 -98.8" stroke="${W_.ye}" stroke-width="1" fill="none"/>`}`;
+  else if (head === "nub") up += `<path d="M-5 -99.5Q-4.5 -103.6 1 -103.2Q6 -103 6.4 -99L2.5 -99L-1 -94L-5.2 -94Z" fill="${hair}"/>${mono ? "" : `<path d="M-2 -103L-5 -113" stroke="${W_.wh}" stroke-width="2.2" stroke-linecap="round"/><circle cx="-4.6" cy="-92.5" r="1.6" fill="none" stroke="${W_.ye}" stroke-width=".8"/>`}`;
+  else if (head === "asiatic") up += `<path d="M-6.5 -99Q-6.5 -105 1 -104.5Q7 -104 6.8 -98.8L3 -98.8L1.5 -93L-3 -90L-8 -91.5Q-8.5 -96 -6.5 -99Z" fill="${hair}"/><path d="M2.5 -90.4L6.4 -92L5.6 -85.5Z" fill="${hair}"/>${mono ? "" : `<path d="M-6.5 -99.5Q0 -101.5 6.8 -99.4" stroke="${W_.wh}" stroke-width="1.1" fill="none"/>`}`;
+  else if (head === "white" || head === "double") up += `${head === "double" ? `<path d="M-6.3 -91L-8 -124L-4.4 -124L-3 -107L6.9 -105.6L6.7 -98.6L3 -98.8L2 -93Z" fill="${C(W_.rd)}"${st}/>` : ""}<path d="M-5.5 -${head === "double" ? 104 : 99}Q-6 -113 -1.2 -${head === "double" ? 125 : 122}Q1 -${head === "double" ? 129 : 126} 3 -${head === "double" ? 125 : 122}Q6 -111 6.7 -${head === "double" ? 105.5 : 98.6}L3 -${head === "double" ? 105 : 98.8}L${head === "double" ? "-5.5 -104" : "2 -93.5L-6 -92"}Z" fill="${C(W_.wh)}"${st}/>`;
+  else if (head === "red") up += `<path d="M-6.3 -91L-8 -124L-4.4 -124L-3 -107L6.9 -105.6L6.7 -98.6L3 -98.8L2 -93Z" fill="${C(W_.rd)}"${st}/>${mono ? "" : `<path d="M-3.2 -107.5Q4 -111 6.2 -116.5Q7 -119.5 4.8 -119.5" stroke="${W_.rd}" stroke-width="1" fill="none"/>`}`;
+  else if (head === "nemes") up += `<path d="M-6 -100Q-5 -105 1 -104.6Q6.6 -104.2 6.8 -99L3.2 -99L3 -95L6.5 -83L1.5 -83L0 -89L-8.5 -83L-10 -92Z" fill="${C(W_.ye)}"${st}/>${mono ? "" : [-101.5, -98, -94.5, -91, -87.5].map((yy, i) => `<path d="M${-6.5 - i * 0.6} ${yy}L${i < 2 ? 3 : -1 + i} ${yy - 1}" stroke="${W_.bl}" stroke-width="1.2"/>`).join("") + `<path d="M6.8 -100.5q2.6 -.8 2 -3.6" stroke="${W_.ye}" stroke-width="1.1" fill="none"/>`}`;
+  if ((head === "white" || head === "double" || head === "red" || head === "nemes") && !mono) up += `<path d="M3 -90.2L4.4 -84.5L2 -84.5Z" fill="${W_.bk}"/>`;
+  if (!mono) up += `<path d="M2.8 -96.5q1.5 -1.1 2.9 0q-1.4 .9 -2.9 0z" fill="${W_.bk}"/><path d="M2.4 -98q1.8 -.9 3.6 -.2" stroke="${W_.bk}" stroke-width=".5" fill="none"/>`;
+  // předměty (kreslí se ve stejném souřadném systému, zrcadlí se s postavou)
+  const P = o.pose, blk = W_.ol;
+  if (P === "staff") it += `<path d="M25 0V-94" stroke="${C("#7a5326")}" stroke-width="1.8"/>`;
+  if (P === "spear") it += `<path d="M-16 -36L-6 -112" stroke="${C("#7a5326")}" stroke-width="1.6"/><path d="M-6.6 -111L-4 -121L-4.4 -110.4Z" fill="${C("#8a8f96")}"${st}/>` + `<path d="M17 -52V-74Q17 -88 24.5 -90Q32 -88 32 -74V-52Z" fill="${C(o.shield || "#c9a06a")}"${st}/>${mono ? "" : `<path d="M20 -60q3 -2 4 2q2 3 5 0M21 -74q2 -3 5 0q1 3 4 1M22 -82q2 2 4 0" stroke="${blk}" stroke-width="1.3" fill="none"/>`}`;
+  if (P === "bow") it += `<path d="M35 -103Q47 -80 35 -57" stroke="${C("#6b4420")}" stroke-width="2" fill="none"/><path d="M35 -103L-3 -80L35 -57" stroke="${C(W_.bk)}" stroke-width=".5" fill="none"/><path d="M-3 -80H46" stroke="${C(W_.bk)}" stroke-width=".9"/><path d="M46 -80l-4 -1.6v3.2z" fill="${C(W_.bk)}"/>`;
+  if (P === "smite") it += `<path d="M-15 -107L-4 -121" stroke="${C("#7a5326")}" stroke-width="1.8"/><ellipse cx="-2.5" cy="-123" rx="3.4" ry="4.4" transform="rotate(38 -2.5 -123)" fill="${C(W_.wh)}"${st}/>`;
+  if (P === "drive") it += `<path d="M31 -96L44 -112" stroke="${C("#6b4420")}" stroke-width="1.5"/>`;
+  if (P === "carry" && o.item !== "none") it += "";
+  if (o.item === "tray") it += `<path d="M18 -76H36" stroke="${blk}" stroke-width="1.4"/><path d="M20 -76q2 -8 4 0zM25 -76q2.5 -10 5 0zM31 -76q1.5 -6 3 0z" fill="${W_.ye}" stroke="${blk}" stroke-width=".5"/>`;
+  if (o.item === "jar") it += `<path d="M24 -74q-4 -8 0 -15h5q4 7 0 15z" fill="${W_.rd}" stroke="${blk}" stroke-width=".6"/><path d="M24 -89h5v-3h-5z" fill="${W_.bk}"/>`;
+  if (o.item === "censer") it += `<path d="M22 -72L40 -78" stroke="${W_.ye}" stroke-width="2"/><path d="M38 -80h6l-1 4h-4z" fill="${W_.ye}" stroke="${blk}" stroke-width=".5"/><path d="M41 -81q-4 -6 0 -10q4 -5 0 -11" stroke="#8d8577" stroke-width="1.2" fill="none" opacity=".8"/>`;
+  if (o.item === "scroll") it += `<path d="M18 -75h14v8h-14z" fill="${W_.wh}" stroke="${blk}" stroke-width=".6"/><path d="M21 -72h8M21 -70h6" stroke="${blk}" stroke-width=".5"/>`;
+  if (o.item === "basket") it += `<path d="M16 -62q5 8 14 6l2 -8z" fill="${W_.ye}" stroke="${blk}" stroke-width=".6"/><path d="M17 -62l15 -2" stroke="${blk}" stroke-width=".8"/>`;
+  if (o.item === "sickle") it += `<path d="M27 -57q10 -3 9 -14" stroke="${blk}" stroke-width="2" fill="none"/>`;
+  if (o.item === "sheaf") it += `<path d="M10 -96q8 -8 18 -4l-2 6q-8 -3 -14 3z" fill="${W_.ye}" stroke="${blk}" stroke-width=".5"/>`;
+  if (o.item === "stick") it += `<path d="M27 -93L33 -112Q35 -118 30 -119" stroke="#6b4420" stroke-width="1.8" fill="none"/>`;
+  if (o.item === "child") it += `<circle cx="14" cy="-70" r="4" fill="${W_.m}" stroke="${blk}" stroke-width=".5"/><path d="M8 -66h12v8h-12z" fill="${W_.wh}" stroke="${blk}" stroke-width=".5"/>`;
+  up += limb_(arms[1], skin, mono) + it;
+  g += o.sit ? `<g transform="translate(0 14)">${up}</g>` : up;
+  return G_(x, y, g, dir, s);
+}
+// ---------- nábytek, stavby, rostliny, zvířata ----------
+const O_ = {
+  chair: (x, y, dir = 1, s = 0.9, throne) => G_(x, y, throne
+    ? `<path d="M-15 0V-31H10V0Z" fill="${W_.ye}" stroke="${W_.ol}" stroke-width=".8"/><path d="M-15 -31V-50Q-15 -53 -12 -53L-11 -31Z" fill="${W_.ye}" stroke="${W_.ol}" stroke-width=".8"/><path d="M-15 0V-12H-3V0Z" fill="${W_.bl}" stroke="${W_.ol}" stroke-width=".6"/><path d="M-12 -28H7M-12 -17H7" stroke="${W_.rd}" stroke-width="1.4"/>`
+    : `<path d="M-14 -31H10V-27.5H-14Z" fill="#8a5a2a" stroke="${W_.ol}" stroke-width=".6"/><path d="M-12 -27.5V0M7 -27.5V0" stroke="#8a5a2a" stroke-width="2.6"/><path d="M-13 -31Q-16 -44 -14 -52" stroke="#8a5a2a" stroke-width="2.6" fill="none"/><path d="M-14 -3h4M5 -3h4" stroke="${W_.ol}" stroke-width="2"/>`, dir, s),
+  dais: (x, y, w) => `<path d="M${x} ${y}h${w}v-7h-${w}z" fill="${W_.wh}" stroke="${W_.ol}" stroke-width=".8"/><path d="M${x} ${y - 3.5}h${w}" stroke="${W_.bl}" stroke-width="1.6"/>`,
+  // baldachýn: dva sloupky s lotosovou hlavicí a římsa
+  kiosk: (x, y, w, h) => `${[x, x + w].map(xx => `<path d="M${xx} ${y}V${y - h}" stroke="${W_.gr}" stroke-width="3.4"/><path d="M${xx - 5} ${y - h}q5 9 10 0z" fill="${W_.bl}" stroke="${W_.ol}" stroke-width=".6"/><path d="M${xx - 2.4} ${y - h + 14}h4.8M${xx - 2.4} ${y - h + 18}h4.8" stroke="${W_.ye}" stroke-width="1.4"/>`).join("")}<path d="M${x - 9} ${y - h}Q${x - 12} ${y - h - 9} ${x - 6} ${y - h - 11}H${x + w + 6}Q${x + w + 12} ${y - h - 9} ${x + w + 9} ${y - h}Z" fill="${W_.wh}" stroke="${W_.ol}" stroke-width=".8"/>${[...Array(Math.floor((w + 8) / 7))].map((_, i) => `<path d="M${x - 4 + i * 7} ${y - h - 10}v9" stroke="${[W_.bl, W_.rd, W_.gr][i % 3]}" stroke-width="2.6"/>`).join("")}`,
+  // svatyně s oblounem a žlábkovou římsou
+  shrine: (x, y, w, h) => `<path d="M${x} ${y}V${y - h}H${x + w}V${y}Z" fill="${W_.wh}" stroke="${W_.ol}" stroke-width=".9"/><path d="M${x - 4} ${y - h}Q${x - 8} ${y - h - 10} ${x - 2} ${y - h - 12}H${x + w + 2}Q${x + w + 8} ${y - h - 10} ${x + w + 4} ${y - h}Z" fill="${W_.wh}" stroke="${W_.ol}" stroke-width=".9"/>${[...Array(Math.floor(w / 6))].map((_, i) => `<path d="M${x + 2 + i * 6} ${y - h - 11}v10" stroke="${[W_.bl, W_.gr, W_.rd][i % 3]}" stroke-width="2.4"/>`).join("")}<path d="M${x} ${y - h + 1.5}h${w}" stroke="${W_.ye}" stroke-width="2.4"/><path d="M${x + w * 0.3} ${y}V${y - h * 0.72}H${x + w * 0.7}V${y}Z" fill="#7a4a22" stroke="${W_.ol}" stroke-width=".8"/><path d="M${x + w * 0.5} ${y}V${y - h * 0.72}" stroke="${W_.ol}" stroke-width=".7"/>`,
+  mast: (x, y, h) => `<path d="M${x} ${y}V${y - h}" stroke="#7a5326" stroke-width="2"/><path d="M${x} ${y - h}h13l-3 3.5l3 3.5h-13z" fill="${W_.rd}" stroke="${W_.ol}" stroke-width=".5"/>`,
+  column: (x, y, h) => `<path d="M${x - 4.5} ${y}V${y - h + 12}h9V${y}Z" fill="${W_.gr}" stroke="${W_.ol}" stroke-width=".7"/><path d="M${x - 9} ${y - h}q9 16 18 0z" fill="${W_.gr}" stroke="${W_.ol}" stroke-width=".7"/><path d="M${x - 9} ${y - h}h18" stroke="${W_.ye}" stroke-width="1.6"/>${[18, 23, 28].map(d => `<path d="M${x - 4.5} ${y - h + d}h9" stroke="${[W_.ye, W_.bl, W_.ye][(d - 18) / 5]}" stroke-width="1.6"/>`).join("")}<path d="M${x - 7} ${y}h14v-3h-14z" fill="${W_.wh}" stroke="${W_.ol}" stroke-width=".6"/>`,
+  table: (x, y) => `<path d="M${x} ${y}V${y - 24}M${x - 4} ${y}h8" stroke="${W_.ol}" stroke-width="2"/><path d="M${x - 15} ${y - 24}h30" stroke="${W_.ol}" stroke-width="2.4"/>${[-11, -6, -1, 4, 9].map((d, i) => `<path d="M${x + d} ${y - 25.5}q1.4 -${12 + (i % 2) * 5} 2.8 0z" fill="${i % 2 ? W_.ye : W_.wh}" stroke="${W_.ol}" stroke-width=".5"/>`).join("")}<path d="M${x - 24} ${y}q-4 -9 0 -16h6q4 7 0 16z" fill="${W_.rd}" stroke="${W_.ol}" stroke-width=".6"/><path d="M${x + 19} ${y}q-3 -7 0 -12h5q3 5 0 12z" fill="${W_.bl}" stroke="${W_.ol}" stroke-width=".6"/>`,
+  water: (y, h, x0 = 0, x1 = 600) => { let d = ""; for (let r = 0; r * 6 + 4 < h; r++) { d += `M${x0} ${y + 4 + r * 6}`; for (let x = x0; x < x1; x += 10) d += "l5 -3l5 3"; } return `<rect x="${x0}" y="${y}" width="${x1 - x0}" height="${h}" fill="${W_.wat}"/><path d="${d}" stroke="${W_.bl}" stroke-width="1.1" fill="none"/>`; },
+  papyrus: (x, y, n = 5, h = 60) => { let g = ""; for (let i = 0; i < n; i++) { const a = (i - (n - 1) / 2) * 7, hh = h - Math.abs(i - (n - 1) / 2) * 7, tx = x + a * 1.9, ty = y - hh; g += `<path d="M${x + a * 0.5} ${y}Q${x + a} ${y - hh * 0.5} ${tx} ${ty}" stroke="${W_.gr}" stroke-width="1.8" fill="none"/>` + (i % 2 || n < 4 ? `<path d="M${tx - 6} ${ty - 9}Q${tx} ${ty - 12} ${tx + 6} ${ty - 9}L${tx + 1} ${ty + 1}h-2Z" fill="${W_.gr}" stroke="${W_.ol}" stroke-width=".5"/><path d="M${tx - 6} ${ty - 9}Q${tx} ${ty - 12} ${tx + 6} ${ty - 9}" stroke="${W_.ye}" stroke-width="1.2" fill="none"/>` : `<path d="M${tx - 2} ${ty - 8}q2 -5 4 0l-1.4 8h-1.2z" fill="${W_.gr}" stroke="${W_.ol}" stroke-width=".5"/>`); } return g; },
+  lotus: (x, y) => `<path d="M${x - 5} ${y}q5 -3 10 0" stroke="${W_.gr}" stroke-width="1.5" fill="none"/><path d="M${x - 4} ${y - 1}l-1 -7l3 4l2 -6l2 6l3 -4l-1 7z" fill="${W_.wh}" stroke="${W_.bl}" stroke-width=".6"/>`,
+  boat: (x, y, o = {}) => G_(x, y, `<path d="M-66 -25Q-44 6 0 6Q44 6 66 -25Q52 -5 0 -5Q-52 -5 -66 -25Z" fill="${o.wood ? "#9a6a34" : W_.ye}" stroke="${W_.ol}" stroke-width=".8"/>${o.wood ? "" : [-48, -34, -18, 0, 18, 34, 48].map(d => `<path d="M${d} ${-3 - Math.abs(d) * 0.16}v${7 + Math.abs(d) * 0.03}" stroke="${W_.gr}" stroke-width="1.3"/>`).join("")}${o.sail ? `<path d="M0 -4V-78" stroke="#7a5326" stroke-width="2.2"/><path d="M-30 -74H30V-34H-30Z" fill="${W_.wh}" stroke="${W_.ol}" stroke-width=".7"/><path d="M-32 -74H32M-32 -34H32" stroke="#7a5326" stroke-width="1.8"/><path d="M-30 -34L-52 -12M30 -34L52 -12" stroke="${W_.ol}" stroke-width=".5"/>` : ""}${o.cabin ? `<path d="M-14 -5V-24H14V-5Z" fill="${W_.wh}" stroke="${W_.ol}" stroke-width=".7"/><path d="M-16 -24H16" stroke="${W_.bl}" stroke-width="2.4"/><path d="M-9 -5v-19M0 -5v-19M9 -5v-19" stroke="${W_.rd}" stroke-width="1"/>` : ""}<path d="M-50 -14L-62 12" stroke="#7a5326" stroke-width="1.6"/><path d="M-63 8l3 8l-5 -1z" fill="#7a5326"/>`, o.dir || 1, o.s || 1),
+  ox: (x, y, o = {}) => G_(x, y, `<path d="M-22 -14V0M12 -14V0" stroke="${o.col2 || "#6e3a20"}" stroke-width="3.6"/><path d="M-29 -33Q-31 -22 -28 -15L-27.5 0h4.6L-21 -13Q-6 -9 8 -13L9.5 0h4.6L16 -15Q22 -19 22.5 -29L30 -26.5Q36 -25.5 37 -30.5L33 -37Q30 -42 24 -40L18 -38Q0 -42 -18 -38.5Q-26 -38 -29 -33Z" fill="${o.col || "#9a4f2c"}" stroke="${W_.ol}" stroke-width=".7" stroke-linejoin="round"/>${o.spots ? `<path d="M-14 -34q5 6 12 2q-3 8 -10 6zM2 -30q6 3 9 -4q3 6 -2 10z" fill="${W_.bk}"/>` : ""}<path d="M26.5 -40.5Q24 -51 31 -54M29.5 -40Q34.5 -47 31 -54" stroke="${W_.wh}" stroke-width="1.5" fill="none"/><path d="M26.5 -40.5Q24 -51 31 -54M29.5 -40Q34.5 -47 31 -54" stroke="${W_.ol}" stroke-width=".4" fill="none"/><path d="M-29 -33Q-34 -20 -32 -7" stroke="${W_.ol}" stroke-width="1.1" fill="none"/><circle cx="31" cy="-34" r=".9" fill="${W_.bk}"/>`, o.dir || 1, o.s || 0.9),
+  donkey: (x, y, o = {}) => G_(x, y, `<path d="M-17 -12V0M9 -12V0" stroke="#7d7468" stroke-width="3"/><path d="M-23 -27Q-25 -18 -22.5 -12L-22 0h3.8L-16.5 -11Q-4 -8 6 -11L7.5 0h3.8L13 -13Q17 -17 17.5 -24L22 -22Q28 -20.5 29 -25L26 -31Q24 -35 19 -33.5L15 -31.5Q0 -35 -14 -31.5Q-20.5 -31 -23 -27Z" fill="#a39a8c" stroke="${W_.ol}" stroke-width=".7" stroke-linejoin="round"/><path d="M19.5 -33.5L18 -45L22.5 -35M22.5 -34.5L23.5 -44.5L25.5 -33" fill="#a39a8c" stroke="${W_.ol}" stroke-width=".6"/><path d="M-23 -27Q-26.5 -18 -25 -9" stroke="${W_.ol}" stroke-width="1" fill="none"/><circle cx="24" cy="-28.5" r=".8" fill="${W_.bk}"/>${o.pack !== false ? `<path d="M-13 -31Q-15 -43 -8 -44H4Q10 -43 8 -31Z" fill="${o.pack || W_.ye}" stroke="${W_.ol}" stroke-width=".7"/><path d="M-12 -37H8M-3 -44V-31" stroke="${W_.ol}" stroke-width=".6"/><path d="M-6 -31V-15" stroke="${W_.rd}" stroke-width="1.6"/>` : ""}`, o.dir || 1, o.s || 0.9),
+  hippo: (x, y, dir = 1, s = 1) => G_(x, y, `<path d="M-32 0Q-36 -19 -23 -25Q-4 -31 12 -25Q22 -30 31 -24Q38 -19 35 -10Q31 -3 22 -6L20 0h-8l-1 -5Q-4 -3 -14 -5L-15 0Z" fill="#6f7f8a" stroke="${W_.ol}" stroke-width=".8" stroke-linejoin="round"/><path d="M20 -27l1.5 -4l3 3M26 -26l2 -3.5l2.5 3" fill="#6f7f8a" stroke="${W_.ol}" stroke-width=".6"/><circle cx="24" cy="-20" r="1" fill="${W_.bk}"/><path d="M27 -9q4 1 7 -2" stroke="${W_.ol}" stroke-width=".7" fill="none"/>`, dir, s),
+  croc: (x, y, dir = 1, s = 1) => G_(x, y, `<path d="M-52 -3Q-30 -13 -6 -11Q10 -14 22 -9L44 -8.5L45 -5L24 -3.5Q8 0 -10 -2Q-32 1 -52 -3Z" fill="#5d7a48" stroke="${W_.ol}" stroke-width=".7" stroke-linejoin="round"/><path d="M-40 -6l3 -3l3 3l3 -3.4l3 3.4l3 -3.6l3 3.6l3 -3.6l3 3.6l3 -3.4l3 3.4l3 -3l3 3" stroke="${W_.ol}" stroke-width=".7" fill="none"/><path d="M-12 -2l-3 4h5zM10 -2.5l-3 4.5h5z" fill="#5d7a48" stroke="${W_.ol}" stroke-width=".5"/><circle cx="22" cy="-8" r="1" fill="${W_.ye}"/><path d="M26 -5.5l2 1.6l2 -1.6l2 1.6l2 -1.6l2 1.6l2 -1.6" stroke="${W_.wh}" stroke-width=".7" fill="none"/>`, dir, s),
+  duck: (x, y, dir = 1, s = 1) => G_(x, y, `<path d="M-9 1Q-3 -2 4 -1.5L10 -3.5Q12 -4 12.5 -2.5L9.5 -.5Q5 4 -3 3Z" fill="#8a6a44" stroke="${W_.ol}" stroke-width=".5"/><path d="M-3 -1Q-1 -11 6 -12Q4 -5 2 -.5Z" fill="${W_.wh}" stroke="${W_.ol}" stroke-width=".5"/><path d="M-9 1l-5 -1.5l1 3z" fill="${W_.bl}"/>`, dir, s),
+  silo: (x, y, s = 1) => G_(x, y, `<path d="M-15 0V-27Q-15 -46 0 -48Q15 -46 15 -27V0Z" fill="${W_.wh}" stroke="${W_.ol}" stroke-width=".8"/><path d="M-4 -38h8v8h-8z" fill="#7a4a22" stroke="${W_.ol}" stroke-width=".6"/><path d="M-15 -6h30" stroke="${W_.ol}" stroke-width=".5"/>`, 1, s),
+  // poušť podle egyptské konvence: růžový zvlněný pás s tečkami
+  desert: (y, h = 14, x0 = 0, x1 = 600) => { let d = `M${x0} ${y + h}V${y}`, dots = ""; for (let x = x0; x < x1; x += 50) d += `q12 -${6 + (x % 3) * 2} 25 0t25 0`; for (let x = x0 + 6; x < x1; x += 9) dots += `<circle cx="${x}" cy="${y + 4 + (x * 7 % (h - 5))}" r=".9" fill="${x % 2 ? W_.rd : W_.bk}"/>`; return `<path d="${d}V${y + h}Z" fill="#e3bd9a" stroke="${W_.ol}" stroke-width=".6"/>${dots}`; },
+  grain: (x, y, n, h = 44) => [...Array(n)].map((_, i) => `<path d="M${x + i * 5} ${y}V${y - h + (i % 3) * 3}" stroke="${W_.ye}" stroke-width="1.5"/><path d="M${x + i * 5} ${y - h + (i % 3) * 3}q${i % 2 ? 3 : -3} -5 0 -10" stroke="#b9861f" stroke-width="2.4" fill="none" stroke-linecap="round"/>`).join(""),
+  wedjat: (x, y, s = 1) => G_(x, y, `<path d="M-13 0Q0 -10 14 0Q0 8 -13 0Z" fill="${W_.wh}" stroke="${W_.bk}" stroke-width="1.6"/><circle cx="1" cy="-.5" r="4" fill="${W_.bk}"/><path d="M-15 -8Q0 -17 17 -7" stroke="${W_.bk}" stroke-width="2.4" fill="none"/><path d="M1 5V14M4 5Q9 17 19 14Q22 13 20.5 10" stroke="${W_.bk}" stroke-width="1.7" fill="none"/>`, 1, s),
+  bier: (x, y) => `<path d="M${x - 40} ${y - 24}H${x + 36}" stroke="${W_.ye}" stroke-width="3.4"/><path d="M${x - 34} ${y - 24}V${y}M${x + 30} ${y - 24}V${y}" stroke="${W_.ye}" stroke-width="3"/><path d="M${x + 36} ${y - 24}q7 -3 6 -12q-5 1 -6 6" fill="${W_.ye}" stroke="${W_.ol}" stroke-width=".6"/><path d="M${x - 40} ${y - 24}q-6 -8 -2 -18" stroke="${W_.ye}" stroke-width="2.4" fill="none"/><path d="M${x - 32} ${y - 27}Q${x - 34} ${y - 37} ${x - 20} ${y - 37}H${x + 22}Q${x + 31} ${y - 37} ${x + 31} ${y - 31}V${y - 27}Z" fill="${W_.wh}" stroke="${W_.ol}" stroke-width=".8"/><path d="M${x + 22} ${y - 37}Q${x + 33} ${y - 39} ${x + 32} ${y - 30}L${x + 25} ${y - 27.5}Z" fill="${W_.bl}" stroke="${W_.ol}" stroke-width=".6"/>${[-22, -10, 2, 14].map(d => `<path d="M${x + d} ${y - 37}v10" stroke="${W_.rd}" stroke-width="1.2"/>`).join("")}`,
+  stela: (x, y, h = 74) => `<path d="M${x - 17} ${y}V${y - h + 16}Q${x - 17} ${y - h} ${x} ${y - h}Q${x + 17} ${y - h} ${x + 17} ${y - h + 16}V${y}Z" fill="${W_.wh}" stroke="${W_.ol}" stroke-width=".9"/>${[0, 1, 2, 3, 4].map(i => `<path d="M${x - 12} ${y - h + 26 + i * 9}h24" stroke="${W_.ol}" stroke-width=".5"/><path d="M${x - 10} ${y - h + 22 + i * 9}h4m3 0h6m3 0h3" stroke="${[W_.bl, W_.rd, W_.gr][i % 3]}" stroke-width="2.2"/>`).join("")}`,
+  arrows: (x, y, n, dir = 1) => [...Array(n)].map((_, i) => `<g transform="translate(${x + dir * i * 17} ${y + (i % 3) * 13 - i * 2}) scale(${dir} 1) rotate(${-8 + i * 3})"><path d="M0 0h26" stroke="${W_.bk}" stroke-width=".9"/><path d="M26 0l-5 -1.8v3.6z" fill="${W_.bk}"/><path d="M0 0l-3 -2M2 0l-3 -2M0 0l-3 2M2 0l-3 2" stroke="${W_.bk}" stroke-width=".6"/></g>`).join(""),
+  fallen: (x, y, dir = 1, skin = "as") => G_(x, y, `<path d="M-30 -4Q-10 -12 14 -8L30 -5L30 -1L-30 0Z" fill="${W_[skin]}" stroke="${W_.ol}" stroke-width=".7"/><path d="M-8 -10L10 -9L12 -2L-10 -2Z" fill="${W_.wh}" stroke="${W_.ol}" stroke-width=".6"/><circle cx="-34" cy="-5" r="5" fill="${W_[skin]}" stroke="${W_.ol}" stroke-width=".7"/><path d="M-39 -7q2 -5 8 -3l-2 4z" fill="${W_.bk}"/><path d="M-22 -8L-30 -20" stroke="${W_[skin]}" stroke-width="3.6" stroke-linecap="round"/>`, dir, 0.9),
+  rings: (x, y, n = 3) => [...Array(n)].map((_, i) => `<circle cx="${x + i * 9}" cy="${y - 5}" r="4" fill="none" stroke="${W_.ye}" stroke-width="2.6"/><circle cx="${x + i * 9}" cy="${y - 5}" r="5.4" fill="none" stroke="${W_.ol}" stroke-width=".4"/>`).join(""),
+  stars: (y, h) => `<rect x="0" y="${y}" width="600" height="${h}" fill="#243f5c"/>${[...Array(30)].map((_, i) => { const x = 10 + i * 20, yy = y + h / 2 + (i % 2 ? 2 : -2); return `<path d="M${x} ${yy - 4}l1 3l3.2 .2l-2.5 2l.9 3.1l-2.6 -1.8l-2.6 1.8l.9 -3.1l-2.5 -2l3.2 -.2z" fill="${W_.ye}"/>`; }).join("")}`,
+};
+const ground_ = (x0 = 0, x1 = 600) => `<path d="M${x0} ${V_B}H${x1}" stroke="${W_.ol}" stroke-width="1.6"/>`;
+const men_ = (xs, o) => xs.map((x, i) => fig(x, V_B, typeof o === "function" ? o(i) : o)).join("");
+
+// ---------- výjevy ----------
+Object.assign(SCENES, {
+  nil: () => O_.water(108, 32) + O_.papyrus(46, 112, 7, 74) + O_.papyrus(560, 112, 7, 70) + O_.papyrus(470, 112, 5, 52) + O_.boat(270, 116, { sail: 1, wood: 1, s: 0.95 }) + fig(228, 112, { s: 0.5, pose: "staff" }) + fig(300, 112, { s: 0.5, pose: "down" }) + fig(322, 112, { s: 0.5, pose: "work", dir: -1 }) + [130, 150, 400, 428].map(x => O_.lotus(x, 110)).join("") + O_.duck(120, 46) + O_.duck(150, 34, 1, 0.9) + O_.duck(436, 40, -1) + O_.duck(520, 30, -1, 0.85),
+  bitva: () => O_.desert(128, 12) + ground_() + men_([58, 106, 154], i => ({ pose: "spear", shield: i % 2 ? "#e6dcc6" : "#b98a58" })) + fig(212, V_B, { pose: "bow" }) + O_.arrows(270, 52, 4) + O_.fallen(350, V_B, 1, "as") + fig(430, V_B, { pose: "bow", dir: -1, skin: "as", head: "asiatic", kilt: "tunic", cloth: "#ead9b8", band: W_.bl }) + men_([486, 532], i => ({ pose: "spear", dir: -1, skin: "as", head: "asiatic", kilt: "tunic", cloth: i ? "#e9d2a6" : "#d9c9b0", band: i ? W_.rd : W_.bl, shield: "#8a5a2a" })),
+  chram: () => ground_() + O_.mast(372, V_B, 112) + O_.mast(520, V_B, 112) + O_.shrine(400, V_B, 94, 82) + O_.table(318, V_B) + fig(248, V_B, { pose: "offer", item: "censer", head: "bald", kilt: "long", sash: 1 }) + fig(180, V_B, { pose: "offer", item: "jar", head: "bald", kilt: "long" }) + fig(116, V_B, { pose: "adore", kilt: "dress", skin: "f", head: "long" }) + O_.column(48, V_B, 116) + O_.column(566, V_B, 116),
+  dvur: () => ground_() + O_.kiosk(338, V_B, 92, 104) + O_.dais(326, V_B, 116) + O_.chair(392, V_B - 7, -1, 0.9, 1) + fig(392, V_B - 7, { sit: 1, dir: -1, head: "double", pose: "hold" }) + fig(268, V_B, { pose: "staff", kilt: "long", sash: 1 }) + fig(196, V_B, { pose: "offer", item: "scroll", kilt: "long" }) + fig(130, V_B, { pose: "adore", kilt: "short" }) + O_.column(50, V_B, 116) + O_.column(560, V_B, 116),
+  hrob: () => O_.desert(128, 12) + ground_() + O_.stela(520, V_B, 92) + O_.kiosk(250, V_B, 110, 92) + O_.bier(304, V_B) + fig(196, V_B, { pose: "offer", item: "censer", head: "bald", kilt: "long", sash: 1 }) + fig(132, V_B, { pose: "mourn", kilt: "dress", skin: "f", head: "long" }) + fig(84, V_B, { pose: "mourn", kilt: "dress", skin: "f", head: "long", s: 0.86 }) + O_.table(432, V_B),
+  obchod: () => O_.desert(128, 12) + ground_() + fig(84, V_B, { pose: "staff", skin: "as", head: "asiatic", kilt: "tunic", cloth: "#e6d3ac", band: W_.bl }) + O_.donkey(172, V_B, { s: 1.15 }) + fig(250, V_B, { pose: "drive", skin: "as", head: "asiatic", kilt: "tunic", cloth: "#d8c3a2", band: W_.rd }) + O_.donkey(336, V_B, { s: 1.15, pack: W_.rd }) + fig(424, V_B, { pose: "offer", item: "jar", kilt: "dress", skin: "as", head: "long", cloth: "#e8d4b0" }) + fig(520, V_B, { pose: "offer", item: "scroll", kilt: "long", dir: -1 }),
+  lov: () => O_.water(112, 28) + O_.papyrus(60, 114, 9, 84) + O_.papyrus(548, 114, 9, 86) + O_.boat(270, 118, { s: 0.92 }) + fig(262, 113, { pose: "smite", s: 0.86, item: "none" }) + fig(312, 113, { pose: "adore", s: 0.56, kilt: "dress", skin: "f", head: "long", dir: -1 }) + O_.hippo(440, 128, -1, 0.8) + O_.water(128, 12, 396, 484) + O_.duck(96, 22) + O_.duck(132, 34, 1, 0.9) + O_.duck(506, 24, -1) + O_.duck(474, 38, -1, 0.9) + O_.duck(540, 40, -1, 0.8) + [160, 392].map(x => O_.lotus(x, 114)).join(""),
+  hlad: () => ground_() + [70, 108, 146].map(x => O_.silo(x, V_B, 1.25)).join("") + [...Array(9)].map((_, i) => `<path d="M${200 + i * 46} ${V_B + 0.5}l8 -7l-3 -8M${218 + i * 46} ${V_B + 0.5}l-4 -6" stroke="${W_.ol}" stroke-width=".7" fill="none"/>`).join("") + fig(236, V_B, { pose: "offer", item: "scroll", kilt: "long" }) + fig(318, V_B, { pose: "adore", dir: -1, s: 0.86 }) + fig(372, V_B, { pose: "adore", dir: -1, kilt: "dress", skin: "f", head: "long", s: 0.86 }) + fig(430, V_B, { pose: "hold", item: "basket", dir: -1, s: 0.86 }) + O_.ox(520, V_B, { dir: -1, s: 0.78, col: "#b7a58c" }),
+  svatek: () => ground_() + `<path d="M196 ${V_B - 76}H404" stroke="#7a5326" stroke-width="3"/>` + O_.boat(300, V_B - 82, { s: 0.7, cabin: 1 }) + men_([214, 262, 338, 386], () => ({ pose: "carry", head: "bald", kilt: "long", s: 0.84 })) + fig(452, V_B, { pose: "offer", item: "censer", head: "bald", kilt: "long", sash: 1, dir: -1 }) + fig(130, V_B, { pose: "adore", kilt: "dress", skin: "f", head: "long" }) + fig(76, V_B, { pose: "adore" }) + O_.shrine(506, V_B, 70, 84),
+  nemoc: () => ground_() + O_.kiosk(214, V_B, 150, 96) + O_.bier(292, V_B) + fig(406, V_B, { pose: "offer", item: "jar", dir: -1, head: "bald", kilt: "long", sash: 1 }) + fig(160, V_B, { pose: "adore", kilt: "dress", skin: "f", head: "long" }) + O_.wedjat(500, 62, 1.5) + O_.table(86, V_B),
+  kouzlo: () => O_.stars(8, 16) + ground_() + fig(210, V_B, { pose: "adore", head: "bald", kilt: "long", sash: 1 }) + fig(140, V_B, { pose: "offer", item: "scroll", head: "bald", kilt: "long" }) + O_.table(300, V_B) + O_.wedjat(396, 70, 1.7) + `<path d="M456 ${V_B}Q452 ${V_B - 40} 470 ${V_B - 50}Q486 ${V_B - 58} 478 ${V_B - 74}Q474 ${V_B - 84} 484 ${V_B - 88}" stroke="${W_.gr}" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M478 ${V_B - 91}q8 -4 12 3q-6 4 -12 -3z" fill="${W_.gr}" stroke="${W_.ol}" stroke-width=".5"/>` + O_.column(556, V_B, 108),
+  krokodyl: () => O_.water(110, 30) + O_.papyrus(52, 112, 7, 70) + O_.papyrus(556, 112, 7, 76) + O_.boat(210, 116, { s: 0.8 }) + fig(196, 112, { pose: "work", s: 0.8 }) + `<path d="M218 68L300 118" stroke="#7a5326" stroke-width="1.8"/>` + O_.croc(420, 124, -1, 1.25) + O_.water(124, 16, 340, 500) + O_.duck(110, 30) + O_.duck(500, 36, -1, 0.9),
+  senet: () => ground_() + O_.chair(206, V_B, 1) + fig(206, V_B, { sit: 1, pose: "hold", kilt: "long" }) + O_.chair(394, V_B, -1) + fig(394, V_B, { sit: 1, dir: -1, pose: "hold", kilt: "dress", skin: "f", head: "long" }) + `<path d="M262 ${V_B}V${V_B - 30}M338 ${V_B}V${V_B - 30}" stroke="#7a5326" stroke-width="2.6"/><path d="M252 ${V_B - 38}h96v8h-96z" fill="#8a5a2a" stroke="${W_.ol}" stroke-width=".8"/>${[...Array(10)].map((_, i) => `<path d="M${256 + i * 9} ${V_B - 38}${i % 2 ? "v-9l2.4 -3l2.4 3v9z" : "v-6h5v6z"}" fill="${i % 2 ? W_.bl : W_.wh}" stroke="${W_.ol}" stroke-width=".5"/>`).join("")}` + fig(96, V_B, { pose: "offer", item: "jar", kilt: "dress", skin: "f", head: "long", s: 0.84 }) + O_.column(540, V_B, 112) + O_.table(480, V_B),
+  porod: () => ground_() + O_.kiosk(228, V_B, 130, 100) + O_.chair(300, V_B, 1) + fig(300, V_B, { sit: 1, pose: "hold", kilt: "dress", skin: "f", head: "long", item: "child" }) + fig(420, V_B, { pose: "offer", item: "jar", dir: -1, kilt: "dress", skin: "f", head: "long" }) + fig(478, V_B, { pose: "adore", dir: -1, kilt: "dress", skin: "f", head: "long", s: 0.86 }) + fig(160, V_B, { pose: "adore", kilt: "long" }) + O_.table(84, V_B) + O_.wedjat(540, 50, 1.1),
+  boure: () => O_.desert(126, 14) + ground_() + fig(180, V_B, { pose: "drive", dir: -1, skin: "as", head: "asiatic", kilt: "tunic", cloth: "#e6d3ac" }) + O_.donkey(282, V_B, { dir: -1, s: 1.15 }) + O_.donkey(392, V_B, { dir: -1, s: 1.15, pack: W_.bl }) + [0, 1, 2, 3, 4, 5, 6].map(i => `<path d="M${-30 + i * 96} ${34 + (i % 3) * 22}q48 -26 96 0t96 0" stroke="#c9975a" stroke-width="${5 + (i % 3) * 3}" fill="none" opacity=".5" stroke-linecap="round"/>`).join(""),
+  zlato: () => `<path d="M0 ${V_B}V96q40 -30 80 -6t70 -18t90 14t80 -22t90 20t100 -12t90 14V${V_B}Z" fill="#e3bd9a" stroke="${W_.ol}" stroke-width=".7"/>${[...Array(60)].map((_, i) => `<circle cx="${6 + i * 10}" cy="${100 + (i * 37 % 34)}" r=".9" fill="${i % 2 ? W_.rd : W_.bk}"/>`).join("")}<path d="M250 ${V_B}q4 -34 26 -36q22 2 26 36z" fill="${W_.bk}"/>` + ground_() + fig(196, V_B, { pose: "hold", item: "basket", dir: -1, s: 0.84 }) + fig(132, V_B, { pose: "hold", item: "basket", dir: -1, s: 0.84, skin: "nub", head: "nub" }) + `<path d="M400 ${V_B}V${V_B - 70}M374 ${V_B - 66}H426" stroke="#7a5326" stroke-width="2.4"/><path d="M376 ${V_B - 66}l-9 26h18zM424 ${V_B - 66}l-9 26h18z" fill="none" stroke="${W_.ol}" stroke-width=".7"/><path d="M365 ${V_B - 40}q11 7 22 0zM413 ${V_B - 40}q11 7 22 0z" fill="${W_.ye}" stroke="${W_.ol}" stroke-width=".6"/>` + O_.rings(368, V_B - 40, 2) + O_.rings(452, V_B, 4) + O_.rings(456, V_B - 9, 3) + fig(528, V_B, { pose: "offer", item: "scroll", kilt: "long", dir: -1 }),
+  triumf: () => ground_() + O_.mast(60, V_B, 118) + O_.mast(96, V_B, 104) + fig(250, V_B, { pose: "smite", head: "double", s: 1.02 }) + G_(322, V_B, `<path d="M-14 0L-12 -18L4 -22L14 -10L6 0Z" fill="${W_.as}" stroke="${W_.ol}" stroke-width=".7"/><path d="M-13 -20L2 -24L4 -44L-9 -44Z" fill="#e6d3ac" stroke="${W_.ol}" stroke-width=".7"/><circle cx="-3" cy="-50" r="6" fill="${W_.as}" stroke="${W_.ol}" stroke-width=".7"/><path d="M-9 -52q2 -7 10 -5l-3 5z" fill="${W_.bk}"/><path d="M-9 -40L-22 -56M2 -40L14 -58" stroke="${W_.as}" stroke-width="3.8" stroke-linecap="round"/>`, -1, 1) + men_([408, 456, 504], i => ({ pose: i === 0 ? "adore" : "offer", item: i === 1 ? "tray" : i === 2 ? "jar" : null, dir: -1, kilt: "long", s: 0.86 })) + fig(160, V_B, { pose: "staff", kilt: "long", sash: 1, s: 0.86 }) + O_.column(566, V_B, 116),
+  seti: () => `<rect x="0" y="${V_B - 8}" width="600" height="8" fill="#5a4030"/>` + ground_() + O_.ox(330, V_B - 6, { s: 1.0, col: "#e9e0cc", spots: 1 }) + O_.ox(346, V_B - 6, { s: 1.0 }) + `<path d="M300 ${V_B - 40}L232 ${V_B - 22}L216 ${V_B - 6}M232 ${V_B - 22}L218 ${V_B - 52}" stroke="#7a5326" stroke-width="2.6" fill="none" stroke-linejoin="round"/>` + fig(196, V_B - 6, { pose: "work" }) + fig(108, V_B - 6, { pose: "sow", item: "basket", s: 0.88 }) + [...Array(7)].map((_, i) => `<circle cx="${140 + i * 5}" cy="${V_B - 50 + i * 6}" r="1" fill="${W_.ye}"/>`).join("") + fig(450, V_B - 6, { pose: "drive", dir: -1, s: 0.88 }) + O_.papyrus(560, V_B - 6, 5, 56),
+  zne: () => ground_() + O_.grain(300, V_B, 58, 56) + fig(268, V_B, { pose: "work", item: "sickle" }) + fig(204, V_B, { pose: "work", item: "sickle", s: 0.88 }) + fig(132, V_B, { pose: "carry", item: "sheaf", dir: -1, s: 0.88 }) + O_.donkey(62, V_B, { dir: -1, s: 1.05 }) + fig(560, V_B, { pose: "offer", item: "scroll", kilt: "long", dir: -1, s: 0.84 }),
+});
+const frieze_ = y => { let g = `<rect x="0" y="${y}" width="600" height="7" fill="${W_.bk}"/>`; const cols = [W_.bl, W_.rd, W_.gr, W_.ye]; for (let x = 1, i = 0; x < 600; x += 13, i++) g += `<rect x="${x}" y="${y + 1}" width="11" height="5" fill="${cols[i % 4]}"/>`; return g; };
+function vign(kind) {
+  const sc = SCENES[kind] || SCENES.dvur;
+  return `<svg class="vign" viewBox="0 0 600 160" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs><filter id="vwall" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".9 .5" numOctaves="2" seed="4" result="n"/><feColorMatrix in="n" values="0 0 0 0 .36  0 0 0 0 .25  0 0 0 0 .12  0 0 0 .55 -.14"/></filter><filter id="vmot" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".012 .03" numOctaves="3" seed="11"/><feColorMatrix values="0 0 0 0 .5  0 0 0 0 .36  0 0 0 0 .18  0 0 0 .5 -.12"/></filter></defs>
+    <rect width="600" height="160" fill="${W_.wall}"/><rect width="600" height="160" filter="url(#vmot)"/>${sc()}<rect width="600" height="160" filter="url(#vwall)" opacity=".7"/>
+    ${frieze_(0)}<rect x="0" y="${V_B + 3}" width="600" height="4" fill="${W_.ye}"/><rect x="0" y="${V_B + 8}" width="600" height="3" fill="${W_.rd}"/><rect x="0" y="${V_B + 12}" width="600" height="8" fill="${W_.bk}"/></svg>`;
 }
 
 // Vzhled hry: portréty postav, ikony surovin, hieroglyfy.
@@ -5137,12 +5278,221 @@ render = function () {
 for (const k of ["load", "pasteSave", "newgame"]) { const f0 = ACT[k]; ACT[k] = (...a) => { const r = f0(...a); GEO2 = null; TERR2.key = null; SEL.vb = null; BAN.turn = -1; return r; }; }
 
 // ================= VÍTĚZSTVÍ A PORÁŽKA =================
-SCENES.triumf = () => `<g>${[...Array(13)].map((_, i) => `<path d="M300 150L${300 + Math.cos(Math.PI + i * Math.PI / 12) * 420} ${150 + Math.sin(Math.PI + i * Math.PI / 12) * 420}" stroke="#f6d27a" stroke-width="10" opacity=".28"/>`).join("")}</g>` + A_.sun(300, 70, 26) + A_.dunes(132, PG.s2) + A_.pylon(237, 150) + `<rect x="268" y="120" width="64" height="10" fill="${PG.s2}" stroke="${PG.k}"/>` + A_.king(288, 122) + [60, 96, 132, 168, 430, 466, 502, 538].map((x, i) => A_.man(x, 152, i % 2 ? PG.r : PG.b, x < 300 ? 1 : -1, "carry")).join("");
 var _vignKind0 = vignKind;
 vignKind = function (ev, v) { if (ev.k === "vitezstvi") return ev.data && ev.data.win ? "triumf" : "hrob"; return _vignKind0(ev, v); };
 
-SCENES.seti = () => A_.sun(500, 34, 16) + `<rect x="0" y="100" width="600" height="60" fill="#4a3320"/>` + [...Array(14)].map((_, i) => `<path d="M${20 + i * 42} 118h30M${30 + i * 42} 134h30" stroke="#2a1c10" stroke-width="2"/>`).join("") + [...Array(10)].map((_, i) => `<path d="M${330 + i * 26} 112v-9m0 0q-5 -2 -6 -7m6 7q5 -2 6 -7" stroke="#4f8a5b" stroke-width="2" fill="none"/>`).join("") + `<ellipse cx="190" cy="92" rx="26" ry="12" fill="#8a5a2a"/><path d="M212 86l12 -10h7v8l-10 6z" fill="#8a5a2a"/><path d="M229 76l6 -8M224 76l-2 -9" stroke="#2a2420" stroke-width="2"/><path d="M172 100v16M182 102v14M200 102v14M208 100v16" stroke="#6d4a1f" stroke-width="3"/><path d="M164 92l-34 14l-6 12" stroke="#2a2420" stroke-width="2.5" fill="none"/>` + A_.man(118, 118, PG.r, 1) + A_.palm(560, 104);
-SCENES.zne = () => A_.sun(90, 34, 16) + `<rect x="0" y="104" width="600" height="56" fill="#d9b04a"/>` + [...Array(18)].map((_, i) => A_.sheaf(250 + i * 20, 118 + (i % 2) * 6)).join("") + A_.man(150, 150, PG.r, 1, "carry") + A_.man(200, 150, PG.w, 1) + `<path d="M207 118q12 -10 16 4" stroke="#8a8f96" stroke-width="3" fill="none"/>` + A_.donkey(70, 150) + A_.sheaf(72, 122);
+
+// Reliéfní mapa: podklad se jednou spočítá do rastru (stínovaný terén pouští a hor, zelená niva Nilu a Delty,
+// moře s mělčinami), území rodů jsou jen tónem a hranicí nad ním a sídla mají kartografické značky.
+// Terén je schematický (šum + hřeben hor podél Rudého moře, jižní Sinaj, Kattarská proláklina, Gilf Kebír), ne měřená výška.
+
+// ---------- šum a pomocné funkce ----------
+function mkNoise_(seed) {
+  const g = new Float32Array(65536); let s = seed >>> 0;
+  for (let i = 0; i < 65536; i++) { s = (Math.imul(s, 1664525) + 1013904223) >>> 0; g[i] = s / 4294967296; }
+  return (x, y) => { const xi = Math.floor(x), yi = Math.floor(y), fx = x - xi, fy = y - yi, u = fx * fx * (3 - 2 * fx), v = fy * fy * (3 - 2 * fy), r0 = (yi & 255) << 8, r1 = ((yi + 1) & 255) << 8, c0 = xi & 255, c1 = (xi + 1) & 255, a = g[r0 | c0], b = g[r0 | c1], c = g[r1 | c0], d = g[r1 | c1]; return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v; };
+}
+const ss_ = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+const polyPx_ = L => L.map(([la, lo]) => [MX(lo), MY(la)]);
+function distLine_(px, py, P, closed) {
+  let m = 1e9; const n = P.length;
+  for (let i = 0; i < (closed ? n : n - 1); i++) { const a = P[i], b = P[(i + 1) % n], vx = b[0] - a[0], vy = b[1] - a[1], l2 = vx * vx + vy * vy, t = l2 ? clamp(((px - a[0]) * vx + (py - a[1]) * vy) / l2, 0, 1) : 0, dx = px - a[0] - vx * t, dy = py - a[1] - vy * t, d = dx * dx + dy * dy; if (d < m) m = d; }
+  return Math.sqrt(m);
+}
+function inPoly_(px, py, P) { let c = false; for (let i = 0, j = P.length - 1; i < P.length; j = i++) { const a = P[i], b = P[j]; if ((a[1] > py) !== (b[1] > py) && px < (b[0] - a[0]) * (py - a[1]) / (b[1] - a[1]) + a[0]) c = !c; } return c; }
+// šířka nivy (půlšířka v jednotkách mapy) podle zeměpisné šířky: v Núbii úzký proužek, ve středním Egyptě nejširší
+const VW_ = [[19, 1.3], [22, 1.5], [24.1, 2.0], [25.2, 3.2], [26, 4.4], [27.2, 5.4], [29.6, 5.8], [30.2, 6.2]];
+function valleyW(lat) { for (let i = 1; i < VW_.length; i++) if (lat <= VW_[i][0]) { const [a, wa] = VW_[i - 1], [b, wb] = VW_[i]; return wa + (wb - wa) * clamp((lat - a) / (b - a), 0, 1); } return 6.2; }
+
+let FIELDS_ = null;
+function baseFields() {
+  if (FIELDS_) return FIELDS_;
+  const w = MW, h = MH, n = w * h, dN = new Float32Array(n), dB = new Float32Array(n), sdF = new Float32Array(n), dC = new Float32Array(n), dR = new Float32Array(n);
+  const nile = [NILE, NILE_W, NILE_E, NILE_M].map(polyPx_), bahr = polyPx_(BAHR), med = polyPx_(MED), medP = med.concat([[MX(36), MY(32.8)], [MX(24), MY(32.8)], [MX(24), MY(31.9)]]), red = polyPx_(RED), fan = polyPx_(DELTA_FAN);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const k = y * w + x, px = x + 0.5, py = y + 0.5;
+    let d = 1e9; for (const L of nile) d = Math.min(d, distLine_(px, py, L)); dN[k] = d;
+    dB[k] = distLine_(px, py, bahr);
+    const df = distLine_(px, py, fan, true); sdF[k] = inPoly_(px, py, fan) ? -df : df;
+    const dm = distLine_(px, py, med), dr = distLine_(px, py, red, true), sea = inPoly_(px, py, medP) || inPoly_(px, py, red);
+    dC[k] = sea ? -Math.min(dm, dr) : Math.min(dm, dr); dR[k] = dr;
+  }
+  FIELDS_ = { w, h, dN, dB, sdF, dC, dR }; return FIELDS_;
+}
+// ---------- podkladový rastr ----------
+var BASE_ = { url: "", busy: false, K: 0 };
+function buildBase() {
+  const F = baseFields(), K = (typeof innerWidth !== "undefined" && innerWidth < 760) ? 2 : 3, w = MW * K, h = MH * K, fw = F.w, fh = F.h;
+  const E = new Float32Array(w * h), GR = new Float32Array(w * h), SEA = new Float32Array(w * h), RK = new Float32Array(w * h), LO = new Float32Array(w * h);
+  const n1 = mkNoise_(11), n2 = mkNoise_(23), n3 = mkNoise_(47);
+  const fbm = (nf, x, y, o) => { let a = 0, f = 1, s = 0, amp = 1; for (let i = 0; i < o; i++) { a += nf(x * f + i * 17.3, y * f + i * 9.1) * amp; s += amp; amp *= 0.5; f *= 2; } return a / s; };
+  const samp = (A, X, Y) => { const x = clamp(X - 0.5, 0, fw - 1.001), y = clamp(Y - 0.5, 0, fh - 1.001), xi = x | 0, yi = y | 0, fx = x - xi, fy = y - yi, k = yi * fw + xi; return A[k] * (1 - fx) * (1 - fy) + A[k + 1] * fx * (1 - fy) + A[k + fw] * (1 - fx) * fy + A[k + fw + 1] * fx * fy; };
+  const fx0 = MX(30.8), fy0 = MY(29.35), qx = MX(27.6), qy = MY(30.0), gx = MX(25.9), gy = MY(23.4), oas = Object.values(S.provs || {}).filter(p => p.ter === "oaza").map(p => [MX(p.lon), MY(p.lat), 7, 4.5]).concat([[MX(27.97), MY(27.06), 4, 3]]);
+  for (let y = 0; y < h; y++) {
+    const Y = (y + 0.5) / K, lat = MAPV.lat1 - Y / MAPV.ky, wv0 = valleyW(lat);
+    for (let x = 0; x < w; x++) {
+      const i = y * w + x, X = (x + 0.5) / K, lon = MAPV.lon0 + X / MAPV.kx, dc = samp(F.dC, X, Y);
+      const low = fbm(n1, X / 70, Y / 70, 3); LO[i] = low;
+      if (dc < 0) { SEA[i] = -dc; continue; }
+      const dn = samp(F.dN, X, Y), dr = samp(F.dR, X, Y), mid = fbm(n2, X / 11, Y / 11, 4), wv = wv0 * (0.72 + 0.56 * n1(X / 9 + 40, Y / 9));
+      let g = ss_(wv + 0.8, wv - 0.5, dn);
+      g = Math.max(g, ss_(1.2, -0.6, samp(F.sdF, X, Y) + (mid - 0.5) * 5));
+      if (lat > 27.75 && lat < 29.4) g = Math.max(g, ss_(2.8, 1.5, samp(F.dB, X, Y)));
+      { const ex = (X - fx0) / 13, ey = (Y - fy0) / 8; g = Math.max(g, ss_(1.12, 0.86, Math.sqrt(ex * ex + ey * ey) + (mid - 0.5) * 0.5)); }
+      for (const [ox, oy, rx, ry] of oas) { const ex = (X - ox) / rx, ey = (Y - oy) / ry, d2 = ex * ex + ey * ey; if (d2 < 4) g = Math.max(g, 0.8 * ss_(1.25, 0.5, Math.sqrt(d2) + (mid - 0.5) * 1.6)); }
+      const rid = 1 - Math.abs(2 * mid - 1), ridge = Math.exp(-(((dr - 36) / 24) ** 2)) * ss_(30.1, 28.9, lat), east = ss_(31.6, 33, lon), south = ss_(24.6, 22, lat);
+      let e = 0.30 * low + 0.5 * ridge * (0.5 + 0.95 * rid) + (0.05 + 0.10 * east + 0.09 * south) * rid + 0.10 * ss_(wv, wv + 5, dn);
+      { const ax = (X - qx) / 54, ay = (Y - qy) / 30; e -= 0.2 * Math.exp(-(ax * ax + ay * ay)); const bx = (X - gx) / 27, by = (Y - gy) / 36; e += 0.25 * Math.exp(-(bx * bx + by * by)) * (0.6 + 0.8 * rid); }
+      const dm = ss_(27.9, 26.6, lon) * ss_(29.4, 28.4, lat) * ss_(23.0, 24.2, lat); if (dm > 0) e += 0.016 * dm * (0.3 + n1(X / 23 + 7, Y / 31)) * Math.sin((X * 0.97 + Y * 0.22) * (1.1 + 0.5 * n1(X / 60, Y / 60 + 3)) + mid * 5);
+      E[i] = e * (1 - g) + 0.04 * g; GR[i] = g; RK[i] = clamp(ridge * 0.95 + rid * 0.22 * east + 0.3 * south * rid, 0, 1);
+    }
+  }
+  const cv = document.createElement("canvas"); cv.width = w; cv.height = h; const ctx = cv.getContext("2d"), img = ctx.createImageData(w, h), D = img.data, sh = 5.2 * K;
+  const lx = MX(30.62), ly = MY(29.47);
+  for (let y = 0; y < h; y++) {
+    const Y = (y + 0.5) / K, lat = MAPV.lat1 - Y / MAPV.ky, south = ss_(24.8, 21.5, lat);
+    for (let x = 0; x < w; x++) {
+      const i = y * w + x, o = i * 4, X = (x + 0.5) / K, low = LO[i], fine = n3(x / 2.3, y / 2.3);
+      let r, g, b;
+      if (SEA[i] > 0) { const t = Math.pow(clamp(SEA[i] / 34, 0, 1), 0.55), v = 0.94 + 0.12 * low; r = (104 + (26 - 104) * t) * v; g = (156 + (66 - 156) * t) * v; b = (172 + (106 - 172) * t) * v; }
+      else {
+        const gr = GR[i], rk = RK[i];
+        r = 232 + (207 - 232) * low; g = 211 + (178 - 211) * low; b = 168 + (128 - 168) * low;
+        r += (203 - r) * south * 0.6; g += (156 - g) * south * 0.6; b += (108 - b) * south * 0.6;
+        r += (150 - r) * rk; g += (124 - g) * rk; b += (100 - b) * rk;
+        if (gr > 0) { const m = fbm(n2, X / 5, Y / 5, 2), gr2 = [108 + (60 - 108) * m, 132 + (98 - 132) * m, 66 + (50 - 66) * m]; r += (gr2[0] - r) * gr; g += (gr2[1] - g) * gr; b += (gr2[2] - b) * gr; }
+        const xm = x > 0 ? i - 1 : i, xp = x < w - 1 ? i + 1 : i, ym = y > 0 ? i - w : i, yp = y < h - 1 ? i + w : i;
+        const lum = 1 + clamp(((E[xp] - E[xm]) + (E[yp] - E[ym])) * sh, -0.34, 0.3) + (fine - 0.5) * (0.05 + 0.05 * gr);
+        r *= lum; g *= lum; b *= lum;
+        const ex = (X - lx) / 10, ey = (Y - ly) / 3.4; if (ex * ex + ey * ey < 1) { r = 62; g = 112; b = 146; }
+      }
+      D[o] = r; D[o + 1] = g; D[o + 2] = b; D[o + 3] = 255;
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+  const url = cv.toDataURL("image/jpeg", 0.9); BASE_.url = url; BASE_.K = K;
+  try { // adresa blob: je pro překreslování lehčí; když ji prohlížeč nepovolí, zůstane data:
+    const bin = atob(url.split(",")[1]), u8 = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+    const bu = URL.createObjectURL(new Blob([u8], { type: "image/jpeg" })), im = new Image(); im.onload = () => { BASE_.url = bu; MAPC.k = null; }; im.src = bu;
+  } catch (e) {}
+}
+function baseUrl() {
+  if (BASE_.url || typeof document === "undefined") return BASE_.url;
+  if (!BASE_.busy) { BASE_.busy = true; setTimeout(() => { try { buildBase(); } catch (e) { console.error(e); } MAPC.k = null; TERR3.key = null; render(); }, 40); }
+  return "";
+}
+// ---------- území ----------
+let GEO3 = null, TERR3 = { key: null, url: null };
+function geoReal() {
+  if (GEO3) return GEO3;
+  const F = baseFields(), T = 2, w = MW * T, h = MH * T, ps = Object.values(S.provs), n = ps.length, idx = new Int16Array(w * h).fill(-1);
+  const px = ps.map(p => MX(p.lon)), py = ps.map(p => MY(p.lat)), kind = ps.map(p => (p.ter === "delta" ? 1 : p.ter === "fajjum" ? 2 : TERRAIN[p.ter].nile ? 0 : p.ter === "oaza" ? 3 : 4)), rad = kind.map(k => (k === 3 ? 13 : k === 4 ? 30 : 34));
+  const fx0 = MX(30.8), fy0 = MY(29.35);
+  for (let y = 0; y < h; y++) {
+    const Y = (y + 0.5) / T, lat = MAPV.lat1 - Y / MAPV.ky, wv = valleyW(lat) + 4.5, fy = Math.min(F.h - 1, Y | 0);
+    for (let x = 0; x < w; x++) {
+      const X = (x + 0.5) / T, fk = fy * F.w + Math.min(F.w - 1, X | 0); if (F.dC[fk] < 0.6) continue;
+      const jx = X + Math.sin(Y * 0.23) * 1.5 + Math.sin(Y * 0.071 + X * 0.05) * 2.4, jy = Y + Math.cos(X * 0.2) * 1.5 + Math.cos(X * 0.062 - Y * 0.04) * 2.4;
+      let best = -1, bd = 1, raw = 0;
+      for (let i = 0; i < n; i++) { const dx = px[i] - jx, dy = py[i] - jy, dd = dx * dx + dy * dy, d2 = dd / (rad[i] * rad[i]); if (d2 < bd) { bd = d2; best = i; raw = dd; } }
+      if (best < 0) continue;
+      const k = kind[best];
+      if (raw > 64) {
+        if (k === 0 && F.dN[fk] > wv) continue;
+        if (k === 1 && F.sdF[fk] > 3 && F.dN[fk] > 5) continue;
+        if (k === 2) { const ex = (X - fx0) / 17, ey = (Y - fy0) / 11; if (ex * ex + ey * ey > 1 && F.dN[fk] > wv && F.dB[fk] > 5) continue; }
+      }
+      idx[y * w + x] = best;
+    }
+  }
+  GEO3 = { w, h, idx, ids: ps.map(p => p.id) }; return GEO3;
+}
+const RING_ = [1, 2, 4, 6].flatMap(r => [[r, 0], [-r, 0], [0, r], [0, -r], [r * 0.7 | 0 || 1, r * 0.7 | 0 || 1], [-(r * 0.7 | 0 || 1), r * 0.7 | 0 || 1], [r * 0.7 | 0 || 1, -(r * 0.7 | 0 || 1)], [-(r * 0.7 | 0 || 1), -(r * 0.7 | 0 || 1)]].map(([dx, dy]) => [dx, dy, r]));
+function terrReal(mode) {
+  if (typeof document === "undefined") return "";
+  const G = geoReal(), ps = G.ids.map(id => S.provs[id]), cols = ps.map(p => modeColor(p, mode)), own = ps.map(p => p.owner);
+  const key = mode + "|" + cols.map(c => c ? c.join(".") : "-").join(",") + "|" + own.join(",") + "|" + me();
+  if (TERR3.key === key && TERR3.url) return TERR3.url;
+  const { w, h, idx } = G, cv = document.createElement("canvas"); cv.width = w; cv.height = h; const ctx = cv.getContext("2d"), img = ctx.createImageData(w, h), D = img.data;
+  const rgb = {}; for (const C of Object.values(S.clans)) rgb[C.id] = hexRgb(C.col);
+  const polit = mode === "polit", my = me();
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const k = y * w + x, i = idx[k]; if (i < 0) continue; const o = k * 4, oi = own[i];
+    let realm = 9, wild = 9, prov = false;
+    for (const [dx, dy, r] of RING_) { if (r >= realm && r >= wild && (prov || r > 1)) continue; const xx = x + dx, yy = y + dy, j = xx < 0 || yy < 0 || xx >= w || yy >= h ? -1 : idx[yy * w + xx]; if (j === i) continue; if (j < 0) { if (r < wild) wild = r; } else if (own[j] !== oi) { if (r < realm) realm = r; } else if (r === 1) prov = true; }
+    const c = cols[i], cr = rgb[oi] || [120, 120, 120];
+    if (polit) {
+      if (realm <= 2) { D[o] = cr[0] * 0.38; D[o + 1] = cr[1] * 0.38; D[o + 2] = cr[2] * 0.38; D[o + 3] = 240; }
+      else if (wild <= 1) { D[o] = cr[0] * 0.45; D[o + 1] = cr[1] * 0.45; D[o + 2] = cr[2] * 0.45; D[o + 3] = 215; }
+      else if (prov) { D[o] = cr[0] * 0.5; D[o + 1] = cr[1] * 0.5; D[o + 2] = cr[2] * 0.5; D[o + 3] = 120; }
+      else { const band = realm <= 4 ? 190 : realm <= 6 ? 140 : wild <= 2 ? 150 : 0; D[o] = cr[0]; D[o + 1] = cr[1]; D[o + 2] = cr[2]; D[o + 3] = band || (oi === my ? 100 : 78); }
+    } else if (realm <= 1 || wild <= 1 || prov) { D[o] = 40; D[o + 1] = 26; D[o + 2] = 14; D[o + 3] = realm <= 1 ? 220 : wild <= 1 ? 160 : 90; }
+    else if (c) { D[o] = c[0]; D[o + 1] = c[1]; D[o + 2] = c[2]; D[o + 3] = Math.min(255, c[3] + 30); }
+  }
+  ctx.putImageData(img, 0, 0);
+  const c2 = document.createElement("canvas"); c2.width = w; c2.height = h; const x2 = c2.getContext("2d"); x2.filter = "blur(0.7px)"; x2.drawImage(cv, 0, 0);
+  TERR3 = { key, url: c2.toDataURL() }; return TERR3.url;
+}
+// ---------- značky sídel ----------
+const M_SYM = {
+  house: '<circle r=".62"/>',
+  city: '<rect x="-.78" y="-.78" width="1.56" height="1.56"/><rect x="-.26" y="-.26" width=".52" height=".52" fill="#f6ecd0" stroke="none"/>',
+  fort: '<path d="M-.95 -.95H-.4V-.6H.4V-.95H.95V-.4H.6V.4H.95V.95H.4V.6H-.4V.95H-.95V.4H-.6V-.4H-.95Z"/>',
+  cap: '<circle r="1.25" fill="#1a120a" stroke="none"/><circle r="1.02"/><path d="M0 -.62L.18 -.2L.62 -.19L.27 .09L.39 .52L0 .27L-.39 .52L-.27 .09L-.62 -.19L-.18 -.2Z" fill="#f6ecd0" stroke="none"/>',
+};
+function mapSvgReal() {
+  const [vx, vy, vw, vh] = mapVB(), k = vw / MW, st_ = typeof document !== "undefined" && document.getElementById("stage"), ppu = Math.min((st_ && st_.clientWidth || 1100) / vw, (st_ && st_.clientHeight || 700) / vh), f = clamp(0.9 * Math.pow(ppu / 1.2, 0.4), 0.8, 1.5) / ppu, R = 5.6 * f, mode = SEL.mapMode || "polit", base = baseUrl();
+  let g = `<rect x="-900" y="-900" width="${MW + 1800}" height="${MH + 1800}" fill="#0f0c08"/>`;
+  g += base ? `<image href="${base}" x="0" y="0" width="${MW}" height="${MH}" preserveAspectRatio="none" pointer-events="none"/>` : `<rect width="${MW}" height="${MH}" fill="#d9c08c"/><text x="${MW / 2}" y="${MH / 2}" text-anchor="middle" font-size="14" fill="#5a3d1a" font-style="italic">kreslí se mapa…</text>`;
+  if (mode === "teren") g += "";
+  const tu = base ? terrReal(mode) : ""; if (tu) g += `<image href="${tu}" x="0" y="0" width="${MW}" height="${MH}" preserveAspectRatio="none" pointer-events="none"/>`;
+  if (S.month < 4) { for (const L of [NILE, BAHR]) g += `<polyline class="floodw" points="${pts(L)}" fill="none" stroke="#5aa0d2" stroke-width="${(L === NILE ? 6 : 3) * Math.min(1, Math.max(f, 0.5))}" stroke-linecap="round" stroke-linejoin="round"><title>Období achet: Nil zaplavil nivu</title></polyline>`; for (const L of [NILE_W, NILE_E, NILE_M]) g += `<polyline class="floodw" points="${pts(L)}" fill="none" stroke="#5aa0d2" stroke-width="${3.5 * Math.min(1, Math.max(f, 0.5))}" stroke-linecap="round" stroke-linejoin="round"/>`; }
+  for (const L of [NILE, NILE_W, NILE_E, NILE_M]) g += `<polyline points="${pts(L)}" fill="none" stroke="#17344f" stroke-linecap="round" stroke-linejoin="round" stroke-width="${(L === NILE ? 2.9 : 1.9) * f}" opacity=".7"/><polyline points="${pts(L)}" fill="none" stroke="#4d8fbd" stroke-linecap="round" stroke-linejoin="round" stroke-width="${(L === NILE ? 1.9 : 1.1) * f}"/>`;
+  g += `<polyline points="${pts(BAHR)}" fill="none" stroke="#4d8fbd" stroke-linecap="round" stroke-linejoin="round" stroke-width="${0.8 * f}" opacity=".8"/>`;
+  // památky Staré říše, které v krajině stály ve všech obdobích hry
+  { const x = MX(31.13), y = MY(29.98), u = Math.max(0.5, f) * 1.5; g += `<g transform="translate(${x} ${y}) scale(${u})" pointer-events="all"><title>Pyramidy v Gíze (4. dynastie) a Džoserova pyramida v Sakkáře (3. dynastie)</title><path d="M-4.6 0l2 -3l2 3zM-1.8 0l2.4 -3.8l2.4 3.8zM-7 0l1.4 -2.1l1.4 2.1z" fill="#efe2bd" stroke="#3b2a14" stroke-width=".25"/><path d="M.6 -3.8l2.4 3.8h-1.4zM-2.6 -3l2 3h-1.2z" fill="#3b2a14" opacity=".35"/></g>`; }
+  const reg = [["Středozemní moře", 31.74, 28.2, 1], ["Rudé moře", 26.25, 34.82, 1], ["LIBYJSKÁ POUŠŤ", 26.4, 27.2, 0], ["VÝCHODNÍ POUŠŤ", 24.2, 33.9, 0], ["SINAJ", 29.75, 33.8, 0], ["NÚBIE", 21.0, 32.9, 0], ["KENAAN", 31.62, 34.72, 0]];
+  for (const [t, la, lo, sea] of reg) g += `<text class="region${sea ? " sea2" : ""}" x="${MX(lo)}" y="${MY(la)}" font-size="${(sea ? 12 : 10.5) * f}" text-anchor="middle">${t}</text>`;
+  const done = new Set();
+  for (const p of Object.values(S.provs)) for (const n of p.nb) { const key = p.id < n ? p.id + n : n + p.id; if (done.has(key)) continue; done.add(key); const q = S.provs[n]; if (!TERRAIN[p.ter].nile || !TERRAIN[q.ter].nile) g += `<line class="edge" x1="${MX(p.lon)}" y1="${MY(p.lat)}" x2="${MX(q.lon)}" y2="${MY(q.lat)}" stroke-width="${0.8 * f}"><title>pouštní cesta</title></line>`; }
+  if (mode === "obchod") for (const Rt of ROUTES) { const op = routeState(S, Rt).open; g += `<polyline points="${Rt.provs.map(id => MX(S.provs[id].lon) + "," + MY(S.provs[id].lat)).join(" ")}" fill="none" stroke="${Rt.col}" stroke-width="${3.6 * f}" stroke-linecap="round" stroke-linejoin="round" opacity=".9" ${op ? "" : `stroke-dasharray="${5 * f} ${4 * f}"`}><title>${esc(Rt.n)}${op ? "" : " – přerušená"}</title></polyline>`; }
+  for (const a of S.armies) { if (!a.path || !a.path.length) continue; const own = a.cl === me(); if (!own && !knows(S, S.provs[a.loc])) continue; const L = [a.loc].concat(a.path).map(id => S.provs[id]); g += `<polyline class="march ${own ? "own" : "foe"}" stroke-width="${1.8 * f}" stroke-dasharray="${3.5 * f} ${2.5 * f}" stroke-linecap="round" points="${L.map(p => MX(p.lon) + "," + MY(p.lat)).join(" ")}"/>`; }
+  const LEFT = new Set(["u2", "u4", "u6", "u8", "u10", "u12", "u14", "u16", "u18", "u20", "u22", "l2", "l3", "l5", "l6", "lx", "fa", "o_bah", "n_sai", "n_semna", "n_wawat"]);
+  let marks = "", labels = "";
+  for (const p of Object.values(S.provs)) {
+    const x = MX(p.lon), y = MY(p.lat), C = S.clans[p.owner], mine = p.owner === me(), war = atWar(S, me(), p.owner), capf = C && C.capital === p.id;
+    const kind = capf ? "cap" : p.flags.includes("f") || p.castle >= 3 ? "fort" : p.flags.includes("c") || p.v >= 4 ? "city" : "house", sc = R * (capf ? 1.05 : kind === "house" ? 0.9 : 0.82);
+    let m = `<g class="pv${mine ? " mine" : ""}${war ? " war" : ""}" data-a="selProv" data-x='["${p.id}"]' data-pid="${p.id}"><circle cx="${x}" cy="${y}" r="${R * 2.3}" fill="transparent"/>`;
+    if (SEL.prov === p.id) m += `<circle class="selring" cx="${x}" cy="${y}" r="${R * 2.2}" stroke-width="${1.6 * f}" stroke-dasharray="${4 * f} ${2.5 * f}"/>`;
+    m += `<g class="mk" transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${sc.toFixed(2)})" fill="${C.col}" stroke="${war ? "#ff5a3c" : mine ? "#f6d98a" : "#f4ead0"}" stroke-width="${kind === "cap" ? 0.2 : 0.24}" stroke-linejoin="round" paint-order="stroke">${M_SYM[kind]}</g>`;
+    if ((p.b.chram || 0) >= 2) m += `<path d="M${x - R * 1.9} ${y + R * 0.6}l${R * 0.28} -${R * 1.5}l${R * 0.28} ${R * 1.5}z" fill="#efe2bd" stroke="#1a120a" stroke-width="${0.35 * f}"><title>chrám (úroveň ${p.b.chram})</title></path>`;
+    if (p.mons && MON_IDS.some(id => p.mons[id] && p.mons[id].stage >= MONUMENTS[id].stages)) m += `<path d="M${x - R * 2.6} ${y + R * 0.6}l${R * 0.6} -${R * 1.0}l${R * 0.6} ${R * 1.0}z" fill="#e3bb55" stroke="#1a120a" stroke-width="${0.35 * f}"><title>dokončená velká stavba</title></path>`;
+    if (p.siege) m += `<circle class="siege" cx="${x}" cy="${y}" r="${R * 1.9}" stroke-width="${1.5 * f}"/>`;
+    if (p.hunger > 0.15 && (mine || knows(S, p))) m += `<g transform="translate(${x + R * 0.2} ${y - R * 1.9})"><path d="M0 -${R * 0.9}L${R * 0.85} ${R * 0.6}H-${R * 0.85}Z" fill="#c4361c" stroke="#f6ecd0" stroke-width="${0.4 * f}" stroke-linejoin="round"/><text y="${R * 0.42}" font-size="${R * 0.95}" fill="#fff" font-weight="bold" text-anchor="middle">!</text><title>hlad</title></g>`;
+    if (p.build && mine) m += `<rect x="${x - R * 1.75}" y="${y - R * 1.75}" width="${R * 0.75}" height="${R * 0.75}" fill="#e3bb55" stroke="#1a120a" stroke-width="${0.35 * f}" transform="rotate(45 ${x - R * 1.4} ${y - R * 1.4})"><title>staví se</title></rect>`;
+    const left = LEFT.has(p.id);
+    if (k < 0.8 || capf || p.v >= 3 || !TERRAIN[p.ter].nile) labels += `<text class="lbl${capf ? " cap" : ""}" x="${x + (left ? -1 : 1) * R * 1.7}" y="${y + R * 0.55}" font-size="${(capf ? 14 : 11.5) * f}" stroke-width="${2.4 * f}" text-anchor="${left ? "end" : "start"}">${esc(p.n)}</text>`;
+    marks += m + `</g>`;
+  }
+  g += labels + marks;
+  for (const b of S.battles.filter(b => b.t >= S.turn - 1 && S.provs[b.place] && (b.a === me() || b.b === me() || knows(S, S.provs[b.place])))) { const p = S.provs[b.place], x = MX(p.lon) - R * 1.9, y = MY(p.lat) - R * 1.9, r = R * 0.95; g += `<g class="bmark" transform="translate(${x} ${y})"><title>Bitva: ${esc(S.clans[b.a].n)} × ${esc(S.clans[b.b].n)}</title><path d="M0 -${r * 1.3}L${r * 1.3} 0L0 ${r * 1.3}L-${r * 1.3} 0Z" fill="#b3261a" stroke="#f6ecd0" stroke-width="${0.45 * f}"/><path d="M-${r * 0.55} ${r * 0.55}L${r * 0.55} -${r * 0.55}M${r * 0.55} ${r * 0.55}L-${r * 0.55} -${r * 0.55}" stroke="#f6ecd0" stroke-width="${0.7 * f}" stroke-linecap="round"/></g>`; }
+  const slot = {};
+  for (const a of S.armies) { const p = S.provs[a.loc], own = a.cl === me(); if (!own && !knows(S, p)) continue; const n = slot[a.loc] = (slot[a.loc] || 0) + 1, hh = R * 1.45, ww = R * 3.1, x = MX(p.lon) + R * 1.2 + (n - 1) * (ww + R * 0.3), y = MY(p.lat) - R * 1.2 - hh, col = S.clans[a.cl].col, pow = Math.min(1, men(a.t) / 6000);
+    g += `<g class="army${own ? " own" : ""}" data-a="selProv" data-x='["${p.id}"]' data-pid="${p.id}"><title>${esc(S.clans[a.cl].n)}: ${fmtN(men(a.t))} mužů${a.path && a.path.length ? " → " + esc(S.provs[a.path[a.path.length - 1]].n) : ""}</title><path d="M${x} ${y + hh}L${x - R * 0.9} ${y + hh + R * 0.9}L${x + R * 0.9} ${y + hh}Z" fill="#1a120a"/><rect x="${x}" y="${y}" width="${ww}" height="${hh}" rx="${R * 0.14}" fill="#1a120a" stroke="${own ? "#f6d98a" : "#d8ccb0"}" stroke-width="${(own ? 0.55 : 0.4) * f}"/><rect x="${x}" y="${y}" width="${R * 0.75}" height="${hh}" fill="${col}"/><rect x="${x + R * 0.95}" y="${y + hh - R * 0.28}" width="${(ww - R * 1.15) * pow}" height="${R * 0.14}" fill="${own ? "#f6d98a" : "#d8ccb0"}"/><text x="${x + R * 0.75 + (ww - R * 0.75) / 2}" y="${y + hh * 0.66}" font-size="${R * 0.92}" fill="#f6ecd0" text-anchor="middle" font-weight="bold" stroke="none">${fmtN(men(a.t))}</text></g>`; }
+  // měřítko a kartuše se jménem země
+  { const x = MX(25.35), y = MY(19.75), km = 200, len = km / 111 * MAPV.ky; g += `<g pointer-events="none" opacity=".85"><path d="M${x} ${y}h${len}M${x} ${y - 3}v6M${x + len / 2} ${y - 2}v4M${x + len} ${y - 3}v6" stroke="#2a1c0e" stroke-width="1" fill="none"/><text x="${x + len / 2}" y="${y - 6}" text-anchor="middle" font-size="8.5" fill="#2a1c0e" font-style="italic">${km} km</text></g>`;
+    const cx = MX(26.75), cy = MY(21.15); g += `<g pointer-events="none" opacity=".92"><rect x="${cx - 58}" y="${cy - 20}" width="116" height="40" rx="20" fill="#efe2bd" fill-opacity=".9" stroke="#3b2a14" stroke-width="1.3"/><path d="M${cx + 58} ${cy - 16}v32" stroke="#3b2a14" stroke-width="2.2"/><text x="${cx - 3}" y="${cy - 2}" text-anchor="middle" font-size="16" style="font-family:Hieroglyfy,serif" fill="#2b1d12">${HG.kemet}</text><text x="${cx - 3}" y="${cy + 12}" text-anchor="middle" font-size="8.5" fill="#5a3d1a" font-style="italic">Kemet ≈ ${S.bce} př. n. l.</text></g>`; }
+  g += `<rect x="-1.5" y="-1.5" width="${MW + 3}" height="${MH + 3}" fill="none" stroke="#8a6a2a" stroke-width="1.6" pointer-events="none"/><rect x="-6" y="-6" width="${MW + 12}" height="${MH + 12}" fill="none" stroke="#3b2a14" stroke-width="1" pointer-events="none"/>`;
+  return `<svg class="map art real" id="mapsvg" viewBox="${vx.toFixed(1)} ${vy.toFixed(1)} ${vw.toFixed(1)} ${vh.toFixed(1)}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Mapa Egypta">${g}</svg>`;
+}
+_mapSvg0 = mapSvgReal;
+// po nové nebo načtené hře se území přepočítá
+{ const f0 = ACT.startGo; ACT.startGo = (...a) => { const r = f0(...a); GEO3 = null; TERR3.key = null; return r; }; }
+for (const k of ["load", "pasteSave", "newgame"]) { const f0 = ACT[k]; ACT[k] = (...a) => { const r = f0(...a); GEO3 = null; TERR3.key = null; return r; }; }
+var _render1 = render;
+render = function () { if (GEO3 && S.provs && Object.keys(S.provs).length !== GEO3.ids.length) { GEO3 = null; TERR3.key = null; } return _render1(); };
+// úvodní obrazovka: výřez reliéfní mapy s Deltou a Memfidou místo kresleného obrázku
+heroSvg = function () { const u = baseUrl(); return `<div class="hero real"${u ? ` style="background-image:url(${u})"` : ""}></div>`; };
 
 </script>
 </body>
