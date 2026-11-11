@@ -9,7 +9,16 @@ function mkNoise_(seed) {
   return (x, y) => { const xi = Math.floor(x), yi = Math.floor(y), fx = x - xi, fy = y - yi, u = fx * fx * (3 - 2 * fx), v = fy * fy * (3 - 2 * fy), r0 = (yi & 255) << 8, r1 = ((yi + 1) & 255) << 8, c0 = xi & 255, c1 = (xi + 1) & 255, a = g[r0 | c0], b = g[r0 | c1], c = g[r1 | c0], d = g[r1 | c1]; return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v; };
 }
 const ss_ = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
-const polyPx_ = L => L.map(([la, lo]) => [MX(lo), MY(la)]);
+// hladká křivka procházející všemi body (Catmull–Rom), aby tok řeky nebyl lomená čára
+const SMC_ = new Map();
+function smooth_(L, n = 5) {
+  if (SMC_.has(L)) return SMC_.get(L);
+  const out = [], P = i => L[clamp(i, 0, L.length - 1)];
+  for (let i = 0; i < L.length - 1; i++) { const p0 = P(i - 1), p1 = P(i), p2 = P(i + 1), p3 = P(i + 2); for (let j = 0; j < n; j++) { const t = j / n, t2 = t * t, t3 = t2 * t; out.push([0, 1].map(k => 0.5 * (2 * p1[k] + (-p0[k] + p2[k]) * t + (2 * p0[k] - 5 * p1[k] + 4 * p2[k] - p3[k]) * t2 + (-p0[k] + 3 * p1[k] - 3 * p2[k] + p3[k]) * t3))); } }
+  out.push(L[L.length - 1]); SMC_.set(L, out); return out;
+}
+const polyPx_ = L => smooth_(L).map(([la, lo]) => [MX(lo), MY(la)]);
+function blur_(A, w, h, r, passes) { const T = new Float32Array(A.length); for (let p = 0; p < passes; p++) { for (let y = 0; y < h; y++) { let s = 0; const row = y * w; for (let x = -r; x <= r; x++) s += A[row + clamp(x, 0, w - 1)]; for (let x = 0; x < w; x++) { T[row + x] = s / (2 * r + 1); s += A[row + Math.min(w - 1, x + r + 1)] - A[row + Math.max(0, x - r)]; } } for (let x = 0; x < w; x++) { let s = 0; for (let y = -r; y <= r; y++) s += T[clamp(y, 0, h - 1) * w + x]; for (let y = 0; y < h; y++) { A[y * w + x] = s / (2 * r + 1); s += T[Math.min(h - 1, y + r + 1) * w + x] - T[Math.max(0, y - r) * w + x]; } } } return A; }
 function distLine_(px, py, P, closed) {
   let m = 1e9; const n = P.length;
   for (let i = 0; i < (closed ? n : n - 1); i++) { const a = P[i], b = P[(i + 1) % n], vx = b[0] - a[0], vy = b[1] - a[1], l2 = vx * vx + vy * vy, t = l2 ? clamp(((px - a[0]) * vx + (py - a[1]) * vy) / l2, 0, 1) : 0, dx = px - a[0] - vx * t, dy = py - a[1] - vy * t, d = dx * dx + dy * dy; if (d < m) m = d; }
@@ -21,19 +30,36 @@ const VW_ = [[19, 1.3], [22, 1.5], [24.1, 2.0], [25.2, 3.2], [26, 4.4], [27.2, 5
 function valleyW(lat) { for (let i = 1; i < VW_.length; i++) if (lat <= VW_[i][0]) { const [a, wa] = VW_[i - 1], [b, wb] = VW_[i]; return wa + (wb - wa) * clamp((lat - a) / (b - a), 0, 1); } return 6.2; }
 
 let FIELDS_ = null;
+// vzdálenost k nejbližšímu bodu masky (dvouprůchodová chamfer transformace 3-4, výsledek v jednotkách mapy)
+function chamfer_(seed, w, h) {
+  const d = new Float32Array(w * h); for (let i = 0; i < d.length; i++) d[i] = seed[i] ? 0 : 1e6;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const k = y * w + x; let v = d[k]; if (x > 0) v = Math.min(v, d[k - 1] + 1); if (y > 0) { v = Math.min(v, d[k - w] + 1); if (x > 0) v = Math.min(v, d[k - w - 1] + 1.414); if (x < w - 1) v = Math.min(v, d[k - w + 1] + 1.414); } d[k] = v; }
+  for (let y = h - 1; y >= 0; y--) for (let x = w - 1; x >= 0; x--) { const k = y * w + x; let v = d[k]; if (x < w - 1) v = Math.min(v, d[k + 1] + 1); if (y < h - 1) { v = Math.min(v, d[k + w] + 1); if (x < w - 1) v = Math.min(v, d[k + w + 1] + 1.414); if (x > 0) v = Math.min(v, d[k + w - 1] + 1.414); } d[k] = v; }
+  return d;
+}
 function baseFields() {
   if (FIELDS_) return FIELDS_;
-  const w = MW, h = MH, n = w * h, dN = new Float32Array(n), dB = new Float32Array(n), sdF = new Float32Array(n), dC = new Float32Array(n), dR = new Float32Array(n);
-  const nile = [NILE, NILE_W, NILE_E, NILE_M].map(polyPx_), bahr = polyPx_(BAHR), med = polyPx_(MED), medP = med.concat([[MX(36), MY(32.8)], [MX(24), MY(32.8)], [MX(24), MY(31.9)]]), red = polyPx_(RED), fan = polyPx_(DELTA_FAN);
+  const Q = 2, w = MW, h = MH, n = w * h, dN = new Float32Array(n), dB = new Float32Array(n), sdF = new Float32Array(n), dC = new Float32Array(n), dR = new Float32Array(n);
+  // maska pevniny ze skutečného pobřeží, vykreslená ve dvojnásobném rozlišení
+  const cw = w * Q, ch = h * Q, cv = document.createElement("canvas"); cv.width = cw; cv.height = ch; const ctx = cv.getContext("2d");
+  ctx.fillStyle = "#000"; ctx.fillRect(0, 0, cw, ch); ctx.fillStyle = "#fff"; ctx.beginPath();
+  for (const P of COAST_) { P.forEach(([la, lo], i) => { const x = MX(lo) * Q, y = MY(la) * Q; if (i) ctx.lineTo(x, y); else ctx.moveTo(x, y); }); ctx.closePath(); }
+  ctx.fill("evenodd");
+  const px = ctx.getImageData(0, 0, cw, ch).data, land = new Uint8Array(cw * ch), sea = new Uint8Array(cw * ch), red = new Uint8Array(cw * ch);
+  const redLat = MY(30.35) * Q, redLon = MX(32.0) * Q;
+  for (let i = 0; i < cw * ch; i++) { const l = px[i * 4] > 127; land[i] = l ? 1 : 0; sea[i] = l ? 0 : 1; if (!l && ((i / cw) | 0) > redLat && i % cw > redLon) red[i] = 1; }
+  const toSea = chamfer_(sea, cw, ch), toLand = chamfer_(land, cw, ch), toRed = chamfer_(red, cw, ch);
+  const nile = [NILE, NILE_W, NILE_E, NILE_M].map(polyPx_), bahr = polyPx_(BAHR), fan = DELTA_FAN.map(([la, lo]) => [MX(lo), MY(la)]);
   for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
-    const k = y * w + x, px = x + 0.5, py = y + 0.5;
-    let d = 1e9; for (const L of nile) d = Math.min(d, distLine_(px, py, L)); dN[k] = d;
-    dB[k] = distLine_(px, py, bahr);
-    const df = distLine_(px, py, fan, true); sdF[k] = inPoly_(px, py, fan) ? -df : df;
-    const dm = distLine_(px, py, med), dr = distLine_(px, py, red, true), sea = inPoly_(px, py, medP) || inPoly_(px, py, red);
-    dC[k] = sea ? -Math.min(dm, dr) : Math.min(dm, dr); dR[k] = dr;
+    const k = y * w + x, pxx = x + 0.5, pyy = y + 0.5, q = (y * Q + 1) * cw + x * Q + 1;
+    let d = 1e9; for (const L of nile) d = Math.min(d, distLine_(pxx, pyy, L)); dN[k] = d;
+    dB[k] = distLine_(pxx, pyy, bahr);
+    const df = distLine_(pxx, pyy, fan, true); sdF[k] = inPoly_(pxx, pyy, fan) ? -df : df;
+    dC[k] = land[q] ? toSea[q] / Q : -toLand[q] / Q; dR[k] = toRed[q] / Q;
   }
-  FIELDS_ = { w, h, dN, dB, sdF, dC, dR }; return FIELDS_;
+  const dC2 = new Float32Array(cw * ch); for (let i = 0; i < cw * ch; i++) dC2[i] = land[i] ? toSea[i] / Q : -toLand[i] / Q;
+  const dep = blur_(Float32Array.from(toLand), cw, ch, 4, 3);
+  FIELDS_ = { w, h, dN, dB, sdF, dC, dR, dC2, dep, cw, ch, Q }; return FIELDS_;
 }
 // ---------- podkladový rastr ----------
 var BASE_ = { url: "", busy: false, K: 0 };
@@ -43,13 +69,15 @@ function buildBase() {
   const n1 = mkNoise_(11), n2 = mkNoise_(23), n3 = mkNoise_(47);
   const fbm = (nf, x, y, o) => { let a = 0, f = 1, s = 0, amp = 1; for (let i = 0; i < o; i++) { a += nf(x * f + i * 17.3, y * f + i * 9.1) * amp; s += amp; amp *= 0.5; f *= 2; } return a / s; };
   const samp = (A, X, Y) => { const x = clamp(X - 0.5, 0, fw - 1.001), y = clamp(Y - 0.5, 0, fh - 1.001), xi = x | 0, yi = y | 0, fx = x - xi, fy = y - yi, k = yi * fw + xi; return A[k] * (1 - fx) * (1 - fy) + A[k + 1] * fx * (1 - fy) + A[k + fw] * (1 - fx) * fy + A[k + fw + 1] * fx * fy; };
+  const QQ = F.Q, cw2 = F.cw, ch2 = F.ch, C2 = F.dC2, samp2 = (X, Y) => { const x = clamp(X * QQ - 0.5, 0, cw2 - 1.001), y = clamp(Y * QQ - 0.5, 0, ch2 - 1.001), xi = x | 0, yi = y | 0, fx = x - xi, fy = y - yi, k = yi * cw2 + xi; return C2[k] * (1 - fx) * (1 - fy) + C2[k + 1] * fx * (1 - fy) + C2[k + cw2] * (1 - fx) * fy + C2[k + cw2 + 1] * fx * fy; };
+  const DP = F.dep, sampD = (X, Y) => { const x = clamp(X * QQ - 0.5, 0, cw2 - 1.001), y = clamp(Y * QQ - 0.5, 0, ch2 - 1.001), xi = x | 0, yi = y | 0, fx = x - xi, fy = y - yi, k = yi * cw2 + xi; return DP[k] * (1 - fx) * (1 - fy) + DP[k + 1] * fx * (1 - fy) + DP[k + cw2] * (1 - fx) * fy + DP[k + cw2 + 1] * fx * fy; };
   const fx0 = MX(30.8), fy0 = MY(29.35), qx = MX(27.6), qy = MY(30.0), gx = MX(25.9), gy = MY(23.4), oas = Object.values(S.provs || {}).filter(p => p.ter === "oaza").map(p => [MX(p.lon), MY(p.lat), 7, 4.5]).concat([[MX(27.97), MY(27.06), 4, 3]]);
   for (let y = 0; y < h; y++) {
     const Y = (y + 0.5) / K, lat = MAPV.lat1 - Y / MAPV.ky, wv0 = valleyW(lat);
     for (let x = 0; x < w; x++) {
-      const i = y * w + x, X = (x + 0.5) / K, lon = MAPV.lon0 + X / MAPV.kx, dc = samp(F.dC, X, Y);
+      const i = y * w + x, X = (x + 0.5) / K, lon = MAPV.lon0 + X / MAPV.kx, dc = samp2(X, Y);
       const low = fbm(n1, X / 70, Y / 70, 3); LO[i] = low;
-      if (dc < 0) { SEA[i] = -dc; continue; }
+      if (dc < 0) { SEA[i] = Math.max(0.3, sampD(X, Y) / QQ); continue; }
       const dn = samp(F.dN, X, Y), dr = samp(F.dR, X, Y), mid = fbm(n2, X / 11, Y / 11, 4), wv = wv0 * (0.72 + 0.56 * n1(X / 9 + 40, Y / 9));
       let g = ss_(wv + 0.8, wv - 0.5, dn);
       g = Math.max(g, ss_(1.2, -0.6, samp(F.sdF, X, Y) + (mid - 0.5) * 5));
@@ -59,7 +87,7 @@ function buildBase() {
       const rid = 1 - Math.abs(2 * mid - 1), ridge = Math.exp(-(((dr - 36) / 24) ** 2)) * ss_(30.1, 28.9, lat), east = ss_(31.6, 33, lon), south = ss_(24.6, 22, lat);
       let e = 0.30 * low + 0.5 * ridge * (0.5 + 0.95 * rid) + (0.05 + 0.10 * east + 0.09 * south) * rid + 0.10 * ss_(wv, wv + 5, dn);
       { const ax = (X - qx) / 54, ay = (Y - qy) / 30; e -= 0.2 * Math.exp(-(ax * ax + ay * ay)); const bx = (X - gx) / 27, by = (Y - gy) / 36; e += 0.25 * Math.exp(-(bx * bx + by * by)) * (0.6 + 0.8 * rid); }
-      const dm = ss_(27.9, 26.6, lon) * ss_(29.4, 28.4, lat) * ss_(23.0, 24.2, lat); if (dm > 0) e += 0.016 * dm * (0.3 + n1(X / 23 + 7, Y / 31)) * Math.sin((X * 0.97 + Y * 0.22) * (1.1 + 0.5 * n1(X / 60, Y / 60 + 3)) + mid * 5);
+      const dm = ss_(27.9, 26.6, lon) * ss_(29.4, 28.4, lat) * ss_(23.0, 24.2, lat); if (dm > 0) e += 0.011 * dm * (0.3 + n1(X / 23 + 7, Y / 31)) * Math.sin((X * 0.97 + Y * 0.22) * (1.1 + 0.5 * n1(X / 60, Y / 60 + 3)) + mid * 5);
       E[i] = e * (1 - g) + 0.04 * g; GR[i] = g; RK[i] = clamp(ridge * 0.95 + rid * 0.22 * east + 0.3 * south * rid, 0, 1);
     }
   }
@@ -162,13 +190,13 @@ function mapSvgReal() {
   g += base ? `<image href="${base}" x="0" y="0" width="${MW}" height="${MH}" preserveAspectRatio="none" pointer-events="none"/>` : `<rect width="${MW}" height="${MH}" fill="#d9c08c"/><text x="${MW / 2}" y="${MH / 2}" text-anchor="middle" font-size="14" fill="#5a3d1a" font-style="italic">kreslí se mapa…</text>`;
   if (mode === "teren") g += "";
   const tu = base ? terrReal(mode) : ""; if (tu) g += `<image href="${tu}" x="0" y="0" width="${MW}" height="${MH}" preserveAspectRatio="none" pointer-events="none"/>`;
-  if (S.month < 4) { for (const L of [NILE, BAHR]) g += `<polyline class="floodw" points="${pts(L)}" fill="none" stroke="#5aa0d2" stroke-width="${(L === NILE ? 6 : 3) * Math.min(1, Math.max(f, 0.5))}" stroke-linecap="round" stroke-linejoin="round"><title>Období achet: Nil zaplavil nivu</title></polyline>`; for (const L of [NILE_W, NILE_E, NILE_M]) g += `<polyline class="floodw" points="${pts(L)}" fill="none" stroke="#5aa0d2" stroke-width="${3.5 * Math.min(1, Math.max(f, 0.5))}" stroke-linecap="round" stroke-linejoin="round"/>`; }
-  for (const L of [NILE, NILE_W, NILE_E, NILE_M]) g += `<polyline points="${pts(L)}" fill="none" stroke="#17344f" stroke-linecap="round" stroke-linejoin="round" stroke-width="${(L === NILE ? 2.9 : 1.9) * f}" opacity=".7"/><polyline points="${pts(L)}" fill="none" stroke="#4d8fbd" stroke-linecap="round" stroke-linejoin="round" stroke-width="${(L === NILE ? 1.9 : 1.1) * f}"/>`;
-  g += `<polyline points="${pts(BAHR)}" fill="none" stroke="#4d8fbd" stroke-linecap="round" stroke-linejoin="round" stroke-width="${0.8 * f}" opacity=".8"/>`;
+  if (S.month < 4) { for (const L of [NILE, BAHR]) g += `<polyline class="floodw" points="${pts(smooth_(L))}" fill="none" stroke="#5aa0d2" stroke-width="${(L === NILE ? 6 : 3) * Math.min(1, Math.max(f, 0.5))}" stroke-linecap="round" stroke-linejoin="round"><title>Období achet: Nil zaplavil nivu</title></polyline>`; for (const L of [NILE_W, NILE_E, NILE_M]) g += `<polyline class="floodw" points="${pts(smooth_(L))}" fill="none" stroke="#5aa0d2" stroke-width="${3.5 * Math.min(1, Math.max(f, 0.5))}" stroke-linecap="round" stroke-linejoin="round"/>`; }
+  for (const L of [NILE, NILE_W, NILE_E, NILE_M]) g += `<polyline points="${pts(smooth_(L))}" fill="none" stroke="#17344f" stroke-linecap="round" stroke-linejoin="round" stroke-width="${(L === NILE ? 2.9 : 1.9) * f}" opacity=".7"/><polyline points="${pts(smooth_(L))}" fill="none" stroke="#4d8fbd" stroke-linecap="round" stroke-linejoin="round" stroke-width="${(L === NILE ? 1.9 : 1.1) * f}"/>`;
+  g += `<polyline points="${pts(smooth_(BAHR))}" fill="none" stroke="#4d8fbd" stroke-linecap="round" stroke-linejoin="round" stroke-width="${0.8 * f}" opacity=".8"/>`;
   // památky Staré říše, které v krajině stály ve všech obdobích hry
   { const x = MX(31.13), y = MY(29.98), u = Math.max(0.5, f) * 1.5; g += `<g transform="translate(${x} ${y}) scale(${u})" pointer-events="all"><title>Pyramidy v Gíze (4. dynastie) a Džoserova pyramida v Sakkáře (3. dynastie)</title><path d="M-4.6 0l2 -3l2 3zM-1.8 0l2.4 -3.8l2.4 3.8zM-7 0l1.4 -2.1l1.4 2.1z" fill="#efe2bd" stroke="#3b2a14" stroke-width=".25"/><path d="M.6 -3.8l2.4 3.8h-1.4zM-2.6 -3l2 3h-1.2z" fill="#3b2a14" opacity=".35"/></g>`; }
-  const reg = [["Středozemní moře", 31.74, 28.2, 1], ["Rudé moře", 26.25, 34.82, 1], ["LIBYJSKÁ POUŠŤ", 26.4, 27.2, 0], ["VÝCHODNÍ POUŠŤ", 24.2, 33.9, 0], ["SINAJ", 29.75, 33.8, 0], ["NÚBIE", 21.0, 32.9, 0], ["KENAAN", 31.62, 34.72, 0]];
-  for (const [t, la, lo, sea] of reg) g += `<text class="region${sea ? " sea2" : ""}" x="${MX(lo)}" y="${MY(la)}" font-size="${(sea ? 12 : 10.5) * f}" text-anchor="middle">${t}</text>`;
+  const reg = [["Středozemní moře", 31.74, 28.2, 1, "wadzwer"], ["Rudé moře", 25.2, 35.0, 1], ["LIBYJSKÁ POUŠŤ", 26.4, 27.2, 0, "deshret"], ["VÝCHODNÍ POUŠŤ", 24.2, 33.9, 0, "deshret"], ["SINAJ", 29.75, 33.8, 0], ["NÚBIE", 21.0, 32.9, 0, "tasti"], ["KENAAN", 31.62, 34.72, 0, "recenu"], ["", 19.9, 31.2, 0, "kash"], ["", 26.9, 32.3, 0, "shemau"], ["", 30.55, 32.25, 0, "tamehu"]];
+  for (const [t, la, lo, sea, hk] of reg) g += (t ? `<text class="region${sea ? " sea2" : ""}" x="${MX(lo)}" y="${MY(la)}" font-size="${(sea ? 12 : 10.5) * f}" text-anchor="middle">${t}</text>` : "") + (hk ? `<text class="rhg${sea ? " sea2" : ""}" x="${MX(lo)}" y="${MY(la) + (t ? 15 * f : 0)}" font-size="${13 * f}" text-anchor="middle"><title>${esc(hgTitle(hk))}</title>${HG[hk]}</text>` : "");
   const done = new Set();
   for (const p of Object.values(S.provs)) for (const n of p.nb) { const key = p.id < n ? p.id + n : n + p.id; if (done.has(key)) continue; done.add(key); const q = S.provs[n]; if (!TERRAIN[p.ter].nile || !TERRAIN[q.ter].nile) g += `<line class="edge" x1="${MX(p.lon)}" y1="${MY(p.lat)}" x2="${MX(q.lon)}" y2="${MY(q.lat)}" stroke-width="${0.8 * f}"><title>pouštní cesta</title></line>`; }
   if (mode === "obchod") for (const Rt of ROUTES) { const op = routeState(S, Rt).open; g += `<polyline points="${Rt.provs.map(id => MX(S.provs[id].lon) + "," + MY(S.provs[id].lat)).join(" ")}" fill="none" stroke="${Rt.col}" stroke-width="${3.6 * f}" stroke-linecap="round" stroke-linejoin="round" opacity=".9" ${op ? "" : `stroke-dasharray="${5 * f} ${4 * f}"`}><title>${esc(Rt.n)}${op ? "" : " – přerušená"}</title></polyline>`; }
@@ -197,7 +225,7 @@ function mapSvgReal() {
     g += `<g class="army${own ? " own" : ""}" data-a="selProv" data-x='["${p.id}"]' data-pid="${p.id}"><title>${esc(S.clans[a.cl].n)}: ${fmtN(men(a.t))} mužů${a.path && a.path.length ? " → " + esc(S.provs[a.path[a.path.length - 1]].n) : ""}</title><path d="M${x} ${y + hh}L${x - R * 0.9} ${y + hh + R * 0.9}L${x + R * 0.9} ${y + hh}Z" fill="#1a120a"/><rect x="${x}" y="${y}" width="${ww}" height="${hh}" rx="${R * 0.14}" fill="#1a120a" stroke="${own ? "#f6d98a" : "#d8ccb0"}" stroke-width="${(own ? 0.55 : 0.4) * f}"/><rect x="${x}" y="${y}" width="${R * 0.75}" height="${hh}" fill="${col}"/><rect x="${x + R * 0.95}" y="${y + hh - R * 0.28}" width="${(ww - R * 1.15) * pow}" height="${R * 0.14}" fill="${own ? "#f6d98a" : "#d8ccb0"}"/><text x="${x + R * 0.75 + (ww - R * 0.75) / 2}" y="${y + hh * 0.66}" font-size="${R * 0.92}" fill="#f6ecd0" text-anchor="middle" font-weight="bold" stroke="none">${fmtN(men(a.t))}</text></g>`; }
   // měřítko a kartuše se jménem země
   { const x = MX(25.35), y = MY(19.75), km = 200, len = km / 111 * MAPV.ky; g += `<g pointer-events="none" opacity=".85"><path d="M${x} ${y}h${len}M${x} ${y - 3}v6M${x + len / 2} ${y - 2}v4M${x + len} ${y - 3}v6" stroke="#2a1c0e" stroke-width="1" fill="none"/><text x="${x + len / 2}" y="${y - 6}" text-anchor="middle" font-size="8.5" fill="#2a1c0e" font-style="italic">${km} km</text></g>`;
-    const cx = MX(26.75), cy = MY(21.15); g += `<g pointer-events="none" opacity=".92"><rect x="${cx - 58}" y="${cy - 20}" width="116" height="40" rx="20" fill="#efe2bd" fill-opacity=".9" stroke="#3b2a14" stroke-width="1.3"/><path d="M${cx + 58} ${cy - 16}v32" stroke="#3b2a14" stroke-width="2.2"/><text x="${cx - 3}" y="${cy - 2}" text-anchor="middle" font-size="16" style="font-family:Hieroglyfy,serif" fill="#2b1d12">${HG.kemet}</text><text x="${cx - 3}" y="${cy + 12}" text-anchor="middle" font-size="8.5" fill="#5a3d1a" font-style="italic">Kemet ≈ ${S.bce} př. n. l.</text></g>`; }
+    const cx = MX(26.75), cy = MY(21.15); g += `<g pointer-events="none" opacity=".92"><rect x="${cx - 58}" y="${cy - 21}" width="116" height="42" fill="#efe2bd" fill-opacity=".9" stroke="#3b2a14" stroke-width="1.3"/><rect x="${cx - 55}" y="${cy - 18}" width="110" height="36" fill="none" stroke="#3b2a14" stroke-width=".5"/><text x="${cx}" y="${cy - 1}" text-anchor="middle" font-size="17" style="font-family:Hieroglyfy,serif" fill="#2b1d12">${HG.kemet}</text><text x="${cx}" y="${cy + 13}" text-anchor="middle" font-size="8.5" fill="#5a3d1a" font-style="italic">Kemet ≈ ${S.bce} př. n. l.</text></g>`; }
   g += `<rect x="-1.5" y="-1.5" width="${MW + 3}" height="${MH + 3}" fill="none" stroke="#8a6a2a" stroke-width="1.6" pointer-events="none"/><rect x="-6" y="-6" width="${MW + 12}" height="${MH + 12}" fill="none" stroke="#3b2a14" stroke-width="1" pointer-events="none"/>`;
   return `<svg class="map art real" id="mapsvg" viewBox="${vx.toFixed(1)} ${vy.toFixed(1)} ${vw.toFixed(1)} ${vh.toFixed(1)}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Mapa Egypta">${g}</svg>`;
 }

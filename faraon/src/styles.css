@@ -509,3 +509,19 @@ nav .subtabs .st { border-radius: 3px; border-color: rgba(224, 192, 112, .3); co
 nav .subtabs .st.on { background: #e0c070; color: #1a120a; border-color: #f0d68e; }
 svg.map.real .floodw { opacity: .2; }
 #modal .box { border-width: 1px; border-color: #8a6a2a; box-shadow: 0 0 0 1px #2a1c0e, 0 24px 70px rgba(0, 0, 0, .7); }
+/* hieroglyfy jako ikony a nápisy */
+.hgi { font-family: "Hieroglyfy", serif; display: inline-flex; align-items: center; justify-content: center; line-height: 1; flex: none; color: var(--gold); vertical-align: middle; }
+header .res .hgi { color: #e8c66a; }
+.tabhg { font-size: 19px; margin-right: 7px; color: #c9a24a; vertical-align: -2px; } nav .maintabs button.on .tabhg { color: #f0d68e; }
+.hgdate { font-size: 15px; color: #e8c66a; letter-spacing: 1px; }
+.cart { display: inline-flex; align-items: center; padding: 1px 9px; border: 1.5px solid currentColor; border-radius: 999px; position: relative; margin-right: 8px; font-size: 17px; }
+.cart::after { content: ""; position: absolute; right: -5px; top: 12%; bottom: 12%; width: 2px; background: currentColor; }
+header .cart { color: #f0d68e; } .kname { font-weight: bold; }
+.godhg { font-size: 26px; color: var(--accent); margin: 2px 0; }
+svg.map.real .rhg { font-family: "Hieroglyfy", serif; fill: #3a2814; opacity: .6; pointer-events: all; } svg.map.real .rhg.sea2 { fill: #dcebf4; }
+.poltile .pti .hgi { color: var(--accent2); }
+.portrait { border-radius: 2px; background: #e8dbbd; border: 1px solid #3b1e10; box-shadow: 0 0 0 1px rgba(207, 159, 58, .55); }
+.hg, .hgi { -webkit-text-stroke: .35px currentColor; }
+.tabhg { font-size: 21px; color: #e0c070; } header .res .hgi { color: #f0d68e; }
+@media (min-width: 900px) { header .realm .rk { display: block; } .season .sd { display: block; } }
+header .realm .rk .hg { color: #f0d68e; font-size: 16px; } .rbd { margin: 2px 0; } .rb .cart { color: #f0d68e; font-size: 15px; }

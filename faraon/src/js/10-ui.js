@@ -10,7 +10,7 @@ const dec = v => String(r1(v)).replace(".", ",");
 const ax = a => esc(JSON.stringify(a));
 function btn(label, act, args = [], dis = null, cls = "") { return `<button class="b ${cls}" data-a="${act}" data-x="${ax(args)}"${dis ? ` disabled title="${esc(dis)}"` : ""}>${label}</button>`; }
 function sel(id, opts, val, attrs = "") { return `<select id="${id}" ${attrs}>${opts.map(([v, t]) => `<option value="${esc(v)}"${String(v) === String(val) ? " selected" : ""}>${esc(t)}</option>`).join("")}</select>`; }
-const card = (t, body, cls = "") => `<section class="card ${cls}"><h3>${t}</h3>${body}</section>`;
+const card = (t, body, cls = "") => `<section class="card ${cls}"><h3>${typeof cardHg === "function" ? cardHg(t) : t}</h3>${body}</section>`;
 // Tabulky se vykreslují jako karty: první buňka je nadpis, ostatní štítky s popiskem ze záhlaví.
 function tbl(head, rows) {
   if (!rows.length) return '<p class="muted small">Nic.</p>';
