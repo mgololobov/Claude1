@@ -2,7 +2,7 @@
 const fs = require("fs"), path = require("path"), vm = require("vm"), assert = require("assert");
 const dir = path.join(__dirname, "..", "src", "js");
 const code = '"use strict";\n' + fs.readdirSync(dir).filter(f => /^0\d-.*\.js$/.test(f)).sort().map(f => fs.readFileSync(path.join(dir, f), "utf8")).join("\n") +
-  "\n;this.X={newGame,endTurn,floodFactor,tacMult,STANCES,routeIncome,ROUTES,declareWar,makePeace,setLaw,heirsOf,clanBudget,battle,men,SCENARIOS,PROVINCES,lw,provTax,yearTaxEstimate,marketCap,liveBattleStart,liveStep,ordMod,die,genOfficer,migrate,marketTick,trade,checkEnd,coreProvs,realmCore,officers,rodsOf,goalProgress,clanProvs,sendArmy,royalTour,lawTechTick,durMax,omenRoll,EVENTS,eventView};";
+  "\n;this.X={newGame,endTurn,floodFactor,tacMult,STANCES,routeIncome,ROUTES,declareWar,makePeace,setLaw,heirsOf,clanBudget,battle,men,SCENARIOS,PROVINCES,lw,provTax,yearTaxEstimate,marketCap,liveBattleStart,liveStep,ordMod,die,genOfficer,migrate,marketTick,trade,checkEnd,coreProvs,realmCore,officers,rodsOf,goalProgress,clanProvs,sendArmy,royalTour,lawTechTick,durMax,omenRoll,EVENTS,eventView,setPolicy,delegated};";
 const ctx = {}; vm.createContext(ctx); vm.runInContext(code, ctx); const X = ctx.X;
 let n = 0; const t = (name, f) => { f(); n++; console.log("✔ " + name); };
 
@@ -86,5 +86,11 @@ t("královská objížďka zvedne spokojenost a jde jen jednou za rok", () => {
 t("znamení roku: hůlky dávají 1 až 5 a událost má volby", () => {
   const s = X.newGame({ scen: "sip", clan: "thebes", seed: 16 });
   for (let i = 0; i < 30; i++) { const o = X.omenRoll(s); assert(o.v >= 1 && o.v <= 5 && o.sticks.length === 4); const v = X.eventView(s, { k: "znameni", data: o }); assert(v.ch.length >= 1); }
+});
+t("královský výnos: rádce na konci měsíce zaměstná volné úředníky podle výnosu", () => {
+  const s = X.newGame({ scen: "sip", clan: "thebes", seed: 17 }), C = s.clans.thebes; C.deben = 50000; C.res.cur = "rybari";
+  assert.strictEqual(X.setPolicy(s, "ucenost"), null); const p0 = C.res.pts; X.delegated(s);
+  assert(X.officers(s, "thebes").filter(c => c.acted === s.turn).length > 5, "úředníci jednají"); assert(C.res.pts > p0, "vědění postupuje");
+  assert.notStrictEqual(X.setPolicy(s, "nesmysl"), null);
 });
 console.log(`OK – ${n} testů`);

@@ -16,6 +16,14 @@ Hra je jeden soubor `dist/index.html`: stačí ho otevřít v prohlížeči, fun
 - **≈ 1550 př. n. l. – Ahmose I. a pád Avaridu**: mladý Ahmose s královnou Ahhotep, vojáci z Elkabu Ahmose, syn Ebany, a Ahmose Pen-Nechbet, poslední hyksóský král Chamudi a opevněný Šaruhen v jižním Kenaanu.
 - V každém scénáři lze hrát i za **Médžaje** nebo **Tjehenu** (Libyjce): kmeny žijí ze stád, podnikají nájezdy do sousedních krajů a mohou vstoupit do služby egyptského rodu.
 
+## Jak se hraje
+
+- **Úvodní obrazovka**: vybereš dobu (šest scénářů s ilustracemi) a rod; u každého vidíš vládce, cíl a obtížnost.
+- **Mapa** je list papyru: jemně vykreslená území rodů, ikony sídel (sídlo rodu, město, pevnost, vesnice), pyramidy v Gíze a Sakkáře, hory Východní pouště, lodě na Nilu, praporce vojsk, značky čerstvých bitev. Tlačítko „Má říše“ přiblíží tvé nomy.
+- **Rada**: zvolíš královský výnos (rovnováha, kanály a pole, řemesla a trh, vojsko, stavby, dům života, bohové a lid) a rádce podle něj na konci měsíce rozdá rozkazy všem úředníkům, kteří žádný nedostali. Jednotlivcům lze dál velet ručně.
+- **Záložky** jsou v sedmi skupinách (Mapa, Rada, Říše, Stát, Válka a poslové, Kronika, Hra); v horní liště je vidět postup k cíli hry.
+- Při změně ročního období se ukáže obrázek (záplava, setí, žně) a pod mapou běží zprávy měsíce.
+
 ## Co hra obsahuje
 
 - 48 nomů od Kermy po Deltu a Šaruhen v jižním Kenaanu s egyptskými jmény, bohy a surovinami; mapa se skutečným tokem Nilu a ramen v Deltě.
