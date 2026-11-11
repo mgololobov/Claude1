@@ -26,8 +26,11 @@ const tabSel = t => `[data-a="tab"][data-x='["${t}"]']`;
       await clearModal();
       await pg.click('[data-a="end"]'); await clearModal();
     }
+    await go("prehled"); for (const k of ["vezir", "knez", "kral", "vojsko"]) { const c = await pg.$(`[data-a="court"][data-x='["${k}"]']`); if (c) await c.click(); else if (scen !== "x") errors.push(scen + ": chybí dvořan " + k); } await checkTab(scen + "/audience");
+    await go("hosp"); if (!(await pg.$(".hospsvg"))) errors.push(scen + ": chybí nilometr");
     await go("diplo"); const j = await pg.$$('[data-a="dipl"]'); if (j.length) { await j[0].click(); const w = await pg.$('[data-a="diplo"][data-x*="valka"]:not([disabled])'); if (w) await w.click(); }
     await clearModal();
+    await go("mapa"); { const mm = await pg.$('[data-a="marchMode"]'); if (mm) { await mm.click(); if (!(await pg.$(".ov-march"))) errors.push(scen + ": režim pochodu se nezapnul"); const pv = await pg.$$("#mapsvg .pv"); if (pv.length > 3) await pv[3].click({ force: true }); await clearModal(); } }
     await go("mapa"); const sendBtn = await pg.$('[data-a="send"]'); if (sendBtn) await sendBtn.click();
     for (let m = 0; m < 4; m++) { await clearModal(); await pg.click('[data-a="end"]'); }
     await clearModal();

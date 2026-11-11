@@ -2,7 +2,7 @@
 const fs = require("fs"), path = require("path"), vm = require("vm"), assert = require("assert");
 const dir = path.join(__dirname, "..", "src", "js");
 const code = '"use strict";\n' + fs.readdirSync(dir).filter(f => /^0\d-.*\.js$/.test(f)).sort().map(f => fs.readFileSync(path.join(dir, f), "utf8")).join("\n") +
-  "\n;this.X={newGame,endTurn,floodFactor,tacMult,STANCES,routeIncome,ROUTES,declareWar,makePeace,setLaw,heirsOf,clanBudget,battle,men,SCENARIOS,PROVINCES,lw,provTax,yearTaxEstimate,marketCap,liveBattleStart,liveStep,ordMod,die,genOfficer,migrate,marketTick,trade,checkEnd,coreProvs,realmCore,officers,rodsOf,goalProgress,clanProvs,sendArmy,royalTour,lawTechTick,durMax,omenRoll,EVENTS,eventView,setPolicy,delegated};";
+  "\n;this.X={execration,newGame,endTurn,floodFactor,tacMult,STANCES,routeIncome,ROUTES,declareWar,makePeace,setLaw,heirsOf,clanBudget,battle,men,SCENARIOS,PROVINCES,lw,provTax,yearTaxEstimate,marketCap,liveBattleStart,liveStep,ordMod,die,genOfficer,migrate,marketTick,trade,checkEnd,coreProvs,realmCore,officers,rodsOf,goalProgress,clanProvs,sendArmy,royalTour,lawTechTick,durMax,omenRoll,EVENTS,eventView,setPolicy,delegated};";
 const ctx = {}; vm.createContext(ctx); vm.runInContext(code, ctx); const X = ctx.X;
 let n = 0; const t = (name, f) => { f(); n++; console.log("✔ " + name); };
 
@@ -92,5 +92,13 @@ t("královský výnos: rádce na konci měsíce zaměstná volné úředníky po
   assert.strictEqual(X.setPolicy(s, "ucenost"), null); const p0 = C.res.pts; X.delegated(s);
   assert(X.officers(s, "thebes").filter(c => c.acted === s.turn).length > 5, "úředníci jednají"); assert(C.res.pts > p0, "vědění postupuje");
   assert.notStrictEqual(X.setPolicy(s, "nesmysl"), null);
+});
+t("zaklínací texty: jen proti nepříteli ve válce, jednou za rok, působí doma", () => {
+  const s = X.newGame({ scen: "ahm", clan: "thebes", seed: 5 }), C = s.clans.thebes; C.deben = 5000; C.maat = 50;
+  assert.notStrictEqual(X.execration(s, "thebes", "kush"), null, "bez války nelze");
+  X.declareWar(s, "thebes", "kush"); const m0 = C.maat, d0 = C.deben, k0 = JSON.stringify(s.clans.kush);
+  assert.strictEqual(X.execration(s, "thebes", "kush"), null); assert.strictEqual(C.maat, m0 + 2); assert.strictEqual(C.deben, d0 - 300);
+  assert.strictEqual(JSON.stringify(s.clans.kush), k0, "nepříteli se nic nestane");
+  assert.notStrictEqual(X.execration(s, "thebes", "kush"), null, "podruhé až za rok");
 });
 console.log(`OK – ${n} testů`);

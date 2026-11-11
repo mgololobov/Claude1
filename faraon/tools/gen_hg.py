@@ -27,6 +27,9 @@ W = {
   "imira": ("F20", "jmj-r", "představený"),
   "general": ("F20 A12", "jmj-r mšꜥ", "představený vojska"),
   "sesh": ("Y3", "sš", "písař"),
+  "pokladnik": ("F20 S19", "jmj-r ḫtmt", "představený zapečetěných věcí – pokladník"),
+  "sypkar": ("F20 O51 O51", "jmj-r šnwty", "představený obou sýpek"),
+  "veleknez": ("F20 R8 U36 Z2", "jmj-r ḥmw-nṯr", "představený kněží"),
   "hemnecer": ("R8 U36", "ḥm-nṯr", "kněz, „služebník boží“"),
   "heka": ("S38 N29 N25 X1 Z2", "ḥqꜣ ḫꜣswt", "vládce cizích zemí (odtud řecké Hyksós)"),
   # pojmy

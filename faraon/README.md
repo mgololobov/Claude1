@@ -23,6 +23,11 @@ Hra je jeden soubor `dist/index.html`: stačí ho otevřít v prohlížeči, fun
 - **Rada**: zvolíš královský výnos (rovnováha, kanály a pole, řemesla a trh, vojsko, stavby, dům života, bohové a lid) a rádce podle něj na konci měsíce rozdá rozkazy všem úředníkům, kteří žádný nedostali. Jednotlivcům lze dál velet ručně.
 - **Pobřeží** je skutečné (Natural Earth 1 : 10 mil.): Suezský a Akabský záliv, Sinaj, laguny Delty. Je to dnešní pobřeží; ve starověku ležel okraj Delty jižněji. Tok Nilu je vyhlazená křivka přes skutečné polohy měst.
 - **Hieroglyfy** mají v rozhraní skutečný význam: ikony surovin (nbw zlato, šnwt sýpka, pero maat, šfyt vážnost, mšꜥ vojsko, mw voda), znaky záložek (tꜣ země, ṯꜣty vezír, spꜣwt nomy, hp zákon, ꜥḥꜣ boj, mḏꜣt svitek, mn hrací deska), datum podle egyptské formule (ḥsbt N ꜣbd M a období, s egyptskými číslovkami), jména bohů a šesti měst, názvy zemí na mapě a kartuše králů s doloženým zápisem jména. Slovník je v `tools/gen_hg.py`: znaky se zadávají kódy Gardinerova seznamu a převádějí podle jmen Unicode. Znaky jdou v řádku za sebou, neskládají se do čtverců. Najetím myší se ukáže přepis a překlad.
+- **Audienční síň** (Rada → Palác): panovník pod baldachýnem a před ním vezír, pokladník, představený sýpek, velitel vojska a představený kněží s tituly v hieroglyfech. Klepnutím na hodnostáře uslyšíš jeho hlášení a dostaneš se k jeho úřadu; výstražný trojúhelník znamená, že má co hlásit.
+- **Obrázek nomu** v panelu na mapě: pole podle ročního období (pod vodou, zelená, zlatá), sýpky, dílny, svatyně, hradby podle úrovně pevnosti a posádka.
+- **Nilometr, sýpky a pokladnice** v Hospodářství: schodiště s měřítkem v loktech a pásmy hlad – nouze – hojnost – ničivá, kupole sýpek plněné podle zásob, váhy s kruhy kovu.
+- **Pochod klepnutím na mapu**: v panelu vlastního nomu zvolíš „Táhnout vojskem“ a klepneš na cíl; velení dostane nejschopnější volný úředník.
+- **Zaklínací texty**: představený kněží může ve válce nechat napsat jména nepřátel na nádoby a figurky a rozbít je (nálezy z Gízy, Sakkáry a Mirgissy). Nepříteli to neublíží; doma to zvedne maat a spokojenost.
 - **Záložky** jsou v sedmi skupinách (Mapa, Rada, Říše, Stát, Válka a poslové, Kronika, Hra); v horní liště je vidět postup k cíli hry.
 - Při změně ročního období se ukáže obrázek (záplava, setí, žně) a pod mapou běží zprávy měsíce.
 

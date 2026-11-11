@@ -525,3 +525,22 @@ svg.map.real .rhg { font-family: "Hieroglyfy", serif; fill: #3a2814; opacity: .6
 .tabhg { font-size: 21px; color: #e0c070; } header .res .hgi { color: #f0d68e; }
 @media (min-width: 900px) { header .realm .rk { display: block; } .season .sd { display: block; } }
 header .realm .rk .hg { color: #f0d68e; font-size: 16px; } .rbd { margin: 2px 0; } .rb .cart { color: #f0d68e; font-size: 15px; }
+/* audienční síň, obrázek nomu, hospodářská scéna, pochod */
+.courtwrap { max-width: 1400px; margin: 0 auto 14px; border: 1px solid #3b1e10; box-shadow: 0 0 0 1px rgba(207, 159, 58, .5), var(--shadow); background: var(--panel); border-radius: 3px; overflow: hidden; }
+.courtsvg, .hospsvg { display: block; width: 100%; height: auto; }
+.courtsvg .crt { cursor: pointer; } .courtsvg .crt:hover text.ct, .courtsvg .crt.on text.ct { fill: #8a2f1a; }
+.courtsvg .crt:hover > g { filter: brightness(1.08); }
+.courtsvg text { font-family: "Palatino Linotype", Georgia, serif; fill: #2b1d12; }
+.courtsvg .ct { font-size: 15px; font-weight: bold; font-variant: small-caps; letter-spacing: .04em; } .courtsvg .cn2 { font-size: 13px; fill: #5a4630; } .courtsvg .cn { font-size: 16px; font-weight: bold; font-variant: small-caps; }
+.courtsvg .chg { font-family: "Hieroglyfy", serif; font-size: 22px; fill: #6e2f1a; }
+.courthint { margin: 4px 14px 0; }
+.cpanel { padding: 10px 16px 14px; } .cph { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 8px; } .cph .who { font-size: 18px; font-weight: bold; }
+.says { margin-top: 6px; display: grid; gap: 4px; } .say { position: relative; padding: 5px 10px 5px 14px; background: var(--panel2); border-left: 3px solid var(--green); font-style: italic; }
+.say.warn { border-left-color: var(--warn); } .say.bad { border-left-color: var(--bad); font-weight: bold; }
+.ritual { margin: 6px 0; padding: 8px 10px; border: 1px dashed var(--line); background: var(--panel2); }
+.nomescene { display: block; width: 100%; height: auto; margin: 6px 0 8px; border: 1px solid #3b1e10; }
+.stage.marching svg.map { cursor: crosshair; } .stage.marching .pv { cursor: crosshair; }
+.ov-march { left: 50%; transform: translateX(-50%); top: 12px; z-index: 5; max-width: 620px; border-color: #e0c070 !important; }
+.stage:has(.ov-left) .ov-bl { display: none; }
+.hospsvg text { font-family: "Palatino Linotype", Georgia, serif; fill: #2b1d12; } .hospsvg .ht { font-size: 17px; font-weight: bold; font-variant: small-caps; letter-spacing: .05em; fill: #8a2f1a; } .hospsvg .hs { font-size: 13px; }
+.floodbars, .floodbars + .small { display: none; }
