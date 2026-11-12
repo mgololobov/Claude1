@@ -1,0 +1,23 @@
+🏺 **Pán Obou zemí** – strategie ze starověkého Egypta
+
+Tahová hra do prohlížeče (bez instalace, funguje offline i na telefonu). Vládneš rodu, který znají prameny, a snažíš se sjednotit Horní a Dolní Egypt.
+
+**Šest dob** (≈ 2120–1550 př. n. l.)
+Anchtifi z Moally, Válka Obou zemí, Montuhotep II., příchod Hyksósů, boj proti Hyksósům, Ahmose a pád Avaridu. Hrát můžeš za nomarchy, krále, Kuš, Médžaje i libyjské kmeny.
+
+**Jak se hraje**
+• Jeden tah = jeden měsíc egyptského roku (achet, peret, šemu); výšku úrody určuje záplava Nilu
+• Audienční síň místo tabulek: klepneš na vezíra, pokladníka nebo velitele a vyslechneš jeho hlášení
+• Královský výnos určí směr a rádce rozdá rozkazy úředníkům
+• Reliéfní mapa se skutečným pobřežím; vojsko pošleš klepnutím na cíl
+• Větší bitvy vedeš osobně, kolo po kole (šik, salvy, vozy, léčka)
+• 61 objevů, 17 zákonů, dědictví a rody úředníků, špioni, trh, svátky, znamení roku
+• přes 90 událostí a 66 citátů z egyptských textů
+
+**Historická přesnost**
+Nomy, bohové, tituly, kalendář, nilometr i vynálezy vycházejí z egyptologie. Dovezené vynálezy (válečný vůz, kompozitní luk) nejdou zkoumat před dobou doložení. Hieroglyfy v rozhraní mají skutečný význam (84 zápisů, po najetí myší přepis a překlad). Co je sporné, hra říká přímo. Roky narození, povahy a většina úředníků jsou herní doplněk, citáty jsou volné české převody.
+
+**Tipy**
+• Snadněji se začíná za Montuhotepa II. nebo Ahmose (velký rod)
+• Kmeny (Médžajové, Libyjci) jsou těžké
+• Hra se ukládá sama; zálohu najdeš v záložce Hra (uložení jako text)
