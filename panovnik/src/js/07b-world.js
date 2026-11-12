@@ -66,8 +66,8 @@ const DIFFS = ["Snadná", "Normální", "Těžká", "Nelítostná"];
 const DIFF_PROF = [
   { inc: 1.2, ai: 0.9, aggr: 0.7, army: 0.7, hunt: 0.6, upkeep: 0.9, peace: 1.2 },
   { inc: 1.0, ai: 1.1, aggr: 1.5, army: 1.0, hunt: 1.0, upkeep: 1.0, peace: 1.0 },
-  { inc: 0.92, ai: 1.25, aggr: 2.1, army: 1.35, hunt: 1.5, upkeep: 1.1, peace: 0.8 },
-  { inc: 0.82, ai: 1.45, aggr: 2.8, army: 1.7, hunt: 2.0, upkeep: 1.2, peace: 0.6 },
+  { inc: 0.95, ai: 1.18, aggr: 1.8, army: 1.2, hunt: 1.25, upkeep: 1.05, peace: 0.85 },
+  { inc: 0.88, ai: 1.3, aggr: 2.3, army: 1.45, hunt: 1.6, upkeep: 1.12, peace: 0.7 },
 ];
 const dprof = s => DIFF_PROF[s && s.opts && DIFF_PROF[s.opts.diff] ? s.opts.diff : 1];
 const diffIncome = s => dprof(s).inc;
