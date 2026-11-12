@@ -35,5 +35,4 @@ Object.assign(ACT, { plot: (id, how) => crushPlot(S, id, how) });
 
 SCENE_IN.push("kostky", "spiknuti");
 Object.assign(EVENT_ART, { _kostky: "kostky", _spiknuti: "spiknuti", _atentat: "spiknuti", _zila2: "dul", _dedic2: "rod", prospektor: "dul", dedic_nemoc: "rod", carodejnice: "les", valdensti: "procesi", padelek: "uceni", samozvanec: "procesi", bludny_rytir: "turnaj", kamen_z_nebe: "kometa", mestska_vzpoura: "mesto", sokolnik: "les", sasek: "hudba", kolo_stesteny: "lod", slib_vazala: "dvur" });
-GLYPH.kamen = `<path d="M8 26 q-2 -12 8 -16 q8 -6 16 2 q6 8 0 16 q-8 6 -18 4 q-4 -2 -6 -6z" fill="#2e2a2a" stroke="#000"/><path d="M14 18 l3 2 M22 14 l2 3 M24 24 l3 1" stroke="#6a6a7a"/><path d="M30 6 l-6 6 M34 10 l-6 4" stroke="#f3b33d" stroke-width="2"/>`;
 Object.assign(TECH_GLYPH, { kolovrat: "kolo", vysoka_pec: "delo", plavebni_komora: "ryba", most_stavba: "klenba", dvojite_ucetnictvi: "svitek", notariat: "papir", pojisteni: "mince", spital: "bylina", kompas: "hvezda", brigantina: "zbroj", rucnice: "delo", bombarda: "trebuchet" });

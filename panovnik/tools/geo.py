@@ -5,7 +5,7 @@ Zdroje (obojí volně šiřitelné):
   * Natural Earth 1 : 10 000 000 – pevnina, drobné ostrovy, jezera, řeky (github.com/nvkelso/natural-earth-vector, geojson)
   * výškový model Terrarium (Mapzen/AWS Terrain Tiles, z dat SRTM, GMTED2010 aj.), dlaždice úrovně 6
 
-Použití: python3 tools/geo.py <složka s geojson> <složka s dlaždicemi t_X_Y.png>
+Použití: python3 tools/geo.py <složka s geojson> <dlaždice úrovně 6 pro hlavní mapu> <dlaždice úrovně 4 pro mapu světa>
 """
 import base64, json, math, os, re, sys
 import numpy as np
@@ -164,6 +164,53 @@ const GEO = {{ pad: {PAD}, cell: {CELL}, gw: {GW}, gh: {GH}, emax: {int(EMAX)},
   rivers: {json.dumps(rivers, ensure_ascii=False, separators=(",", ":"))},
   elev: "{b64}" }};
 """
+# ---------- mapa známého světa (výpravy): x = (lon + 12) * 10, y = (63 - lat) * 10.9, plocha 640 × 360 ----------
+WK = (10.0, 10.9, -12.0, 63.0, 640, 360, 2.5)
+BB = (-12.5, 63 - 360 / 10.9 - 0.5, 52.5, 63.5)
+wland, wholes = [], []
+for f in load("ne_50m_land"):
+    g = f["geometry"]
+    for poly in ([g["coordinates"]] if g["type"] == "Polygon" else g["coordinates"]):
+        for ri, ring in enumerate(poly):
+            xs_ = [q[0] for q in ring]; ys_ = [q[1] for q in ring]
+            if max(xs_) < BB[0] or min(xs_) > BB[2] or max(ys_) < BB[1] or min(ys_) > BB[3]: continue
+            c = clip_poly(ring)
+            if len(c) >= 3 and area(c) > 0.02:
+                sm = simplify(c + [c[0]], 0.04)[:-1]
+                if len(sm) >= 3: (wholes if ri else wland).append([v for q in sm for v in (round(q[0], 2), round(q[1], 2))])
+wriv = []
+for f in load("ne_50m_rivers_lake_centerlines"):
+    g, pr = f["geometry"], f["properties"]
+    if not g or (pr.get("scalerank") or 9) > 6: continue
+    for line in ([g["coordinates"]] if g["type"] == "LineString" else g["coordinates"]):
+        run = []
+        for q in line + [None]:
+            if q is not None and BB[0] <= q[0] <= BB[2] and BB[1] <= q[1] <= BB[3]: run.append((q[0], q[1])); continue
+            if len(run) >= 2: wriv.append([v for t in simplify(run, 0.05) for v in (round(t[0], 2), round(t[1], 2))])
+            run = []
+T4 = sys.argv[3]; Z4 = 4
+xs4 = sorted({int(f.split("_")[1]) for f in os.listdir(T4) if f.endswith(".png")}); ys4 = sorted({int(f.split("_")[2].split(".")[0]) for f in os.listdir(T4) if f.endswith(".png")})
+mos4 = np.zeros((len(ys4) * 256, len(xs4) * 256), dtype=np.float32)
+for i, x in enumerate(xs4):
+    for j, y in enumerate(ys4):
+        a = np.asarray(Image.open(os.path.join(T4, f"t_{x}_{y}.png")).convert("RGB"), dtype=np.float32)
+        mos4[j * 256:(j + 1) * 256, i * 256:(i + 1) * 256] = a[:, :, 0] * 256 + a[:, :, 1] + a[:, :, 2] / 256 - 32768
+WGW, WGH = int(WK[4] / WK[6]), int(WK[5] / WK[6]); wgrid = np.zeros((WGH, WGW), dtype=np.float32)
+for gy in range(WGH):
+    for gx in range(WGW):
+        lon = WK[2] + (gx + 0.5) * WK[6] / WK[0]; lat = WK[3] - (gy + 0.5) * WK[6] / WK[1]
+        tx = (lon + 180) / 360 * 2 ** Z4; ty = (1 - math.asinh(math.tan(math.radians(lat))) / math.pi) / 2 * 2 ** Z4
+        px = min(mos4.shape[1] - 1, max(0, int((tx - xs4[0]) * 256))); py = min(mos4.shape[0] - 1, max(0, int((ty - ys4[0]) * 256)))
+        wgrid[gy, gx] = mos4[py, px]
+wenc = np.clip(np.sqrt(np.clip(wgrid, 0, EMAX) / EMAX) * 255 + 0.5, 0, 255).astype(np.uint8)
+js += f"""// Mapa známého světa pro výpravy: pobřeží a řeky Natural Earth 1 : 50 000 000, výšky Terrarium, síť {WGW} × {WGH} bodů.
+const GEOW = {{ pad: 0, cell: {WK[6]}, gw: {WGW}, gh: {WGH}, emax: {int(EMAX)},
+  land: {json.dumps(wland, separators=(",", ":"))},
+  lakes: {json.dumps([["", h] for h in wholes], separators=(",", ":"))},
+  rivers: {json.dumps(wriv, separators=(",", ":"))},
+  elev: "{base64.b64encode(wenc.tobytes()).decode()}" }};
+"""
+print("world: land", len(wland), sum(len(l) for l in wland) // 2, "holes", len(wholes), "rivers", len(wriv), sum(len(l) for l in wriv) // 2)
 with open(OUT, "w", encoding="utf-8") as f: f.write(js)
 print("land polys", len(land), "pts", sum(len(l) for l in land) // 2, "| lakes", len(lakes), "| rivers", len(rivers), "pts", sum(len(r[2]) for r in rivers) // 2, "| elev", GW, GH, "max", float(grid.max()), "| bytes", len(js))
 print("river names:", sorted({r[0] for r in rivers if r[0]}))

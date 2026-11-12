@@ -99,6 +99,9 @@ Je to samostatný projekt, s Herní dílnou (`herni-dilna/`) nesdílí žádný 
 - **Co skutečné není:** je to dnešní pobřeží a dnešní toky řek (ve 13. století se místy lišily, například ústí Visly). Z dat byly vyřazeny novodobé přehrady a kanály. Hranice krajů jsou herní – kraj tvoří okolí svého sídla – a neodpovídají historickým hranicím panství.
 - **Vzhled** vychází z iluminovaných rukopisů: pergamenové listy, rumělkové rubriky nadpisů, zlacené linky, iniciála na začátku textu události. Barvy odpovídají středověkým pigmentům (železoduběnkový inkoust, rumělka, azurit, měděnka, plátkové zlato). Obrázky mají místo oblohy modré pozadí se zlatým kosočtvercovým vzorem jako gotické miniatury.
 - **Obrázky** jsou kreslené jako knižní miniatury: tušová linka, plošné pigmenty, postavy v oděvu a zbroji 2. poloviny 13. století (kroužková zbroj s varkočem, hrncová přilba, trojúhelný štít, kukly, závoje). Čtyřicet výjevů událostí, kresba kraje i bitevní scéna se skládají ze společné knihovny kreseb (`14c-mini.js`, `14d-miniscenes.js`).
+- **Portréty** jsou poprsí v tříčtvrtečním pohledu pod zlatým obloukem. Podoba se řídí rolí (král, královna, vévoda, biskup, klerik, rytíř, pán, měšťan, paní, panna, dítě) a věkem; rysy jsou dané jménem, takže postava vypadá po celou hru stejně.
+- **Ikony** vynálezů a vzácností (37 kreseb) jsou ve stejném stylu.
+- **Mapa známého světa** u výprav má skutečné pobřeží a řeky (Natural Earth 1 : 50 000 000) a stínovaný reliéf, stejně jako hlavní mapa.
 - Písma Almendra (nadpisy, popisky mapy) a Uncial Antiqua (iniciály, název) jsou vložena přímo do souboru hry; obě mají licenci SIL OFL.
 - Podklady se znovu vytvoří příkazem `python3 tools/geo.py <složka s geojson Natural Earth> <složka s dlaždicemi výšek>`.
 
@@ -124,6 +127,7 @@ src/js/12-ui-ext.js    plán měsíce, bojová obrazovka, úřady, obchodní ces
 src/js/14-art.js       portréty
 src/js/14c-mini.js     knihovna kreseb ve stylu miniatur (postavy, koně, stavby, stromy, pozadí)
 src/js/14d-miniscenes.js výjevy událostí, kresba kraje, bitevní scéna
+src/js/14e-icons.js    ikony vynálezů a vzácností, mapa známého světa
 src/js/15-ui-cards.js  karty s portréty, ilustrované události, úvodní obrazovka
 src/js/13-eu-ui.js     hlavní obrazovka, mapové režimy, boční panel, lišta, okno Vláda
 src/js/11a-geo.js      zeměpisné podklady mapy (vytváří tools/geo.py)

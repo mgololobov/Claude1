@@ -16,12 +16,11 @@ function chamfer_(seed, w, h) {
   for (let y = h - 1; y >= 0; y--) for (let x = w - 1; x >= 0; x--) { const k = y * w + x; let v = d[k]; if (x < w - 1) v = Math.min(v, d[k + 1] + 1); if (y < h - 1) { v = Math.min(v, d[k + w] + 1); if (x < w - 1) v = Math.min(v, d[k + w + 1] + 1.414); if (x > 0) v = Math.min(v, d[k + w - 1] + 1.414); } d[k] = v; }
   return d;
 }
-let ELEV_ = null;
-function elevGrid() { if (!ELEV_) { const b = atob(GEO.elev); ELEV_ = new Float32Array(b.length); for (let i = 0; i < b.length; i++) { const v = b.charCodeAt(i) / 255; ELEV_[i] = v * v * GEO.emax; } } return ELEV_; }
+function elevGrid(G) { if (!G._e) { const b = atob(G.elev); G._e = new Float32Array(b.length); for (let i = 0; i < b.length; i++) { const v = b.charCodeAt(i) / 255; G._e[i] = v * v * G.emax; } } return G._e; }
 // nadmořská výška v metrech v bodě mapy (jednotky mapy)
-function elevAt(x, y) {
-  const E = elevGrid(), gx = clamp((x + GEO.pad) / GEO.cell - 0.5, 0, GEO.gw - 1.001), gy = clamp((y + GEO.pad) / GEO.cell - 0.5, 0, GEO.gh - 1.001), x0 = Math.floor(gx), y0 = Math.floor(gy), fx = gx - x0, fy = gy - y0, k = y0 * GEO.gw + x0;
-  return (E[k] * (1 - fx) + E[k + 1] * fx) * (1 - fy) + (E[k + GEO.gw] * (1 - fx) + E[k + GEO.gw + 1] * fx) * fy;
+function elevAt(x, y, G = GEO) {
+  const E = elevGrid(G), gx = clamp((x + G.pad) / G.cell - 0.5, 0, G.gw - 1.001), gy = clamp((y + G.pad) / G.cell - 0.5, 0, G.gh - 1.001), x0 = Math.floor(gx), y0 = Math.floor(gy), fx = gx - x0, fy = gy - y0, k = y0 * G.gw + x0;
+  return (E[k] * (1 - fx) + E[k + 1] * fx) * (1 - fy) + (E[k + G.gw] * (1 - fx) + E[k + G.gw + 1] * fx) * fy;
 }
 // barvy výškových stupňů: nížiny do zelena, pahorkatiny okrové, hory šedohnědé, nad 2 600 m sníh
 const HYPSO = [[0, 178, 190, 136], [120, 196, 200, 146], [300, 214, 206, 156], [550, 214, 194, 146], [900, 196, 172, 130], [1400, 172, 150, 120], [2000, 166, 154, 140], [2600, 214, 210, 204], [3200, 246, 244, 240]];
@@ -29,46 +28,50 @@ function hypso(h, out) { let i = 1; while (i < HYPSO.length - 1 && h > HYPSO[i][
 function swapBlob(obj, mime) { // krátká adresa blob místo dlouhého data URL (když ji prohlížeč dovolí)
   try { const b = atob(obj.url.split(",")[1]), u8 = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) u8[i] = b.charCodeAt(i); const u = URL.createObjectURL(new Blob([u8], { type: mime })), im = new Image(); im.onload = () => { if (obj.blob) URL.revokeObjectURL(obj.blob); obj.blob = obj.url = u; }; im.onerror = () => URL.revokeObjectURL(u); im.src = u; } catch (e) { /* zůstane data URL */ }
 }
-let BASE_ = null;
-function baseMap() {
-  if (BASE_) return BASE_;
-  if (typeof document === "undefined") return null;
-  const pad = GEO.pad, W = (MW + 2 * pad) * RQ, H = (MH + 2 * pad) * RQ, n = W * H, cv = document.createElement("canvas"); cv.width = W; cv.height = H;
-  const ctx = cv.getContext("2d", { willReadFrequently: true }), X = lon => (MX(lon) + pad) * RQ, Y = lat => (MY(lat) + pad) * RQ;
+// Stínovaný reliéf z podkladů G (pevnina, jezera, výšky). o: w, h (jednotky mapy), q (bodů na jednotku), X, Y (zem. délka a šířka → jednotky), sl (měřítko sklonu), blur
+function reliefRaster(G, o) {
+  const pad = G.pad, q = o.q, W = Math.round((o.w + 2 * pad) * q), H = Math.round((o.h + 2 * pad) * q), n = W * H, cv = document.createElement("canvas"); cv.width = W; cv.height = H;
+  const ctx = cv.getContext("2d", { willReadFrequently: true }), X = lon => (o.X(lon) + pad) * q, Y = lat => (o.Y(lat) + pad) * q, sl0 = o.sl || 1;
   const trace = L => { ctx.beginPath(); for (let i = 0; i < L.length; i += 2) { if (i) ctx.lineTo(X(L[i]), Y(L[i + 1])); else ctx.moveTo(X(L[i]), Y(L[i + 1])); } };
-  ctx.fillStyle = "#000"; ctx.fillRect(0, 0, W, H); ctx.fillStyle = "#fff"; for (const L of GEO.land) { trace(L); ctx.closePath(); ctx.fill(); }
-  ctx.fillStyle = "#000"; for (const [, L] of GEO.lakes) { trace(L); ctx.closePath(); ctx.fill(); }
+  ctx.fillStyle = "#000"; ctx.fillRect(0, 0, W, H); ctx.fillStyle = "#fff"; for (const L of G.land) { trace(L); ctx.closePath(); ctx.fill(); }
+  ctx.fillStyle = "#000"; for (const [, L] of G.lakes) { trace(L); ctx.closePath(); ctx.fill(); }
   const px = ctx.getImageData(0, 0, W, H).data, land = new Uint8Array(n), sea = new Uint8Array(n);
   for (let i = 0; i < n; i++) { land[i] = px[i * 4] > 127 ? 1 : 0; sea[i] = 1 - land[i]; }
   const toLand = chamfer_(land, W, H), toSea = chamfer_(sea, W, H), E = new Float32Array(n);
-  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) E[y * W + x] = elevAt((x + 0.5) / RQ - pad, (y + 0.5) / RQ - pad);
-  blur_(E, W, H, 2, 2);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) E[y * W + x] = elevAt((x + 0.5) / q - pad, (y + 0.5) / q - pad, G);
+  blur_(E, W, H, o.blur || 2, 2);
   const img = ctx.createImageData(W, H), D = img.data, c = [0, 0, 0], grain = mkNoise_(7), wave = mkNoise_(23);
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
-    const k = y * W + x, o = k * 4, g = (grain(x * 0.9, y * 0.9) - 0.5) * 9 + (grain(x * 0.11, y * 0.11) - 0.5) * 10;
+    const k = y * W + x, p4 = k * 4, g = (grain(x * 0.9, y * 0.9) - 0.5) * 9 + (grain(x * 0.11, y * 0.11) - 0.5) * 10;
     if (land[k]) {
       const xl = x > 0 ? k - 1 : k, xr = x < W - 1 ? k + 1 : k, yu = y > 0 ? k - W : k, yd = y < H - 1 ? k + W : k;
-      const sl = (E[xr] - E[xl]) + (E[yd] - E[yu]), steep = Math.abs(E[xr] - E[xl]) + Math.abs(E[yd] - E[yu]);
+      const sl = ((E[xr] - E[xl]) + (E[yd] - E[yu])) / sl0, steep = (Math.abs(E[xr] - E[xl]) + Math.abs(E[yd] - E[yu])) / sl0;
       const sh = Math.tanh(sl / 70) * 0.34 + Math.tanh(sl / 9) * 0.07 - Math.min(0.12, steep / 900);
-      hypso(E[k], c); const f = 1 + sh, ds = toSea[k];
+      hypso(E[k], c); if (o.tint) o.tint(c, E[k], (y / q - pad) / o.h); const f = 1 + sh, ds = toSea[k];
       let r = c[0] * f + g, gg = c[1] * f + g, b = c[2] * f + g;
       if (ds < 2.2) { const t = 1 - ds / 2.2; r += (72 - r) * t * 0.8; gg += (54 - gg) * t * 0.8; b += (38 - b) * t * 0.8; }      // tušová linka pobřeží
       else if (ds < 9) { const t = (1 - ds / 9) * 0.22; r += (240 - r) * t; gg += (228 - gg) * t; b += (190 - b) * t; }               // světlý lem břehu
-      D[o] = r; D[o + 1] = gg; D[o + 2] = b;
+      D[p4] = r; D[p4 + 1] = gg; D[p4 + 2] = b;
     } else {
       const d = toLand[k] + (wave(x * 0.05, y * 0.05) - 0.5) * 6, t = 1 - Math.exp(-Math.max(0, d) / 60);
       let r = 146 + (62 - 146) * t + g * 0.6, gg = 182 + (104 - 182) * t + g * 0.6, b = 190 + (134 - 190) * t + g * 0.6;
       if (d > 5 && d < 42 && d % 12 < 1.3) { const a = 0.34 * (1 - d / 42); r += (236 - r) * a; gg += (240 - gg) * a; b += (236 - b) * a; }  // vodní linky podél břehu jako na starých mapách
-      D[o] = r; D[o + 1] = gg; D[o + 2] = b;
+      D[p4] = r; D[p4 + 1] = gg; D[p4 + 2] = b;
     }
-    D[o + 3] = 255;
+    D[p4 + 3] = 255;
   }
   ctx.putImageData(img, 0, 0);
-  BASE_ = { url: cv.toDataURL("image/jpeg", 0.9), land, W, H, pad };
-  swapBlob(BASE_, "image/jpeg");
-  return BASE_;
+  if (o.rivers) { ctx.lineJoin = ctx.lineCap = "round"; for (const pass of [0, 1]) { ctx.strokeStyle = pass ? "rgba(94,142,178,.95)" : "rgba(38,66,92,.5)"; ctx.lineWidth = pass ? 1.3 : 2.4; for (const L of G.rivers) { trace(L); ctx.stroke(); } } }
+  const R = { url: cv.toDataURL("image/jpeg", 0.9), land, W, H, pad };
+  swapBlob(R, "image/jpeg");
+  return R;
 }
-
+let BASE_ = null;
+function baseMap() {
+  if (BASE_) return BASE_;
+  if (typeof document === "undefined") return null;
+  return BASE_ = reliefRaster(GEO, { w: MW, h: MH, q: RQ, X: MX, Y: MY });
+}
 // ---------- kraje: ke každému bodu nejbližší sídlo, hranice zvlněné šumem ----------
 let PIDX_ = null;
 function provIdx() {
