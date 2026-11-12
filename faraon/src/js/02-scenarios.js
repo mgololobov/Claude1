@@ -1,0 +1,168 @@
+// Scénáře: rody, území a historické postavy.
+// Roky narození jsou odhady (u většiny postav nejsou známé); schopnosti a povahy jsou herní.
+// type: dyn = vládnoucí rod (hratelný), nom = rod nomarchů (hratelný), kmen = kmen (nehratelný, podniká nájezdy)
+
+const SCENARIOS = {
+  fip: {
+    n: "≈ 2070 př. n. l. – Válka Obou zemí (První přechodné období)",
+    bce: 2070,
+    d: "Stará říše se rozpadla. Na severu vládnou z Hérakleopole králové z rodu Chetiho, na jihu se Thébané pod Intefem II. prohlásili králi Horního i Dolního Egypta. Mezi nimi stojí mocní nomarchové Asjútu, Hermopole a Beni Hasanu. Nápisy té doby líčí nízké záplavy a hlad. O Thinidu a posvátný Abydos se bojuje.",
+    climate: -0.6,
+    clans: [
+      { id: "thebes", n: "Thébské království", house: "Intefovci (11. dynastie)", t: "král", type: "dyn", cul: "eg", col: "#b5452c", emb: "was", aggr: 0.65, cap: "u4", tomb: "saff hrobka v et-Tárifu",
+        provs: ["u1", "u2", "u3", "u4", "u5", "u6", "u7", "u8", "u9", "o_kha"], techs: ["pisari", "nilometr"], maat: 50, prestige: 160 },
+      { id: "herak", n: "Hérakleopolské království", house: "Dům Chetiho (9./10. dynastie)", t: "král", type: "dyn", cul: "eg", col: "#2f6d8f", emb: "djed", aggr: 0.45, cap: "u20", tomb: "pyramida v Sakkáře",
+        provs: ["u14", "u17", "u18", "u19", "u20", "u21", "u22", "fa", "l1", "l2", "l13", "l3", "l5", "l6", "lx", "l12", "l16", "l18", "lav", "o_bah"], techs: ["pisari", "nilometr", "texty"], maat: 45, prestige: 200 },
+      { id: "asjut", n: "Nom Asjút", house: "Asjútští nomarchové", t: "nomarcha", type: "nom", cul: "eg", col: "#c9a227", emb: "star", aggr: 0.55, cap: "u13", tomb: "skalní hrobka v Asjútu", vassalOf: "herak",
+        provs: ["u10", "u11", "u12", "u13"], techs: ["pisari", "nilometr", "texty"], maat: 50, prestige: 90 },
+      { id: "hermo", n: "Zaječí nom", house: "Nomarchové Hermopole", t: "nomarcha", type: "nom", cul: "eg", col: "#4f8a5b", emb: "crescent", aggr: 0.3, cap: "u15", tomb: "skalní hrobka v Dér el-Beršá", vassalOf: "herak",
+        provs: ["u15"], techs: ["pisari", "nilometr", "texty"], maat: 50, prestige: 70 },
+      { id: "oryx", n: "Oryxový nom", house: "Nomarchové z Beni Hasanu", t: "nomarcha", type: "nom", cul: "eg", col: "#a3678e", emb: "feather", aggr: 0.3, cap: "u16", tomb: "skalní hrobka v Beni Hasanu",
+        provs: ["u16"], techs: ["pisari", "nilometr", "texty"], maat: 50, prestige: 60 },
+      { id: "kerma", n: "Kuš", house: "Vládci Kermy", t: "vládce", type: "dyn", cul: "nub", col: "#6b4a2b", emb: "bow", aggr: 0.4, cap: "n_kerma", tomb: "mohylový hrob v Kermě",
+        provs: ["n_sai", "n_kerma"], techs: ["luk"], maat: 50, prestige: 110 },
+      { id: "wawat", n: "Vavat", house: "Náčelníci Vavatu (skupina C)", t: "náčelník", type: "kmen", cul: "nub", col: "#8c6d46", emb: "bow", aggr: 0.35, cap: "n_wawat",
+        provs: ["n_wawat", "n_buhen", "n_semna"], techs: [], maat: 50, prestige: 40 },
+      { id: "medzaj", n: "Médžajové", house: "Kmeny Východní pouště", t: "náčelník", type: "kmen", cul: "nub", col: "#7a4b8c", emb: "bow", aggr: 0.4, cap: "ham",
+        provs: ["ham", "sau"], techs: [], maat: 50, prestige: 30 },
+      { id: "oazy", n: "Oázy", house: "Správcové oáz z Balatu (doloženi ve Staré říši, později nejistí)", t: "správce", type: "kmen", cul: "eg", col: "#9aa04a", emb: "papyrus", aggr: 0.1, cap: "o_dak",
+        provs: ["o_dak"], techs: ["pisari"], maat: 50, prestige: 30 },
+      { id: "aamu", n: "Aamu", house: "Asijské kmeny východní Delty", t: "náčelník", type: "kmen", cul: "aam", col: "#5d6b7a", emb: "star", aggr: 0.6, cap: "l14",
+        provs: ["l20", "l14", "sin"], techs: [], maat: 50, prestige: 30 },
+      { id: "lib", n: "Tjehenu", house: "Libyjské kmeny", t: "náčelník", type: "kmen", cul: "lib", col: "#8a8a6a", emb: "feather", aggr: 0.55, cap: "lib",
+        provs: ["lib"], techs: [], maat: 50, prestige: 20 },
+    ],
+    rel: [["thebes", "herak", -45], ["thebes", "asjut", -55], ["herak", "asjut", 60], ["herak", "hermo", 30], ["thebes", "oryx", 15], ["herak", "aamu", -40], ["herak", "lib", -30], ["thebes", "medzaj", 10], ["thebes", "wawat", -10], ["asjut", "hermo", 20], ["kerma", "wawat", 10]],
+    wars: [["thebes", "asjut"], ["thebes", "herak"]],
+    hist: [
+      { n: "Intef II. (Wahanch)", cl: "thebes", by: 2140, r: "leader", s: [80, 70, 70, 78], t: ["ctizadostivy", "vojevudce"], note: "vládl ≈ 2112–2063 př. n. l., dobyl Thinidu" },
+      { n: "Intef III. (Nachtnebtepnefer)", cl: "thebes", by: 2105, r: "off", dyn: 1, rank: 4, s: [62, 60, 62, 64], t: [], father: "Intef II. (Wahanch)" },
+      { n: "Iah", cl: "thebes", by: 2098, r: "fam", sex: "f", sp: "Intef III. (Nachtnebtepnefer)", note: "matka Montuhotepa II." },
+      { n: "Montuhotep", cl: "thebes", by: 2076, r: "kid", sex: "m", father: "Intef III. (Nachtnebtepnefer)", note: "budoucí Montuhotep II., sjednotitel Egypta (≈ 2055–2004)" },
+      { n: "Tjetji", cl: "thebes", by: 2115, r: "off", rank: 3, s: [40, 35, 74, 86], t: ["hospodar", "verny"], note: "pokladník a komoří Intefa II. a III. (stéla v Britském muzeu)" },
+      { n: "Džari", cl: "thebes", by: 2110, r: "off", rank: 3, s: [72, 70, 50, 48], t: ["stateny"], loc: "u8", note: "velitel, bojoval s domem Chetiho severně od Thinidy" },
+      { n: "Hetepi", cl: "thebes", by: 2120, r: "off", rank: 3, s: [55, 50, 60, 72], t: ["stedry"], loc: "u3", note: "hodnostář v Elkabu (stéla)" },
+      { n: "Rediuchnum", cl: "thebes", by: 2112, r: "off", rank: 2, s: [45, 40, 62, 70], t: [], loc: "u6", note: "správce v Dendeře (stéla)" },
+      { n: "Cheti (Wahkare)", cl: "herak", by: 2125, r: "leader", s: [60, 55, 78, 66], t: ["moudry"], note: "tradičně pokládán za otce Merikarea a autora Ponaučení pro něj; pořadí hérakleopolských králů je nejisté" },
+      { n: "Merikare", cl: "herak", by: 2095, r: "off", dyn: 1, rank: 4, s: [56, 52, 64, 60], t: [], father: "Cheti (Wahkare)" },
+      { n: "Tefibi (Iti-ibi)", cl: "asjut", by: 2120, r: "leader", s: [72, 74, 56, 60], t: ["stateny"], note: "nomarcha Asjútu, v hrobce líčí boje s jižními nomy" },
+      { n: "Cheti (II.)", cl: "asjut", by: 2095, r: "off", dyn: 1, rank: 3, s: [64, 62, 58, 62], t: [], father: "Tefibi (Iti-ibi)", note: "nomarcha za krále Merikarea" },
+      { n: "Nehri", cl: "hermo", by: 2110, r: "leader", s: [58, 56, 62, 68], t: [], note: "nomarcha Zaječího nomu známý z nápisů v Hatnubu (datace přibližná)" },
+      { n: "Kaj", cl: "hermo", by: 2088, r: "off", dyn: 1, rank: 2, s: [55, 58, 54, 56], t: [], father: "Nehri" },
+      { n: "Džehutinacht", cl: "hermo", by: 2085, r: "off", dyn: 1, rank: 2, s: [52, 50, 60, 62], t: [], father: "Nehri" },
+      { n: "Baket (I.)", cl: "oryx", by: 2110, r: "leader", s: [55, 55, 58, 62], t: [], note: "nomarcha Oryxového nomu (hrobka v Beni Hasanu, datace přibližná)" },
+    ],
+  },
+  sip: {
+    n: "≈ 1560 př. n. l. – Proti Hyksósům (Druhé přechodné období)",
+    bce: 1560,
+    d: "Sever ovládají Hyksósové („vládci cizích zemí“) z Avaridu, na jihu číhá mocná Kuš z Kermy. Thébská 17. dynastie drží jen Horní Egypt od Elefantiny po Kúsaj a podle běžného výkladu uznává svrchovanost Hyksósů a odvádí jim poplatky. Podle pozdějšího vyprávění posílá král Apopi do Théb urážlivé vzkazy. Sekenenre Taa a jeho rod se chystají k válce.",
+    climate: 0,
+    clans: [
+      { id: "thebes", n: "Thébské království", house: "17. dynastie (Taa)", t: "král", type: "dyn", cul: "eg", col: "#b5452c", emb: "was", aggr: 0.55, cap: "u4", tomb: "pyramida v Dra Abu el-Naga",
+        provs: ["u1", "u2", "u3", "u4", "u5", "u6", "u7", "u8", "u9", "u10", "u11", "u12", "u13", "u14", "ham", "o_kha", "o_dak"], techs: ["pisari", "nilometr", "hraze", "katastr", "texty", "matematika", "bronz", "flotila", "pevnosti", "kamenictvi", "vezir"], maat: 55, prestige: 180, medjay: 1 },
+      { id: "hyksos", n: "Říše Hyksósů", house: "Hyksósové (15. dynastie)", t: "král", title: "heka chasut", type: "dyn", cul: "hyk", col: "#2f6d8f", emb: "star", aggr: 0.5, cap: "lav", tomb: "hrobka v Avaridu (hroby hyksóských králů nebyly nalezeny)",
+        provs: ["u16", "u17", "u18", "u19", "u20", "u21", "u22", "fa", "l1", "l2", "l13", "l3", "l5", "l6", "lx", "l12", "l16", "l18", "lav", "l20", "l14", "o_bah"], techs: ["pisari", "nilometr", "hraze", "fajjum", "katastr", "matematika", "bronz", "luk", "vuz", "chopes", "zbroj", "dobytek", "kamenictvi", "lekarstvi", "flotila", "namorni"], maat: 45, prestige: 260 },
+      { id: "teti", n: "Nefrusy", house: "Teti, syn Pepiho", t: "kníže", type: "nom", cul: "eg", col: "#4f8a5b", emb: "ankh", aggr: 0.2, cap: "u15", tomb: "skalní hrobka (neznámá)", vassalOf: "hyksos",
+        provs: ["u15"], techs: ["pisari", "nilometr", "texty"], maat: 45, prestige: 50 },
+      { id: "kush", n: "Kuš", house: "Vládci Kermy", t: "vládce", type: "dyn", cul: "nub", col: "#6b4a2b", emb: "bow", aggr: 0.5, cap: "n_kerma", tomb: "mohyla (tumulus) v Kermě",
+        provs: ["n_wawat", "n_buhen", "n_semna", "n_sai", "n_kerma"], techs: ["luk", "bronz", "pevnosti"], maat: 50, prestige: 200 },
+      { id: "medzaj", n: "Médžajové", house: "Kmeny Východní pouště", t: "náčelník", type: "kmen", cul: "nub", col: "#7a4b8c", emb: "bow", aggr: 0.15, cap: "sau",
+        provs: ["sau"], techs: ["luk"], maat: 50, prestige: 30 },
+      { id: "aamu", n: "Aamu", house: "Beduíni Sinaje", t: "náčelník", type: "kmen", cul: "aam", col: "#5d6b7a", emb: "star", aggr: 0.35, cap: "sin",
+        provs: ["sin"], techs: [], maat: 50, prestige: 20 },
+      { id: "lib", n: "Tjehenu", house: "Libyjské kmeny", t: "náčelník", type: "kmen", cul: "lib", col: "#8a8a6a", emb: "feather", aggr: 0.45, cap: "lib",
+        provs: ["lib"], techs: [], maat: 50, prestige: 20 },
+    ],
+    sizes: { lav: 4, u4: 4, n_kerma: 5 },
+    rel: [["thebes", "hyksos", -30], ["thebes", "kush", -35], ["hyksos", "kush", 40], ["thebes", "medzaj", 55], ["hyksos", "teti", 50], ["thebes", "teti", -30], ["hyksos", "aamu", 20]],
+    tribute: [["thebes", "hyksos"]],
+    alliances: [["hyksos", "kush"]],
+    hist: [
+      { n: "Sekenenre Taa", cl: "thebes", by: 1595, r: "leader", s: [78, 84, 64, 66], t: ["stateny"], note: "jeho mumie nese smrtelná zranění od zbraní asijského typu – zřejmě padl v boji" },
+      { n: "Ahhotep", cl: "thebes", by: 1585, r: "fam", sex: "f", sp: "Sekenenre Taa", note: "královna; stéla Ahmose z Karnaku chválí Ahhotep, že „pečovala o vojsko“ a uklidnila Horní Egypt (o kterou Ahhotep jde, je sporné)" },
+      { n: "Tetišeri", cl: "thebes", by: 1620, r: "fam", sex: "f", note: "matka Sekenenrea, babička Ahmose (podle obvyklé rekonstrukce rodu)" },
+      { n: "Kamose", cl: "thebes", by: 1580, r: "off", dyn: 1, rank: 4, s: [80, 78, 66, 60], t: ["ctizadostivy", "vojevudce"], note: "příbuzenský vztah k Sekenenreovi není jistý; jeho stély líčí tažení proti Avaridu" },
+      { n: "Ahmose", cl: "thebes", by: 1566, r: "kid", sex: "m", father: "Sekenenre Taa", note: "budoucí Ahmose I., zakladatel 18. dynastie, dobyl Avaris" },
+      { n: "Ahmose-Nefertari", cl: "thebes", by: 1568, r: "kid", sex: "f", father: "Sekenenre Taa", note: "budoucí Velká královská manželka Ahmose I." },
+      { n: "Baba, syn Reanet", cl: "thebes", by: 1600, r: "off", rank: 2, s: [58, 64, 44, 50], t: ["verny"], loc: "u3", note: "voják krále Sekenenrea z Elkabu (podle životopisu jeho syna)" },
+      { n: "Ahmose, syn Ebany", cl: "thebes", by: 1570, r: "kid", sex: "m", father: "Baba, syn Reanet", note: "později voják na lodích krále Ahmose u Avaridu a „velitel posádky lodí“ (jeho životopis v Elkabu)" },
+      { n: "Neši", cl: "thebes", by: 1590, r: "off", rank: 3, s: [50, 45, 66, 74], t: ["hospodar"], note: "hodnostář, jehož jméno nese druhá Kamoseho stéla" },
+      { n: "Apopi (Auserre)", cl: "hyksos", by: 1610, r: "leader", s: [64, 52, 74, 80], t: ["lstivy", "hospodar"], note: "vládl asi 40 let; podle papyru Sallier I. si stěžoval na řev thébských hrochů" },
+      { n: "Chamudi", cl: "hyksos", by: 1590, r: "off", dyn: 1, rank: 4, s: [58, 58, 52, 54], t: [], note: "poslední hyksóský král; příbuzenství s Apopim neznámé" },
+      { n: "Herit", cl: "hyksos", by: 1586, r: "fam", sex: "f", father: "Apopi (Auserre)", note: "královská dcera doložená nápisem na nádobě" },
+      { n: "Ahmose (písař)", cl: "hyksos", by: 1600, r: "off", rank: 1, s: [20, 15, 90, 70], t: ["moudry"], note: "písař, který v 33. roce Apopiho opsal matematický Rhindův papyrus" },
+      { n: "Teti, syn Pepiho", cl: "teti", by: 1600, r: "leader", s: [50, 48, 62, 60], t: ["lstivy"], note: "egyptský kníže v Nefrusy, spojenec Hyksósů (Kamoseho stéla)" },
+      { n: "Nedžeh", cl: "kush", by: 1605, r: "leader", s: [70, 72, 58, 62], t: ["vojevudce"], note: "„vládce Kuše“ doložený na stéle z Buhenu (datace v rámci období nejistá)" },
+    ],
+  },
+};
+
+// Třetí scénář: doba nomarchy Anchtifiho (nápisy v jeho hrobce v Moalle). Odvozen z rodů scénáře 2070.
+(() => {
+  const base = id => Object.assign({}, SCENARIOS.fip.clans.find(c => c.id === id));
+  const herak = Object.assign(base("herak"), { provs: ["u7", "u8", "u9", "u14", "u17", "u18", "u19", "u20", "u21", "u22", "fa", "l1", "l2", "l13", "l3", "l5", "l6", "lx", "l12", "l16", "l18", "lav", "o_bah", "o_kha"], prestige: 230 });
+  const thebes = Object.assign(base("thebes"), { provs: ["u4"], aggr: 0.6, prestige: 90, maat: 45 });
+  SCENARIOS.anch = {
+    n: "≈ 2120 př. n. l. – Anchtifi z Moally (První přechodné období)",
+    bce: 2120,
+    d: "Nomarcha Anchtifi z Hefatu (Moally) píše ve své hrobce, že ho „Hor přivedl do nomu Edfu“, aby v něm obnovil pořádek, a že se spojil s Elefantinou. Proti němu stojí Théby a Koptos, kde se rod Intefů právě prohlásil králi. Na severu vládne Hérakleopolis, které Anchtifi uznává. Záplavy jsou nízké a podle Anchtifiho „celý Horní Egypt umírá hladem“.",
+    climate: -1.0,
+    clans: [
+      { id: "anch", n: "Nomy Hefat a Edfu", house: "Anchtifi z Moally", t: "nomarcha", type: "nom", cul: "eg", col: "#c9a227", emb: "star", aggr: 0.6, cap: "u3", tomb: "skalní hrobka v Moalle", vassalOf: "herak",
+        provs: ["u2", "u3"], techs: ["pisari", "nilometr"], maat: 50, prestige: 90 },
+      { id: "elef", n: "Nom Elefantina", house: "Nomarchové Elefantiny", t: "nomarcha", type: "nom", cul: "eg", col: "#4f8a5b", emb: "ankh", aggr: 0.2, cap: "u1", tomb: "skalní hrobka v Kubbet el-Hawá",
+        provs: ["u1"], techs: ["pisari", "nilometr"], maat: 50, prestige: 60 },
+      thebes,
+      { id: "koptos", n: "Nom Koptos", house: "Nomarchové Koptu", t: "nomarcha", type: "nom", cul: "eg", col: "#a3678e", emb: "feather", aggr: 0.35, cap: "u5", tomb: "hrobka v Koptu",
+        provs: ["u5", "u6"], techs: ["pisari", "nilometr"], maat: 50, prestige: 60 },
+      herak,
+      Object.assign(base("asjut"), {}), Object.assign(base("hermo"), {}), Object.assign(base("oryx"), {}),
+      base("kerma"), base("wawat"), base("medzaj"), base("oazy"), base("aamu"), base("lib"),
+    ],
+    rel: [["anch", "elef", 55], ["anch", "thebes", -50], ["anch", "koptos", -45], ["thebes", "koptos", 50], ["anch", "herak", 35], ["thebes", "herak", -30], ["herak", "asjut", 60], ["herak", "hermo", 30], ["herak", "aamu", -40], ["herak", "lib", -30]],
+    alliances: [["thebes", "koptos"], ["anch", "elef"]],
+    wars: [["anch", "thebes"], ["anch", "koptos"]],
+    hist: [
+      { n: "Anchtifi", cl: "anch", by: 2165, r: "leader", s: [74, 72, 66, 76], t: ["ctizadostivy", "stedry"], note: "nomarcha Hefatu; ve své hrobce v Moalle líčí obnovu pořádku v Edfu, boje s Thébami a Koptem a rozdávání obilí za hladu" },
+      { n: "Intef (I.)", cl: "thebes", by: 2160, r: "leader", s: [66, 64, 60, 64], t: ["ctizadostivy"], note: "první z Intefů s královským titulem (Sehertaui), vládl ≈ 2125–2112 př. n. l." },
+      { n: "Intef (II.)", cl: "thebes", by: 2150, r: "off", dyn: 1, rank: 4, s: [78, 70, 68, 74], t: ["vojevudce"], note: "budoucí Intef II. Wahanch; pokládá se za bratra Intefa I. (příbuzenství není jisté)" },
+      { n: "Neferkare", cl: "herak", by: 2165, r: "leader", s: [52, 46, 60, 58], t: [], note: "král jmenovaný v Anchtifiho hrobce, obvykle řazený k hérakleopolským králům; ztotožnění je nejisté" },
+    ],
+  };
+})();
+
+// Čtvrtý scénář: poslední fáze sjednocení za Montuhotepa II. (≈ 2040 př. n. l.).
+(() => {
+  const base = id => Object.assign({}, SCENARIOS.fip.clans.find(c => c.id === id));
+  SCENARIOS.mt2 = {
+    n: "≈ 2040 př. n. l. – Montuhotep II. (sjednocení)",
+    bce: 2040,
+    d: "Thébský král Montuhotep II. (vládl ≈ 2055–2004) drží jih od Elefantiny po Per-Nemtej a chystá rozhodující tažení na sever. Hérakleopolští králové slábnou, Asjút stále stojí při nich, nomarchové Hermopole a Beni Hasanu váhají. Jména posledních hérakleopolských králů a přesný průběh války nejsou jisté.",
+    climate: -0.5,
+    clans: [
+      Object.assign(base("thebes"), { provs: ["u1", "u2", "u3", "u4", "u5", "u6", "u7", "u8", "u9", "u10", "u11", "u12", "o_kha", "o_dak"], techs: ["pisari", "nilometr", "texty", "flotila", "pevnosti", "kamenictvi", "bronz"], maat: 60, prestige: 260, aggr: 0.7 }),
+      Object.assign(base("herak"), { provs: ["u14", "u17", "u18", "u19", "u20", "u21", "u22", "fa", "l1", "l2", "l13", "l3", "l5", "l6", "lx", "l12", "l16", "l18", "lav", "o_bah"], maat: 40, prestige: 170 }),
+      Object.assign(base("asjut"), { provs: ["u13"] }),
+      Object.assign(base("hermo"), { vassalOf: null }), Object.assign(base("oryx"), {}),
+      base("kerma"), base("wawat"), base("medzaj"), base("aamu"), base("lib"),
+    ],
+    sizes: { u4: 5 },
+    rel: [["thebes", "herak", -60], ["thebes", "asjut", -60], ["herak", "asjut", 60], ["thebes", "hermo", 25], ["thebes", "oryx", 30], ["herak", "hermo", 0], ["herak", "aamu", -40], ["herak", "lib", -30], ["thebes", "medzaj", 30]],
+    wars: [["thebes", "herak"], ["thebes", "asjut"]],
+    hist: [
+      { n: "Montuhotep II. (Nebhepetre)", cl: "thebes", by: 2076, r: "leader", s: [86, 78, 74, 82], t: ["vojevudce", "ctizadostivy"], note: "vládl ≈ 2055–2004 př. n. l.; sjednotil Egypt a postavil terasovitý zádušní chrám v Dér el-Bahrí" },
+      { n: "Tem", cl: "thebes", by: 2070, r: "fam", sex: "f", sp: "Montuhotep II. (Nebhepetre)", note: "hlavní manželka, matka Montuhotepa III." },
+      { n: "Neferu (II.)", cl: "thebes", by: 2072, r: "fam", sex: "f", note: "královna, sestra a manželka Montuhotepa II.; hrobka v Dér el-Bahrí" },
+      { n: "Montuhotep (III.)", cl: "thebes", by: 2046, r: "kid", sex: "m", father: "Montuhotep II. (Nebhepetre)", note: "budoucí Montuhotep III. (Sanchkare), vyslal výpravu do Puntu" },
+      { n: "Dagi", cl: "thebes", by: 2085, r: "off", rank: 4, s: [45, 40, 72, 84], t: ["hospodar"], note: "vezír Montuhotepa II. (hrobka v Thébách)" },
+      { n: "Cheti (pokladník)", cl: "thebes", by: 2090, r: "off", rank: 3, s: [42, 38, 70, 82], t: ["verny"], note: "kancléř a pokladník Montuhotepa II., vedl výpravu do Asuánu" },
+      { n: "Henenu", cl: "thebes", by: 2090, r: "off", rank: 3, s: [58, 52, 60, 74], t: [], note: "správce Montuhotepa II. a III.; později vedl výpravu přes Vádí Hammámát k Rudému moři" },
+      { n: "Meketre", cl: "thebes", by: 2070, r: "off", rank: 2, s: [40, 35, 68, 78], t: ["hospodar"], note: "mladý správce, později vrchní správce; z jeho hrobky pocházejí slavné dřevěné modely" },
+      { n: "Merikare", cl: "herak", by: 2095, r: "leader", s: [56, 50, 64, 60], t: [], note: "hérakleopolský král; zda vládl až do konce války, není jisté" },
+      { n: "Cheti (II.)", cl: "asjut", by: 2095, r: "leader", s: [66, 64, 58, 62], t: ["stateny"], note: "nomarcha Asjútu, věrný Hérakleopoli" },
+      { n: "Džehutinacht", cl: "hermo", by: 2085, r: "leader", s: [55, 52, 62, 64], t: [], note: "nomarcha Zaječího nomu, syn Nehriho (datace přibližná)" },
+      { n: "Baket (II.)", cl: "oryx", by: 2080, r: "leader", s: [55, 55, 58, 62], t: [], note: "nomarcha Oryxového nomu (hrobka v Beni Hasanu, datace přibližná)" },
+    ],
+  };
+})();
