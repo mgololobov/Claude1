@@ -1,0 +1,25 @@
+name: Testy hry Panovník
+on:
+  push:
+    paths: ["panovnik/**", ".github/workflows/panovnik.yml"]
+  pull_request:
+    paths: ["panovnik/**", ".github/workflows/panovnik.yml"]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: panovnik
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Sestavení
+        run: python3 build.py
+      - name: Testy logiky
+        run: node --test tests/*.test.js
+      - name: Instalace prohlížeče
+        run: npm install --no-save playwright@1.48.2 && npx playwright install --with-deps chromium
+      - name: Test v prohlížeči
+        run: node tests/e2e.js
