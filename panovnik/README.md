@@ -98,6 +98,7 @@ Je to samostatný projekt, s Herní dílnou (`herni-dilna/`) nesdílí žádný 
 - Území rodů jsou nad reliéfem jen barevným tónem se zvýrazněnou hranicí. Sídla mají kartografické značky: sídlo rodu, město, hrad a ves. Na Baltu je větrná růžice a kogy.
 - **Co skutečné není:** je to dnešní pobřeží a dnešní toky řek (ve 13. století se místy lišily, například ústí Visly). Z dat byly vyřazeny novodobé přehrady a kanály. Hranice krajů jsou herní – kraj tvoří okolí svého sídla – a neodpovídají historickým hranicím panství.
 - **Vzhled** vychází z iluminovaných rukopisů: pergamenové listy, rumělkové rubriky nadpisů, zlacené linky, iniciála na začátku textu události. Barvy odpovídají středověkým pigmentům (železoduběnkový inkoust, rumělka, azurit, měděnka, plátkové zlato). Obrázky mají místo oblohy modré pozadí se zlatým kosočtvercovým vzorem jako gotické miniatury.
+- **Obrázky** jsou kreslené jako knižní miniatury: tušová linka, plošné pigmenty, postavy v oděvu a zbroji 2. poloviny 13. století (kroužková zbroj s varkočem, hrncová přilba, trojúhelný štít, kukly, závoje). Čtyřicet výjevů událostí, kresba kraje i bitevní scéna se skládají ze společné knihovny kreseb (`14c-mini.js`, `14d-miniscenes.js`).
 - Písma Almendra (nadpisy, popisky mapy) a Uncial Antiqua (iniciály, název) jsou vložena přímo do souboru hry; obě mají licenci SIL OFL.
 - Podklady se znovu vytvoří příkazem `python3 tools/geo.py <složka s geojson Natural Earth> <složka s dlaždicemi výšek>`.
 
@@ -120,7 +121,9 @@ src/js/09-events.js    události
 src/js/10-ui.js        rozhraní (záložky, ukládání)
 src/js/11-gfx.js       grafika: erby, politická mapa, grafy, pruhy, ikony
 src/js/12-ui-ext.js    plán měsíce, bojová obrazovka, úřady, obchodní cesty
-src/js/14-art.js       portréty, ilustrace událostí, kresba kraje, scéna bitvy
+src/js/14-art.js       portréty
+src/js/14c-mini.js     knihovna kreseb ve stylu miniatur (postavy, koně, stavby, stromy, pozadí)
+src/js/14d-miniscenes.js výjevy událostí, kresba kraje, bitevní scéna
 src/js/15-ui-cards.js  karty s portréty, ilustrované události, úvodní obrazovka
 src/js/13-eu-ui.js     hlavní obrazovka, mapové režimy, boční panel, lišta, okno Vláda
 src/js/11a-geo.js      zeměpisné podklady mapy (vytváří tools/geo.py)
