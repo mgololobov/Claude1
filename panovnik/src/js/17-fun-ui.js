@@ -30,7 +30,9 @@ function ambDetail(c) {
 }
 function seasonOverlay() {
   const m = S.month;
-  if ([11, 0, 1].includes(m)) return `<rect width="${MW}" height="${MH}" fill="#ffffff" opacity=".16" pointer-events="none"/><rect width="${MW}" height="${MH}" fill="url(#snowp)" opacity=".22" pointer-events="none"/>`;
+  // zima: mapa zbělá a zmodrá (bez padajícího sněhu); krutá zima je bělejší
+  const hard = (S.weather || {}).t === "zima";
+  if ([11, 0, 1].includes(m) || hard) return `<rect width="${MW}" height="${MH}" fill="#eef3f8" opacity="${hard ? 0.46 : 0.32}" pointer-events="none"/><rect width="${MW}" height="${MH}" fill="#5f84ad" opacity="${hard ? 0.12 : 0.08}" pointer-events="none" style="mix-blend-mode:multiply"/>`;
   if ([9, 10].includes(m)) return `<rect width="${MW}" height="${MH}" fill="#c8741a" opacity=".08" pointer-events="none"/>`;
   if ([5, 6, 7].includes(m)) return `<rect width="${MW}" height="${MH}" fill="#f6e08a" opacity=".06" pointer-events="none"/>`;
   return "";

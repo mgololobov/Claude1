@@ -16,7 +16,6 @@ function weatherOverlay() {
   const t = (S.weather || {}).t || "mirny", m = S.month, winter = [11, 0, 1].includes(m);
   let g = `<g class="wx-clouds" pointer-events="none">${[0, 1, 2, 3].map(i => `<ellipse cx="${(i * 0.27 + 0.05) * MW}" cy="${(0.15 + (i % 2) * 0.35) * MH}" rx="${MW * 0.09}" ry="${MH * 0.04}" fill="#fff" opacity="${t === "desty" ? 0.28 : 0.13}"/>`).join("")}</g>`;
   if (t === "desty" && !winter) g += `<rect class="wx-fall" x="0" y="-60" width="${MW}" height="${MH + 60}" fill="url(#rainp)" opacity=".55" pointer-events="none"/>`;
-  if (winter || t === "zima") g += `<rect class="wx-snow" x="0" y="-60" width="${MW}" height="${MH + 60}" fill="url(#snowfall)" opacity="${t === "zima" ? 0.6 : 0.4}" pointer-events="none"/>`;
   if (t === "sucho" && [5, 6, 7].includes(m)) g += `<rect width="${MW}" height="${MH}" fill="#e8a040" opacity=".1" pointer-events="none" class="wx-heat"/>`;
   return `<defs><pattern id="rainp" width="30" height="30" patternUnits="userSpaceOnUse"><path d="M5 0 l-3 9 M20 12 l-3 9 M12 22 l-2 6" stroke="#cfe2f0" stroke-width="1"/></pattern><pattern id="snowfall" width="30" height="30" patternUnits="userSpaceOnUse"><circle cx="5" cy="6" r="1.2" fill="#fff"/><circle cx="20" cy="16" r="1.5" fill="#fff"/><circle cx="12" cy="26" r="1" fill="#fff"/></pattern></defs>${g}`;
 }
