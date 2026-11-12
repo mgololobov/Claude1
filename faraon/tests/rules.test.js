@@ -2,7 +2,7 @@
 const fs = require("fs"), path = require("path"), vm = require("vm"), assert = require("assert");
 const dir = path.join(__dirname, "..", "src", "js");
 const code = '"use strict";\n' + fs.readdirSync(dir).filter(f => /^0\d-.*\.js$/.test(f)).sort().map(f => fs.readFileSync(path.join(dir, f), "utf8")).join("\n") +
-  "\n;this.X={execration,newGame,endTurn,floodFactor,tacMult,STANCES,routeIncome,ROUTES,declareWar,makePeace,setLaw,heirsOf,clanBudget,battle,men,SCENARIOS,PROVINCES,lw,provTax,yearTaxEstimate,marketCap,liveBattleStart,liveStep,ordMod,die,genOfficer,migrate,marketTick,trade,checkEnd,coreProvs,realmCore,officers,rodsOf,goalProgress,clanProvs,sendArmy,royalTour,lawTechTick,durMax,omenRoll,EVENTS,eventView,setPolicy,delegated};";
+  "\n;this.X={EVENTS,QUOTES,quoteTag,execration,newGame,endTurn,floodFactor,tacMult,STANCES,routeIncome,ROUTES,declareWar,makePeace,setLaw,heirsOf,clanBudget,battle,men,SCENARIOS,PROVINCES,lw,provTax,yearTaxEstimate,marketCap,liveBattleStart,liveStep,ordMod,die,genOfficer,migrate,marketTick,trade,checkEnd,coreProvs,realmCore,officers,rodsOf,goalProgress,clanProvs,sendArmy,royalTour,lawTechTick,durMax,omenRoll,EVENTS,eventView,setPolicy,delegated};";
 const ctx = {}; vm.createContext(ctx); vm.runInContext(code, ctx); const X = ctx.X;
 let n = 0; const t = (name, f) => { f(); n++; console.log("✔ " + name); };
 
@@ -100,5 +100,14 @@ t("zaklínací texty: jen proti nepříteli ve válce, jednou za rok, působí d
   assert.strictEqual(X.execration(s, "thebes", "kush"), null); assert.strictEqual(C.maat, m0 + 2); assert.strictEqual(C.deben, d0 - 300);
   assert.strictEqual(JSON.stringify(s.clans.kush), k0, "nepříteli se nic nestane");
   assert.notStrictEqual(X.execration(s, "thebes", "kush"), null, "podruhé až za rok");
+});
+t("dějinné chvíle: každá má volby, které projdou, a citáty mají pramen a dobu vzniku", () => {
+  for (const [k, scen, clan] of [["boure_ahmose", "ahm", "thebes"], ["tetian", "ahm", "thebes"], ["rada_velmozu", "sip", "thebes"], ["psi_intefa", "fip", "thebes"], ["anch_theby", "anch", "anch"], ["hrob_valecniku", "mt2", "thebes"]]) {
+    const s = X.newGame({ scen, clan, seed: 3 }), C = s.clans[clan]; C.deben = 50000; C.grain = 500000;
+    const v = X.EVENTS[k].view(s, {}); assert(v.t && v.tx.length > 80 && v.ch.length >= 2, k);
+    for (const c of v.ch) assert.strictEqual(c.f(), null, k + ": " + c.t);
+  }
+  for (const [id, q] of Object.entries(X.QUOTES)) assert(q.t && q.src && q.od > 1000 && q.tags.length, id);
+  const s = X.newGame({ scen: "anch", clan: "anch", seed: 3 }), q = X.quoteTag(s, ["vojsko"]); assert(q && q.od >= s.bce, "citát nesmí být mladší než doba hry");
 });
 console.log(`OK – ${n} testů`);

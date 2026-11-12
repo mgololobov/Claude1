@@ -59,6 +59,9 @@ W = {
   "nefer": ("F35", "nfr", "dobrý, krásný"),
   # kalendář
   "hesbet": ("M4 O50", "ḥsbt", "rok vlády"),
+  "renpet": ("M4", "rnpt", "rok (znak, jímž Palermská deska odděluje roky)"),
+  "meh": ("D42", "mḥ", "loket (asi 52,4 cm)"),
+  "wpwty": ("F13 Q3 X1 Z4 D54", "wpwty", "posel"),
   "abed": ("N11", "ꜣbd", "měsíc"),
   "achet": ("M8 Aa1 X1 N5", "ꜣḫt", "achet – období záplavy"),
   "peret": ("O1 D21 X1 N5", "prt", "peret – období setí"),

@@ -213,7 +213,7 @@ function seasonBanner() {
   if (typeof document === "undefined") return;
   if (BAN.turn === -1 || S.turn <= BAN.turn || S.month % 4 !== 0 || SEL.start) { BAN.turn = S.turn; return; }
   BAN.turn = S.turn; const si = S.month / 4; let el = document.getElementById("banner"); if (!el) { el = document.createElement("div"); el.id = "banner"; document.body.appendChild(el); }
-  el.innerHTML = `${vign(SEASON_ART[si])}<div class="bt"><b>${si === 0 ? `Nový rok ≈ ${S.bce} př. n. l. · ` : ""}Období ${SEASONS[si]}</b><span>${SEASON_TX[si]}</span></div>`;
+  el.innerHTML = `${vign(SEASON_ART[si])}<div class="bt"><b>${si === 0 ? `Nový rok ≈ ${S.bce} př. n. l. · ` : ""}Období ${SEASONS[si]}</b><span>${SEASON_TX[si]}</span>${(q => q ? `<i class="bq">„${esc(q.t)}“ — ${esc(q.src)}</i>` : "")(typeof quoteTag === "function" ? quoteTag(S, [["zaplava"], ["stavby"], ["sypky"]][si]) : null)}</div>`;
   el.className = ""; void el.offsetWidth; el.className = "show"; clearTimeout(BAN.t); BAN.t = setTimeout(() => { el.className = ""; }, 3200);
 }
 var _render0 = render;

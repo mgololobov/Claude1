@@ -28,6 +28,11 @@ Hra je jeden soubor `dist/index.html`: stačí ho otevřít v prohlížeči, fun
 - **Nilometr, sýpky a pokladnice** v Hospodářství: schodiště s měřítkem v loktech a pásmy hlad – nouze – hojnost – ničivá, kupole sýpek plněné podle zásob, váhy s kruhy kovu.
 - **Pochod klepnutím na mapu**: v panelu vlastního nomu zvolíš „Táhnout vojskem“ a klepneš na cíl; velení dostane nejschopnější volný úředník.
 - **Zaklínací texty**: představený kněží může ve válce nechat napsat jména nepřátel na nádoby a figurky a rozbít je (nálezy z Gízy, Sakkáry a Mirgissy). Nepříteli to neublíží; doma to zvedne maat a spokojenost.
+- **Přehlídka vojska** (Válka a poslové → Vojsko): řady kopiníků, lučištníků, Médžajů a vozů podle skutečného složení; posádky a vojska v poli jsou řádky postav, ne tabulka.
+- **Poslové před trůnem** (Diplomacie): každý rod zastupuje posel v oděvu své země; kopí a štít znamenají válku, dary přátelství, hůl klid zbraní.
+- **Letopis jako deska s ročními poli** po vzoru Palermské desky: znak roku, hlavní události a dole výška záplavy v loktech egyptskými číslovkami.
+- **Dějinné chvíle** vázané na scénář a pramen: Stéla bouře a Tetianova vzpoura (Ahmose), rada velmožů z Carnarvonovy tabulky (Théby proti Hyksósům), psi krále Intefa II., Anchtifiho plavba k thébským pevnostem, hrob válečníků v Dér el-Bahrí (Montuhotep II.; datování je sporné a hra to říká).
+- **Citáty**: 66 úryvků z egyptských textů s uvedeným pramenem; ukazují se jen texty, které v době hry už existovaly (u hodnostářů, u nilometru, u vojska, u poslů a při změně období).
 - **Záložky** jsou v sedmi skupinách (Mapa, Rada, Říše, Stát, Válka a poslové, Kronika, Hra); v horní liště je vidět postup k cíli hry.
 - Při změně ročního období se ukáže obrázek (záplava, setí, žně) a pod mapou běží zprávy měsíce.
 
