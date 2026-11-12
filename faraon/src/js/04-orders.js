@@ -88,7 +88,9 @@ function doCmd(s, cid, offId, cmd, arg, arg2) {
     }
     case "uceni": {
       if (!pay(s, cid, cost)) return "Nedostatek debenů.";
-      const g = r1((st(c, "roz") / 7 + (p.b.chram || 0) * 3 + rnd(s) * 3) * researchMult(s, cid));
+      // víc písařů nad týmiž texty nepřidá tolik: každý další rozkaz v témže měsíci dává o 12 % méně než předchozí
+      C.resN = C.resTurn === s.turn ? (C.resN || 0) + 1 : 0; C.resTurn = s.turn;
+      const g = r1((st(c, "roz") / 7 + (p.b.chram || 0) * 3 + rnd(s) * 3) * researchMult(s, cid) / (1 + 0.12 * C.resN));
       C.res.pts += g; c.merit += 3; c.acted = s.turn; return say(`Dům života: písaři opisují a studují texty, +${g} bodů vědění.`);
     }
     case "stavba": {
@@ -181,11 +183,32 @@ function expeditionReturn(s, c) {
 
 // ---------- vědění ----------
 function techCost(s, cid, t) {
-  let c = TECHS[t].cost; const others = borderClans(s, cid).concat(enemiesOf(s, cid));
+  // čím víc toho rod umí, tím pomalejší je další pokrok (každý známý objev přidá 5 % k ceně (měřeno: při 10 % slabší rody zanikaly častěji)); starověké vědění se šířilo po generacích, ne po měsících
+  let c = TECHS[t].cost * (1 + 0.05 * Object.keys(s.clans[cid].techs).length); const others = borderClans(s, cid).concat(enemiesOf(s, cid));
   if (others.some(o => hasTech(s, o, t))) c *= 0.65; // znalost se šíří od sousedů a nepřátel
   return Math.round(c);
 }
-function techAvail(s, cid, t) { const T = TECHS[t]; return !hasTech(s, cid, t) && (!T.req || T.req.every(r => hasTech(s, cid, r))); }
+// Dovezené nebo pozdní vynálezy nelze zkoumat před dobou, z níž je máme doložené (rok př. n. l., přibližně). Počáteční vědění scénářů tím dotčeno není.
+const TECH_ERA = {
+  vuz: [1650, "válečný vůz a kůň přišly do Egypta s Hyksósy; první kosti koně jsou z pevnosti Buhen kolem roku 1675 př. n. l."],
+  luk: [1650, "kompozitní luk se v Egyptě rozšířil v Druhém přechodném období"],
+  chopes: [1700, "srpovitý meč pochází z Předního východu a v Egyptě se objevuje v Druhém přechodném období"],
+  glacis: [1700, "šikmé valy jsou z Kenaanu, v Avaridu je známe z doby kolem roku 1700 př. n. l."],
+  slovniky: [1800, "Ramesseovské onomastikon je z konce Střední říše"],
+  zlatnictvi: [1900, "zlaté šperky s granulací jsou z hrobek princezen 12. dynastie v Dahšúru a Lahúnu"],
+  pyrmesta: [1900, "plánované město Lahún u pyramidy Senusreta II. je z 12. dynastie"],
+  vezir: [1900, "rozdělení správy na varet je doloženo za Senusreta III. (12. dynastie)"],
+  zpravy: [1900, "pravidelná hlášení posádek dochovaná z Semny jsou z 12. dynastie"],
+  ochrana: [1950, "slepé chodby a padací bloky v pyramidách jsou z 12. dynastie"],
+  pevnosti: [1950, "cihlové pevnosti s baštami v Núbii vznikly za 12. dynastie"],
+};
+function techLock(s, cid, t) {
+  const T = TECHS[t], E = TECH_ERA[t]; if (hasTech(s, cid, t)) return null;
+  if (E && s.bce > E[0]) return `Zatím neznámé: ${E[1]} (≈ ${E[0]} př. n. l.).`;
+  if (T.req && !T.req.every(r => hasTech(s, cid, r))) return "Chybí předpoklady: " + T.req.filter(r => !hasTech(s, cid, r)).map(r => TECHS[r].n).join(", ") + ".";
+  return null;
+}
+function techAvail(s, cid, t) { return !hasTech(s, cid, t) && !techLock(s, cid, t); }
 function researchTick(s, cid) {
   const C = s.clans[cid]; if (!C.res.cur) return;
   const cost = techCost(s, cid, C.res.cur);

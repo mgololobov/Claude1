@@ -187,7 +187,9 @@ function harvestTick(s) {
     if (left >= 0) { p.stock = Math.min(Math.round(p.pop * 1000 * (1.5 + (p.b.sypka || 0) * 0.7) * (hasTech(s, p.owner, "klenba") ? 1.3 : 1) * [0.8, 1, 1.4][lw(s, p.owner, "sypky")]), p.stock + Math.round(left * 0.6)); p.hunger = Math.max(0, p.hunger - 0.2); p.pop = r1(p.pop * (p.loy > 35 ? 1.015 : 1.005) * (lw(s, p.owner, "cizinci") === 2 && p.ter === "delta" ? 1.005 : 1)); }
     else {
       const def = -left, fromStock = Math.min(p.stock, def); p.stock -= fromStock; const rest = def - fromStock;
-      if (rest >= 1) { let d = rest / provNeed(p); if (hasTech(s, p.owner, "nilometr")) d *= 0.67; p.hunger = clamp(p.hunger + d * 1.5, 0, 1); p.pop = r1(Math.max(0.5, p.pop * (1 - d * 0.22))); p.loy = Math.max(0, p.loy - d * 50); (hungry[p.owner] = hungry[p.owner] || []).push([p.id, Math.round(rest)]); }
+      // počítačový rod s plnými sýpkami nasytí nom dřív, než hlad napáchá škody (dřív platil dvakrát: ztrátou lidí i obilím)
+      if (rest >= 1 && !isPlayer(s, p.owner) && C.type !== "kmen" && C.grain > rest * 2) { C.grain -= rest; p.stock += 0; p.loy = Math.min(100, p.loy + 1); }
+      else if (rest >= 1) { let d = rest / provNeed(p); if (hasTech(s, p.owner, "nilometr")) d *= 0.67; p.hunger = clamp(p.hunger + d * 1.5, 0, 1); p.pop = r1(Math.max(0.5, p.pop * (1 - d * 0.22))); p.loy = Math.max(0, p.loy - d * 50); (hungry[p.owner] = hungry[p.owner] || []).push([p.id, Math.round(rest)]); }
     }
     p._lastH = Math.round(H); p._lastTax = Math.round(tax);
   }
@@ -402,7 +404,7 @@ function aiClan(s, cid) {
     const O = s.clans[o]; if (!O.alive || atWar(s, cid, o) || friendly(s, cid, o) || truceUntil(s, cid, o) > s.turn) continue;
     if (C.tributeTo === o && realmPower(s, cid) < realmPower(s, o) * 1.1) continue;
     const ratio = realmPower(s, cid) / Math.max(1, realmPower(s, o)), r = rel(s, cid, o);
-    const ppl = isPlayer(s, o) ? [1.2, 1, 0.85][s.opts.diff] : 1;
+    const ppl = isPlayer(s, o) ? [0.75, 1, 1.3][s.opts.diff] : 1;
     const gw = goalWeight(s, cid, o);
     if (ratio > (gw > 1 ? 1.12 : 1.3) && r < (gw > 1 ? 20 : 5) && chance(s, C.aggr * 0.05 * ppl * gw * (O.type === "kmen" ? 0.6 : 1))) { declareWar(s, cid, o, ratio > 2.5 ? "ze síly" : "o hranice"); break; }
   }

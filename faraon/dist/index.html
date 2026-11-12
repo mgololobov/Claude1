@@ -609,12 +609,14 @@ const TERRAIN = {
 };
 
 // Vojsko. Počty v mužích; síla útoku/obrany na 100 mužů. Cena v debenech na 100 mužů.
+// Ceny jsou kalibrované podle bojového modelu (tests/balance_calibrate.js): za stejný počet mužů stojí lučištník ≈ 1,13×, Médžaj ≈ 2×
+// a válečný vůz ≈ 2,3× to, co by odpovídalo jeho skutečné síle v boji; zbytek je přirážka za výcvik, koně a řemeslníky. Koně navíc omezují počet vozů.
 // Příděl: každý voják dostává 1,5 charu obilí měsíčně (char ≈ 77 litrů).
 const TROOPS = {
   kopinici: { n: "Kopiníci", atk: 1.0, def: 1.3, cost: 150, col: "#9a7b4f" },
-  lucistnici: { n: "Lučištníci", atk: 1.35, def: 0.8, cost: 250, col: "#5f7f3f" },
-  medzajove: { n: "Médžajové", atk: 1.6, def: 1.1, cost: 700, upd: 0.6, col: "#7a4b8c", d: "núbijští lučištníci a zvědové z pouště, žoldnéři" },
-  vozy: { n: "Válečné vozy", atk: 2.6, def: 1.4, cost: 2000, horses: 100, col: "#a3332b", d: "vyžaduje vědění Válečný vůz a koně" },
+  lucistnici: { n: "Lučištníci", atk: 1.35, def: 0.8, cost: 220, col: "#5f7f3f" },
+  medzajove: { n: "Médžajové", atk: 1.6, def: 1.1, cost: 330, upd: 0.3, col: "#7a4b8c", d: "núbijští lučištníci a zvědové z pouště, žoldnéři" },
+  vozy: { n: "Válečné vozy", atk: 2.6, def: 1.4, cost: 360, horses: 100, col: "#a3332b", d: "vyžaduje vědění Válečný vůz a koně" },
 };
 const TROOP_IDS = Object.keys(TROOPS);
 const RATION_SOLDIER = 1.5;
@@ -1278,7 +1280,10 @@ function newGame(opts = {}) {
 }
 
 // ---------- záplava a úroda ----------
-function rollFlood(s) { const Sc = SCENARIOS[s.scen]; return r1(clamp(15.4 + (Sc.climate || 0) + gauss(s) * 1.55, 9, 20.5)); }
+// Výška záplavy: průměr 15,4 loktu podle klimatu doby a směrodatná odchylka 1,55. Roky na sebe navazují (autoregrese 0,3): dlouhé záznamy
+// o Nilu mají tzv. Hurstův jev, kdy se slabé i silné roky shlukují. Díky tomu přicházejí i delší období sucha, jaká sužovala Egypt na konci Staré říše.
+const FLOOD_PHI = 0.3;
+function rollFlood(s) { const Sc = SCENARIOS[s.scen], mu = 15.4 + (Sc.climate || 0), prev = s.flood && s.flood.h != null ? s.flood.h : mu; return r1(clamp(mu + FLOOD_PHI * (prev - mu) + gauss(s) * 1.55 * Math.sqrt(1 - FLOOD_PHI * FLOOD_PHI), 9, 20.5)); }
 // Plinius (Přírodopis 5,58): 12 loktů hlad, 13 nouze, 14 radost, 15 bezpečí, 16 hojnost. Víc znamená škody.
 const FLOOD_PTS = [[9, 0.25], [11, 0.4], [12, 0.55], [13, 0.72], [14, 0.88], [15, 0.98], [16, 1.08], [17, 1.02], [18, 0.85], [19, 0.65], [21, 0.45]];
 function floodFactor(h) {
@@ -1340,7 +1345,7 @@ function clanBudget(s, cid) {
   const allT = ps.map(p => p.troops).concat(s.armies.filter(a => a.cl === cid).map(a => a.t));
   const offs = officers(s, cid);
   // čím víc pokladů dvůr hromadí, tím víc stojí dary dvořanům, chrámům a cizím posům
-  const ex = { dvur: 30 + (C.t === "král" ? Math.min(170, ps.length * 45) : 0) + Math.round(Math.max(0, C.deben - 25000) * 0.025), platy: sum(offs.map(c => (c.id === C.leader ? 0 : c.rank * 10))), vojsko: Math.round(sum(allT.map(t => men(t) * 0.04 + (t.vozy || 0) * 0.4))), zoldneri: sum(allT.map(t => (t.medzajove || 0) * TROOPS.medzajove.upd)),
+  const ex = { dvur: 30 + (C.t === "král" ? Math.min(170, ps.length * 45) : 0) + Math.round(Math.max(0, C.deben - 25000) * 0.025), platy: sum(offs.map(c => (c.id === C.leader ? 0 : c.rank * 10))), vojsko: Math.round(sum(allT.map(t => men(t) * 0.04 + (t.vozy || 0) * 0.25))), zoldneri: sum(allT.map(t => (t.medzajove || 0) * TROOPS.medzajove.upd)),
     zvedove: cid === s.player && s.spynet ? sum(Object.values(s.spynet).map(n => n.cost || 0)) : 0, soudy: lw(s, cid, "soudy") === 0 ? 150 : 0, skoly: lw(s, cid, "skoly") === 2 ? 100 : 0,
     stavby: sum(ps.map(p => (p.b.chram || 0) * 30 + Math.max(0, p.castle - 1) * 10)) + (C.laws.chramy === 0 ? sum(ps.map(p => (p.b.chram || 0) * 40)) : 0), tribut: 0 };
   if (C.type === "kmen") { ex.platy = 0; ex.vojsko = 0; ex.stavby = 0; ex.soudy = 0; ex.skoly = 0; }
@@ -1524,7 +1529,9 @@ function doCmd(s, cid, offId, cmd, arg, arg2) {
     }
     case "uceni": {
       if (!pay(s, cid, cost)) return "Nedostatek debenů.";
-      const g = r1((st(c, "roz") / 7 + (p.b.chram || 0) * 3 + rnd(s) * 3) * researchMult(s, cid));
+      // víc písařů nad týmiž texty nepřidá tolik: každý další rozkaz v témže měsíci dává o 12 % méně než předchozí
+      C.resN = C.resTurn === s.turn ? (C.resN || 0) + 1 : 0; C.resTurn = s.turn;
+      const g = r1((st(c, "roz") / 7 + (p.b.chram || 0) * 3 + rnd(s) * 3) * researchMult(s, cid) / (1 + 0.12 * C.resN));
       C.res.pts += g; c.merit += 3; c.acted = s.turn; return say(`Dům života: písaři opisují a studují texty, +${g} bodů vědění.`);
     }
     case "stavba": {
@@ -1617,11 +1624,32 @@ function expeditionReturn(s, c) {
 
 // ---------- vědění ----------
 function techCost(s, cid, t) {
-  let c = TECHS[t].cost; const others = borderClans(s, cid).concat(enemiesOf(s, cid));
+  // čím víc toho rod umí, tím pomalejší je další pokrok (každý známý objev přidá 5 % k ceně (měřeno: při 10 % slabší rody zanikaly častěji)); starověké vědění se šířilo po generacích, ne po měsících
+  let c = TECHS[t].cost * (1 + 0.05 * Object.keys(s.clans[cid].techs).length); const others = borderClans(s, cid).concat(enemiesOf(s, cid));
   if (others.some(o => hasTech(s, o, t))) c *= 0.65; // znalost se šíří od sousedů a nepřátel
   return Math.round(c);
 }
-function techAvail(s, cid, t) { const T = TECHS[t]; return !hasTech(s, cid, t) && (!T.req || T.req.every(r => hasTech(s, cid, r))); }
+// Dovezené nebo pozdní vynálezy nelze zkoumat před dobou, z níž je máme doložené (rok př. n. l., přibližně). Počáteční vědění scénářů tím dotčeno není.
+const TECH_ERA = {
+  vuz: [1650, "válečný vůz a kůň přišly do Egypta s Hyksósy; první kosti koně jsou z pevnosti Buhen kolem roku 1675 př. n. l."],
+  luk: [1650, "kompozitní luk se v Egyptě rozšířil v Druhém přechodném období"],
+  chopes: [1700, "srpovitý meč pochází z Předního východu a v Egyptě se objevuje v Druhém přechodném období"],
+  glacis: [1700, "šikmé valy jsou z Kenaanu, v Avaridu je známe z doby kolem roku 1700 př. n. l."],
+  slovniky: [1800, "Ramesseovské onomastikon je z konce Střední říše"],
+  zlatnictvi: [1900, "zlaté šperky s granulací jsou z hrobek princezen 12. dynastie v Dahšúru a Lahúnu"],
+  pyrmesta: [1900, "plánované město Lahún u pyramidy Senusreta II. je z 12. dynastie"],
+  vezir: [1900, "rozdělení správy na varet je doloženo za Senusreta III. (12. dynastie)"],
+  zpravy: [1900, "pravidelná hlášení posádek dochovaná z Semny jsou z 12. dynastie"],
+  ochrana: [1950, "slepé chodby a padací bloky v pyramidách jsou z 12. dynastie"],
+  pevnosti: [1950, "cihlové pevnosti s baštami v Núbii vznikly za 12. dynastie"],
+};
+function techLock(s, cid, t) {
+  const T = TECHS[t], E = TECH_ERA[t]; if (hasTech(s, cid, t)) return null;
+  if (E && s.bce > E[0]) return `Zatím neznámé: ${E[1]} (≈ ${E[0]} př. n. l.).`;
+  if (T.req && !T.req.every(r => hasTech(s, cid, r))) return "Chybí předpoklady: " + T.req.filter(r => !hasTech(s, cid, r)).map(r => TECHS[r].n).join(", ") + ".";
+  return null;
+}
+function techAvail(s, cid, t) { return !hasTech(s, cid, t) && !techLock(s, cid, t); }
 function researchTick(s, cid) {
   const C = s.clans[cid]; if (!C.res.cur) return;
   const cost = techCost(s, cid, C.res.cur);
@@ -2173,7 +2201,9 @@ function harvestTick(s) {
     if (left >= 0) { p.stock = Math.min(Math.round(p.pop * 1000 * (1.5 + (p.b.sypka || 0) * 0.7) * (hasTech(s, p.owner, "klenba") ? 1.3 : 1) * [0.8, 1, 1.4][lw(s, p.owner, "sypky")]), p.stock + Math.round(left * 0.6)); p.hunger = Math.max(0, p.hunger - 0.2); p.pop = r1(p.pop * (p.loy > 35 ? 1.015 : 1.005) * (lw(s, p.owner, "cizinci") === 2 && p.ter === "delta" ? 1.005 : 1)); }
     else {
       const def = -left, fromStock = Math.min(p.stock, def); p.stock -= fromStock; const rest = def - fromStock;
-      if (rest >= 1) { let d = rest / provNeed(p); if (hasTech(s, p.owner, "nilometr")) d *= 0.67; p.hunger = clamp(p.hunger + d * 1.5, 0, 1); p.pop = r1(Math.max(0.5, p.pop * (1 - d * 0.22))); p.loy = Math.max(0, p.loy - d * 50); (hungry[p.owner] = hungry[p.owner] || []).push([p.id, Math.round(rest)]); }
+      // počítačový rod s plnými sýpkami nasytí nom dřív, než hlad napáchá škody (dřív platil dvakrát: ztrátou lidí i obilím)
+      if (rest >= 1 && !isPlayer(s, p.owner) && C.type !== "kmen" && C.grain > rest * 2) { C.grain -= rest; p.stock += 0; p.loy = Math.min(100, p.loy + 1); }
+      else if (rest >= 1) { let d = rest / provNeed(p); if (hasTech(s, p.owner, "nilometr")) d *= 0.67; p.hunger = clamp(p.hunger + d * 1.5, 0, 1); p.pop = r1(Math.max(0.5, p.pop * (1 - d * 0.22))); p.loy = Math.max(0, p.loy - d * 50); (hungry[p.owner] = hungry[p.owner] || []).push([p.id, Math.round(rest)]); }
     }
     p._lastH = Math.round(H); p._lastTax = Math.round(tax);
   }
@@ -2388,7 +2418,7 @@ function aiClan(s, cid) {
     const O = s.clans[o]; if (!O.alive || atWar(s, cid, o) || friendly(s, cid, o) || truceUntil(s, cid, o) > s.turn) continue;
     if (C.tributeTo === o && realmPower(s, cid) < realmPower(s, o) * 1.1) continue;
     const ratio = realmPower(s, cid) / Math.max(1, realmPower(s, o)), r = rel(s, cid, o);
-    const ppl = isPlayer(s, o) ? [1.2, 1, 0.85][s.opts.diff] : 1;
+    const ppl = isPlayer(s, o) ? [0.75, 1, 1.3][s.opts.diff] : 1;
     const gw = goalWeight(s, cid, o);
     if (ratio > (gw > 1 ? 1.12 : 1.3) && r < (gw > 1 ? 20 : 5) && chance(s, C.aggr * 0.05 * ppl * gw * (O.type === "kmen" ? 0.6 : 1))) { declareWar(s, cid, o, ratio > 2.5 ? "ze síly" : "o hranice"); break; }
   }
@@ -3867,7 +3897,7 @@ function techTick3(s) {
       if (T("vosk")) for (const p of ps) if (p.b.dilny) p.com = Math.min(comCap(s, p), p.com + 1);
     }
     // děti kapu: vztah se po dobu výchovy pomalu zlepšuje
-    if (C.kap) for (const [t, until] of Object.entries(C.kap)) { if (until > s.turn && s.clans[t] && s.clans[t].alive && !atWar(s, C.id, t)) addRel(s, C.id, t, 1); }
+    if (C.kap) for (const [t, until] of Object.entries(C.kap)) { if (until > s.turn && s.clans[t] && s.clans[t].alive && !atWar(s, C.id, t)) addRel(s, C.id, t, 0.5); }
   }
 }
 var _worldTick3 = worldTick;
@@ -3913,8 +3943,8 @@ function takeToKap(s, cid, target) {
   if (!(T.type === "kmen" || T.cul === "nub" || T.cul === "aam" || T.cul === "lib")) return "Do kapu se brali synové cizích vládců a náčelníků, ne egyptských rodů.";
   C.kap = C.kap || {}; if ((C.kap[target] || 0) > s.turn - 24) return "Syn tohoto vládce už v kapu je.";
   if (C.deben < 600) return "Chybí 600 debenů na dary a výchovu.";
-  C.deben -= 600; C.kap[target] = s.turn + 36; addRel(s, cid, target, 12);
-  log(s, `Syn vládce rodu ${T.house} byl přijat do kapu a vyrůstá s královskými dětmi: vztah +12 a další tři roky pomalu roste.`, "diplomacie", [cid]);
+  C.deben -= 600; C.kap[target] = s.turn + 36; addRel(s, cid, target, 8);
+  log(s, `Syn vládce rodu ${T.house} byl přijat do kapu a vyrůstá s královskými dětmi: vztah +8 a další tři roky pomalu roste (celkem asi +26).`, "diplomacie", [cid]);
   return null;
 }
 Object.assign(EVENTS, {
@@ -5107,7 +5137,7 @@ ACT.capital = pid => { const r = moveCapital(S, me(), pid); TERR.key = null; ret
 ACT.copySave = () => { const t = JSON.stringify(S); SEL.saveTxt = t; try { navigator.clipboard.writeText(t).then(() => toast("Hra zkopírována do schránky."), () => toast("Text je v poli – zkopíruj ho ručně.")); } catch (e) { toast("Text je v poli – zkopíruj ho ručně."); } return null; };
 ACT.pasteSave = () => { const el = document.getElementById("saveTxt"); try { const x = migrate(JSON.parse(el.value)); if (!x) throw 0; S = x; TERR.key = null; SEL.saveTxt = ""; toast("Hra načtena."); } catch (e) { return "Text není uložená hra."; } };
 ACT.focus = (id, v) => { const c = chr(S, id); if (c) c.focus = v || null; };
-ACT.research = t => { if (!techAvail(S, me(), t)) return "Chybí předpoklady."; P(S).res.cur = t; };
+ACT.research = t => { const e = techLock(S, me(), t); if (e) return e; if (!techAvail(S, me(), t)) return "Už to znáš."; P(S).res.cur = t; };
 ACT.king = () => { const C = P(S); if (C.t === "král" || clanProvs(S, me()).length < 6) return "Zatím nelze."; C.t = "král"; C.type = "dyn"; C.prestige += 60; C.maat = Math.max(0, C.maat - 3); const ov = C.vassalOf; if (ov) { C.vassalOf = null; addRel(S, me(), ov, -40); if (!atWar(S, me(), ov)) declareWar(S, ov, me(), "proti vzbouřenému nomarchovi, který se prohlásil králem"); } log(S, `${ruler().n} přijal královskou titulaturu a prohlásil se králem Horního a Dolního Egypta.`, "rod", [me()]); };
 ACT.logF = k => { SEL.logF = k; };
 ACT.event = i => { resolveEvent(S, i); };
@@ -5302,8 +5332,8 @@ function techNode(t) {
   const st_ = known ? "known" : cur ? "cur" : av ? "avail" : "locked";
   return `<div class="tnode ${st_}"><div class="tnh"><span class="tni">${ricon(CAT_ICON[T.cat] || "maat", 18)}</span><b>${esc(T.n)}</b></div>
     <div class="small">${esc(T.d)}</div>
-    ${T.req ? `<div class="treq">${T.req.map(r => `<span class="${C.techs[r] ? "ok" : ""}">${esc(TECHS[r].n)}</span>`).join("")}</div>` : ""}
-    <div class="tnf">${known ? '<span class="good">✔ známé</span>' : cur ? `<span>▶ zkoumá se · ${Math.round(C.res.pts)}/${cost}</span>` : `<span class="muted">${cost} bodů</span>${btn("Zkoumat", "research", [t], av ? null : "Chybí předpoklady", "sm")}`}</div></div>`;
+    ${TECH_ERA[t] && !known && S.bce > TECH_ERA[t][0] ? `<div class="small bad">od ≈ ${TECH_ERA[t][0]} př. n. l.</div>` : ""}${T.req ? `<div class="treq">${T.req.map(r => `<span class="${C.techs[r] ? "ok" : ""}">${esc(TECHS[r].n)}</span>`).join("")}</div>` : ""}
+    <div class="tnf">${known ? '<span class="good">✔ známé</span>' : cur ? `<span>▶ zkoumá se · ${Math.round(C.res.pts)}/${cost}</span>` : `<span class="muted">${cost} bodů</span>${btn("Zkoumat", "research", [t], av ? null : techLock(S, me(), t) || "Nedostupné", "sm")}`}</div></div>`;
 }
 function tVedeniArt() {
   const C = P(S), cats = [...new Set(TECH_IDS.map(t => TECHS[t].cat))], cur = C.res.cur, cost = cur ? techCost(S, me(), cur) : 1;
@@ -6126,7 +6156,7 @@ var _tDiplo3 = TAB_FN.diplo;
 TAB_FN.diplo = function () {
   const C = P(S), T = SEL.dipl && S.clans[SEL.dipl]; let x = "";
   if (T && T.alive && C.t === "král" && (T.type === "kmen" || T.cul === "nub" || T.cul === "aam" || T.cul === "lib")) { const has = C.kap && (C.kap[T.id] || 0) > S.turn - 24;
-    x = `<div class="ritual" style="margin:0 16px 12px"><b>Děti kapu</b> <span class="small muted">Syn vládce rodu ${esc(T.house)} může vyrůstat v paláci s královskými dětmi. Titul „dítě kapu“ nesli od Střední říše i Núbijci; že šlo o záměrnou výchovu synů cizích vládců, je pro tuto dobu pravděpodobný výklad, výslovně doložený až za Thutmose III. Vztah +12 a tři roky pomalu roste. Stojí 600 debenů.</span><div class="row">${btn("Přijmout syna do kapu", "kap", [T.id], atWar(S, me(), T.id) ? "Válčíte" : has ? "Už v kapu je" : C.deben < 600 ? "Chybí 600 debenů" : null)}</div></div>`; }
+    x = `<div class="ritual" style="margin:0 16px 12px"><b>Děti kapu</b> <span class="small muted">Syn vládce rodu ${esc(T.house)} může vyrůstat v paláci s královskými dětmi. Titul „dítě kapu“ nesli od Střední říše i Núbijci; že šlo o záměrnou výchovu synů cizích vládců, je pro tuto dobu pravděpodobný výklad, výslovně doložený až za Thutmose III. Vztah +8 a tři roky pomalu roste (celkem asi +26, dar za 1 000 debenů dá +14). Stojí 600 debenů.</span><div class="row">${btn("Přijmout syna do kapu", "kap", [T.id], atWar(S, me(), T.id) ? "Válčíte" : has ? "Už v kapu je" : C.deben < 600 ? "Chybí 600 debenů" : null)}</div></div>`; }
   return x ? _tDiplo3().replace('<div class="diploart">', '<div class="courtwrap" style="padding-top:10px">' + x + '</div><div class="diploart">') : _tDiplo3();
 };
 

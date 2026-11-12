@@ -42,7 +42,7 @@ ACT.capital = pid => { const r = moveCapital(S, me(), pid); TERR.key = null; ret
 ACT.copySave = () => { const t = JSON.stringify(S); SEL.saveTxt = t; try { navigator.clipboard.writeText(t).then(() => toast("Hra zkopírována do schránky."), () => toast("Text je v poli – zkopíruj ho ručně.")); } catch (e) { toast("Text je v poli – zkopíruj ho ručně."); } return null; };
 ACT.pasteSave = () => { const el = document.getElementById("saveTxt"); try { const x = migrate(JSON.parse(el.value)); if (!x) throw 0; S = x; TERR.key = null; SEL.saveTxt = ""; toast("Hra načtena."); } catch (e) { return "Text není uložená hra."; } };
 ACT.focus = (id, v) => { const c = chr(S, id); if (c) c.focus = v || null; };
-ACT.research = t => { if (!techAvail(S, me(), t)) return "Chybí předpoklady."; P(S).res.cur = t; };
+ACT.research = t => { const e = techLock(S, me(), t); if (e) return e; if (!techAvail(S, me(), t)) return "Už to znáš."; P(S).res.cur = t; };
 ACT.king = () => { const C = P(S); if (C.t === "král" || clanProvs(S, me()).length < 6) return "Zatím nelze."; C.t = "král"; C.type = "dyn"; C.prestige += 60; C.maat = Math.max(0, C.maat - 3); const ov = C.vassalOf; if (ov) { C.vassalOf = null; addRel(S, me(), ov, -40); if (!atWar(S, me(), ov)) declareWar(S, ov, me(), "proti vzbouřenému nomarchovi, který se prohlásil králem"); } log(S, `${ruler().n} přijal královskou titulaturu a prohlásil se králem Horního a Dolního Egypta.`, "rod", [me()]); };
 ACT.logF = k => { SEL.logF = k; };
 ACT.event = i => { resolveEvent(S, i); };

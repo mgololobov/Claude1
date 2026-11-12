@@ -10,8 +10,8 @@ function techNode(t) {
   const st_ = known ? "known" : cur ? "cur" : av ? "avail" : "locked";
   return `<div class="tnode ${st_}"><div class="tnh"><span class="tni">${ricon(CAT_ICON[T.cat] || "maat", 18)}</span><b>${esc(T.n)}</b></div>
     <div class="small">${esc(T.d)}</div>
-    ${T.req ? `<div class="treq">${T.req.map(r => `<span class="${C.techs[r] ? "ok" : ""}">${esc(TECHS[r].n)}</span>`).join("")}</div>` : ""}
-    <div class="tnf">${known ? '<span class="good">✔ známé</span>' : cur ? `<span>▶ zkoumá se · ${Math.round(C.res.pts)}/${cost}</span>` : `<span class="muted">${cost} bodů</span>${btn("Zkoumat", "research", [t], av ? null : "Chybí předpoklady", "sm")}`}</div></div>`;
+    ${TECH_ERA[t] && !known && S.bce > TECH_ERA[t][0] ? `<div class="small bad">od ≈ ${TECH_ERA[t][0]} př. n. l.</div>` : ""}${T.req ? `<div class="treq">${T.req.map(r => `<span class="${C.techs[r] ? "ok" : ""}">${esc(TECHS[r].n)}</span>`).join("")}</div>` : ""}
+    <div class="tnf">${known ? '<span class="good">✔ známé</span>' : cur ? `<span>▶ zkoumá se · ${Math.round(C.res.pts)}/${cost}</span>` : `<span class="muted">${cost} bodů</span>${btn("Zkoumat", "research", [t], av ? null : techLock(S, me(), t) || "Nedostupné", "sm")}`}</div></div>`;
 }
 function tVedeniArt() {
   const C = P(S), cats = [...new Set(TECH_IDS.map(t => TECHS[t].cat))], cur = C.res.cur, cost = cur ? techCost(S, me(), cur) : 1;

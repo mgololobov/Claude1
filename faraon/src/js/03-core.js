@@ -163,7 +163,10 @@ function newGame(opts = {}) {
 }
 
 // ---------- záplava a úroda ----------
-function rollFlood(s) { const Sc = SCENARIOS[s.scen]; return r1(clamp(15.4 + (Sc.climate || 0) + gauss(s) * 1.55, 9, 20.5)); }
+// Výška záplavy: průměr 15,4 loktu podle klimatu doby a směrodatná odchylka 1,55. Roky na sebe navazují (autoregrese 0,3): dlouhé záznamy
+// o Nilu mají tzv. Hurstův jev, kdy se slabé i silné roky shlukují. Díky tomu přicházejí i delší období sucha, jaká sužovala Egypt na konci Staré říše.
+const FLOOD_PHI = 0.3;
+function rollFlood(s) { const Sc = SCENARIOS[s.scen], mu = 15.4 + (Sc.climate || 0), prev = s.flood && s.flood.h != null ? s.flood.h : mu; return r1(clamp(mu + FLOOD_PHI * (prev - mu) + gauss(s) * 1.55 * Math.sqrt(1 - FLOOD_PHI * FLOOD_PHI), 9, 20.5)); }
 // Plinius (Přírodopis 5,58): 12 loktů hlad, 13 nouze, 14 radost, 15 bezpečí, 16 hojnost. Víc znamená škody.
 const FLOOD_PTS = [[9, 0.25], [11, 0.4], [12, 0.55], [13, 0.72], [14, 0.88], [15, 0.98], [16, 1.08], [17, 1.02], [18, 0.85], [19, 0.65], [21, 0.45]];
 function floodFactor(h) {
@@ -225,7 +228,7 @@ function clanBudget(s, cid) {
   const allT = ps.map(p => p.troops).concat(s.armies.filter(a => a.cl === cid).map(a => a.t));
   const offs = officers(s, cid);
   // čím víc pokladů dvůr hromadí, tím víc stojí dary dvořanům, chrámům a cizím posům
-  const ex = { dvur: 30 + (C.t === "král" ? Math.min(170, ps.length * 45) : 0) + Math.round(Math.max(0, C.deben - 25000) * 0.025), platy: sum(offs.map(c => (c.id === C.leader ? 0 : c.rank * 10))), vojsko: Math.round(sum(allT.map(t => men(t) * 0.04 + (t.vozy || 0) * 0.4))), zoldneri: sum(allT.map(t => (t.medzajove || 0) * TROOPS.medzajove.upd)),
+  const ex = { dvur: 30 + (C.t === "král" ? Math.min(170, ps.length * 45) : 0) + Math.round(Math.max(0, C.deben - 25000) * 0.025), platy: sum(offs.map(c => (c.id === C.leader ? 0 : c.rank * 10))), vojsko: Math.round(sum(allT.map(t => men(t) * 0.04 + (t.vozy || 0) * 0.25))), zoldneri: sum(allT.map(t => (t.medzajove || 0) * TROOPS.medzajove.upd)),
     zvedove: cid === s.player && s.spynet ? sum(Object.values(s.spynet).map(n => n.cost || 0)) : 0, soudy: lw(s, cid, "soudy") === 0 ? 150 : 0, skoly: lw(s, cid, "skoly") === 2 ? 100 : 0,
     stavby: sum(ps.map(p => (p.b.chram || 0) * 30 + Math.max(0, p.castle - 1) * 10)) + (C.laws.chramy === 0 ? sum(ps.map(p => (p.b.chram || 0) * 40)) : 0), tribut: 0 };
   if (C.type === "kmen") { ex.platy = 0; ex.vojsko = 0; ex.stavby = 0; ex.soudy = 0; ex.skoly = 0; }

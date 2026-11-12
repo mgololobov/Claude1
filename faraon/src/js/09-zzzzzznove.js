@@ -24,7 +24,7 @@ function techTick3(s) {
       if (T("vosk")) for (const p of ps) if (p.b.dilny) p.com = Math.min(comCap(s, p), p.com + 1);
     }
     // děti kapu: vztah se po dobu výchovy pomalu zlepšuje
-    if (C.kap) for (const [t, until] of Object.entries(C.kap)) { if (until > s.turn && s.clans[t] && s.clans[t].alive && !atWar(s, C.id, t)) addRel(s, C.id, t, 1); }
+    if (C.kap) for (const [t, until] of Object.entries(C.kap)) { if (until > s.turn && s.clans[t] && s.clans[t].alive && !atWar(s, C.id, t)) addRel(s, C.id, t, 0.5); }
   }
 }
 var _worldTick3 = worldTick;
@@ -70,8 +70,8 @@ function takeToKap(s, cid, target) {
   if (!(T.type === "kmen" || T.cul === "nub" || T.cul === "aam" || T.cul === "lib")) return "Do kapu se brali synové cizích vládců a náčelníků, ne egyptských rodů.";
   C.kap = C.kap || {}; if ((C.kap[target] || 0) > s.turn - 24) return "Syn tohoto vládce už v kapu je.";
   if (C.deben < 600) return "Chybí 600 debenů na dary a výchovu.";
-  C.deben -= 600; C.kap[target] = s.turn + 36; addRel(s, cid, target, 12);
-  log(s, `Syn vládce rodu ${T.house} byl přijat do kapu a vyrůstá s královskými dětmi: vztah +12 a další tři roky pomalu roste.`, "diplomacie", [cid]);
+  C.deben -= 600; C.kap[target] = s.turn + 36; addRel(s, cid, target, 8);
+  log(s, `Syn vládce rodu ${T.house} byl přijat do kapu a vyrůstá s královskými dětmi: vztah +8 a další tři roky pomalu roste (celkem asi +26).`, "diplomacie", [cid]);
   return null;
 }
 Object.assign(EVENTS, {

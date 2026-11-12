@@ -2,7 +2,7 @@
 const fs = require("fs"), path = require("path"), vm = require("vm"), assert = require("assert");
 const dir = path.join(__dirname, "..", "src", "js");
 const code = '"use strict";\n' + fs.readdirSync(dir).filter(f => /^0\d-.*\.js$/.test(f)).sort().map(f => fs.readFileSync(path.join(dir, f), "utf8")).join("\n") +
-  "\n;this.X={census,goldOfValor,takeToKap,TECHS,TECH_IDS,hasTech,marketCap,worldTick,EVENTS,QUOTES,quoteTag,execration,newGame,endTurn,floodFactor,tacMult,STANCES,routeIncome,ROUTES,declareWar,makePeace,setLaw,heirsOf,clanBudget,battle,men,SCENARIOS,PROVINCES,lw,provTax,yearTaxEstimate,marketCap,liveBattleStart,liveStep,ordMod,die,genOfficer,migrate,marketTick,trade,checkEnd,coreProvs,realmCore,officers,rodsOf,goalProgress,clanProvs,sendArmy,royalTour,lawTechTick,durMax,omenRoll,EVENTS,eventView,setPolicy,delegated};";
+  "\n;this.X={techAvail,techLock,techCost,TECH_ERA,battle,PROVINCES,rollFlood,floodFactor,TROOPS,census,goldOfValor,takeToKap,TECHS,TECH_IDS,hasTech,marketCap,worldTick,EVENTS,QUOTES,quoteTag,execration,newGame,endTurn,floodFactor,tacMult,STANCES,routeIncome,ROUTES,declareWar,makePeace,setLaw,heirsOf,clanBudget,battle,men,SCENARIOS,PROVINCES,lw,provTax,yearTaxEstimate,marketCap,liveBattleStart,liveStep,ordMod,die,genOfficer,migrate,marketTick,trade,checkEnd,coreProvs,realmCore,officers,rodsOf,goalProgress,clanProvs,sendArmy,royalTour,lawTechTick,durMax,omenRoll,EVENTS,eventView,setPolicy,delegated};";
 const ctx = {}; vm.createContext(ctx); vm.runInContext(code, ctx); const X = ctx.X;
 let n = 0; const t = (name, f) => { f(); n++; console.log("✔ " + name); };
 
@@ -124,5 +124,27 @@ t("nové vynálezy jsou ve stromu, mají předpoklady z existujících a působ�
   for (const k of ["sane", "sopdet", "egmodr", "vahy", "kanal", "vosk", "slovniky"]) { assert(X.TECH_IDS.includes(k), k); for (const r of X.TECHS[k].req || []) assert(X.TECHS[r], k + " → " + r); }
   const s = X.newGame({ scen: "ahm", clan: "thebes", seed: 9 }), C = s.clans.thebes, m0 = X.marketCap(s, "thebes"); C.techs.vahy = 1; assert(X.marketCap(s, "thebes") > m0, "váhy zvětší trh");
   C.techs.kanal = 1; C.techs.slovniky = 1; C.res.cur = "sane"; const d0 = C.deben, p0 = C.res.pts; X.worldTick(s); assert(C.deben >= d0 + 100, "kanál u kataraktu vynáší"); assert(C.res.pts >= p0 + 1.5, "seznamy slov přidávají vědění");
+});
+t("záplavy: průměr a rozptyl drží, roky na sebe navazují (shlukování sucha)", () => {
+  const s = X.newGame({ scen: "fip", clan: "thebes", seed: 4 }); const h = []; for (let i = 0; i < 6000; i++) { s.flood.h = i ? h[i - 1] : null; h.push(X.rollFlood(s)); }
+  const m = h.reduce((a, b) => a + b, 0) / h.length, sd = Math.sqrt(h.reduce((a, b) => a + (b - m) ** 2, 0) / h.length), ac = h.slice(1).reduce((a, b, i) => a + (b - m) * (h[i] - m), 0) / ((h.length - 1) * sd * sd);
+  assert(Math.abs(m - (15.4 + X.SCENARIOS.fip.climate)) < 0.15, "průměr " + m); assert(sd > 1.35 && sd < 1.7, "rozptyl " + sd); assert(ac > 0.2 && ac < 0.4, "autokorelace " + ac);
+});
+t("ceny vojska odpovídají síle v boji (kalibrace bojovým modelem): přirážka za elitu je mezi 0,9× a 3,2×", () => {
+  const s = X.newGame({ scen: "sip", clan: "thebes", seed: 1 }), N = 10000; let seed = 1; const pid = X.PROVINCES.find(p => p[5] === "udoli")[0]; s.provs[pid].owner = "hyksos";
+  const NAT = { kopinici: "sik", lucistnici: "strelba", medzajove: "lest", vozy: "vozy" };
+  const win = (ka, na, kb, nb) => { let w = 0; for (let i = 0; i < 80; i++) { s.seed = (seed += 7919); const a = { cl: "thebes", t: { [ka]: na }, train: 70, cmd: 1, stance: "vyvazeny", tac: NAT[ka] }, d = { cl: "hyksos", t: { [kb]: nb }, train: 70, cmd: 1, stance: "vyvazeny", tac: NAT[kb] }; if (X.battle(s, a, d, pid).win === "A") w++; s.battles.length = 0; } return w / 80 * 100; };
+  const solve = f => { let lo = N * 0.03, hi = N * 6; for (let i = 0; i < 11; i++) { const m = Math.round((lo + hi) / 2); if (f(m) >= 50) hi = m; else lo = m; } return (lo + hi) / 2; };
+  for (const k of ["lucistnici", "medzajove", "vozy"]) {
+    const att = solve(m => win(k, m, "kopinici", N)), def = solve(m => 100 - win("kopinici", N, k, m)), men = 2 / (1 / att + 1 / def), fair = X.TROOPS.kopinici.cost * N / men, premium = X.TROOPS[k].cost / fair;
+    assert(premium > 0.9 && premium < 3.2, `${k}: cena ${X.TROOPS[k].cost}, spravedlivá ${Math.round(fair)}, přirážka ${premium.toFixed(2)}`);
+  }
+});
+t("vědění: dovezené a pozdní vynálezy jsou zamčené do své doby, cena roste s počtem objevů a zámek nepůsobí na počáteční vědění", () => {
+  const f = X.newGame({ scen: "fip", clan: "thebes", seed: 2 }), h = X.newGame({ scen: "hyk", clan: "thebes", seed: 2 }), a = X.newGame({ scen: "ahm", clan: "thebes", seed: 2 });
+  f.clans.thebes.techs.bronz = 1; assert(!X.techAvail(f, "thebes", "vuz") && /Hyksósy/.test(X.techLock(f, "thebes", "vuz")), "vůz ve 21. století př. n. l. ne");
+  for (const k of Object.keys(X.TECH_ERA)) assert(X.TECHS[k], k);
+  h.clans.thebes.techs.bronz = 1; assert(X.techAvail(h, "thebes", "vuz") && X.techAvail(h, "thebes", "luk"), "kolem 1650 už ano"); assert(a.clans.thebes.techs.vuz && !X.techLock(a, "thebes", "vuz"), "Ahmose vůz už zná");
+  const c0 = X.techCost(f, "thebes", "hvezdy"); for (let i = 0; i < 10; i++) f.clans.thebes.techs["x" + i] = 1; assert(X.techCost(f, "thebes", "hvezdy") > c0 * 1.2, "cena roste s počtem objevů");
 });
 console.log(`OK – ${n} testů`);

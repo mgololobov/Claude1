@@ -37,6 +37,16 @@ Hra je jeden soubor `dist/index.html`: stačí ho otevřít v prohlížeči, fun
 - **Zlato chrabrosti** (u velitele vojska): vyznamenání po vítězné bitvě podle životopisu Ahmose, syna Ebany.
 - **Děti kapu** (u posla cizího vládce): syn náčelníka nebo vládce vyrůstá v paláci a vztah roste. Titul je doložen od Střední říše; záměrná politika až za Thutmose III. a hra to říká.
 - **Sedm dalších vynálezů**: saně a mokrý písek (Džehutihotepův kolos), východ hvězdy Sopdet (lahúnský archiv), egyptská modř, závaží a váhy, kanál u prvního kataraktu (nápis Senusreta III. na Sehelu), lití na ztracený vosk, seznamy slov (Ramesseovské onomastikon). Šáduf, vodní hodiny a nožní měchy chybějí záměrně – jsou až z Nové říše.
+- **Vyvážení hry** (nástroje v `tests/`):
+  - `balance.js` nechá robota hrát všechny scénáře, rody a obtížnosti; přepínač `ABLATE=` vrátí jednotlivé úpravy zpět a ukáže, co za výsledek může.
+  - `balance_battle.js` a `balance_calibrate.js` měří souboje armád za stejnou cenu a spočítají spravedlivou cenu jednotek.
+  - `balance_trace.js` vypíše časový průběh jedné hry.
+  - **Ceny vojska** byly 4,5× (Médžajové) a 13× (vozy) nad hodnotou odpovídající síle v boji. Nyní stojí lučištník 220, Médžaj 330 (plat 0,3) a vůz 360 debenů na sto mužů; vozy omezují koně.
+  - **Záplavy** se shlukují (autoregrese 0,3, Hurstův jev), takže přicházejí delší období sucha jako na konci Staré říše.
+  - **Počítačové rody** nasytí nom ze sýpek dřív, než hlad napáchá škody (dřív platily dvakrát).
+  - **Obtížnost** už neurčuje jen příjem; soupeři na „Snadné“ vyhlašují válku méně často.
+  - **Vědění**: dovezené a pozdní vynálezy (válečný vůz, kompozitní luk, srpovitý meč, šikmé valy, Lahún, varet…) nelze zkoumat před dobou doložení. Cena roste o 5 % za každý známý objev a další písaři v témže měsíci dávají o 12 % méně. Velký rod tak prostuduje strom za 6–10 let místo 3.
+  - **Děti kapu** jsou slabší než dřív (vztah +8 a +0,5 měsíčně).
 - **Záložky** jsou v sedmi skupinách (Mapa, Rada, Říše, Stát, Válka a poslové, Kronika, Hra); v horní liště je vidět postup k cíli hry.
 - Při změně ročního období se ukáže obrázek (záplava, setí, žně) a pod mapou běží zprávy měsíce.
 

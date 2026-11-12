@@ -23,12 +23,14 @@ const TERRAIN = {
 };
 
 // Vojsko. Počty v mužích; síla útoku/obrany na 100 mužů. Cena v debenech na 100 mužů.
+// Ceny jsou kalibrované podle bojového modelu (tests/balance_calibrate.js): za stejný počet mužů stojí lučištník ≈ 1,13×, Médžaj ≈ 2×
+// a válečný vůz ≈ 2,3× to, co by odpovídalo jeho skutečné síle v boji; zbytek je přirážka za výcvik, koně a řemeslníky. Koně navíc omezují počet vozů.
 // Příděl: každý voják dostává 1,5 charu obilí měsíčně (char ≈ 77 litrů).
 const TROOPS = {
   kopinici: { n: "Kopiníci", atk: 1.0, def: 1.3, cost: 150, col: "#9a7b4f" },
-  lucistnici: { n: "Lučištníci", atk: 1.35, def: 0.8, cost: 250, col: "#5f7f3f" },
-  medzajove: { n: "Médžajové", atk: 1.6, def: 1.1, cost: 700, upd: 0.6, col: "#7a4b8c", d: "núbijští lučištníci a zvědové z pouště, žoldnéři" },
-  vozy: { n: "Válečné vozy", atk: 2.6, def: 1.4, cost: 2000, horses: 100, col: "#a3332b", d: "vyžaduje vědění Válečný vůz a koně" },
+  lucistnici: { n: "Lučištníci", atk: 1.35, def: 0.8, cost: 220, col: "#5f7f3f" },
+  medzajove: { n: "Médžajové", atk: 1.6, def: 1.1, cost: 330, upd: 0.3, col: "#7a4b8c", d: "núbijští lučištníci a zvědové z pouště, žoldnéři" },
+  vozy: { n: "Válečné vozy", atk: 2.6, def: 1.4, cost: 360, horses: 100, col: "#a3332b", d: "vyžaduje vědění Válečný vůz a koně" },
 };
 const TROOP_IDS = Object.keys(TROOPS);
 const RATION_SOLDIER = 1.5;
