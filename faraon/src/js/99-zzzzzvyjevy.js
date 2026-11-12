@@ -76,3 +76,18 @@ const COURT_Q = { vezir: ["vezir", "audience", "soud"], pokladnik: ["remesla", "
 courtPanel = function (R, sel) { return _courtPanel2(R, sel).replace(/<\/div>$/, quoteHtml(COURT_Q[sel] || ["obecne"], sel.length) + "</div>"); };
 var _tHosp3 = TAB_FN.hosp;
 TAB_FN.hosp = () => _tHosp3().replace('</svg></div>', '</svg>' + quoteHtml(["zaplava", "sypky"]) + '</div>');
+// ================= NOMY: obrázek místo pruhů =================
+var _nomeCard2 = nomeCard;
+nomeCard = function (p) {
+  return _nomeCard2(p).replace(/<div class="nb">.*?<\/b><\/div>/g, "").replace('<div class="nchips">', `${nomeScene(p)}<div class="small nline">pole ${Math.round(p.agri)}/${Math.round(agriCap(S, p))} · obchod ${Math.round(p.com)}/${Math.round(comCap(S, p))} · spokojenost <b class="${p.loy < 35 ? "bad" : ""}">${Math.round(p.loy)}</b></div><div class="nchips">`);
+};
+// ================= KRONIKA: zápisy po měsících =================
+TAB_FN.kronika = function () {
+  const f = SEL.logF, l = S.log.filter(x => f === "vse" || (f === "moje" ? x.cl && x.cl.includes(me()) : f === "svet" ? !x.cl || !x.cl.includes(me()) : x.cat === f)).slice(0, 240);
+  let h = "", last = "";
+  for (const x of l) { const key = x.m + "/" + x.y;
+    if (key !== last) { if (last) h += "</div>"; last = key; const si = Math.floor(x.m / 4), mm = (x.m % 4) + 1; h += `<div class="lgm"><div class="lgh"><span class="hg" title="ꜣbd ${mm} ${["ꜣḫt", "prt", "šmw"][si]}">${HG.abed}${hgNum(mm)} ${HG[HG_SEASON[si]]}</span> ${mm}. měsíc období ${SEASONS[si]} <span class="muted">≈ ${x.y} př. n. l.</span></div>`; }
+    h += `<div class="lge"><i style="background:${NEWS_COL[x.cat] || "#8a7a5a"}"></i>${esc(x.txt)}</div>`; }
+  if (last) h += "</div>";
+  return annalsCard() + card(`${hg("medzat")} Kronika`, `<div class="row">${[["moje", "můj rod"], ["svet", "svět"], ["vse", "vše"], ["valka", "války"], ["nil", "Nil"], ["rod", "rody"], ["diplomacie", "diplomacie"], ["rozkazy", "rozkazy"], ["intriky", "intriky"]].map(([k, n]) => btn(f === k ? `<b>${n}</b>` : n, "logF", [k])).join("")}</div><div class="scroll">${h || '<p class="muted">Zatím nic.</p>'}</div>`, "wide");
+};
