@@ -144,3 +144,11 @@ python3 build.py                  # vytvoří dist/index.html
 node --test tests/*.test.js       # logika: svět, scénáře, rozkazy, dobytí hradu, bitvy a sestavy, volba krále, obchod, věno, 20 let světa
 node tests/e2e.js                 # proklikání v prohlížeči (Playwright)
 ```
+
+## Vyváženost a obtížnost
+
+- Čtyři obtížnosti (Snadná, Normální, Těžká, Nelítostná) mění příjem hráče i protivníků, jejich chuť válčit, velikost stálých vojsk, ochotu útočit na hráče, náklady a ochotu ke smíru (`DIFF_PROF` v `07b-world.js`).
+- Protivníci verbují posádky i v míru, útočí tam, kde je soused slabý, vedou víc válek najednou, vyprošťují obléhané kraje a proti obrům (20+ krajů) se sdružují v koalice.
+- Správa rozlehlé země je nový měsíční náklad; vojsko stojí víc a kraje se rozvíjejí pomaleji.
+- Ověřeno simulací (robot za hráče, 25 let, 5 zrn): Normální drží 9–20 krajů z 18, Těžká 0–20, Nelítostná většinou padne. Robot je slabší než člověk, takže skutečný hráč obstojí lépe.
+- Známý nedostatek: Árpádovci na vyšších obtížnostech často narostou na 25–32 krajů.
