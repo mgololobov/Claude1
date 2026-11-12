@@ -214,7 +214,7 @@ function tRise() {
 
 // ---------- Hospodářství ----------
 const INC_N = { obchod: "Obchodní cesty a clo", domeny: "Panské dvory a regálie", kraje: "Daně a dávky z krajů", doly: "Doly a solivary", dan_vazalu: "Poplatky vazalů / lennímu pánovi", rise: "Říšské příjmy", cirkev: "Církevní statky (investitura)" };
-const EXP_N = { platy: "Platy vazalů", vojsko: "Vydržování vojska", dvur: "Dvůr", uroky: "Úroky" };
+const EXP_N = { platy: "Platy vazalů", vojsko: "Vydržování vojska", sprava: "Správa rozlehlé země", dvur: "Dvůr", uroky: "Úroky" };
 
 // ---------- Stavy a zákony ----------
 function tStavy() {

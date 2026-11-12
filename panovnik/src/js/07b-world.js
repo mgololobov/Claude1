@@ -60,9 +60,18 @@ function mongolRaid(s, targets) {
 function raidDamage(s, p, k) { p.pop = r1(p.pop * (1 - 0.15 * k)); loseMen(p.troops, Math.round(men(p.troops) * 0.3 * k)); p.loy = Math.max(0, p.loy - 10 * k); p.agri = Math.max(0, Math.round(p.agri - 8 * k)); const C = s.clans[p.owner]; C.gold = Math.max(0, C.gold - Math.round(40 * k)); }
 
 // ---------- obtížnost ----------
-const DIFFS = ["Snadná", "Normální", "Těžká"];
-const diffIncome = s => [1.2, 1, 0.9][s.opts ? s.opts.diff : 1];
-const diffAggr = s => [0.65, 1, 1.35][s.opts ? s.opts.diff : 1];
+const DIFFS = ["Snadná", "Normální", "Těžká", "Nelítostná"];
+// inc = příjem hráče, ai = příjem protivníků, aggr = chuť protivníků válčit, army = velikost jejich stálých vojsk,
+// hunt = jak ochotně útočí na hráče, upkeep = náklady na vojsko a správu, peace = ochota ke smíru (menší = tvrdší soupeř)
+const DIFF_PROF = [
+  { inc: 1.2, ai: 0.9, aggr: 0.7, army: 0.7, hunt: 0.6, upkeep: 0.9, peace: 1.2 },
+  { inc: 1.0, ai: 1.1, aggr: 1.5, army: 1.0, hunt: 1.0, upkeep: 1.0, peace: 1.0 },
+  { inc: 0.92, ai: 1.25, aggr: 2.1, army: 1.35, hunt: 1.5, upkeep: 1.1, peace: 0.8 },
+  { inc: 0.82, ai: 1.45, aggr: 2.8, army: 1.7, hunt: 2.0, upkeep: 1.2, peace: 0.6 },
+];
+const dprof = s => DIFF_PROF[s && s.opts && DIFF_PROF[s.opts.diff] ? s.opts.diff : 1];
+const diffIncome = s => dprof(s).inc;
+const diffAggr = s => dprof(s).aggr;
 
 // ---------- proč? rozpisy ----------
 function loyBreakdown(s, p) {

@@ -159,7 +159,7 @@ function provGold(s, p) {
   if (hasTech(s, p.owner, "ucetnictvi")) g *= 1.1;
   g *= techGoldMult(s, p);
   g *= 1 + officeVal(s, p.owner, "komori") / 1500;
-  if (isPlayer(s, p.owner)) g *= diffIncome(s);
+  g *= isPlayer(s, p.owner) ? diffIncome(s) : dprof(s).ai;
   if (p.cores && !p.cores.includes(p.owner)) g *= 0.5;
   g *= 1 + (C.stab || 0) * 0.05 + (hasIdea(s, p.owner, "komora") ? 0.1 : 0) + (hasIdea(s, p.owner, "mincovna") ? 0.05 : 0);
   if (isPlayer(s, p.owner)) g *= [0.85, 1, 1.25][C.laws.mesta] * (0.85 + C.estates.mestane / 333) * [1, 1.08, 1.18][C.laws.mince];
@@ -191,7 +191,7 @@ function clanBudget(s, cid) {
   if (C.laws && C.laws.cirkev === 2) inc.cirkev = sum(ps.map(p => (p.b.klaster || 0) * 4 + 2));
   const offs = officers(s, cid);
   const allT = clanProvs(s, cid).map(p => p.troops).concat(s.armies.filter(a => a.cl === cid).map(a => a.t));
-  const ex = { platy: sum(offs.map(c => (c.id === C.leader || c.dyn ? 0 : RANKS[c.rank].pay))), vojsko: sum(allT.map(t => sum(TROOP_IDS.map(k => (t[k] || 0) / 100 * TROOPS[k].up)))), dvur: 5 + (C.t === "král" ? 10 : 0), uroky: C.debts ? sum(C.debts.map(d => d.amount * d.rate)) : 0 };
+  const ex = { platy: sum(offs.map(c => (c.id === C.leader || c.dyn ? 0 : RANKS[c.rank].pay))), vojsko: sum(allT.map(t => sum(TROOP_IDS.map(k => (t[k] || 0) / 100 * TROOPS[k].up)))) * 1.3 * (isPlayer(s, cid) ? dprof(s).upkeep : 1), sprava: Math.max(0, clanProvs(s, cid).length - 6) ** 1.3 * 3 * (isPlayer(s, cid) ? dprof(s).upkeep : 1), dvur: 5 + (C.t === "král" ? 10 : 0), uroky: C.debts ? sum(C.debts.map(d => d.amount * d.rate)) : 0 };
   if (C.laws) ex.skoly = [0, 10, 25][lawOf(s, cid, "skoly")]; if (ex.uroky && hasTechSafe(s, cid, "dvojite_ucetnictvi")) ex.uroky *= 0.67;
   for (const k in inc) inc[k] = r1(inc[k]); for (const k in ex) ex[k] = r1(ex[k]);
   return { inc, ex, net: r1(sum(Object.values(inc)) - sum(Object.values(ex))) };

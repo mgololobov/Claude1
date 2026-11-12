@@ -41,7 +41,7 @@ function doCmd(s, cid, offId, cmd, arg, arg2) {
       const key = cmd === "zemedelstvi" ? "agri" : "com", capv = cmd === "zemedelstvi" ? agriCap(s, p) : comCap(s, p);
       if (p[key] >= capv) return "Kraj už je plně rozvinutý.";
       if (!pay(s, cid, cost)) return "Nedostatek zlata.";
-      const g = Math.max(1, Math.round((st(c, "spr") / 11 + rnd(s) * 3) * (hasTech(s, cid, "vodni_kolo") && key === "agri" ? 1.2 : 1) * (1 - p[key] / capv * 0.45)));
+      const g = Math.max(1, Math.round((st(c, "spr") / 17 + rnd(s) * 2) * (hasTech(s, cid, "vodni_kolo") && key === "agri" ? 1.2 : 1) * (1 - p[key] / capv * 0.45)));
       p[key] = Math.min(capv, p[key] + g); c.merit += 4;
       say(`${K.n} v kraji ${p.n}: +${g} (nyní ${p[key]}/${capv}).`); break;
     }

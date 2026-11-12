@@ -169,8 +169,11 @@ function coalitionTick(s) {
   if (!top.includes(s.player)) top.push(s.player);
   for (const X of top) {
     if (!s.clans[X] || !s.clans[X].alive || (s.flags["coal_" + X] || 0) > s.turn) continue;
-    const angry = aliveClans(s).filter(o => o.id !== X && rel(s, X, o.id) < -50 && !allied(s, X, o.id) && o.vassalOf !== X && !atWar(s, X, o.id) && truceUntil(s, X, o.id) <= s.turn && clanProvs(s, o.id).some(p => p.nb.some(n => s.provs[n].owner === X) || dist(p, s.provs[s.clans[X].capital] || p) < 400));
-    if (angry.length < 3 || sum(angry.map(o => clanPower(s, o.id))) < clanPower(s, X) * 0.9 || !chance(s, 0.25)) continue;
+    // příliš velký rod (20+ krajů) se sousedé bojí i bez zvláštní nenávisti; hráč na vyšší obtížnosti dřív
+    const big = realmProvs(s, X) >= 20, hunt = isPlayer(s, X) ? dprof(s).hunt : 1;
+    const relThr = (big ? -15 : -50) + (hunt > 1 ? 15 * (hunt - 1) : 0), minAngry = big || hunt >= 1.5 ? 2 : 3, powNeed = big ? 0.7 : 0.9 / Math.sqrt(hunt);
+    const angry = aliveClans(s).filter(o => o.id !== X && rel(s, X, o.id) < relThr && !allied(s, X, o.id) && o.vassalOf !== X && !atWar(s, X, o.id) && truceUntil(s, X, o.id) <= s.turn && clanProvs(s, o.id).some(p => p.nb.some(n => s.provs[n].owner === X) || dist(p, s.provs[s.clans[X].capital] || p) < 400));
+    if (angry.length < minAngry || sum(angry.map(o => clanPower(s, o.id))) < clanPower(s, X) * powNeed || !chance(s, 0.25)) continue;
     s.flags["coal_" + X] = s.turn + 60;
     for (const a of angry) for (const b of angry) if (a.id < b.id) s.alliances[pairKey(a.id, b.id)] = true;
     news(s, `Proti rodu ${s.clans[X].house} se zformovala koalice: ${angry.map(o => o.house).join(", ")}!`, "valka", [X]);

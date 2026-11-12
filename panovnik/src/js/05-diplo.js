@@ -19,7 +19,7 @@ function willing(s, from, to, typ, envoy) {
     case "snatek": return r + dip + pr / 2 + 15 - (T.type !== "dyn" ? 999 : 0);
     case "snatek_veno": return r + dip + pr / 2 + 45 - (T.type !== "dyn" ? 999 : 0);
     case "snatek_zlato": return r + dip + pr / 2 + 15 - 25 - (T.type !== "dyn" ? 999 : 0);
-    case "mir": { const w = s.wars.find(x => (x.a === from && x.b === to) || (x.a === to && x.b === from)); const months = w ? s.turn - w.start : 0; return r / 2 + dip + months * 1.5 + (ratio - 1) * 40 + (T.warLoss || 0) / 200 - 15; }
+    case "mir": { const w = s.wars.find(x => (x.a === from && x.b === to) || (x.a === to && x.b === from)); const months = w ? s.turn - w.start : 0; return r / 2 + dip + months * 1.5 + (ratio - 1) * 40 + (T.warLoss || 0) / 200 - 15 + (isPlayer(s, from) ? Math.round((dprof(s).peace - 1) * 40) : 0); }
     case "mir_zlato": return 30 + dip + r / 3;
     case "vazalstvi": return (ratio - 3) * 18 + r / 3 + dip + pr / 2 - (T.type === "dyn" && T.t === "král" ? 60 : 0) - (atWar(s, from, to) ? 0 : 10) + (s.hre.kingClan === from && T.hre ? 25 : 0);
     case "poddat": return (1 / ratio - 1) * 10 + r / 2 + 20;
