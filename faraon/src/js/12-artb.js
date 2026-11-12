@@ -148,3 +148,16 @@ function vign(kind) {
     <rect width="600" height="160" fill="${W_.wall}"/><rect width="600" height="160" filter="url(#vmot)"/>${sc()}<rect width="600" height="160" filter="url(#vwall)" opacity=".7"/>
     ${frieze_(0)}<rect x="0" y="${V_B + 3}" width="600" height="4" fill="${W_.ye}"/><rect x="0" y="${V_B + 8}" width="600" height="3" fill="${W_.rd}"/><rect x="0" y="${V_B + 12}" width="600" height="8" fill="${W_.bk}"/></svg>`;
 }
+// ---------- výjevy k novým mechanikám ----------
+// písař sedí se zkříženýma nohama, suknici napnutou přes kolena jako psací podložku (sochy písařů od Staré říše)
+const scribe_ = (x, dir = 1, o = {}) => `<g clip-path="url(#vclip)">${fig(x, V_B + 26, { sit: 1, pose: "hold", item: "scroll", dir, s: 0.9, ...o })}${G_(x, V_B, `<path d="M-17 0L-12 -13L21 -13L27 0Z" fill="${W_.wh}" stroke="${W_.ol}" stroke-width=".7"/>`, dir, 0.9)}</g>`;
+const vclip_ = `<clipPath id="vclip"><rect width="600" height="${V_B}"/></clipPath>`;
+Object.assign(SCENES, {
+  // počítání dobytka před písaři (dřevěný model z hrobky Meketrea v Thébách, přelom 11. a 12. dynastie)
+  scitani: () => vclip_ + ground_() + O_.kiosk(40, V_B, 150, 100) + scribe_(78) + scribe_(124) + scribe_(170) + fig(232, V_B, { pose: "staff", kilt: "long", sash: 1 }) + O_.ox(322, V_B, { dir: -1, s: 1.0, col: "#e9e0cc", spots: 1 }) + O_.ox(404, V_B, { dir: -1, s: 1.0 }) + O_.ox(486, V_B, { dir: -1, s: 1.0, col: "#2f2a26" }) + fig(556, V_B, { pose: "drive", dir: -1, s: 0.88 }),
+  // udílení zlata chrabrosti: náhrdelník a zlaté mouchy (mouchy z pohřbu královny Ahhotep, počátek 18. dynastie)
+  zlato_chvaly: () => ground_() + O_.mast(560, V_B, 116) + fig(470, V_B, { pose: "offer", dir: -1, head: typeof S !== "undefined" && S && S.clans && P(S).t === "král" && P(S).cul !== "nub" ? "nemes" : "wig", s: 1.0 }) + `<path d="M410 ${V_B - 78}q16 14 32 0" fill="none" stroke="${W_.ye}" stroke-width="4"/><path d="M410 ${V_B - 78}q16 14 32 0" fill="none" stroke="${W_.ol}" stroke-width=".5"/>${[418, 426, 434].map(x => `<path d="M${x} ${V_B - 68}l-3 8h6z" fill="${W_.ye}" stroke="${W_.ol}" stroke-width=".5"/>`).join("")}` + fig(356, V_B, { pose: "adore", s: 0.94 }) + men_([110, 158, 206, 254], i => ({ pose: "spear", s: 0.86, shield: i % 2 ? "#e6dcc6" : "#b98a58" })) + O_.rings(520, V_B, 3),
+  // Dům života: písaři opisují svitky pod dohledem učitele
+  pisari: () => vclip_ + ground_() + O_.column(40, V_B, 116) + scribe_(110) + scribe_(176) + scribe_(242) + `<path d="M300 ${V_B}v-26h44v26z" fill="#8a5a2a" stroke="${W_.ol}" stroke-width=".8"/>${[0, 1, 2, 3].map(i => `<path d="M${306 + i * 9} ${V_B - 26}v-12h6v12z" fill="${W_.wh}" stroke="${W_.ol}" stroke-width=".6"/>`).join("")}` + fig(410, V_B, { pose: "staff", dir: -1, kilt: "long", head: "bald", sash: 1 }) + O_.table(486, V_B) + O_.column(560, V_B, 116),
+});
+Object.assign(VIGN, { soupis: "scitani", zlato_chvaly: "zlato_chvaly", pisar: "pisari", rhind: "pisari", merikare: "pisari", zpronevera: "scitani" });

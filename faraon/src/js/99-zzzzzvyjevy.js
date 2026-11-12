@@ -91,3 +91,23 @@ TAB_FN.kronika = function () {
   if (last) h += "</div>";
   return annalsCard() + card(`${hg("medzat")} Kronika`, `<div class="row">${[["moje", "můj rod"], ["svet", "svět"], ["vse", "vše"], ["valka", "války"], ["nil", "Nil"], ["rod", "rody"], ["diplomacie", "diplomacie"], ["rozkazy", "rozkazy"], ["intriky", "intriky"]].map(([k, n]) => btn(f === k ? `<b>${n}</b>` : n, "logF", [k])).join("")}</div><div class="scroll">${h || '<p class="muted">Zatím nic.</p>'}</div>`, "wide");
 };
+// ================= NOVÉ MECHANIKY V ROZHRANÍ =================
+ACT.soupis = () => census(S, me());
+ACT.zlatoChvaly = () => goldOfValor(S, me());
+ACT.kap = id => takeToKap(S, me(), id);
+var _courtPanel3 = courtPanel;
+courtPanel = function (R, sel) {
+  const C = P(S); let x = "";
+  if (sel === "vezir" && C.type !== "kmen") { const w = (C.last.soupis ?? -99) > S.turn - 24 ? C.last.soupis + 24 - S.turn : 0;
+    x = `<div class="ritual"><b>Soupis domácností a dobytka</b> <span class="small muted">Písaři sepíší domácnosti a spočítají stáda (soupisy z Lahúnu, model z hrobky Meketrea). Jednorázově přinese asi dvojnásobek měsíčního výnosu nomů, ale spokojenost nomů klesne o 3. Jednou za dva roky.</span><div class="row">${btn("Nařídit soupis", "soupis", [], w ? `Znovu za ${w} měs.` : null)}</div></div>`; }
+  if (sel === "vojsko") { const w = (C.last.zlato ?? -99) > S.turn - 12 ? C.last.zlato + 12 - S.turn : 0, won = S.battles.some(b => b.t >= S.turn - 6 && (b.win === "A" ? b.a : b.b) === me());
+    x = `<div class="ritual"><b>Zlato chrabrosti</b> <span class="small muted">Po vítězné bitvě může panovník před vojskem rozdat zlaté náhrdelníky a mouchy (životopis Ahmose, syna Ebany; mouchy královny Ahhotep). Výcvik posádek +3, věrnost úředníků +4, sláva +8. Stojí 500 debenů, jednou za rok.</span><div class="row">${btn("Udělit zlato chrabrosti", "zlatoChvaly", [], w ? `Znovu za ${w} měs.` : !won ? "V posledním půlroce jsi nevyhrál bitvu" : C.deben < 500 ? "Chybí 500 debenů" : null)}</div></div>`; }
+  return x ? _courtPanel3(R, sel).replace('<div class="row">', x + '<div class="row">') : _courtPanel3(R, sel);
+};
+var _tDiplo3 = TAB_FN.diplo;
+TAB_FN.diplo = function () {
+  const C = P(S), T = SEL.dipl && S.clans[SEL.dipl]; let x = "";
+  if (T && T.alive && C.t === "král" && (T.type === "kmen" || T.cul === "nub" || T.cul === "aam" || T.cul === "lib")) { const has = C.kap && (C.kap[T.id] || 0) > S.turn - 24;
+    x = `<div class="ritual" style="margin:0 16px 12px"><b>Děti kapu</b> <span class="small muted">Syn vládce rodu ${esc(T.house)} může vyrůstat v paláci s královskými dětmi. Titul „dítě kapu“ nesli od Střední říše i Núbijci; že šlo o záměrnou výchovu synů cizích vládců, je pro tuto dobu pravděpodobný výklad, výslovně doložený až za Thutmose III. Vztah +12 a tři roky pomalu roste. Stojí 600 debenů.</span><div class="row">${btn("Přijmout syna do kapu", "kap", [T.id], atWar(S, me(), T.id) ? "Válčíte" : has ? "Už v kapu je" : C.deben < 600 ? "Chybí 600 debenů" : null)}</div></div>`; }
+  return x ? _tDiplo3().replace('<div class="diploart">', '<div class="courtwrap" style="padding-top:10px">' + x + '</div><div class="diploart">') : _tDiplo3();
+};

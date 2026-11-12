@@ -2,7 +2,7 @@
 const fs = require("fs"), path = require("path"), vm = require("vm"), assert = require("assert");
 const dir = path.join(__dirname, "..", "src", "js");
 const code = '"use strict";\n' + fs.readdirSync(dir).filter(f => /^0\d-.*\.js$/.test(f)).sort().map(f => fs.readFileSync(path.join(dir, f), "utf8")).join("\n") +
-  "\n;this.X={EVENTS,QUOTES,quoteTag,execration,newGame,endTurn,floodFactor,tacMult,STANCES,routeIncome,ROUTES,declareWar,makePeace,setLaw,heirsOf,clanBudget,battle,men,SCENARIOS,PROVINCES,lw,provTax,yearTaxEstimate,marketCap,liveBattleStart,liveStep,ordMod,die,genOfficer,migrate,marketTick,trade,checkEnd,coreProvs,realmCore,officers,rodsOf,goalProgress,clanProvs,sendArmy,royalTour,lawTechTick,durMax,omenRoll,EVENTS,eventView,setPolicy,delegated};";
+  "\n;this.X={census,goldOfValor,takeToKap,TECHS,TECH_IDS,hasTech,marketCap,worldTick,EVENTS,QUOTES,quoteTag,execration,newGame,endTurn,floodFactor,tacMult,STANCES,routeIncome,ROUTES,declareWar,makePeace,setLaw,heirsOf,clanBudget,battle,men,SCENARIOS,PROVINCES,lw,provTax,yearTaxEstimate,marketCap,liveBattleStart,liveStep,ordMod,die,genOfficer,migrate,marketTick,trade,checkEnd,coreProvs,realmCore,officers,rodsOf,goalProgress,clanProvs,sendArmy,royalTour,lawTechTick,durMax,omenRoll,EVENTS,eventView,setPolicy,delegated};";
 const ctx = {}; vm.createContext(ctx); vm.runInContext(code, ctx); const X = ctx.X;
 let n = 0; const t = (name, f) => { f(); n++; console.log("✔ " + name); };
 
@@ -109,5 +109,20 @@ t("dějinné chvíle: každá má volby, které projdou, a citáty mají pramen 
   }
   for (const [id, q] of Object.entries(X.QUOTES)) assert(q.t && q.src && q.od > 1000 && q.tags.length, id);
   const s = X.newGame({ scen: "anch", clan: "anch", seed: 3 }), q = X.quoteTag(s, ["vojsko"]); assert(q && q.od >= s.bce, "citát nesmí být mladší než doba hry");
+});
+t("soupis domácností, zlato chrabrosti a děti kapu mají podmínky a lhůty", () => {
+  const s = X.newGame({ scen: "ahm", clan: "thebes", seed: 9 }), C = s.clans.thebes; C.deben = 10000; const d0 = C.deben, l0 = s.provs.u4.loy;
+  assert.strictEqual(X.census(s, "thebes"), null); assert(C.deben > d0, "soupis přinese debeny"); assert.strictEqual(s.provs.u4.loy, l0 - 3);
+  assert.notStrictEqual(X.census(s, "thebes"), null, "soupis jen jednou za dva roky");
+  assert.notStrictEqual(X.goldOfValor(s, "thebes"), null, "bez vítězství nelze");
+  s.battles.unshift({ t: s.turn, a: "thebes", b: "hyksos", win: "A", place: "u15", d: "", kind: "bitva" }); const t0 = s.provs.u4.train;
+  assert.strictEqual(X.goldOfValor(s, "thebes"), null); assert(s.provs.u4.train >= Math.min(100, t0 + 3)); assert.notStrictEqual(X.goldOfValor(s, "thebes"), null);
+  assert.notStrictEqual(X.takeToKap(s, "thebes", "hyksos"), null, "s nepřítelem ve válce ne");
+  const r0 = s.clans.thebes.rel.kush || 0; if (X.takeToKap(s, "thebes", "kush") === null) { assert(s.clans.thebes.rel.kush > r0); assert.notStrictEqual(X.takeToKap(s, "thebes", "kush"), null, "podruhé ne"); }
+});
+t("nové vynálezy jsou ve stromu, mají předpoklady z existujících a působí", () => {
+  for (const k of ["sane", "sopdet", "egmodr", "vahy", "kanal", "vosk", "slovniky"]) { assert(X.TECH_IDS.includes(k), k); for (const r of X.TECHS[k].req || []) assert(X.TECHS[r], k + " → " + r); }
+  const s = X.newGame({ scen: "ahm", clan: "thebes", seed: 9 }), C = s.clans.thebes, m0 = X.marketCap(s, "thebes"); C.techs.vahy = 1; assert(X.marketCap(s, "thebes") > m0, "váhy zvětší trh");
+  C.techs.kanal = 1; C.techs.slovniky = 1; C.res.cur = "sane"; const d0 = C.deben, p0 = C.res.pts; X.worldTick(s); assert(C.deben >= d0 + 100, "kanál u kataraktu vynáší"); assert(C.res.pts >= p0 + 1.5, "seznamy slov přidávají vědění");
 });
 console.log(`OK – ${n} testů`);

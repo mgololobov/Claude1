@@ -33,6 +33,10 @@ Hra je jeden soubor `dist/index.html`: stačí ho otevřít v prohlížeči, fun
 - **Letopis jako deska s ročními poli** po vzoru Palermské desky: znak roku, hlavní události a dole výška záplavy v loktech egyptskými číslovkami.
 - **Dějinné chvíle** vázané na scénář a pramen: Stéla bouře a Tetianova vzpoura (Ahmose), rada velmožů z Carnarvonovy tabulky (Théby proti Hyksósům), psi krále Intefa II., Anchtifiho plavba k thébským pevnostem, hrob válečníků v Dér el-Bahrí (Montuhotep II.; datování je sporné a hra to říká).
 - **Citáty**: 66 úryvků z egyptských textů s uvedeným pramenem; ukazují se jen texty, které v době hry už existovaly (u hodnostářů, u nilometru, u vojska, u poslů a při změně období).
+- **Soupis domácností a dobytka** (u vezíra): jednorázový výnos za cenu nespokojenosti; podle soupisů z Lahúnu a modelu počítání dobytka z hrobky Meketrea.
+- **Zlato chrabrosti** (u velitele vojska): vyznamenání po vítězné bitvě podle životopisu Ahmose, syna Ebany.
+- **Děti kapu** (u posla cizího vládce): syn náčelníka nebo vládce vyrůstá v paláci a vztah roste. Titul je doložen od Střední říše; záměrná politika až za Thutmose III. a hra to říká.
+- **Sedm dalších vynálezů**: saně a mokrý písek (Džehutihotepův kolos), východ hvězdy Sopdet (lahúnský archiv), egyptská modř, závaží a váhy, kanál u prvního kataraktu (nápis Senusreta III. na Sehelu), lití na ztracený vosk, seznamy slov (Ramesseovské onomastikon). Šáduf, vodní hodiny a nožní měchy chybějí záměrně – jsou až z Nové říše.
 - **Záložky** jsou v sedmi skupinách (Mapa, Rada, Říše, Stát, Válka a poslové, Kronika, Hra); v horní liště je vidět postup k cíli hry.
 - Při změně ročního období se ukáže obrázek (záplava, setí, žně) a pod mapou běží zprávy měsíce.
 
