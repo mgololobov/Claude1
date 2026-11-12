@@ -45,7 +45,7 @@ const PROVINCES = [
   ["wittenberg", "Wittenbersko", 12.65, 51.87, "n", 2, "sasko", "*", []], ["lauenburg", "Lauenbursko", 10.57, 53.37, "b", 2, "sasko", "", []],
   ["brunsvik", "Brunšvik", 10.52, 52.27, "n", 3, "welf", "c*", ["stribro"]], ["luneburg", "Lüneburg", 10.41, 53.25, "b", 2, "welf", "", ["sul"]],
   ["magdeburg", "Magdeburk", 11.63, 52.13, "n", 3, "magdeburg", "c*", []], ["halle", "Halle", 11.97, 51.48, "n", 2, "magdeburg", "", ["sul"]],
-  ["stetin", "Štětín", 14.55, 53.43, "p", 3, "pomorany", "c*", []], ["volegost", "Volegošť", 13.77, 54.05, "p", 2, "pomorany", "", []],
+  ["stetin", "Štětín", 14.55, 53.43, "p", 3, "pomorany", "c*", []], ["volegost", "Volegošť", 13.72, 54.03, "p", 2, "pomorany", "", []],
   ["kolobreh", "Kolobřeh", 15.57, 54.18, "p", 2, "pomorany", "", ["sul"]],
   ["gdansk", "Gdaňsk", 18.65, 54.35, "p", 3, "pomori", "c*", []], ["slupsk", "Slupsk", 17.03, 54.46, "p", 2, "pomori", "", []],
   ["chelmno", "Chelmno", 18.46, 53.35, "n", 2, "rad", "*", []], ["elblag", "Elbing a Pomezánie", 19.40, 54.16, "p", 3, "rad", "c", []],

@@ -84,8 +84,11 @@ const EVENT_ART = { neuroda: "neuroda", uroda: "uroda", mor: "mor", kacir: "cirk
   _joust: "turnaj", _duel: "turnaj", _rada: "dvur", _cernasmrt: "mor", _work: "stavba", _kriz: "valka", krize_slechta: "dvur", krize_duchovni: "cirkev", krize_mestane: "obchod", krize_sedlaci: "pozar", _mission: "rod", _peaceOffer: "mir", _battle: "bitva" };
 function scene(kind, w = 640, h = 170) {
   const id = "sc" + (ART_N++), night = kind === "kometa" || kind === "mor" || SCENE_NIGHT.includes(kind), storm = kind === "neuroda" || kind === "pozar" || kind === "tatari" || SCENE_STORM.includes(kind);
-  const sky = night ? ["#0e1530", "#2b3557"] : storm ? ["#4a4a52", "#8a7a6a"] : kind === "rod" || kind === "dvur" || kind === "volba" || kind === "uceni" || SCENE_IN.includes(kind) ? ["#3a2416", "#6a4428"] : kind === "sucho" || kind === "karavana" ? ["#e9b86a", "#f6e3b0"] : ["#7fa8c9", "#e9d9b0"];
+  const sky = night ? ["#0e1530", "#2b3557"] : storm ? ["#4a4a52", "#8a7a6a"] : kind === "rod" || kind === "dvur" || kind === "volba" || kind === "uceni" || SCENE_IN.includes(kind) ? ["#3a2416", "#6a4428"] : kind === "sucho" || kind === "karavana" ? ["#d2a544", "#edd58a"] : ["#234a80", "#4673a8"];
   let g = `<defs><linearGradient id="${id}s" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="${sky[0]}"/><stop offset="1" stop-color="${sky[1]}"/></linearGradient></defs><rect width="${w}" height="${h}" fill="url(#${id}s)"/>`;
+  // pozadí jako v gotických miniaturách: barevná plocha se zlatým kosočtvercovým vzorem místo oblohy
+  const gold = kind === "sucho" || kind === "karavana", indoor0 = kind === "rod" || kind === "dvur" || kind === "volba" || kind === "uceni" || SCENE_IN.includes(kind);
+  if (!night && !indoor0) g += `<defs><pattern id="${id}d" width="18" height="18" patternUnits="userSpaceOnUse"><path d="M9 0 L18 9 L9 18 L0 9z" fill="none" stroke="${gold ? "#8a5a14" : "#e8c66a"}" stroke-width=".8" opacity="${storm ? 0.22 : 0.42}"/><circle cx="9" cy="9" r="1.1" fill="${gold ? "#8a5a14" : "#e8c66a"}" opacity="${storm ? 0.25 : 0.5}"/></pattern></defs><rect width="${w}" height="${h}" fill="url(#${id}d)"/>`;
   const R = prng(hashStr(kind)), hills = (y, col) => { let d = `M0 ${h} L0 ${y}`; for (let x = 0; x <= w; x += 40) d += ` Q${x + 20} ${y - 10 - R() * 25} ${x + 40} ${y + (R() - 0.5) * 10}`; return `<path d="${d} L${w} ${h} Z" fill="${col}"/>`; };
   const indoor = ["rod", "dvur", "volba", "uceni"].includes(kind) || SCENE_IN.includes(kind);
   if (indoor) {
@@ -93,7 +96,7 @@ function scene(kind, w = 640, h = 170) {
     for (let x = 60; x < w; x += 160) g += `<path d="M${x} 30 h26 v60 l-13 -10 l-13 10 z" fill="#8c2f1f"/><path d="M${x + 13} 45 l4 8 h-8z" fill="#e2b13c"/>`;
   } else {
     if (night) for (let i = 0; i < 40; i++) g += `<circle cx="${R() * w}" cy="${R() * h * 0.6}" r="${R() * 1.2 + 0.3}" fill="#fff" opacity="${0.4 + R() * 0.6}"/>`;
-    else if (!storm) g += `<circle cx="${w * 0.82}" cy="40" r="20" fill="#f6e3a1" opacity=".9"/>`;
+    else if (!storm) g += `<g transform="translate(${w * 0.82} 40)">${[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map(i => `<path d="M0 -24 l2.5 -9 l-5 0z" transform="rotate(${i * 30})" fill="#e8c66a" stroke="#6a4a14" stroke-width=".6"/>`).join("")}<circle r="19" fill="#f0cf6a" stroke="#6a4a14" stroke-width="1.2"/></g>`;
     if (storm) for (let i = 0; i < 5; i++) g += `<ellipse cx="${R() * w}" cy="${20 + R() * 30}" rx="${60 + R() * 60}" ry="18" fill="#3a3a40" opacity=".7"/>`;
     g += hills(h * 0.55, kind === "tatari" ? "#9a9a6a" : "#7f8f6a") + hills(h * 0.72, kind === "uroda" ? "#c9a64a" : kind === "zima" ? "#e8edf0" : "#5f7a4a");
   }
@@ -130,7 +133,7 @@ function scene(kind, w = 640, h = 170) {
 // ---------- kresba kraje ----------
 function provArt(p) {
   const w = 300, h = 110, id = "pa" + (ART_N++), C = S.clans[p.occ || p.owner], R = prng(hashStr(p.id));
-  let g = `<defs><linearGradient id="${id}" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#9fc0d9"/><stop offset="1" stop-color="#efe3c5"/></linearGradient></defs><rect width="${w}" height="${h}" fill="url(#${id})"/>`;
+  let g = `<defs><linearGradient id="${id}" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#234a80"/><stop offset="1" stop-color="#4673a8"/></linearGradient><pattern id="${id}d" width="18" height="18" patternUnits="userSpaceOnUse"><path d="M9 0 L18 9 L9 18 L0 9z" fill="none" stroke="#e8c66a" stroke-width=".8" opacity=".42"/><circle cx="9" cy="9" r="1.1" fill="#e8c66a" opacity=".5"/></pattern></defs><rect width="${w}" height="${h}" fill="url(#${id})"/><rect width="${w}" height="${h}" fill="url(#${id}d)"/>`;
   if (p.ter === "h") g += `<path d="M0 80 L40 30 L70 60 L110 18 L150 62 L190 26 L230 58 L270 22 L300 50 V${h} H0Z" fill="#8d8478"/><path d="M110 18 l10 12 l-8 -2 l-6 6 z M190 26 l9 10 l-9 -2z M270 22 l8 9 l-8 -2z" fill="#f4f4f4"/>`;
   else if (p.ter === "k") g += `<path d="M0 78 Q50 50 100 70 T200 62 T300 70 V${h} H0Z" fill="#a7a27a"/>`;
   else if (p.ter === "p") g += `<rect x="200" y="70" width="100" height="40" fill="#6f9ab8"/><path d="M200 70 Q220 64 240 72 T300 70" fill="none" stroke="#fff" opacity=".6"/>`;

@@ -385,3 +385,128 @@ header#top .realm svg.portrait { border: 1px solid var(--gold2); }
 .plot { display: flex; gap: 6px; align-items: flex-start; border: 1px solid #b07a7a; background: rgba(122, 29, 29, .06); border-radius: 8px; padding: 8px; margin-bottom: 6px; flex-wrap: wrap; } .plot .dd { flex: 1; min-width: 200px; }
 .dicebox { display: flex; gap: 18px; justify-content: center; margin: 6px 0 10px; flex-wrap: wrap; } .dicebox > div { display: flex; align-items: center; gap: 4px; } .dicebox b { font-size: 20px; margin-left: 6px; } .dicebox small { width: 60px; }
 .die { animation: dieroll .45s ease-out; } @keyframes dieroll { from { transform: rotate(-200deg) scale(.4); } to { transform: none; } }
+
+/* ===== Mapa ze skutečných podkladů: reliéf, značky sídel, popisky ===== */
+:root { --sea: #3e6886; }
+#mapwrap, #mapwrap svg.map.eu { background: #2f536e; }
+svg.map.eu .sea { fill: #3e6886; }
+svg.map.eu .terr { pointer-events: none; }
+svg.map.eu .tree { fill: #35582c; stroke: #1f3a1a; stroke-width: .4; opacity: .8; pointer-events: none; }
+svg.map.eu .marsh { stroke: #2f5648; stroke-width: .7; fill: none; opacity: .85; pointer-events: none; }
+svg.map.eu .mk path, svg.map.eu .mk circle { stroke: #24170c; stroke-width: .9; stroke-linejoin: round; }
+svg.map.eu .mcap { fill: #f0cf6a; } svg.map.eu .mtown { fill: #f6ecd2; } svg.map.eu .mves { fill: #f6ecd2; }
+svg.map.eu .mgate { fill: #24170c; stroke: none !important; }
+svg.map.eu .mpole { fill: none; } svg.map.eu .mflag { fill: var(--fc, #b3261a); stroke-width: .6 !important; }
+svg.map.eu .pv.mine .mk path, svg.map.eu .pv.mine .mk circle { stroke: #1a0f06; stroke-width: 1.1; }
+svg.map.eu .pv.war .mk .mtown, svg.map.eu .pv.war .mk .mves, svg.map.eu .pv.war .mk .mcap { stroke: #a01c10; stroke-width: 1.3; }
+svg.map.eu .pv:hover .mk { filter: brightness(1.15) drop-shadow(0 0 1.5px #fff6d0); }
+svg.map.eu .selring { fill: rgba(246, 217, 138, .12); stroke: #f6d98a; stroke-width: 1.8; filter: drop-shadow(0 0 2px #000); }
+svg.map.eu .realmname { font-family: "Almendra", "Palatino Linotype", Georgia, serif; fill: rgba(255, 247, 224, .9); stroke: rgba(28, 16, 6, .5); paint-order: stroke; stroke-linejoin: round; letter-spacing: .22em; font-weight: 700; pointer-events: none; }
+svg.map.eu .lbl { font-family: "Palatino Linotype", Palatino, Georgia, serif; fill: #fbf4e2; stroke: rgba(23, 16, 10, .88); paint-order: stroke; stroke-linejoin: round; font-weight: 600; pointer-events: none; }
+svg.map.eu .lbl.cap { font-variant: small-caps; letter-spacing: .05em; fill: #fff3c8; }
+svg.map.eu .rangelbl { font-family: "Almendra", Georgia, serif; font-style: italic; fill: #3a2814; opacity: .62; letter-spacing: .3em; pointer-events: none; }
+svg.map.eu .riverlbl { font-family: "Almendra", Georgia, serif; font-style: italic; fill: #1d3f5c; stroke: rgba(240, 232, 205, .55); stroke-width: 1.2px; paint-order: stroke; letter-spacing: .08em; pointer-events: none; }
+svg.map.eu .sealbl { font-family: "Almendra", Georgia, serif; font-style: italic; fill: #e3eef2; opacity: .8; letter-spacing: .24em; pointer-events: none; }
+svg.map.eu .rose .rr { fill: rgba(240, 228, 196, .16); stroke: #e8dcb8; stroke-width: .5; } svg.map.eu .rose .rr2 { fill: none; stroke: #e8dcb8; stroke-width: .3; stroke-dasharray: 1 1.4; }
+svg.map.eu .rose .rd { fill: #2a1c10; stroke: #2a1c10; stroke-width: .25; } svg.map.eu .rose .rl { fill: #efe2bb; stroke: #2a1c10; stroke-width: .25; }
+svg.map.eu .rose .rn { fill: #b3261a; stroke: #2a1c10; stroke-width: .25; } svg.map.eu .rose .rt { fill: #f3e9cc; font-family: "Almendra", Georgia, serif; font-weight: 700; } svg.map.eu .rose .rc { fill: #c9a03a; stroke: #2a1c10; stroke-width: .3; }
+svg.map.eu .cog .ch { fill: #6d4a26; stroke: #24170c; stroke-width: .5; } svg.map.eu .cog .cm { stroke: #24170c; stroke-width: .7; fill: none; } svg.map.eu .cog .cs { fill: #f3e9cc; stroke: #24170c; stroke-width: .45; }
+svg.map.eu .cog .cf { fill: #b3261a; stroke: #b3261a; stroke-width: .4; } svg.map.eu .cog .cw { fill: none; stroke: #dbe9ee; stroke-width: .5; opacity: .7; }
+svg.map.eu .atok .apole { stroke: #1a0f06; stroke-width: 1.2; } svg.map.eu .atok .aflag { stroke: #1a0f06; stroke-width: .8; stroke-linejoin: round; }
+svg.map.eu .atok.sel .aflag { stroke: #fff; stroke-width: 1.8; } svg.map.eu .atok.foe .aflag { stroke: #ff3b2b; stroke-width: 1.4; }
+.mapsrc { position: absolute; right: 8px; bottom: 44px; font-size: 10px; color: rgba(240, 232, 208, .7); text-shadow: 0 1px 2px #000; pointer-events: auto; cursor: help; }
+svg.map.eu .riv { fill: none; stroke: #5d93b8; stroke-linecap: round; stroke-linejoin: round; }
+svg.map.eu .rivo { fill: none; stroke: rgba(24, 48, 70, .5); stroke-linecap: round; stroke-linejoin: round; }
+
+/* ===== Středověký vzhled: pergamen, rubriky, zlacení; tmavé panely nad mapou =====
+   Barvy podle pigmentů iluminovaných rukopisů: železoduběnkový inkoust, rumělka (rubriky), azurit, měděnka, plátkové zlato.
+   Nadpisy písmem Almendra (podle pozdně středověké bastardy), iniciály unciálou. */
+:root { --bg: #d8ccb0; --panel: #f4ecd8; --panel2: #eadfc4; --ink: #2a1c12; --muted: #6b5a45; --line: #b9a682; --accent: #8a2318; --accent2: #23466e;
+  --good: #2f6b3f; --bad: #a3271b; --warn: #9a6410; --head: #e6d9b8; --btn: #ece1c6; --btnh: #dfd0ac; --gilt: #9c7626; --gold: #e0c070; --gold2: #b8913f; --frame: #0f141d; --frame2: #1a212d;
+  --shadow: 0 1px 3px rgba(40, 25, 8, .25); --disp: "Almendra", "Palatino Linotype", Palatino, Georgia, serif; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #15120d; --panel: #221c14; --panel2: #2a2318; --ink: #f0e4c8; --muted: #a8977c; --line: #45392a; --accent: #e07a52; --accent2: #7fa6d6; --good: #7fc37f; --bad: #ef7b6c; --warn: #e3ac55; --head: #2f271c; --btn: #30281d; --btnh: #40352a; --gilt: #d2a84c; --shadow: 0 2px 8px rgba(0, 0, 0, .5); } }
+:root[data-theme="dark"] { --bg: #15120d; --panel: #221c14; --panel2: #2a2318; --ink: #f0e4c8; --muted: #a8977c; --line: #45392a; --accent: #e07a52; --accent2: #7fa6d6; --good: #7fc37f; --bad: #ef7b6c; --warn: #e3ac55; --head: #2f271c; --btn: #30281d; --btnh: #40352a; --gilt: #d2a84c; --shadow: 0 2px 8px rgba(0, 0, 0, .5); }
+body { font: 14px/1.45 "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif; background-color: var(--bg);
+  background-image: repeating-linear-gradient(0deg, rgba(110, 80, 40, .05) 0 2px, transparent 2px 7px), repeating-linear-gradient(90deg, rgba(110, 80, 40, .04) 0 3px, transparent 3px 11px); }
+h1, h2, h3, h4, .big, .winbar, .olh, .cath, .sph b { font-family: var(--disp); }
+h2, h3 { letter-spacing: .03em; }
+/* horní lišta a boční lišta: tmavý rám se zlatou linkou */
+header#top { background: linear-gradient(var(--frame2), var(--frame)); border-bottom: none; padding: 6px 12px 8px; position: relative; }
+header#top::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: linear-gradient(90deg, transparent, #b8913f 12%, #e0c070 50%, #b8913f 88%, transparent); }
+header#top .realm { font-family: var(--disp); font-size: 16px; letter-spacing: .04em; }
+header#top .realm small { font-family: "Palatino Linotype", Palatino, Georgia, serif; letter-spacing: 0; }
+.res { background: rgba(255, 255, 255, .05); border-color: rgba(224, 192, 112, .28); border-radius: 3px; }
+.speed .b { border-radius: 3px; }
+header#top button.main, button.main { border-radius: 4px; border: 1px solid #f0d68e; box-shadow: 0 1px 0 #5a3d14, 0 2px 8px rgba(0, 0, 0, .35); background: linear-gradient(#d9ad45, #a87a24); color: #1f1407; font-family: var(--disp); font-weight: 700; letter-spacing: .05em; text-shadow: 0 1px 0 rgba(255, 240, 190, .45); }
+button.main:hover:not(:disabled) { filter: brightness(1.08); } button.main:active { transform: translateY(1px); }
+nav#tabs { background: linear-gradient(90deg, #0f141d, #171b23); border-right: 1px solid #5d4c2c; }
+nav#tabs button { border-radius: 3px; color: #cfc4a8; }
+nav#tabs button:hover, nav#tabs button.on { background: rgba(224, 192, 112, .1); color: #f0d68e; border-color: #8a6a2a; }
+nav#tabs button.on { box-shadow: inset 2px 0 0 #e0c070; }
+nav#tabs button:hover span { background: #171b23; border-color: #8a6a2a; border-radius: 3px; font-family: var(--disp); }
+/* karty jako listy rukopisu: zlatá linka nahoře, rubrikovaný nadpis */
+.card { border-radius: 3px; border: 1px solid var(--line); border-top: 2px solid var(--gilt); box-shadow: var(--shadow); padding: 12px 14px;
+  background-image: radial-gradient(ellipse at 50% 0%, rgba(255, 250, 232, .5), transparent 70%); }
+.card h3 { font-size: 17px; color: var(--accent); border-bottom: none; padding-bottom: 6px; margin-bottom: 8px; background: linear-gradient(90deg, var(--gilt), transparent 85%) left bottom / 100% 1px no-repeat; }
+.card h3::before { content: "❦"; margin-right: 7px; color: var(--gilt); font-family: Georgia, serif; font-size: 14px; }
+.card h4 { font-size: 15px; color: var(--accent2); }
+th { background: transparent; font-variant: small-caps; letter-spacing: .04em; color: var(--muted); border-bottom: 2px solid var(--line); }
+tbody tr:nth-child(even) td { background: color-mix(in srgb, var(--panel2) 60%, transparent); }
+button.b { border-radius: 3px; padding: 3px 10px; border-color: color-mix(in srgb, var(--line) 70%, var(--ink)); background: linear-gradient(var(--btn), color-mix(in srgb, var(--btn) 88%, #000)); }
+button.b.go { background: linear-gradient(#3f7a5c, #2f6248); border-color: #1f4733; color: #fff; }
+button.b.on { background: linear-gradient(#e0c070, #b8913f); color: #1a120a; border-color: #f0d68e; }
+select, input { border-radius: 3px; background: var(--panel); }
+.tag, .pill, .chip { border-radius: 3px; }
+.bar, .bar > i, .meter .mt, .meter .mt i { border-radius: 2px; }
+.hint, .alert { border-radius: 0 3px 3px 0; }
+/* okna nad mapou */
+#win { background-color: var(--bg); border-left: 1px solid #5d4c2c; }
+.winbar { background: linear-gradient(var(--frame2), var(--frame)); border-bottom: none; position: relative; color: #f0d68e; font-size: 19px; letter-spacing: .05em; padding: 7px 14px 9px; }
+.winbar::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: linear-gradient(90deg, #e0c070, #b8913f 60%, transparent); }
+.winbar .b { border-radius: 3px; background: rgba(255, 255, 255, .06); border-color: rgba(224, 192, 112, .4); color: #efe6cf; }
+/* panely nad mapou: tmavé, se zlatým lemem */
+#side { background-color: var(--panel); border-left: 1px solid #5d4c2c; box-shadow: -4px 0 14px rgba(0, 0, 0, .35); }
+.olbox, .mlegend { background: rgba(22, 18, 13, .9); color: #efe6cf; border: 1px solid #5d4c2c; border-radius: 3px; box-shadow: 0 6px 22px rgba(0, 0, 0, .55); backdrop-filter: blur(4px); }
+.olh { color: #e3b060; font-size: 15px; letter-spacing: .05em; } .olt2 { color: #a99c82; } .olr:hover, .olr.sel { background: rgba(224, 192, 112, .14); }
+.olbox .muted { color: #a99c82; } .olbox .good { color: #8fcf8f; } .olbox .bad { color: #f08a78; } .olbox .b { background: linear-gradient(#332b20, #262018); border-color: #5d4c2c; color: #efe6cf; }
+.mmodes .b, .zoom .b { background: linear-gradient(#332b20, #1f1a13); color: #efe6cf; border-color: #5d4c2c; border-radius: 3px; box-shadow: 0 2px 6px rgba(0, 0, 0, .45); }
+.mmodes .b:hover:not(:disabled), .zoom .b:hover:not(:disabled) { background: #40362a; }
+.mmodes .b.on { background: linear-gradient(#e0c070, #b8913f); color: #1a120a; border-color: #f0d68e; }
+/* portréty a obrázky jako miniatury v rámu */
+svg.portrait { border-radius: 2px; border: 1px solid #3b1e10; box-shadow: 0 0 0 1px rgba(207, 159, 58, .6), 0 1px 3px rgba(0, 0, 0, .35); background: #e8dbbd; }
+.portrait.empty { border-radius: 2px; }
+svg.scene, .provart, .nomescene { border-radius: 2px; }
+.provart, .curtech, .law > svg.scene, .deed > svg.scene, .work > svg.scene { border: 1px solid #3b1e10; box-shadow: 0 0 0 1px rgba(207, 159, 58, .55); border-radius: 2px; }
+.curtech .ct { border-radius: 2px; background: rgba(244, 236, 216, .94); border: 1px solid var(--gilt); }
+.otile, .dtile, .ccard, .ttile, .gcard, .idea, .mis, .envoy, .law, .deed, .work { border-radius: 3px; }
+.otile.sel, .dtile.sel { border-color: var(--gilt); box-shadow: 0 0 0 2px var(--gilt) inset; }
+/* události: list s miniaturou a iniciálou */
+#modal { background: rgba(8, 6, 4, .66); }
+#modal .box { border-radius: 4px; border: 1px solid #8a6a2a; box-shadow: 0 0 0 1px #2a1c0e, 0 0 0 5px rgba(224, 192, 112, .12), 0 24px 70px rgba(0, 0, 0, .7); background-image: radial-gradient(ellipse at 50% 0%, rgba(255, 250, 232, .5), transparent 70%); }
+#modal h2 { font-size: 24px; color: var(--accent); margin-bottom: 6px; }
+#modal .evart { border-bottom: 2px solid var(--gilt); }
+#modal .evbody > h2 + p { text-align: justify; hyphens: auto; }
+#modal .evbody > h2 + p::first-letter { font-family: "Uncial Antiqua", var(--disp); font-size: 2.9em; float: left; line-height: .82; padding: 5px 7px 0 0; color: var(--accent); text-shadow: 1px 1px 0 var(--gold2); }
+#modal .ch { border-radius: 3px; border-left: 3px solid var(--gilt); padding: 8px 12px; }
+#modal .ch:hover:not(:disabled) { border-left-color: var(--accent); }
+.evport svg.portrait { border: 2px solid var(--panel); box-shadow: 0 0 0 1px #8a6a2a, 0 2px 6px rgba(0, 0, 0, .4); }
+#toast { border-radius: 3px; border: 1px solid #8a6a2a; background: #16120d; color: #efe6cf; font-family: var(--disp); letter-spacing: .03em; }
+/* úvodní obrazovka */
+#title { background: #100c08; }
+#title h1 { font-family: "Uncial Antiqua", var(--disp); font-weight: 400; letter-spacing: .06em; color: #e8c66a; text-shadow: 0 2px 0 #000, 0 0 34px rgba(226, 194, 122, .35); }
+.tsub { font-family: var(--disp); font-size: 22px; }
+.b.big { border-radius: 4px; font-family: var(--disp); letter-spacing: .05em; }
+#title .b { border-radius: 3px; background: linear-gradient(#332b20, #1f1a13); border-color: #8a6a2a; }
+#title .b.go { background: linear-gradient(#d9ad45, #a87a24); color: #1f1407; border-color: #f0d68e; font-weight: 700; }
+.scard, .ctile { border-radius: 4px; border-width: 1px; } .scard:hover { transform: translateY(-2px); } .scard { transition: transform .12s; }
+.scard b, .ctile b { font-family: var(--disp); font-size: 16px; letter-spacing: .03em; }
+.plot, .dicebox { border-radius: 3px; }
+.lopt { border-radius: 3px; } .lopt.on { border-color: var(--gilt); box-shadow: 0 0 0 2px var(--gilt) inset; }
+.log div, .lg { border-bottom-style: solid; border-bottom-color: color-mix(in srgb, var(--line) 50%, transparent); }
+@media (max-width: 900px) { nav#tabs { border-right: none; border-bottom: 1px solid #5d4c2c; } nav#tabs button.on { box-shadow: inset 0 -2px 0 #e0c070; } #side { border-left: none; border-top: 1px solid #5d4c2c; box-shadow: none; } }
+.tbg.real { opacity: 1; background: #1a140c center 38% / cover no-repeat; }
+.tbg.real::after { content: ""; position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 30%, rgba(10, 8, 5, .5), rgba(10, 8, 5, .78) 60%, #100c08 100%); }
+.tcrest { margin: 0 auto -6px; } svg.map.eu.rosebig { width: 84px; height: 88px; background: none !important; display: inline-block; }
+#title .tcontent:not(.wide) { margin-top: 12vh; padding: 28px 30px 34px; background: rgba(16, 12, 8, .55); border: 1px solid #8a6a2a; box-shadow: 0 0 0 1px #2a1c0e, 0 0 0 6px rgba(224, 192, 112, .1), 0 20px 60px rgba(0, 0, 0, .6); border-radius: 4px; backdrop-filter: blur(3px); }
+.tnote { font-style: italic; }
+@media (max-width: 900px) { .mapsrc { display: none; } #title .tcontent:not(.wide) { margin: 6vh 12px 0; padding: 20px 16px 24px; } }

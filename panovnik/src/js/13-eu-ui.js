@@ -55,7 +55,7 @@ const MAPNAME = { premysl: "Čechy", arpad: "Uhry", wittL: "Dolní Bavorsko", wi
 const mapName = C => (MAPNAME[C.id] || C.n.replace(/^(Panství|Úděl) /, "")).toUpperCase();
 const MW = 720, MH = 570;
 const MX = lon => (lon - 6.6) * 38, MY = lat => (55.1 - lat) * 60;
-function clampView() { const v = SEL.view; v.w = clamp(v.w, 110, MW); v.h = v.w * MH / MW; v.x = clamp(v.x, -40, MW - v.w + 40); v.y = clamp(v.y, -40, MH - v.h + 40); }
+function clampView() { const v = SEL.view; v.w = clamp(v.w, 110, MW); v.h = v.w * MH / MW; v.x = clamp(v.x, -30, MW - v.w + 30); v.y = clamp(v.y, -30, MH - v.h + 30); }
 function provColor(p, mode) {
   const C = S.clans[p.owner]; let c = hexRgb(C.col), a = 150;
   switch (mode) {
@@ -71,73 +71,7 @@ function provColor(p, mode) {
   }
   return [c, a];
 }
-let EUTERR = { key: null, url: null };
 function pointInPoly(x, y, pts) { let ins = false; for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) { const [xi, yi] = pts[i], [xj, yj] = pts[j]; if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) ins = !ins; } return ins; }
-function euTerrain(mode) {
-  const key = mode + "|" + Object.values(S.provs).map(p => p.owner + (p.occ || "") + (mode === "spokoj" ? Math.round(p.loy / 10) : mode === "rozvoj" ? Math.round(dev(p) / 20) : mode === "jadra" ? p.cores.join() : mode === "vira" ? p.rel : "")).join(",") + (mode === "vztahy" ? S.turn : "");
-  if (EUTERR.key === key) return EUTERR.url;
-  if (typeof document === "undefined") return "";
-  const sc = 1.5, w = Math.round(MW / sc), h = Math.round(MH / sc), ps = Object.values(S.provs), n = ps.length;
-  const px = ps.map(p => MX(p.lon) / sc), py = ps.map(p => MY(p.lat) / sc), idx = new Int16Array(w * h), lim = (60 / sc) ** 2;
-  const seas = SEAS.map(poly => poly.map(([lo, la]) => [MX(lo) / sc, MY(la) / sc])), lakes = LAKES.map(([lo, la, rx, ry]) => [MX(lo) / sc, MY(la) / sc, rx * 38 / sc, ry * 60 / sc]);
-  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
-    if (seas.some(poly => pointInPoly(x, y, poly)) || lakes.some(([cx, cy, rx, ry]) => ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 < 1)) { idx[y * w + x] = -2; continue; }
-    let best = -1, bd = lim; const jx = x + Math.sin(y * 0.3) * 1.4, jy = y + Math.cos(x * 0.27) * 1.4;
-    for (let i = 0; i < n; i++) { const dx = px[i] - jx, dy = py[i] - jy, d = dx * dx + dy * dy; if (d < bd) { bd = d; best = i; } }
-    idx[y * w + x] = best;
-  }
-  const cols = ps.map(p => provColor(p, mode)), own = ps.map(p => p.owner), occ = ps.map(p => p.occ ? hexRgb(S.clans[p.occ].col) : null);
-  const cv = document.createElement("canvas"); cv.width = w; cv.height = h; const ctx = cv.getContext("2d"), img = ctx.createImageData(w, h), D = img.data;
-  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
-    const k = y * w + x, i = idx[k], o = k * 4, noise = ((x * 73856093 ^ y * 19349663) & 15) - 8;
-    if (i === -2) { const shore = [idx[k - 1], idx[k + 1], idx[k - w], idx[k + w]].some(j => j >= 0 || j === -1); D[o] = shore ? 120 : 132 + noise / 2; D[o + 1] = shore ? 160 : 170 + noise / 2; D[o + 2] = shore ? 180 : 196 + noise / 2; D[o + 3] = 255; continue; }
-    if (i === -1) { D[o] = 214 + noise; D[o + 1] = 202 + noise; D[o + 2] = 170 + noise; D[o + 3] = 255; if ((x + y) % 7 === 0) { D[o] -= 25; D[o + 1] -= 25; D[o + 2] -= 25; } continue; }
-    const nb = [x > 0 ? idx[k - 1] : -1, x < w - 1 ? idx[k + 1] : -1, y > 0 ? idx[k - w] : -1, y < h - 1 ? idx[k + w] : -1];
-    const realm = nb.some(j => j >= 0 && j !== i && own[j] !== own[i]) && mode !== "teren", prov = nb.some(j => j >= 0 && j !== i);
-    let [c, a] = cols[i];
-    if (occ[i] && mode === "polit" && ((x + y) >> 2) % 2 === 0) c = occ[i];
-    const base = [222 + noise, 210 + noise, 178 + noise], f = a / 255;
-    let r = base[0] * (1 - f) + c[0] * f, g = base[1] * (1 - f) + c[1] * f, b = base[2] * (1 - f) + c[2] * f;
-    if (realm) { r *= 0.35; g *= 0.35; b *= 0.35; } else if (prov) { r *= 0.8; g *= 0.8; b *= 0.8; }
-    D[o] = r; D[o + 1] = g; D[o + 2] = b; D[o + 3] = 255;
-  }
-  ctx.putImageData(img, 0, 0);
-  EUTERR = { key, url: cv.toDataURL() };
-  return EUTERR.url;
-}
-const ll = ([lo, la]) => `${MX(lo).toFixed(1)},${MY(la).toFixed(1)}`;
-function mapDecor(z, mode) {
-  let o = RIVERS.map(([n, pts]) => `<polyline points="${pts.map(ll).join(" ")}" class="river" style="stroke-width:${(1.6 * Math.max(z, 0.5)).toFixed(2)}"><title>${n}</title></polyline>`).join("");
-  if (mode === "polit" || mode === "teren") {
-    for (const [n, pts] of RANGES) { for (let i = 1; i < pts.length; i++) { const [a, b] = [pts[i - 1], pts[i]].map(q => [MX(q[0]), MY(q[1])]); const L = Math.hypot(b[0] - a[0], b[1] - a[1]), k = Math.max(1, Math.round(L / 11)); for (let j = 0; j < k; j++) { const x = a[0] + (b[0] - a[0]) * j / k + ((j * 7) % 5 - 2), y = a[1] + (b[1] - a[1]) * j / k + ((j * 11) % 5 - 2); o += `<path d="M${(x - 5).toFixed(1)} ${(y + 3).toFixed(1)} L${x.toFixed(1)} ${(y - 5).toFixed(1)} L${(x + 5).toFixed(1)} ${(y + 3).toFixed(1)}" class="mtn"/>`; } } }
-    for (const p of Object.values(S.provs)) if (p.ter === "l" || p.ter === "b") { const x = MX(p.lon), y = MY(p.lat); for (const [dx, dy] of [[-12, 8], [10, 10], [-4, 14]]) o += p.ter === "l" ? `<path d="M${x + dx} ${y + dy} l3 -7 l3 7z M${x + dx + 3} ${y + dy} v2" class="tree"/>` : `<path d="M${x + dx} ${y + dy} h6 M${x + dx + 1} ${y + dy + 2} h4" class="marsh"/>`; }
-  }
-  return o;
-}
-function mapView() {
-  if (!SEL.view) SEL.view = { x: 0, y: 0, w: MW, h: MH };
-  const v = SEL.view, z = v.w / MW, mode = SEL.mode || "polit", ps = Object.values(S.provs);
-  let nodes = "", labels = "", names = "", arm = "", arrows = "", routes = "";
-  for (const c of aliveClans(S)) { const cp = clanProvs(S, c.id); if (cp.length < 2) continue; const x = sum(cp.map(p => MX(p.lon))) / cp.length, y = sum(cp.map(p => MY(p.lat))) / cp.length; const fs = clamp(5 + Math.sqrt(cp.length) * 3.2, 7, 20) * Math.max(0.55, z); names += `<text x="${x.toFixed(0)}" y="${y.toFixed(0)}" class="realmname" style="font-size:${fs.toFixed(1)}px" text-anchor="middle">${esc(mapName(c))}</text>`; }
-  for (const p of ps) {
-    const x = MX(p.lon), y = MY(p.lat), C = S.clans[p.owner], selp = p.id === SEL.prov, r = (2 + p.castle * 0.8) * Math.max(0.6, z);
-    nodes += `<g class="pv${selp ? " sel" : ""}" data-a="prov" data-x='["${p.id}"]'><title>${esc(p.n)} – ${esc(C.house)}${p.occ ? `, obsazeno: ${esc(S.clans[p.occ].house)}` : ""}</title><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(12 * Math.max(0.5, z)).toFixed(1)}" class="hit"/>${C.capital === p.id ? `<path transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${Math.max(0.6, z).toFixed(2)})" d="M-5 3 v-6 l2.5 2 l2.5 -4 l2.5 4 l2.5 -2 v6z" class="capm"/>` : `<rect x="${(x - r).toFixed(1)}" y="${(y - r).toFixed(1)}" width="${(2 * r).toFixed(1)}" height="${(2 * r).toFixed(1)}" class="castle"/>`}${p.siege ? `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(9 * Math.max(0.6, z)).toFixed(1)}" class="siege"/>` : ""}${selp ? `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(13 * Math.max(0.5, z)).toFixed(1)}" class="selring"/>` : ""}</g>`;
-    if (z < 0.7 || p.v >= 4 || selp || C.capital === p.id) labels += `<text x="${(x + 6 * Math.max(0.5, z)).toFixed(1)}" y="${(y + 3 * z).toFixed(1)}" class="lbl" style="font-size:${(8.5 * Math.max(0.45, z)).toFixed(2)}px">${esc(p.n.split(" a ")[0].replace("Vídeňské Nové Město", "Vídeň. N. Město").replace("Vladimir Volyňský", "Vladimir"))}</text>`;
-  }
-  if (mode === "obchod" || SEL.routes) for (const R of ROUTES) routes += `<polyline points="${R.provs.map(id => `${MX(S.provs[id].lon).toFixed(1)},${MY(S.provs[id].lat).toFixed(1)}`).join(" ")}" class="route${routeState(S, R) < 0.6 ? " cut" : ""}" stroke="${R.col}" style="stroke-width:${(3.5 * Math.max(0.5, z)).toFixed(1)}"><title>${esc(R.n)} – průchodnost ${Math.round(routeState(S, R) * 100)} %</title></polyline>`;
-  const byLoc = {};
-  for (const a of S.armies) { const own = a.cl === me(); if (!own && !knows(S, S.provs[a.loc])) continue; (byLoc[a.loc] = byLoc[a.loc] || []).push(a);
-    if (a.path && a.path.length && (own || atWar(S, me(), a.cl))) arrows += `<polyline points="${[a.loc, ...a.path].map(id => `${MX(S.provs[id].lon).toFixed(1)},${MY(S.provs[id].lat).toFixed(1)}`).join(" ")}" class="march ${own ? "own" : "foe"}" style="stroke-width:${(2.4 * Math.max(0.5, z)).toFixed(1)}" marker-end="url(#${own ? "arO" : "arF"})"/>`; }
-  const k = Math.max(0.55, z);
-  for (const [loc, list] of Object.entries(byLoc)) list.forEach((a, i) => { const p = S.provs[loc], own = a.cl === me(), x = MX(p.lon) - 13 * k + i * 5 * k, y = MY(p.lat) - 19 * k - i * 4 * k, n = men(a.t), txt = n >= 1000 ? r1(n / 1000) + "k" : String(Math.round(n / 100) * 100);
-    arm += `<g class="atok${own ? " own" : ""}${SEL.armySel === a.id ? " sel" : ""}${atWar(S, me(), a.cl) ? " foe" : ""}" data-a="${own ? "selArmy" : "prov"}" data-x='["${own ? a.id : loc}"]' transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${k.toFixed(2)})"><title>${esc(S.clans[a.cl].house)}: ${fmt(n)} mužů${a.cmds.length ? ", " + esc(chr(S, a.cmds[0]).n) : ""}</title><rect width="27" height="11" rx="2" fill="${S.clans[a.cl].col}"/><rect width="27" height="2" y="9" class="mor" style="width:${(clamp(a.morale, 0, 100) * 0.27).toFixed(1)}px"/><text x="13.5" y="8" text-anchor="middle">${txt}</text></g>`; });
-  return `<svg id="msvg" viewBox="${v.x.toFixed(1)} ${v.y.toFixed(1)} ${v.w.toFixed(1)} ${v.h.toFixed(1)}" class="map eu" role="img" aria-label="Mapa střední Evropy">
-    <defs><marker id="arO" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" class="mo"/></marker><marker id="arF" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" class="mf"/></marker></defs>
-    <pattern id="snowp" width="14" height="14" patternUnits="userSpaceOnUse"><circle cx="3" cy="4" r="1" fill="#fff"/><circle cx="10" cy="10" r="1.3" fill="#fff"/></pattern>
-    <rect x="-200" y="-200" width="${MW + 400}" height="${MH + 400}" class="sea"/><image href="${euTerrain(mode)}" width="${MW}" height="${MH}" preserveAspectRatio="none"/>${seasonOverlay()}${weatherOverlay()}${mapDecor(z, mode)}${routes}${names}${nodes}${plagueIcons(z)}${arrows}${arm}${labels}</svg>
-    <div class="mmodes">${MAPMODES.map(([k, n]) => btn(n, "mode", [k], null, mode === k ? "on" : "")).join("")}${mode !== "obchod" ? btn(SEL.routes ? "Cesty ✓" : "Cesty", "routes", [], null, SEL.routes ? "on" : "") : ""}</div>
-    <div class="zoom">${btn("+", "zoom", [0.7])}${btn("−", "zoom", [1.4])}${btn("⌂", "zoomReset")}</div>${mapLegend(mode)}`;
-}
 function mapLegend(mode) {
   const L = { teren: Object.entries(TERRAIN).map(([k, T]) => [TERRAIN_COL[k], T.n]), kultura: Object.entries(CULTURES).map(([k, c]) => [CULT_COL[k], c.n]), vira: Object.entries(RELIGIONS).map(([k, r]) => [r.col, r.n]),
     vztahy: [["#e6be3c", "ty"], ["#3ca046", "spojenec"], ["#6eaadc", "vazal"], ["#c83228", "válka"], ["#9696be", "příměří"]], jadra: [["#469646", "začleněný"], ["#e68c28", "nezačleněný"], ["#e6c83c", "tvůj nárok"], ["#c85a3c", "tvé jádro u cizích"]],
@@ -149,7 +83,7 @@ function centerOn(pid) { const p = S.provs[pid], v = SEL.view; if (!p) return; v
 let DRAG = null;
 function bindMap() {
   const svg = $("#msvg"); if (!svg) return;
-  svg.addEventListener("wheel", e => { e.preventDefault(); const r = svg.getBoundingClientRect(), v = SEL.view; zoomBy(e.deltaY < 0 ? 0.8 : 1.25, v.x + (e.clientX - r.left) / r.width * v.w, v.y + (e.clientY - r.top) / r.height * v.h); $("#mapwrap").innerHTML = mapView(); bindMap(); }, { passive: false });
+  svg.addEventListener("wheel", e => { e.preventDefault(); const r = svg.getBoundingClientRect(), v = SEL.view; zoomBy(e.deltaY < 0 ? 0.8 : 1.25, v.x + (e.clientX - r.left) / r.width * v.w, v.y + (e.clientY - r.top) / r.height * v.h); const v2 = SEL.view; svg.setAttribute("viewBox", `${v2.x.toFixed(1)} ${v2.y.toFixed(1)} ${v2.w.toFixed(1)} ${v2.h.toFixed(1)}`); const d = $("#mdyn"); if (d) d.innerHTML = mapDyn(); }, { passive: false });
   svg.addEventListener("pointerdown", e => { DRAG = { x: e.clientX, y: e.clientY, v: Object.assign({}, SEL.view), moved: false, id: e.pointerId }; });
   svg.addEventListener("pointermove", e => { if (!DRAG) return; const dx = e.clientX - DRAG.x, dy = e.clientY - DRAG.y; if (!DRAG.moved && Math.abs(dx) + Math.abs(dy) < 5) return; DRAG.moved = true; const r = svg.getBoundingClientRect(), kk = DRAG.v.w / r.width; SEL.view = Object.assign({}, DRAG.v, { x: DRAG.v.x - dx * kk, y: DRAG.v.y - dy * kk }); clampView(); const v = SEL.view; svg.setAttribute("viewBox", `${v.x} ${v.y} ${v.w} ${v.h}`); });
 }

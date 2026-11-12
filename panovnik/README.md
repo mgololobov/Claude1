@@ -91,10 +91,20 @@ Je to samostatný projekt, s Herní dílnou (`herni-dilna/`) nesdílí žádný 
 - **Řetězové události** (průzkum stříbra s výsledkem za čtyři měsíce, nemoc dědice) a další náhodné příhody: padělaná listina dávající nárok na sousední kraj, samozvanec, cizí šampion, kámen z nebe, valdenští, obvinění z čarodějnictví, kolo Štěstěny, bouře ve městě…
 - **Další historické mezníky**: sjezd ve Visegrádu 1335, začátek války Anglie s Francií 1337, povodeň 1342, zemětřesení v Basileji 1356 a velké schizma 1378.
 
+## Mapa ze skutečných podkladů a středověký vzhled
+
+- **Pobřeží, ostrovy, jezera a řeky** jsou z dat Natural Earth v měřítku 1 : 10 000 000 (volné dílo). Na mapě je tak skutečný tvar Baltu s Rujánou, Bornholmem, Helskou kosou a Viselským zálivem i skutečné toky Dunaje, Labe, Vltavy, Odry, Visly, Rýna a jejich přítoků.
+- **Reliéf** je stínovaný výškový model Terrarium (z měření SRTM a GMTED2010) v síti asi po 4,7 km: Alpy, Karpaty, Šumava, Krušné hory, Sudety i Česká kotlina jsou tam, kde opravdu leží.
+- Území rodů jsou nad reliéfem jen barevným tónem se zvýrazněnou hranicí. Sídla mají kartografické značky: sídlo rodu, město, hrad a ves. Na Baltu je větrná růžice a kogy.
+- **Co skutečné není:** je to dnešní pobřeží a dnešní toky řek (ve 13. století se místy lišily, například ústí Visly). Z dat byly vyřazeny novodobé přehrady a kanály. Hranice krajů jsou herní – kraj tvoří okolí svého sídla – a neodpovídají historickým hranicím panství.
+- **Vzhled** vychází z iluminovaných rukopisů: pergamenové listy, rumělkové rubriky nadpisů, zlacené linky, iniciála na začátku textu události. Barvy odpovídají středověkým pigmentům (železoduběnkový inkoust, rumělka, azurit, měděnka, plátkové zlato). Obrázky mají místo oblohy modré pozadí se zlatým kosočtvercovým vzorem jako gotické miniatury.
+- Písma Almendra (nadpisy, popisky mapy) a Uncial Antiqua (iniciály, název) jsou vložena přímo do souboru hry; obě mají licenci SIL OFL.
+- Podklady se znovu vytvoří příkazem `python3 tools/geo.py <složka s geojson Natural Earth> <složka s dlaždicemi výšek>`.
+
 ## Struktura
 
 ```
-src/js/01b-eu.js       kultury, víra, ideje, úkoly, záminky, řeky, moře a pohoří
+src/js/01b-eu.js       kultury, víra, ideje, úkoly, záminky, popisky pohoří
 src/js/01-data.js      pravidla a číselníky (terén, vojsko, hodnosti, rozkazy, stavby, objevy, zákony, jména)
 src/js/02-world.js     kraje, rody a historické postavy roku 1256
 src/js/02b-scenarios.js scénáře 1260 a 1273
@@ -112,7 +122,12 @@ src/js/11-gfx.js       grafika: erby, politická mapa, grafy, pruhy, ikony
 src/js/12-ui-ext.js    plán měsíce, bojová obrazovka, úřady, obchodní cesty
 src/js/14-art.js       portréty, ilustrace událostí, kresba kraje, scéna bitvy
 src/js/15-ui-cards.js  karty s portréty, ilustrované události, úvodní obrazovka
-src/js/13-eu-ui.js     mapa jako hlavní obrazovka, mapové režimy, boční panel, lišta, okno Vláda
+src/js/13-eu-ui.js     hlavní obrazovka, mapové režimy, boční panel, lišta, okno Vláda
+src/js/11a-geo.js      zeměpisné podklady mapy (vytváří tools/geo.py)
+src/js/13b-map.js      vykreslení mapy: reliéf, pobřeží, řeky, území rodů, značky sídel
+src/fonts.css          vložená písma (vytváří tools/fonts.py)
+tools/geo.py           příprava podkladů z Natural Earth a výškového modelu
+tools/fonts.py         vložení písem Almendra a Uncial Antiqua
 ```
 
 ## Sestavení a testy

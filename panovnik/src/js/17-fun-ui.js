@@ -30,7 +30,7 @@ function ambDetail(c) {
 }
 function seasonOverlay() {
   const m = S.month;
-  if ([11, 0, 1].includes(m)) return `<rect width="${MW}" height="${MH}" fill="#ffffff" opacity=".22" pointer-events="none"/><rect width="${MW}" height="${MH}" fill="url(#snowp)" opacity=".55" pointer-events="none"/>`;
+  if ([11, 0, 1].includes(m)) return `<rect width="${MW}" height="${MH}" fill="#ffffff" opacity=".16" pointer-events="none"/><rect width="${MW}" height="${MH}" fill="url(#snowp)" opacity=".22" pointer-events="none"/>`;
   if ([9, 10].includes(m)) return `<rect width="${MW}" height="${MH}" fill="#c8741a" opacity=".08" pointer-events="none"/>`;
   if ([5, 6, 7].includes(m)) return `<rect width="${MW}" height="${MH}" fill="#f6e08a" opacity=".06" pointer-events="none"/>`;
   return "";

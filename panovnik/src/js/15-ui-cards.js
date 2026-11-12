@@ -151,7 +151,7 @@ function titleScreen() {
   const T = SEL.title; if (!T) return "";
   const sc = T.scen || 1256, list = T.step >= 2 ? scenInfo(sc) : [];
   const hard = n => n >= 10 ? ["snadné", "good"] : n >= 4 ? ["střední", "warn"] : ["těžké", "bad"];
-  if (T.step === 1) return `<div class="tbg">${scene("valka", 1200, 340)}</div><div class="tcontent"><h1>Panovník</h1><p class="tsub">Koruny a meče střední Evropy · 1256–1400</p>
+  if (T.step === 1) return `<div class="tbg real"${baseMap() ? ` style="background-image:url(${baseMap().url})"` : ""}></div><div class="tcontent"><div class="tcrest">${compassRoseSvg()}</div><h1>Panovník</h1><p class="tsub">Koruny a meče střední Evropy · 1256–1400</p>
     <div class="tbtns">${btn("Pokračovat ve hře", "titleClose", [], null, "big go")}${btn("Nová hra", "titleStep", [2], null, "big")}</div>
     <p class="small tnote">Vládni rodu Přemyslovců, Habsburků, Arpádovců či Piastovců. Rozšiřuj panství, uzavírej sňatky, veď vojska a usiluj o královskou nebo císařskou korunu.</p></div>`;
   return `<div class="tcontent wide"><div class="row"><h2>Nová hra</h2><span class="sp"></span>${btn("Zpět", "titleStep", [1])}</div>
@@ -162,7 +162,7 @@ function titleScreen() {
 Object.assign(ACT, {
   titleClose: () => { SEL.title = null; }, titleStep: n => { SEL.title.step = n; }, titleScen: k => { SEL.title.scen = +k; SEL.title.clan = "premysl"; }, titleClan: id => { SEL.title.clan = id; },
   titleDiff: v => { SEL.title.diff = +v; }, titleFog: v => { SEL.title.fog = !!v; }, openTitle: () => { SEL.title = { step: 1 }; },
-  titleStart: () => { const T = SEL.title; S = newGame({ clan: T.clan || "premysl", scen: T.scen || 1256, diff: T.diff != null ? T.diff : 1, fog: T.fog !== false }); TAB = "mapa"; SEL.prov = P(S).capital; SEL.view = null; centerOnStart(); SEL.title = null; EUTERR.key = null; },
+  titleStart: () => { const T = SEL.title; S = newGame({ clan: T.clan || "premysl", scen: T.scen || 1256, diff: T.diff != null ? T.diff : 1, fog: T.fog !== false }); TAB = "mapa"; SEL.prov = P(S).capital; SEL.view = null; centerOnStart(); SEL.title = null; OVER_.key = null; },
 });
 function centerOnStart() { SEL.view = { x: 0, y: 0, w: 430, h: 430 * MH / MW }; centerOn(P(S).capital); }
 function renderTitle() {

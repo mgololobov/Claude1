@@ -9,7 +9,7 @@ def bundle_js():
 
 def build(out=os.path.join(ROOT, "dist", "index.html")):
     page = open(os.path.join(ROOT, "src", "page.html"), encoding="utf-8").read()
-    css = open(os.path.join(ROOT, "src", "styles.css"), encoding="utf-8").read()
+    css = "".join(open(os.path.join(ROOT, "src", f), encoding="utf-8").read() for f in ("fonts.css", "styles.css"))
     html = page.replace("<!-- STYLY -->", "<style>\n" + css + "</style>").replace("<!-- SKRIPTY -->", '<script>\n"use strict";\n' + bundle_js() + "</script>")
     os.makedirs(os.path.dirname(out), exist_ok=True)
     open(out, "w", encoding="utf-8").write(html)
